@@ -1,11 +1,47 @@
 
-This is a highly experimental tree-based writing interface for GPT-3. The code is very unstable and poorly documented.
+This is an experimental tree-based writing interface for GPT-3. The code is actively being developed and thus 
+unstable and poorly documented.
 
-abandon hope all ye who enter here
+# Features
+
+* Read mode
+   * Linear story view
+   * Tree nav bar
+   * Edit mode
+   
+   
+* Tree view
+   * Explore tree visually with mouse
+   * Expand and collapse nodes
+   * Change tree topology
+   * Edit nodes in place
+   
+   
+* Navigation
+   * Hotkeys
+   * Bookmarks
+   * Chapters
+   * 'Visited' state   
+   
+
+* Generation
+   * Generate N children with GPT-3
+   * Modify generation settings 
+   * Change hidden memory on a node-by-node basis
+   
+
+* File I/O
+   * Open/save trees as JSON files 
+   * Work with trees in multiple tabs
+   * Combine trees
+   
 
 # Demo
 
-Screenshots here
+![](static/readme/read-view.png)
+![](static/readme/read-view-light.png)
+![](static/readme/tree-view.png)
+![](static/readme/tree-view-light.png)
 
 ooo what features! wow so cool
 
