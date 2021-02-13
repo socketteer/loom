@@ -5,11 +5,11 @@ from pprint import pprint
 
 from celery import Celery
 import openai
+from util.util import retry
 
 #################################
 #   Janus
 #################################
-from util.util import retry
 
 redis_url = os.environ.get("JANUS_REDIS", None)
 app = Celery(

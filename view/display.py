@@ -4,9 +4,9 @@ from tkinter.font import Font
 
 import PIL
 
-from tree_vis import TreeVis
+from view.tree_vis import TreeVis
 from util.custom_tks import TextAware, ScrollableFrame
-from colors import bg_color, text_color, edit_color
+from view.colors import bg_color, text_color, edit_color
 from util.util import metadata
 
 
@@ -19,14 +19,17 @@ class Display:
         self.vis_settings = vis_settings
         self.state = state
 
-        self.frame = ttk.Frame(self.root)
-        self.frame.pack(expand=True, fill="both")
-
         self.modes = {"Read", "Edit", "Multi Edit", "Visualize"}
         self.mode = "Read"
 
+        self.frame = ttk.Frame(self.root)
+        self.frame.pack(expand=True, fill="both")
+
         # Variables initialized below
+        self.pane = None
+
         self.nav_frame = None
+        self.nav_pane = None
         self.nav_tree = None
         self.nav_scrollbarx = None
 
@@ -56,7 +59,7 @@ class Display:
         self.set_mode(self.mode)
 
 
-        #################################
+    #################################
     #   Util
     #################################
 
@@ -66,10 +69,10 @@ class Display:
         return name + display_key
 
 
-    # TODO make a decorator which automatically caches default=CACHE args. None should be a cachable value
+    # TODO make a decorator which automatically caches default=CACHE args. None should be a cacheable value
     # Caches param arguments so repeated calls will use the same args unless overridden
-    @metadata(first_call=True, arguments={})
-    def build_button(self, frame, name, button_params=None, pack_params=None):
+    @metadata(first_call=True, args={})
+    def build_button(self, frame, name, button_params=None, pack_params=None, pack=True):
         if not self.build_button.meta["first_call"]:
             if button_params is None:
                 button_params = self.build_button.meta["args"]["button_params"]
@@ -87,9 +90,9 @@ class Display:
         ), **(button_params if button_params else {})}
         button = ttk.Button(frame, **button_params)
 
-        button.pack(**{**dict(side="left", fill="y"), **(pack_params if pack_params else {})})
+        if pack:
+            button.pack(**{**dict(side="left", fill="y"), **(pack_params if pack_params else {})})
         return button
-
 
     #################################
     #   Display
@@ -102,11 +105,14 @@ class Display:
 
 
     def build_display(self, frame):
-        self.build_nav(frame)
-        self.nav_frame.pack(expand=False, fill='both', side='left', anchor='nw')
+        self.pane = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)
+        self.pane.pack(expand=True, fill="both")
 
-        self.build_main_frame(frame)
-        self.main_frame.pack(expand=True, fill='both', side='right', anchor="ne")
+        self.build_nav(self.pane)
+        self.pane.add(self.nav_frame, weight=1)
+
+        self.build_main_frame(self.pane)
+        self.pane.add(self.main_frame, weight=6)
 
 
     #################################
@@ -180,7 +186,7 @@ class Display:
             # ["Newline"],
             # ["Space"],
             # ["Copy"],
-            ["New Child"],
+            ["New Child", {}],
             ["Generate"],
             # Navigation on the right
             ["Next", {}, dict(side="right")],
@@ -199,72 +205,57 @@ class Display:
 
     def build_nav(self, frame):
         self.nav_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
+        self.nav_pane = ttk.PanedWindow(self.nav_frame, height=500, width=300)
+        self.nav_pane.pack(expand=True, fill='both')
 
-        # Tree
-        self.build_tree(self.nav_frame)
-        self.nav_tree.pack(expand=True, fill='both', side='top', anchor='nw')
+        # Tree nav
+        self._build_treeview(self.nav_frame, "nav_tree", "nav_scrollbarx", "nav_scrollbary")
+        self.nav_pane.add(self.nav_tree, weight=3)
+        # Chapter nav
+        self._build_treeview(self.nav_frame, "chapter_nav_tree")
+        self.nav_pane.add(self.chapter_nav_tree, weight=1)
 
+        # Make display nav (but not chapter) selection update real selection (e.g. arrow keys
+        f = self.callbacks["Nav Select"]["callback"]
+        self.nav_tree.bind("<<TreeviewSelect>>", lambda event: f(node_id=(self.nav_tree.selection()[0])))
+        # Make nav and chapter clicks update real selection
+        self.nav_tree.bind(
+            "<Button-1>", lambda event: f(node_id=self.nav_tree.identify('item', event.x, event.y))
+        )
+        self.chapter_nav_tree.bind(
+            "<Button-1>", lambda event: f(node_id=self.chapter_nav_tree.identify('item', event.x, event.y))
+        )
 
         # File controls
         buttons = [
-            ["Save", dict(width=30), dict(side="bottom", fill="x")],
-            ["Open"],
-            ["Clear chapters"]
+            ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
+            ["Save", dict(width=15), dict(fill="x")],#, dict(side="bottom", fill="x")],
+            ["Open", dict(width=15), dict(fill="x")],#, dict(side="bottom", fill="x")],
         ]
         for btn in buttons:
             self.build_button(self.nav_frame, *btn)
 
-        # Chapter tree below nav tree
-        self.build_chapter_nav(self.nav_frame)
-        #self.chapter_nav_frame.pack(expand=True, fill='both', side='bottom', anchor="se")
-        self.chapter_nav_frame.pack(expand=True, fill='both', side='bottom', anchor="se")
 
-
-    def build_chapter_nav(self, frame):
-        self.chapter_nav_frame = ttk.Frame(frame, height=400, width=300, relief='sunken', borderwidth=2)
-        self.build_chapter_tree(self.chapter_nav_frame)
-        self.chapter_nav_tree.pack(expand=True, fill='both', side='top', anchor='se')
-
-    # TODO Fix styling, these should be adjustable height, default to smaller chapter nav
-    # TODO Reduce duplication of these two methods
-    # TODO make a scrollable navtree. Ah fuck it scrollable obj
-    def build_tree(self, frame):
+    # # TODO make a scrollable obj so I don't have to keep doing this
+    def _build_treeview(self, frame, tree_attr, scrollbarx_attr=None, scrollbary_attr=None):
         style = ttk.Style(frame)
         style.configure('Treeview', rowheight=25)  # Spacing between rows
-        self.nav_tree = ttk.Treeview(frame, selectmode="browse", padding=(0, 0, 0, 1))
+        tree = ttk.Treeview(frame, selectmode="browse", padding=(0, 0, 0, 1))
+        self.__setattr__(tree_attr, tree)
 
-        # Nav tree scrollbar
-        self.nav_scrollbary = ttk.Scrollbar(self.nav_tree, orient="vertical", command=self.nav_tree.yview)
-        self.nav_scrollbary.pack(side="left", fill="y")
-        self.nav_tree.configure(yscrollcommand=self.nav_scrollbary.set)
+        # Scrollbars
+        scrollbary = ttk.Scrollbar(tree, orient="vertical", command=tree.yview)
+        scrollbary.pack(side="left", fill="y")
+        tree.configure(yscrollcommand=scrollbary.set)
+        if scrollbary_attr is not None:
+            self.__setattr__(scrollbary_attr, scrollbary)
 
-        self.nav_scrollbarx = ttk.Scrollbar(self.nav_tree, orient="horizontal", command=self.nav_tree.xview)
-        self.nav_tree.configure(xscrollcommand=self.nav_scrollbarx.set)
-        self.nav_scrollbarx.pack(side='bottom', fill='x')
+        scrollbarx = ttk.Scrollbar(tree, orient="horizontal", command=tree.xview)
+        scrollbarx.pack(side='bottom', fill='x')
+        tree.configure(xscrollcommand=scrollbarx.set)
+        if scrollbarx_attr is not None:
+            self.__setattr__(scrollbarx_attr, scrollbarx)
 
-        # Nav bar click listener. Must be done here because we need event data
-        f = self.callbacks["Nav Select"]["callback"]
-        self.nav_tree.bind("<Button-1>", lambda event: f(node_id=self.nav_tree.identify('item', event.x, event.y)))
-        self.nav_tree.bind("<<TreeviewSelect>>", lambda event: f(node_id=(self.nav_tree.selection()[0])))
-
-    def build_chapter_tree(self, frame):
-        style = ttk.Style(frame)
-        style.configure('Treeview', rowheight=25)  # Spacing between rows
-        self.chapter_nav_tree = ttk.Treeview(frame, selectmode="browse", padding=(0, 0, 0, 1))
-
-        # Nav tree scrollbar
-        self.chapter_nav_scrollbary = ttk.Scrollbar(self.chapter_nav_tree, orient="vertical", command=self.chapter_nav_tree.yview)
-        self.chapter_nav_scrollbary.pack(side="left", fill="y")
-        self.chapter_nav_tree.configure(yscrollcommand=self.chapter_nav_scrollbary.set)
-
-        self.chapter_nav_scrollbarx = ttk.Scrollbar(self.chapter_nav_tree, orient="horizontal", command=self.chapter_nav_tree.xview)
-        self.chapter_nav_tree.configure(xscrollcommand=self.chapter_nav_scrollbarx.set)
-        self.chapter_nav_scrollbarx.pack(side='bottom', fill='x')
-
-        # Nav bar click listener. Must be done here because we need event data
-        f = self.callbacks["Nav Select"]["callback"]
-        self.chapter_nav_tree.bind("<Button-1>", lambda event: f(node_id=self.chapter_nav_tree.identify('item', event.x, event.y)))
-        #self.chapter_nav_tree.bind("<<TreeviewSelect>>", lambda event: f(node_id=(self.chapter_nav_tree.selection()[0])))
 
     #################################
     #   Edit mode

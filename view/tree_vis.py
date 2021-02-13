@@ -7,7 +7,7 @@ from tkinter import ttk
 from util.util_tree import node_ancestry
 from util.custom_tks import TextAware
 from PIL import ImageTk, Image
-from colors import vis_bg_color, visited_node_bg_color, unvisited_node_bg_color,inactive_text_color,\
+from view.colors import vis_bg_color, visited_node_bg_color, unvisited_node_bg_color,inactive_text_color,\
     active_text_color, selected_line_color, active_line_color, inactive_line_color, BLUE, expand_button_color, \
     edit_color
 

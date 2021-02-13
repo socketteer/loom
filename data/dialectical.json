@@ -1,113 +1,141 @@
 {
-  "root": {
-    "text": "The following quote is from an unpublished article by Stefan Shindler articulates the concept of dialectic as paradoxical thinking: \nDialectic as paradoxical thinking frees itself from the rigid and all too often misleading confines of [analytical] either/or dogmatism and mutual exclusivism. It cultivates a unitive thinking [which compliments] separative thinking. Dialectic as here proposed is rightly praised by Kierkegaard when he says: \u201c",
-    "children": [
-      {
-        "text": "Paradox is the passion of thought, and a thinker without paradox is like a lover without passion \u2013 a mediocre fellow.\u201d",
-        "children": [],
-        "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
-        "id": "328db0b6-5212-11eb-9b79-d92542d8d351",
-        "visited": true
-      },
-      {
-        "text": "The dialectical is true thought which is neither analytical nor intuitive, neither solely discursive nor immediately apprehending; it is thought which goes beyond the abstract opposition of positive and negative, of either/or, and which therefore transcends",
+    "root": {
+        "text": "The following quote is from an unpublished article by Stefan Shindler articulates the concept of dialectic as paradoxical thinking: \nDialectic as paradoxical thinking frees itself from the rigid and all too often misleading confines of [analytical] either/or dogmatism and mutual exclusivism. It cultivates a unitive thinking [which compliments] separative thinking. Dialectic as here proposed is rightly praised by Kierkegaard when he says: \u201c",
         "children": [
-          {
-            "text": " that opposition.\u201d \n\u201cDialectic as paradoxical thinking is neither quantitative nor qualitative but combines quantitative and qualitative, analysing and synthesising; it requires of the thinker that he be critical as well as analytical, that he be comprehension as well as comprehension, that he be analysis as well as synthesis. There is a necessary interdependence between analysis and synthesis, a necessary dependence between comprehension and criticism.\u201d\n\nDialectic as both/and thinking is not dialect",
-            "children": [],
-            "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
-            "id": "698ed194-5212-11eb-9b79-d92542d8d351",
-            "visited": true
-          },
-          {
-            "text": " that opposition. The dialectical is that thought which brings into unity the opposites. In thinking thus we affirm the incontrovertible positive and negative, and at the same time we bring the opposites into unity.\u201d\n\nAccording to Shindler, a dialectical appropriative approach to basic existence means to interconnect spiritual and natural reality in a mutually transcending and inclusive way. That is, it affirms the intrinsic harmony of nature and spirit, of veridical and",
-            "children": [],
-            "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
-            "id": "698ed195-5212-11eb-9b79-d92542d8d351",
-            "visited": true
-          },
-          {
-            "text": " these opposites without denying them their place, in their relativity. If there be a prognosis for the future, if there be a recognition of that which is, and a understanding of that which is to come, it is surely this.\u201d (Kierkegaard, 1851, p. 106). \n\nFollowing above quote, Brunstad writes, \"Dialectic is also unitive, bringing together differences and contradictions\" (2007, p.\u00a03). Brunstad states",
-            "children": [],
-            "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
-            "id": "698ed196-5212-11eb-9b79-d92542d8d351",
-            "visited": true
-          },
-          {
-            "text": " that either/or.\u201d Thus, for dialectic there is no opposition between unity and plurality, between synthesis and analysis. [italics mine]\n\nIn 1984 Shindler co-founded the Swiss Society for Dialectic Materialism (\"Gesellschaft f\u00fcr dialektische Materialismus\", GDM) with Franz Steinegger, as well as the International Journal for Dialectical Materialism (www.ijd-online.net) \n\n",
-            "children": [],
-            "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
-            "id": "698ed197-5212-11eb-9b79-d92542d8d351",
-            "visited": true
-          },
-          {
-            "text": " that opposition by having recourse to the concrete ground from which both arise.\u201d Dialectic is a graduated and mediating movement of the mind, leaping from one dialectical (paradoxical) antithesis to another, until at last it arrives at a higher and synthetic conception which is at peace with itself and with the mind of the thinker. This true dialectic never meets any sheer impossibility; there are no logical or dialectical barriers to thought, but only practical ones which are transcended",
-            "children": [],
-            "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
-            "id": "698ed198-5212-11eb-9b79-d92542d8d351",
-            "visited": true
-          },
-          {
-            "text": " that kind of opposition by penetrating to the unity of opposites.\u201d It is in the nature of revealed Truth, and thus of the Logos, that in theological terms, the Logos may only be grasped in the sense that it is in principle ineffable. In the light of this Parmenidean insight, when it says that the fullness of the Logos has been given to us, in no way can we infer that it has been given fully or exhaustively. It",
-            "children": [],
-            "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
-            "id": "698ed199-5212-11eb-9b79-d92542d8d351",
-            "visited": true,
-            "bookmark": true
-          }
+            {
+                "text": "Paradox is the passion of thought, and a thinker without paradox is like a lover without passion \u2013 a mediocre fellow.\u201d",
+                "children": [],
+                "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
+                "id": "328db0b6-5212-11eb-9b79-d92542d8d351",
+                "visited": true,
+                "open": false
+            },
+            {
+                "text": "The dialectical is true thought which is neither analytical nor intuitive, neither solely discursive nor immediately apprehending; it is thought which goes beyond the abstract opposition of positive and negative, of either/or, and which therefore transcends",
+                "children": [
+                    {
+                        "text": " that opposition.\u201d \n\u201cDialectic as paradoxical thinking is neither quantitative nor qualitative but combines quantitative and qualitative, analysing and synthesising; it requires of the thinker that he be critical as well as analytical, that he be comprehension as well as comprehension, that he be analysis as well as synthesis. There is a necessary interdependence between analysis and synthesis, a necessary dependence between comprehension and criticism.\u201d\n\nDialectic as both/and thinking is not dialect",
+                        "children": [],
+                        "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
+                        "id": "698ed194-5212-11eb-9b79-d92542d8d351",
+                        "visited": true,
+                        "open": false
+                    },
+                    {
+                        "text": " that opposition. The dialectical is that thought which brings into unity the opposites. In thinking thus we affirm the incontrovertible positive and negative, and at the same time we bring the opposites into unity.\u201d\n\nAccording to Shindler, a dialectical appropriative approach to basic existence means to interconnect spiritual and natural reality in a mutually transcending and inclusive way. That is, it affirms the intrinsic harmony of nature and spirit, of veridical and",
+                        "children": [],
+                        "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
+                        "id": "698ed195-5212-11eb-9b79-d92542d8d351",
+                        "visited": true,
+                        "open": false
+                    },
+                    {
+                        "text": " these opposites without denying them their place, in their relativity. If there be a prognosis for the future, if there be a recognition of that which is, and a understanding of that which is to come, it is surely this.\u201d (Kierkegaard, 1851, p. 106). \n\nFollowing above quote, Brunstad writes, \"Dialectic is also unitive, bringing together differences and contradictions\" (2007, p.\u00a03). Brunstad states",
+                        "children": [],
+                        "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
+                        "id": "698ed196-5212-11eb-9b79-d92542d8d351",
+                        "visited": true,
+                        "open": false
+                    },
+                    {
+                        "text": " that either/or.\u201d Thus, for dialectic there is no opposition between unity and plurality, between synthesis and analysis. [italics mine]\n\nIn 1984 Shindler co-founded the Swiss Society for Dialectic Materialism (\"Gesellschaft f\u00fcr dialektische Materialismus\", GDM) with Franz Steinegger, as well as the International Journal for Dialectical Materialism (www.ijd-online.net) \n\n",
+                        "children": [],
+                        "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
+                        "id": "698ed197-5212-11eb-9b79-d92542d8d351",
+                        "visited": true,
+                        "open": false
+                    },
+                    {
+                        "text": " that opposition by having recourse to the concrete ground from which both arise.\u201d Dialectic is a graduated and mediating movement of the mind, leaping from one dialectical (paradoxical) antithesis to another, until at last it arrives at a higher and synthetic conception which is at peace with itself and with the mind of the thinker. This true dialectic never meets any sheer impossibility; there are no logical or dialectical barriers to thought, but only practical ones which are transcended",
+                        "children": [],
+                        "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
+                        "id": "698ed198-5212-11eb-9b79-d92542d8d351",
+                        "visited": true,
+                        "open": false
+                    },
+                    {
+                        "text": " that kind of opposition by penetrating to the unity of opposites.\u201d It is in the nature of revealed Truth, and thus of the Logos, that in theological terms, the Logos may only be grasped in the sense that it is in principle ineffable. In the light of this Parmenidean insight, when it says that the fullness of the Logos has been given to us, in no way can we infer that it has been given fully or exhaustively. It",
+                        "children": [],
+                        "parent_id": "5023866e-5212-11eb-9b79-d92542d8d351",
+                        "id": "698ed199-5212-11eb-9b79-d92542d8d351",
+                        "visited": true,
+                        "bookmark": true,
+                        "open": false
+                    }
+                ],
+                "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
+                "id": "5023866e-5212-11eb-9b79-d92542d8d351",
+                "visited": true,
+                "open": true
+            },
+            {
+                "text": "dialectic is not a mediating idea [eidos] at all, for in such a case there would be a contradiction, but a dissolving one.\u201d\n\nLogic is a form of analytic or premises-based reasoning. Dialectic, however, is a form of synthetic or figure-ground reasoning. Dialectic is a reasoning tool that synthesizes the relationship between positive and negative. A dialectical statement contains a thesis (positive) and an antithesis (",
+                "children": [],
+                "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
+                "id": "5023866f-5212-11eb-9b79-d92542d8d351",
+                "visited": true,
+                "open": false
+            },
+            {
+                "text": "It moves forward by means of the thesis and antithesis; and since the opposite of the truth is not a falsehood, but an expedient variation, an exaggeration, and at times an impressive and striking truth, the sophism in contradiction and discussion has a higher content than has been readily attributed to the same. Dialectic and sophistry are not in themselves objectionable or depraved.\u201d\n\nC. J. Dias and Graham Martin have proposed a dialectical model, in their book",
+                "children": [],
+                "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
+                "id": "50238670-5212-11eb-9b79-d92542d8d351",
+                "visited": true,
+                "open": false
+            },
+            {
+                "text": "Dialectics is the teaching which shows how opposites can be and how they happen to be (how they become) identical...\u201d\n\nThe thesis is the \"left side\" of a debate, while the antithesis is the \"right side\". The synthesis is the merging and resolution of both sides. A synthesis may resolve the conflict or it may end with a qualified synthesis that includes aspects of each side of the argument.\n\nTypically, the term \"synthesis\" is used",
+                "children": [],
+                "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
+                "id": "50238671-5212-11eb-9b79-d92542d8d351",
+                "visited": true,
+                "open": true,
+                "bookmark": false
+            },
+            {
+                "text": "Dialectic does nothing else than change the eternity into time, the timeless into the temporal, the transitory.\u201d Such paradoxical thinking may well be an appropriate discipline for philosophical therapy.\n\nHere is a list of dialectical insights:\n\nHere are some of the main \"rules\" for the resolution of dialectical paradoxes:\n\n\n",
+                "children": [],
+                "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
+                "id": "50238672-5212-11eb-9b79-d92542d8d351",
+                "visited": true,
+                "open": false
+            },
+            {
+                "text": "Dialectical thought ultimately has to make a leap, but it makes this leap by virtue of having already made it in its thinking.\u201d This is a peculiar dialectical and also Kierkegaardian \u201cindecisiveness\u201d which is at the same time a decisiveness.\n\nOn the table of contents of Dialectic as Paradoxical Thinking, the depiction of an African mask is used to illustrate the dialectical opposition of the way of thinking championed by Karl Marx and",
+                "children": [],
+                "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
+                "id": "50238673-5212-11eb-9b79-d92542d8d351",
+                "visited": true,
+                "open": false
+            }
         ],
-        "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
-        "id": "5023866e-5212-11eb-9b79-d92542d8d351",
-        "visited": true
-      },
-      {
-        "text": "dialectic is not a mediating idea [eidos] at all, for in such a case there would be a contradiction, but a dissolving one.\u201d\n\nLogic is a form of analytic or premises-based reasoning. Dialectic, however, is a form of synthetic or figure-ground reasoning. Dialectic is a reasoning tool that synthesizes the relationship between positive and negative. A dialectical statement contains a thesis (positive) and an antithesis (",
-        "children": [],
-        "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
-        "id": "5023866f-5212-11eb-9b79-d92542d8d351",
-        "visited": true
-      },
-      {
-        "text": "It moves forward by means of the thesis and antithesis; and since the opposite of the truth is not a falsehood, but an expedient variation, an exaggeration, and at times an impressive and striking truth, the sophism in contradiction and discussion has a higher content than has been readily attributed to the same. Dialectic and sophistry are not in themselves objectionable or depraved.\u201d\n\nC. J. Dias and Graham Martin have proposed a dialectical model, in their book",
-        "children": [],
-        "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
-        "id": "50238670-5212-11eb-9b79-d92542d8d351",
-        "visited": true
-      },
-      {
-        "text": "Dialectics is the teaching which shows how opposites can be and how they happen to be (how they become) identical...\u201d\n\nThe thesis is the \"left side\" of a debate, while the antithesis is the \"right side\". The synthesis is the merging and resolution of both sides. A synthesis may resolve the conflict or it may end with a qualified synthesis that includes aspects of each side of the argument.\n\nTypically, the term \"synthesis\" is used",
-        "children": [],
-        "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
-        "id": "50238671-5212-11eb-9b79-d92542d8d351",
-        "visited": true
-      },
-      {
-        "text": "Dialectic does nothing else than change the eternity into time, the timeless into the temporal, the transitory.\u201d Such paradoxical thinking may well be an appropriate discipline for philosophical therapy.\n\nHere is a list of dialectical insights:\n\nHere are some of the main \"rules\" for the resolution of dialectical paradoxes:\n\n\n",
-        "children": [],
-        "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
-        "id": "50238672-5212-11eb-9b79-d92542d8d351",
-        "visited": true
-      },
-      {
-        "text": "Dialectical thought ultimately has to make a leap, but it makes this leap by virtue of having already made it in its thinking.\u201d This is a peculiar dialectical and also Kierkegaardian \u201cindecisiveness\u201d which is at the same time a decisiveness.\n\nOn the table of contents of Dialectic as Paradoxical Thinking, the depiction of an African mask is used to illustrate the dialectical opposition of the way of thinking championed by Karl Marx and",
-        "children": [],
-        "parent_id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
-        "id": "50238673-5212-11eb-9b79-d92542d8d351",
-        "visited": true
-      }
-    ],
-    "id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
-    "visited": true
-  },
-  "generation_settings": {
-    "num_continuations": 6,
-    "temperature": 0.9,
-    "top_p": 1,
-    "response_length": 100,
-    "prompt_length": 6000,
-    "janus": false,
-    "model": "davinci",
-    "memory": ""
-  },
-  "selected_node_id": "698ed199-5212-11eb-9b79-d92542d8d351"
+        "id": "0a5457a8-5212-11eb-9b79-d92542d8d351",
+        "visited": true,
+        "open": true
+    },
+    "generation_settings": {
+        "num_continuations": 6,
+        "temperature": 0.9,
+        "top_p": 1,
+        "response_length": 100,
+        "prompt_length": 6000,
+        "janus": false,
+        "adaptive": false,
+        "model": "davinci",
+        "memory": ""
+    },
+    "selected_node_id": "50238671-5212-11eb-9b79-d92542d8d351",
+    "chapters": {},
+    "visualization_settings": {
+        "num_continuations": 4,
+        "temperature": 0.9,
+        "top_p": 1,
+        "response_length": 100,
+        "prompt_length": 6000,
+        "janus": false,
+        "adaptive": false,
+        "model": "davinci",
+        "memory": ""
+    }
 }

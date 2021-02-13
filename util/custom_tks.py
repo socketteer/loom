@@ -2,7 +2,7 @@ from tkinter import ttk
 import tkinter as tk
 
 from ttkthemes import ThemedStyle
-from colors import scroll_bg_color, darkmode
+from view.colors import scroll_bg_color, darkmode
 
 
 # Class to create a basic dialog pop-up box.  Designed for extension.
