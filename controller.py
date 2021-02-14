@@ -38,7 +38,7 @@ class Controller:
 
         self.root = root
         self.state = TreeModel(self.root)
-        self.display = Display(self.root, self.callbacks, self.state.visualization_settings, self.state)
+        self.display = Display(self.root, self.callbacks, self.state)
 
         self.register_model_callbacks()
         self.setup_key_bindings()

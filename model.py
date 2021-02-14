@@ -85,10 +85,21 @@ class TreeModel:
 
         self.selected_node_id = None
 
-        self.generation_settings = DEFAULT_GENERATION_SETTINGS
-        self.visualization_settings = DEFAULT_VISUALIZATION_SETTINGS
-
         self.callbacks = defaultdict(list)
+
+
+    @property
+    def visualization_settings(self):
+        return self.tree_raw_data.get("visualization_settings") \
+            if self.tree_raw_data and "visualization_settings" in self.tree_raw_data \
+            else DEFAULT_VISUALIZATION_SETTINGS
+
+    @property
+    def generation_settings(self):
+        return self.tree_raw_data.get("generation_settings") \
+            if self.tree_raw_data and "generation_settings" in self.tree_raw_data \
+            else DEFAULT_GENERATION_SETTINGS
+
 
     #################################
     #   Hooks
@@ -412,14 +423,18 @@ class TreeModel:
             **DEFAULT_GENERATION_SETTINGS.copy(),
             **self.tree_raw_data.get("generation_settings", {})
         }
-        self.generation_settings = self.tree_raw_data["generation_settings"]
 
         # View settings # TODO If there are more of these, reduce duplication
         self.tree_raw_data["visualization_settings"] = {
-            **DEFAULT_GENERATION_SETTINGS.copy(),
+            **DEFAULT_VISUALIZATION_SETTINGS.copy(),
             **self.tree_raw_data.get("visualization_settings", {})
         }
-        self.visualization_settings = self.tree_raw_data["visualization_settings"]
+        # Accidentally added generation settings to this dict once. Remove them
+        # FIXME remove when this is no longer a problem
+        for key in DEFAULT_GENERATION_SETTINGS.keys():
+            if key not in DEFAULT_VISUALIZATION_SETTINGS:
+                self.tree_raw_data["visualization_settings"].pop(key, None)
+
 
     def load_tree_data(self, data):
         self.tree_raw_data = data

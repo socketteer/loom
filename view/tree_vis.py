@@ -2,6 +2,7 @@ import tkinter
 import tkinter.font as tkf
 import json
 import math
+from pprint import pprint
 from tkinter import ttk
 
 from util.util_tree import node_ancestry
@@ -22,11 +23,10 @@ min_edit_box_height = 100
 
 
 class TreeVis:
-    def __init__(self, parent_frame, select_node_func, save_edits_func, vis_settings, state):
+    def __init__(self, parent_frame, select_node_func, save_edits_func, state):
         self.parent_frame = parent_frame
         self.select_node_func = select_node_func
         self.save_edits_func = save_edits_func
-        self.vis_settings = vis_settings
         self.state = state
 
         self.frame = None
@@ -50,7 +50,7 @@ class TreeVis:
 
         #TODO instead of root width, long textboxes should have scrollbars (possible?)
         #if not possible, multiple pages (!)
-        self.root_width = self.vis_settings['textwidth']
+        self.root_width = self.state.visualization_settings['textwidth']
         self.font = "Georgia"
 
         self.init_icons()
@@ -210,12 +210,12 @@ class TreeVis:
     # TODO save default widths (because some nodes have different widths)
     def get_width(self, item):
         #width = int(self.canvas.itemcget(item, "width"))
-        width = self.vis_settings['textwidth']
+        width = self.state.visualization_settings['textwidth']
         return math.floor(width * self.scroll_ratio)
 
 
     def get_text_size(self):
-        return math.floor(self.vis_settings['textsize'] * self.scroll_ratio)
+        return math.floor(self.state.visualization_settings['textsize'] * self.scroll_ratio)
 
     #################################
     #   Drawing
@@ -223,7 +223,7 @@ class TreeVis:
 
 
     def draw(self, root_node, selected_node, center_on_selection=False):
-        # print(self.vis_settings)
+        # pprint(self.state.visualization_settings)
         self.canvas.delete('data')
         self.root = root_node
         self.selected_node = selected_node
@@ -301,7 +301,7 @@ class TreeVis:
             bbox = self.draw_expand_node_button(node, nodex, nodey)
             return
 
-        display_text = self.vis_settings['displaytext'] and self.showtext
+        display_text = self.state.visualization_settings['displaytext'] and self.showtext
         if display_text:
             bbox = self.draw_textbox(node, nodex, nodey, tree_structure_map, selected_id)
             offset = 10
@@ -311,23 +311,23 @@ class TreeVis:
 
         textheight = bbox[3] - bbox[1]
         textwidth = bbox[2] - bbox[0]
-        width_diff = self.vis_settings['textwidth'] - textwidth \
-            if (self.vis_settings['displaytext'] and fixed_level_width) else 0
+        width_diff = self.state.visualization_settings['textwidth'] - textwidth \
+            if (self.state.visualization_settings['displaytext'] and fixed_level_width) else 0
 
         # Draw children with increasing offsets
         child_offset = 0
         child_offset_collapsed = 0
         for child in node['children']:
-            if self.vis_settings["horizontal"]:
-                childx = nodex + self.vis_settings['leveldistance'] + textwidth + width_diff
-                childy = nodey + (child_offset * self.vis_settings['leafdist'])\
+            if self.state.visualization_settings["horizontal"]:
+                childx = nodex + self.state.visualization_settings['leveldistance'] + textwidth + width_diff
+                childy = nodey + (child_offset * self.state.visualization_settings['leafdist'])\
                          + (child_offset_collapsed * collapsed_offset)
                 parentx = nodex + textwidth
                 parenty = nodey
             else:
-                childx = nodex + (child_offset * self.vis_settings['leafdist'])\
+                childx = nodex + (child_offset * self.state.visualization_settings['leafdist'])\
                          + (child_offset_collapsed * collapsed_offset)
-                childy = nodey + self.vis_settings['leveldistance'] + textheight
+                childy = nodey + self.state.visualization_settings['leveldistance'] + textheight
 
                 parentx = nodex
                 parenty = nodey + textheight
@@ -372,12 +372,12 @@ class TreeVis:
                     #print("drew collapsed ghostchild")
                     #TODO fix position
                     self.draw_line(parentx - offset, parenty - offset,
-                                   parentx + self.vis_settings["leveldistance"] - offset,
+                                   parentx + self.state.visualization_settings["leveldistance"] - offset,
                                    parenty - offset,
                                    name=f'ghostlines-{ghost["id"]}',
                                    fill=inactive_line_color(), activefill=BLUE, offset=smooth_line_offset, smooth=True,
                                    method=lambda event, node_id=ghost["id"]: self.select_node_func(node_id=node_id))
-                    self.draw_expand_node_button(ghost, parentx + self.vis_settings["leveldistance"], parenty, ghost=True)
+                    self.draw_expand_node_button(ghost, parentx + self.state.visualization_settings["leveldistance"], parenty, ghost=True)
                     return
 
 
@@ -405,8 +405,8 @@ class TreeVis:
         font = tkinter.font.Font(font=self.font)
         text_width = font.measure(text)
         lineheight = font.metrics('linespace')
-        max_lines = math.floor((self.vis_settings['leafdist'] - leaf_padding) / lineheight)
-        lines_estimate = text_width / self.vis_settings['textwidth']
+        max_lines = math.floor((self.state.visualization_settings['leafdist'] - leaf_padding) / lineheight)
+        lines_estimate = text_width / self.state.visualization_settings['textwidth']
         try:
             new_text_len = int(math.floor(len(text) * max_lines / lines_estimate))
         except ZeroDivisionError:
@@ -417,7 +417,7 @@ class TreeVis:
 
     def draw_textbox(self, node, nodex, nodey, tree_structure_map, selected_id):
         text_color = active_text_color() if tree_structure_map[node["id"]]['active'] else inactive_text_color()
-        width = self.root_width if node['id'] == self.root['id'] else self.vis_settings['textwidth']
+        width = self.root_width if node['id'] == self.root['id'] else self.state.visualization_settings['textwidth']
         text = self.split_text(node) if self.overflow_display == 'PAGE' else node['text']
         text_id = self.canvas.create_text(
             nodex, nodey, fill=text_color, activefill=BLUE,
@@ -453,7 +453,7 @@ class TreeVis:
 
         if node is not self.root:
             self.draw_collapse_button(node, box)
-        if self.vis_settings["showbuttons"]:
+        if self.state.visualization_settings["showbuttons"]:
             self.draw_buttons(node, box)
         self.draw_bookmark_star(node, box)
         return box
@@ -768,7 +768,7 @@ class TreeVis:
         self.textbox.insert(tkinter.END, text)
 
         textbox_height = box[3] - box[1] if min_edit_box_height < box[3] - box[1] else min_edit_box_height
-        textbox_width = self.vis_settings['textwidth']
+        textbox_width = self.state.visualization_settings['textwidth']
         self.textbox_id = self.canvas.create_window(box[0] + (box[2] - box[0]) / 2, box[1] + (box[3] - box[1]) / 2,
                                                     window=self.textbox, height=textbox_height, width=textbox_width)
 

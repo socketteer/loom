@@ -117,7 +117,7 @@
     "generation_settings": {
         "num_continuations": 6,
         "temperature": 0.9,
-        "top_p": 1,
+        "top_p": 1.0,
         "response_length": 100,
         "prompt_length": 6000,
         "janus": false,
@@ -128,14 +128,12 @@
     "selected_node_id": "50238671-5212-11eb-9b79-d92542d8d351",
     "chapters": {},
     "visualization_settings": {
-        "num_continuations": 4,
-        "temperature": 0.9,
-        "top_p": 1,
-        "response_length": 100,
-        "prompt_length": 6000,
-        "janus": false,
-        "adaptive": false,
-        "model": "davinci",
-        "memory": ""
+        "textwidth": 450,
+        "leafdist": 200,
+        "leveldistance": 150,
+        "textsize": 10,
+        "horizontal": true,
+        "displaytext": true,
+        "showbuttons": true
     }
 }
