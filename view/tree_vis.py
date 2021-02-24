@@ -178,7 +178,7 @@ class TreeVis:
                     self.canvas.itemconfigure(item, state='hidden')
         else:
             if self.text_hidden:
-                self.text_hidden = False
+                self.text_hidden = False    
                 for item in self.canvas.find_withtag("text"):
                     self.canvas.itemconfigure(item, state='normal')
             for item in self.canvas.find_withtag("text"):
