@@ -159,6 +159,10 @@ class TreeModel:
         return self.tree_node_dict[self.selected_node_id]
 
     @property
+    def selected_chapter(self):
+        return self.chapter(self.selected_node) if self.selected_node is not None else None
+
+    @property
     def nodes(self):
         return list(self.tree_node_dict.values()) if self.tree_node_dict else None
 
@@ -393,7 +397,7 @@ class TreeModel:
 
     def import_chapters(self, root, chapters):
         if 'chapter_id' in root and root['chapter_id'] not in self.chapters:
-                self.chapters[root['chapter_id']] = chapters[root['chapter_id']]
+            self.chapters[root['chapter_id']] = chapters[root['chapter_id']]
         for child in root['children']:
             self.import_chapters(child, chapters)
 

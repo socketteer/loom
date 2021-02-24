@@ -352,7 +352,7 @@ class Controller:
     def merge_with_children(self):
         self.state.merge_with_children()
 
-    @metadata(name="Copy", keys=[], display_key="c")
+    @metadata(name="Copy")
     def copy_text(self):
         pyperclip.copy(self.display.textbox.get("1.0", "end-1c"))
 
@@ -750,7 +750,7 @@ class Controller:
 
         # Scroll to node, open it's parent nodes
         self.display.nav_tree.see(self.state.selected_node_id)
-        self.set_scrollbars()
+        self.set_nav_scrollbars()
 
 
     def update_chapter_nav_tree_selected(self):
@@ -768,13 +768,11 @@ class Controller:
 
         # Scroll to node, open it's parent nodes
         self.display.chapter_nav_tree.see(selected_chapter_root_id)
-        self.set_scrollbars()
+        self.set_chapter_scrollbars()
 
 
-    @metadata(i=0)
-    def set_scrollbars(self):
+    def set_nav_scrollbars(self):
         # Taking model as source of truth!!
-
         def collect_visible(node):
             li = [node]
             if self.display.nav_tree.item(node["id"], "open"):
@@ -867,7 +865,56 @@ class Controller:
         # self.display.nav_tree.xview_moveto(clip_num(1 - (selected_depth+2)/max_depth, 0, 1))
 
 
+    # TODO duplicated from above method with minor changes because the chapter tree is quite different
+    # TODO this is awful, sorry jesus. Please fix
+    def set_chapter_scrollbars(self):
+        def collect_visible_chapters(node):
+            li = [node]
+            try:
+                if self.display.chapter_nav_tree.item(node["chapter"]["root_id"], "open"):
+                    for c in node["children"]:
+                        li += collect_visible_chapters(c)
+                return li
+            except Exception as e:
+                print("Exception in chapter tree scrollbar!", e)
+                return []
 
+        chapter_trees, chapter_trees_dict = self.state.build_chapter_trees()
+        visible_nodes = [n for c in chapter_trees for n in collect_visible_chapters(c)]
+        visible_ids = {d["id"] for d in visible_nodes}
+        # Ordered by tree order
+        visible_ids = [iid for iid in chapter_trees_dict.keys() if iid in visible_ids]
+
+        # Magic numbers
+        WIDTH_PER_INDENT = 20
+        start_width = 200
+        offset_from_selected = -25
+
+        open_height = max([
+                              depth(chapter_trees_dict.get(iid, {}), chapter_trees_dict)
+                              for iid in visible_ids
+                          ] + [0])
+
+        total_width = start_width + open_height * WIDTH_PER_INDENT
+
+        self.display.chapter_nav_tree.column("#0", width=total_width, minwidth=total_width)
+
+        selected_chapter = chapter_trees_dict[self.state.selected_chapter["id"]]
+        current_width = depth(selected_chapter, chapter_trees_dict) \
+                        * WIDTH_PER_INDENT + offset_from_selected
+        self.display.chapter_nav_tree.xview_moveto(clip_num(current_width / total_width, 0, 1))
+
+
+
+
+def main():
+    attrs = [getattr(Controller, f) for f in dir(Controller)]
+    funcs_with_keys = [f for f in attrs if callable(f) and hasattr(f, "meta") and "keys" in f.meta]
+    pprint({f.meta["name"]: f.meta["keys"] for f in funcs_with_keys})
+
+
+if __name__ == "__main__":
+    main()
 
 
 
