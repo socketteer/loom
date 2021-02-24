@@ -641,8 +641,8 @@ class Controller:
     def refresh_visualization(self):
         if self.display.mode != "Visualize":
             return
-        self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=True)
-        #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+        self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
+        self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
 
 
     def refresh_vis_selection(self):

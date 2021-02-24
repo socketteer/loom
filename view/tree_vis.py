@@ -20,7 +20,7 @@ collapsed_offset = 50
 smooth_line_offset = 50
 leaf_padding = 50
 min_edit_box_height = 100
-
+canvas_padding = 0
 
 class TreeVis:
     def __init__(self, parent_frame, select_node_func, save_edits_func, state):
@@ -460,7 +460,7 @@ class TreeVis:
 
 
     def canvas_bbox_padding(self, bbox):
-        padding = (-300, -300, 300, 300)
+        padding = (-canvas_padding, -canvas_padding, canvas_padding, canvas_padding)
         box = tuple(map(lambda i, j: i + j, padding, bbox))
         return box
 
