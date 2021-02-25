@@ -160,19 +160,19 @@ class Controller:
     def prev(self):
         self.state.traverse_tree(-1)
 
-    @metadata(name="Parent", keys=["<Left>", "<Control-Left>"], display_key="←")
+    @metadata(name="Go to parent", keys=["<Left>", "<Control-Left>"], display_key="←")
     def parent(self):
         self.state.select_parent()
 
-    @metadata(name="Child", keys=["<Right>", "<Control-Right>"], display_key="→")
+    @metadata(name="Go to child", keys=["<Right>", "<Control-Right>"], display_key="→")
     def child(self):
         self.state.select_child(0)
 
-    @metadata(name="Next Sibling", keys=["<Down>", "<Control-Down>"], display_key="↓")
+    @metadata(name="Go to next sibling", keys=["<Down>", "<Control-Down>"], display_key="↓")
     def next_sibling(self):
         self.state.select_sibling(1)
 
-    @metadata(name="Previous Sibling", keys=["<Up>", "<Control-Up>"], display_key="↑")
+    @metadata(name="Go to previous Sibling", keys=["<Up>", "<Control-Up>"], display_key="↑")
     def prev_sibling(self):
         self.state.select_sibling(-1)
 
@@ -212,7 +212,7 @@ class Controller:
         self.state.selected_node["bookmark"] = not self.state.selected_node.get("bookmark", False)
         self.state.tree_updated()
 
-    @metadata(name="Next bookmark", keys=["<Key-d>", "<Control-d>"])
+    @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
         book_indices = {idx: d for idx, d in enumerate(self.state.nodes) if d.get("bookmark", False)}
         if len(book_indices) < 1:
@@ -223,7 +223,7 @@ class Controller:
             go_to_book = 0
         self.state.select_node(list(book_indices.values())[go_to_book]["id"])
 
-    @metadata(name="Prev bookmark", keys=["<Key-a>", "<Control-a>"])
+    @metadata(name="Go to prev bookmark", keys=["<Key-a>", "<Control-a>"])
     def prev_bookmark(self):
         book_indices = {i: d for i, d in enumerate(self.state.nodes) if d.get("bookmark", False)}
         if len(book_indices) < 1:
@@ -256,6 +256,14 @@ class Controller:
     def create_parent(self):
         self.state.create_parent()
 
+    @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None)
+    def change_parent(self):
+        if self.change_parent.meta["selected_node"] is None:
+            self.change_parent.meta["selected_node"] = self.state.selected_node
+        else:
+            self.state.change_parent(node=self.change_parent.meta["selected_node"], new_parent_id=self.state.selected_node_id)
+            self.change_parent.meta["selected_node"] = None
+
     @metadata(name="Merge with Parent", keys=["<Shift-Left>"], display_key="shift-left",)
     def merge_parent(self):
         self.state.merge_with_parent()
@@ -286,11 +294,11 @@ class Controller:
     def delete_node_reassign_children(self):
         self.delete_node(reassign_children=True)
 
-    @metadata(name="Enter Text", keys=["<Control-bar>"], display_key="Ctrl-Return")
+    @metadata(name="Enter text", keys=["<Control-bar>"], display_key="Ctrl-Return")
     def enter_text(self):
         self.display.vis.delete_textbox()
 
-    @metadata(name="Escape Textbox", keys=["<Escape>"], display_key="Escape")
+    @metadata(name="Escape textbox", keys=["<Escape>"], display_key="Escape")
     def escape_textbox(self):
         self.display.vis.delete_textbox(save=False)
         if self.display.in_edit_mode:
@@ -298,7 +306,7 @@ class Controller:
             self.refresh_textbox()
 
 
-    @metadata(name="Reset Zoom", keys=["<Control-0>"], display_key="Ctrl-0")
+    @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
     def reset_zoom(self):
         self.display.vis.reset_zoom()
 
@@ -357,7 +365,7 @@ class Controller:
         pyperclip.copy(self.display.textbox.get("1.0", "end-1c"))
 
 
-    @metadata(name="Newline", keys=["n", "<Control-n>"], display_key="n")
+    @metadata(name="Prepend newline", keys=["n", "<Control-n>"], display_key="n")
     def prepend_newline(self):
         self.save_edits()
         if self.state.selected_node:
@@ -372,7 +380,7 @@ class Controller:
             self.state.update_text(self.state.selected_node, text)
 
 
-    @metadata(name="Space", keys=["<Key-m>", "<Control-m>"], display_key="m")
+    @metadata(name="Prepend space", keys=["<Key-m>", "<Control-m>"], display_key="m")
     def prepend_space(self):
         self.save_edits()
         if self.state.selected_node:
@@ -400,7 +408,7 @@ class Controller:
     def expand_children(self):
         pass
 
-    @metadata(name="Collapse node", keys=["question", "<Control-question>"], display_key="Ctrl-?")
+    @metadata(name="Collapse node", keys=["<Control-question>"], display_key="Ctrl-?")
     def collapse_node(self):
         pass
 
@@ -545,7 +553,7 @@ class Controller:
     def chapter_dialog(self):
         dialog = NodeChapterDialog(parent=self.display.frame, node=self.state.selected_node, state=self.state)
 
-    @metadata(name="Multimedia", keys=["<u>"], display_key="u")
+    @metadata(name="Multimedia dialogue", keys=["<u>"], display_key="u")
     def multimedia_dialog(self):
         dialog = MultimediaDialog(parent=self.display.frame, node=self.state.selected_node,
                                   refresh_event=self.state.tree_updated)

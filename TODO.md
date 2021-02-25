@@ -63,7 +63,10 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * create parent for root node
 * multiple root nodes
 * add ghostchildren/ghostparents (using hotkey)
-* change parent of subtree (using hotkey)
+* change parent
+    - visual indication that change parent mode has been toggled
+    - check if new parent in subtree
+
 * change order of children
 
 

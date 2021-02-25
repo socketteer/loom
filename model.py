@@ -323,21 +323,25 @@ class TreeModel:
             child["text"] = node["text"] + child["text"]
         self.delete_node(node, reassign_children=True)
 
-    def change_parent(self, node=None, new_parent=None):
+    # TODO check if ancestor
+    # TODO indicate that change parent has been toggled
+    def change_parent(self, node=None, new_parent_id=None):
         node = node if node else self.selected_node
         if not node:
             return
 
+        if node["id"] == new_parent_id:
+            return
         if "parent_id" not in node:
             assert self.tree_raw_data["root"] == node
             print('ERROR: node is root')
             return
-        elif new_parent == node["parent_id"]:
+        elif new_parent_id == node["parent_id"]:
             return
         old_siblings = self.tree_node_dict[node["parent_id"]]["children"]
         old_siblings.remove(node)
-        node["parent_id"] = new_parent
-        self.tree_node_dict[new_parent]["children"].append(node)
+        node["parent_id"] = new_parent_id
+        self.tree_node_dict[new_parent_id]["children"].append(node)
         self.tree_updated()
 
     def add_parent(self, node=None, new_ghostparent=None):
