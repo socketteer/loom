@@ -45,6 +45,121 @@ unstable and poorly documented.
 
 ooo what features! wow so cool
 
+# Hotkeys
+
+
+
+### File
+
+Open: `o`, `Control-o`
+
+Import JSON as subtree: `Control-Shift-KeyPress-O`
+
+Save: `s`, `Control-s`
+
+
+### Dialogues
+
+Chapter settings: `Control-y`
+
+Generation Settings: `Control-p`
+
+Visualization Settings: `Control-u`
+
+Multimedia dialogue: `u`
+
+Show Info: `i`, `Control-i`
+
+### Mode
+
+Toggle edit: `e`, `Control-e`
+
+Toggle visualize: `j`, `Control-j`
+
+Child edit: `c`
+
+
+### Navigate
+
+Go to checkpoint: `t`
+
+Go to child: `Right`, `Control-Right`
+
+Go to next bookmark: `d`, `Control-d`
+
+Go to next sibling: `Down`, `Control-Down`
+
+Go to parent: `Left`, `Control-Left`
+
+Go to prev bookmark: `a`, `Control-a`
+
+Go to previous Sibling: `Up`, `Control-Up`
+
+Next: `period`, `Return`, `Control-period`
+
+Prev: `comma`, `Control-comma`
+
+Return to root: `r`, `Control-r`
+
+Walk: `w`, `Control-w`
+
+Save checkpoint: `Control-t`
+
+Toggle bookmark: `b`, `Control-b`
+
+
+
+### Edit topology
+
+Delete: `BackSpace`, `Control-BackSpace`
+
+Generate: `g`, `Control-g`
+
+Merge with Parent: `Shift-Left`
+
+Merge with children: `Shift-Right`
+
+Change parent: `Shift-P`
+
+New Child: `h`, `Control-h`, `Alt-Right`
+
+New Parent: `Alt-Left`
+
+New Sibling: `Alt-Down`
+
+
+### Edit text
+
+Enter text: `Control-bar`
+
+Escape textbox: `Escape`
+
+Prepend newline: `n`, `Control-n`
+
+Prepend space: `m`, `Control-m`
+
+
+
+### Collapse / expand
+
+Collapse all except subtree: `Control-colon`
+
+Collapse node: `Control-question`
+
+Collapse subtree: `Control-minus`
+
+
+### View
+
+Center view: `l`, `Control-l`
+
+Expand children: `Control-quotedbl`
+
+Expand subtree: `Control-plus`
+
+Reset zoom: `Control-0`
+
+
 
 # Instructions
 
@@ -54,3 +169,4 @@ ooo what features! wow so cool
 2. Run main.py
 3. Load a json tree
 4. Read  :)
+
