@@ -135,6 +135,7 @@ class Application:
             "File": [
                 ('New Tab', 'Ctrl+N', '<Control-n>', self.create_tab),
                 ('Open', 'O', None, lambda event=None: self.forward_command(Controller.open_tree)),
+                ('Import subtree', 'Ctrl+Shift+O', None, lambda event=None: self.forward_command(Controller.import_tree)),
                 ('Save', 'S', None, lambda event=None: self.forward_command(Controller.save_tree)),
                 ('Save As...', 'Ctrl+S', '<Control-s>', lambda event=None: self.forward_command(Controller.save_tree_as)),
                 ('Close Tab', None, None, self.close_tab),

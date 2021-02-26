@@ -22,6 +22,12 @@ def node_ancestry(node, node_dict):
     return ancestry
 
 
+# Returns True if a is ancestor of b
+def in_ancestry(a, b, node_dict):
+    ancestry = node_ancestry(b, node_dict)
+    return a in ancestry
+
+
 # recursively called on subtree
 def overwrite_subtree(node, attribute, new_value, old_value=None, force_overwrite=False):
     if force_overwrite or (attribute not in node) or old_value is None or (node[attribute] == old_value) \

@@ -81,32 +81,31 @@ Child edit: `c`
 
 ### Navigate
 
-Go to checkpoint: `t`
+Next: `period`, `Return`, `Control-period`
+
+Prev: `comma`, `Control-comma`
 
 Go to child: `Right`, `Control-Right`
-
-Go to next bookmark: `d`, `Control-d`
 
 Go to next sibling: `Down`, `Control-Down`
 
 Go to parent: `Left`, `Control-Left`
 
-Go to prev bookmark: `a`, `Control-a`
-
 Go to previous Sibling: `Up`, `Control-Up`
-
-Next: `period`, `Return`, `Control-period`
-
-Prev: `comma`, `Control-comma`
 
 Return to root: `r`, `Control-r`
 
 Walk: `w`, `Control-w`
 
+Go to checkpoint: `t`
+
 Save checkpoint: `Control-t`
 
-Toggle bookmark: `b`, `Control-b`
+Go to next bookmark: `d`, `Control-d`
 
+Go to prev bookmark: `a`, `Control-a`
+
+Toggle bookmark: `b`, `Control-b`
 
 
 ### Edit topology
@@ -148,14 +147,14 @@ Collapse node: `Control-question`
 
 Collapse subtree: `Control-minus`
 
+Expand children: `Control-quotedbl`
+
+Expand subtree: `Control-plus`
+
 
 ### View
 
 Center view: `l`, `Control-l`
-
-Expand children: `Control-quotedbl`
-
-Expand subtree: `Control-plus`
 
 Reset zoom: `Control-0`
 

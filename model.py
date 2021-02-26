@@ -11,7 +11,7 @@ from multiprocessing.pool import ThreadPool
 
 from gpt import api_generate, janus_generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip
-from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, overwrite_subtree
+from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry
 
 
 # Calls any callbacks associated with the wrapped function
@@ -338,10 +338,14 @@ class TreeModel:
             return
         elif new_parent_id == node["parent_id"]:
             return
+        new_parent = self.tree_node_dict[new_parent_id]
+        if in_ancestry(node, new_parent, self.tree_node_dict):
+            print('error: node is ancestor of new parent')
+            return
         old_siblings = self.tree_node_dict[node["parent_id"]]["children"]
         old_siblings.remove(node)
         node["parent_id"] = new_parent_id
-        self.tree_node_dict[new_parent_id]["children"].append(node)
+        new_parent["children"].append(node)
         self.tree_updated()
 
     def add_parent(self, node=None, new_ghostparent=None):

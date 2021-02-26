@@ -18,9 +18,7 @@
 * icons sometimes do not zoom
 * edit text box position wrong after zooming (and?)
 
-# features
-
-### Tree visualization
+# Tree visualization
 
 
 - don't calc tree structure when refreshing
@@ -42,7 +40,7 @@
 - editing: 
 global edit mode, where all nodes turn into textboxes, but no zooming?
 
-    
+
 # Display
  
 * show / hide navtrees
@@ -54,6 +52,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * sidebar adjustable
 * display hotkeys window
 * scroll at top of chapter by default and hotkey to go to top of chapter
+* change darkmode in program
 
 # Modifications
 
@@ -63,9 +62,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * create parent for root node
 * multiple root nodes
 * add ghostchildren/ghostparents (using hotkey)
-* change parent
-    - visual indication that change parent mode has been toggled
-    - check if new parent in subtree
+* visual indication that change parent mode has been toggled
 
 * change order of children
 

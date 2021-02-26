@@ -107,27 +107,43 @@ class Controller:
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
         menu_list = {
             "View": [
-                ('Toggle visualize mode', None, None, no_junk_args(self.toggle_visualization_mode)),
-                ('Change visualization settings', None, None, no_junk_args(self.visualization_settings_dialog)),
+                ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
+                ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
+                ('Multimedia', 'U', None, no_junk_args(self.multimedia_dialog)),
+                ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
+                ('Collapse subtree', 'Ctrl-minus', None, no_junk_args(self.collapse_subtree)),
+                ('Collapse all except subtree', 'Ctrl-:', None, no_junk_args(self.collapse_all_except_subtree)),
+                ('Expand children', 'Ctrl-\"', None, no_junk_args(self.expand_children)),
+                ('Expand subtree', 'Ctrl-+', None, no_junk_args(self.expand_subtree)),
+                ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
+                ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
             ],
             "Edit": [
                 ('Edit mode', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
-                ("Create parent", None, None, no_junk_args(self.create_parent)),
-                ("Merge with parent", None, None, no_junk_args(self.merge_with_parent)),
-                ("Merge with children", None, None, no_junk_args(self.merge_with_children)),
+                ("Create parent", 'Alt-Left', None, no_junk_args(self.create_parent)),
+                ("Change parent", 'Shift-P', None, no_junk_args(self.change_parent)),
+                ("New Child", 'H, Ctrl+H, Alt+Right', None, no_junk_args(self.create_child)),
+                ("New Sibling", 'Alt+Down', None, no_junk_args(self.create_sibling)),
+                ("Merge with parent", 'Shift+Left', None, no_junk_args(self.merge_with_parent)),
+                ("Merge with children", 'Shift+Right', None, no_junk_args(self.merge_with_children)),
                 ('Prepend newline', 'N', None, no_junk_args(self.prepend_newline)),
                 ('Prepend space', 'M', None, no_junk_args(self.prepend_space)),
                 ('Copy', 'Ctrl+C', None, no_junk_args(self.copy_text)),
                 ('Delete', 'Backspace', None, no_junk_args(self.delete_node)),
                 ('Delete and reassign children', '', None, no_junk_args(self.delete_node_reassign_children)),
             ],
-            "Generation": [
-                ('Change generation settings', None, None, no_junk_args(self.generation_settings_dialog)),
-            ],
-            "Bookmarks": [
+            "Navigate": [
+                ('Return to root', 'R', None, no_junk_args(self.return_to_root)),
+                ('Save checkpoint', 'Ctrl+T', None, no_junk_args(self.save_checkpoint)),
+                ('Go to checkpoint', 'T', None, no_junk_args(self.goto_checkpoint)),
                 ("Bookmark", "B", None, no_junk_args(self.bookmark)),
                 ("Next Bookmark", "D", None, no_junk_args(self.next_bookmark)),
                 ("Prev Bookmark", "A", None, no_junk_args(self.prev_bookmark)),
+                ("Stochastic walk", "W", None, no_junk_args(self.walk)),
+            ],
+            "Generation": [
+                ('Generation settings', 'Ctrl+P', None, no_junk_args(self.generation_settings_dialog)),
+                ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
             ],
             "Visited": [
                 ("Mark visited", None, None, lambda: self.set_visited(True)),
@@ -138,7 +154,7 @@ class Controller:
                 ("Mark all unvisited", None, None, lambda: self.set_all_visited(False)),
             ],
             "Info": [
-                ("Tree statistics", None, None, no_junk_args(self.info_dialog)),
+                ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
             ],
         }
         return menu_list
@@ -259,8 +275,10 @@ class Controller:
     @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None)
     def change_parent(self):
         if self.change_parent.meta["selected_node"] is None:
+            print('copied node id')
             self.change_parent.meta["selected_node"] = self.state.selected_node
         else:
+            print('changing parent')
             self.state.change_parent(node=self.change_parent.meta["selected_node"], new_parent_id=self.state.selected_node_id)
             self.change_parent.meta["selected_node"] = None
 
