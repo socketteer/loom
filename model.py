@@ -622,8 +622,9 @@ class TreeModel:
                 grandchildren.append(self.create_child(child, update_selection=False, expand=True))
 
         prompt = "".join(self.node_ancestry_text(children[0])[0])
-        prompt = prompt[-self.generation_settings['prompt_length']:]
         memory = self.memory(node)
+        prompt_length = self.generation_settings['prompt_length'] - len(memory)
+        prompt = prompt[-prompt_length:]
         print("Memory:\n", memory)
         print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
         prompt = memory + prompt

@@ -44,8 +44,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
  
 * show / hide navtrees
 * if scroll position is regressing, add whitespace and keep instead?? (didn't work, need new approach)
-* toggle gray history
-* highlight context window (toggle)
+* toggle gray history / context window 
 * gradient color for text box history
 * scroll at top of chapter by default and hotkey to go to top of chapter
 * change darkmode in program

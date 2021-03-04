@@ -1,4 +1,4 @@
-darkmode = False
+darkmode = True
 
 GREEN = '#008c50'
 PALE_GREEN = '#54997a'
@@ -25,6 +25,8 @@ DARKMODE_VISITED = "#474747"
 
 DARKMODE_HISTORY = "#cccccc"
 
+DARKMODE_OOC = "#999999"
+
 DARKMODE_DEFAULT = "#474747"
 
 
@@ -37,6 +39,8 @@ LIGHTMODE_NOT_VISITED = PALE_BLUE
 LIGHTMODE_VISITED = LIGHTMODE_TEXTBOX_BG
 
 LIGHTMODE_HISTORY = '#404040'
+
+LIGHTMODE_OOC = "#777777"
 
 LIGHTMODE_DEFAULT = LIGHTMODE_TEXTBOX_BG
 
@@ -64,6 +68,9 @@ def edit_color():
 def history_color():
     return DARKMODE_HISTORY if darkmode else LIGHTMODE_HISTORY
 
+
+def ooc_color():
+    return DARKMODE_OOC if darkmode else LIGHTMODE_OOC
 
 def not_visited_color():
     return DARKMODE_NOT_VISITED if darkmode else LIGHTMODE_NOT_VISITED

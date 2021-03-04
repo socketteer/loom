@@ -11,7 +11,7 @@ import PIL
 import pyperclip
 import bisect
 
-from view.colors import history_color, not_visited_color, visited_color, darkmode
+from view.colors import history_color, not_visited_color, visited_color, ooc_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, MemoryDialog
@@ -599,6 +599,7 @@ class Controller:
             print("Settings saved")
             pprint(self.state.generation_settings)
             self.save_tree(popup=False)
+            self.refresh_textbox()
 
 
     @metadata(name="Visualization Settings", keys=["<Control-u>"], display_key="ctrl-u")
@@ -642,6 +643,7 @@ class Controller:
     @metadata(name="Memory dialogue", keys=["<m>", "<Control-m>"], display_key="m")
     def memory(self):
         dialog = MemoryDialog(parent=self.display.frame, node=self.state.selected_node, get_memory=self.state.memory)
+        self.refresh_textbox()
 
 
     #################################
@@ -686,13 +688,25 @@ class Controller:
             self.display.textbox.configure(state="normal")
             self.display.textbox.delete("1.0", "end")
 
-            self.display.textbox.tag_config('history', foreground=self.HISTORY_COLOR)
+            self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
+            self.display.textbox.tag_config('history', foreground=history_color())
             ancestry, indices = self.state.node_ancestry_text()
             self.ancestor_end_indices = indices
+            history = ''
             for node_text in ancestry[:-1]:
                 # "end" includes the automatically inserted new line
-                self.display.textbox.insert("end-1c", node_text, "history")
-            self.display.textbox.insert("end-1c", self.state.selected_node["text"])
+                history += node_text
+                #self.display.textbox.insert("end-1c", node_text, "history")
+            selected_text = self.state.selected_node["text"]
+            prompt_length = self.state.generation_settings['prompt_length'] \
+                            - len(self.state.memory(self.state.selected_node)) - len(selected_text)
+
+            in_context = history[-prompt_length:]
+            if prompt_length < len(history):
+                out_context = history[:len(history)-prompt_length]
+                self.display.textbox.insert("end-1c", out_context, "ooc_history")
+            self.display.textbox.insert("end-1c", in_context, "history")
+            self.display.textbox.insert("end-1c", selected_text)
             self.display.textbox.insert("end-1c", self.state.selected_node.get("active_text", ""))
 
             # TODO Not quite right. We may need to compare the actual text content? Hmm...
