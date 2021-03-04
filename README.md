@@ -53,7 +53,7 @@ ooo what features! wow so cool
 
 Open: `o`, `Control-o`
 
-Import JSON as subtree: `Control-Shift-KeyPress-O`
+Import JSON as subtree: `Control-Shift-O`
 
 Save: `s`, `Control-s`
 

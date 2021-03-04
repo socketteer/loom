@@ -48,9 +48,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * toggle gray history
 * highlight context window (toggle)
 * gradient color for text box history
-* rename node for nav tree
-* sidebar adjustable
-* display hotkeys window
 * scroll at top of chapter by default and hotkey to go to top of chapter
 * change darkmode in program
 
@@ -82,7 +79,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
     * global or associated with subtree
 * bookmark-like tags define subsets of tree (and option to only display/navigate tag)
 * save open status (not visible status) in tree dict 
-* click on textbox to edit history
 * named bookmarks
 * separate bookmarks (unique) and tags (category) 
 * open non-root node of json as root node

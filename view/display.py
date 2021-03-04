@@ -143,6 +143,9 @@ class Display:
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
+    def click(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Edit history"]["callback"](index=char_index)
 
     # Text area and scroll bar  TODO Make a scrollable textbox tkutil
     def _build_textbox(self, frame, frame_attr, textbox_attr, height=1):
@@ -153,6 +156,7 @@ class Display:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         textbox = TextAware(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
         self.__setattr__(textbox_attr, textbox)
+        textbox.bind("<Button-1>", lambda event: self.click(txt=textbox))
         textbox.pack(expand=True, fill='both')
 
         readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia

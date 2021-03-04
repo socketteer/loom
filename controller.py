@@ -9,14 +9,16 @@ from tkinter import messagebox
 
 import PIL
 import pyperclip
+import bisect
 
-from view.colors import history_color, not_visited_color, visited_color
+from view.colors import history_color, not_visited_color, visited_color, darkmode
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog
 from model import TreeModel
 from util.util import clip_num, metadata
-from util.util_tree import depth, height, flatten_tree, stochastic_transition
+from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry
+
 
 def gated_call(f, condition):
     def _gated_call(*args, _f=f, _cond=condition, **kwargs):
@@ -43,6 +45,8 @@ class Controller:
         self.register_model_callbacks()
         self.setup_key_bindings()
         self.build_menus()
+        self.ancestor_end_indices = None
+        self.remember_node_id = None
 
 
     #################################
@@ -222,7 +226,6 @@ class Controller:
         # node["open"] = self.display.nav_tree.item(node["id"], "open")
         self.state.select_node(node_id)
 
-
     @metadata(name="Bookmark", keys=["<Key-b>", "<Control-b>"], display_key="b")
     def bookmark(self):
         self.state.selected_node["bookmark"] = not self.state.selected_node.get("bookmark", False)
@@ -323,6 +326,15 @@ class Controller:
             self.display.set_mode("Read")
             self.refresh_textbox()
 
+    @metadata(name="Edit history", keys=[], display_key="Escape")
+    def edit_history(self, index):
+        if self.display.mode == "Read":
+            ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
+            selected_ancestor = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
+            self.remember_node_id = self.state.selected_node_id
+            self.state.select_node(selected_ancestor["id"])
+            self.toggle_edit_mode()
+
 
     @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
     def reset_zoom(self):
@@ -339,7 +351,13 @@ class Controller:
         if self.display.mode != "Visualize":
             self.save_edits()
             to_edit_mode = to_edit_mode if to_edit_mode is not None else not self.display.in_edit_mode
-            self.display.set_mode("Edit" if to_edit_mode else "Read")
+            if to_edit_mode:
+                self.display.set_mode("Edit")
+            else:
+                if self.remember_node_id is not None:
+                    self.state.select_node(self.remember_node_id)
+                    self.remember_node_id = None
+                self.display.set_mode("Read")
             self.refresh_textbox()
         else:
             if self.display.vis.textbox is None:
@@ -457,6 +475,20 @@ class Controller:
             d["visited"] = status
         self.update_nav_tree()
         self.update_nav_tree_selected()
+
+
+    @metadata(name="Darkmode", keys=["<Control-Shift-KeyPress-D>"], display_key="Ctrl-Shift-D")
+    def toggle_darkmode(self):
+        global darkmode
+        darkmode = not darkmode
+        print("c",darkmode)
+        self.display.frame.pack_forget()
+        self.display.frame.destroy()
+        self.display = Display(self.root, self.callbacks, self.state)
+        self.refresh_textbox()
+        self.update_nav_tree()
+
+
 
 
     #################################
@@ -620,7 +652,9 @@ class Controller:
             self.display.textbox.delete("1.0", "end")
 
             self.display.textbox.tag_config('history', foreground=self.HISTORY_COLOR)
-            for node_text in self.state.node_ancestry_text()[:-1]:
+            ancestry, indices = self.state.node_ancestry_text()
+            self.ancestor_end_indices = indices
+            for node_text in ancestry[:-1]:
                 # "end" includes the automatically inserted new line
                 self.display.textbox.insert("end-1c", node_text, "history")
             self.display.textbox.insert("end-1c", self.state.selected_node["text"])

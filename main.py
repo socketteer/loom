@@ -15,8 +15,7 @@ from util.util_tk import create_menubar
 import PIL.Image
 import PIL.ImageTk
 
-from view.colors import darkmode
-
+darkmode = True
 
 class Application:
 

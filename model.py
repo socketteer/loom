@@ -148,7 +148,15 @@ class TreeModel:
 
     def node_ancestry_text(self, node=None):
         node = node if node else self.selected_node
-        return [node["text"] for node in node_ancestry(node, self.tree_node_dict)]
+        text = []
+        end_indices = []
+        index = 0
+        for node in node_ancestry(node, self.tree_node_dict):
+            text.append(node["text"])
+            index += len(node["text"])
+            end_indices.append(index)
+        return text, end_indices
+        #return [node["text"] for node in node_ancestry(node, self.tree_node_dict)]
 
     @property
     def selected_node(self):
@@ -323,7 +331,6 @@ class TreeModel:
             child["text"] = node["text"] + child["text"]
         self.delete_node(node, reassign_children=True)
 
-    # TODO check if ancestor
     # TODO indicate that change parent has been toggled
     def change_parent(self, node=None, new_parent_id=None):
         node = node if node else self.selected_node
@@ -348,10 +355,21 @@ class TreeModel:
         new_parent["children"].append(node)
         self.tree_updated()
 
+    # adds node to ghostchildren of new ghostparent
     def add_parent(self, node=None, new_ghostparent=None):
         pass
 
+    # changes parent id to new main parent, adds node to new main parent's children list, removes node from old parent's
+    # children list and adds to ghostchildren list
     def change_main_parent(self, node=None, new_main_parent=None):
+        pass
+
+    # moves selected node up in sibling list, or if first node, moves to back
+    def move_up(self, node):
+        pass
+
+    # moves selected node down in sibling list, or if last node, moves to front
+    def move_down(self, node):
         pass
 
     # TODO Doesn't support deleting root
