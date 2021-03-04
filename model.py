@@ -553,6 +553,11 @@ class TreeModel:
         self.io_update()
         return True
 
+    def export_history(self, node, filename):
+        history = "".join(self.node_ancestry_text(node)[0])
+        f = open(filename, "w")
+        f.write(history)
+        f.close()
 
     #################################
     #   Generation
@@ -616,7 +621,7 @@ class TreeModel:
             if self.generation_settings['adaptive']:
                 grandchildren.append(self.create_child(child, update_selection=False, expand=True))
 
-        prompt = "".join(self.node_ancestry_text(children[0]))
+        prompt = "".join(self.node_ancestry_text(children[0])[0])
         prompt = prompt[-self.generation_settings['prompt_length']:]
         memory = self.memory(node)
         print("Memory:\n", memory)

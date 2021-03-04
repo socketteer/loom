@@ -5,6 +5,7 @@
 * chapter nav tree scrollbar
 * num leaves calculated incorrectly
 * view doesn't center on new node during walk
+* ctrl space sometimes clicks button
 
 ### Tree vis
 * first time switching to vis mode centering bug
@@ -18,6 +19,7 @@
 * creating new parent in vis mode causes subtree collapse ??
 * icons sometimes do not zoom
 * edit text box position wrong after zooming (and?)
+* different icon colors for light mode
 
 # Tree visualization
 
@@ -58,7 +60,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 # import / export 
 * export subtree as json
-* export plaintext of single history
 
 
 # Features
@@ -84,6 +85,8 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * developer console
 * mark node (and ancestry) as canonical
 * visited sessions
+
+* clickable links in active text
 
 ## multimedia
 

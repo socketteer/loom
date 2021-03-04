@@ -136,6 +136,8 @@ class Application:
                 ('Import subtree', 'Ctrl+Shift+O', None, lambda event=None: self.forward_command(Controller.import_tree)),
                 ('Save', 'S', None, lambda event=None: self.forward_command(Controller.save_tree)),
                 ('Save As...', 'Ctrl+S', '<Control-s>', lambda event=None: self.forward_command(Controller.save_tree_as)),
+                ('Export text', 'Ctrl+Shift+X', '<Control-Shift-KeyPress-X>',
+                 lambda event=None: self.forward_command(Controller.export_text)),
                 ('Close Tab', None, None, self.close_tab),
                 ('Quit', 'Ctrl+Q', '<Control-q>', self.quit_app)
             ]

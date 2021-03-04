@@ -556,6 +556,20 @@ class Controller:
         except Exception as e:
             messagebox.showerror(title="Error", message=f"Failed to Save!\n{str(e)}")
 
+    @metadata(name="Export to text", keys=["<Control-Shift-KeyPress-X>"], display_key="Ctrl-Shift-X")
+    def export_text(self):
+        try:
+            filename = self.state.tree_filename if self.state.tree_filename \
+                else os.path.join(os.getcwd() + '/data/text', "export.txt")
+            filename = filedialog.asksaveasfilename(
+                initialfile=os.path.splitext(os.path.basename(filename))[0],
+                initialdir=os.path.dirname(filename),
+                defaultextension='.txt')
+            self.state.export_history(self.state.selected_node, filename)
+            messagebox.showinfo(title=None, message="Exported!")
+        except Exception as e:
+            messagebox.showerror(title="Error", message=f"Failed to Export!\n{str(e)}")
+
 
     @metadata(name="Clear chapters")
     def clear_chapters(self):
