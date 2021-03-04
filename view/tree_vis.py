@@ -22,6 +22,35 @@ leaf_padding = 50
 min_edit_box_height = 100
 canvas_padding = 0
 
+
+
+
+def round_rectangle(x1, y1, x2, y2, canvas, radius=25, **kwargs):
+
+    points = [x1+radius, y1,
+              x1+radius, y1,
+              x2-radius, y1,
+              x2-radius, y1,
+              x2, y1,
+              x2, y1+radius,
+              x2, y1+radius,
+              x2, y2-radius,
+              x2, y2-radius,
+              x2, y2,
+              x2-radius, y2,
+              x2-radius, y2,
+              x1+radius, y2,
+              x1+radius, y2,
+              x1, y2,
+              x1, y2-radius,
+              x1, y2-radius,
+              x1, y1+radius,
+              x1, y1+radius,
+              x1, y1]
+
+    return canvas.create_polygon(points, **kwargs, smooth=True)
+
+
 class TreeVis:
     def __init__(self, parent_frame, select_node_func, save_edits_func, state):
         self.parent_frame = parent_frame
@@ -435,9 +464,11 @@ class TreeVis:
         outline_color = selected_line_color() if selected_id == node["id"] else \
             (active_line_color() if tree_structure_map[node["id"]]['active'] else inactive_line_color())
         width = 2 if tree_structure_map[node["id"]]['active'] else 1
-        rect_id = self.canvas.create_rectangle(box, outline=outline_color, width=width,
-                                               activeoutline=BLUE, fill=fill,
-                                               tags=[f'box-{node["id"]}', 'data'])
+        # rect_id = self.canvas.create_rectangle(box, outline=outline_color, width=width,
+        #                                        activeoutline=BLUE, fill=fill,
+        #                                        tags=[f'box-{node["id"]}', 'data'])
+        rect_id = round_rectangle(x1=box[0], x2=box[2], y1=box[1], y2=box[3], canvas=self.canvas, outline=outline_color,
+                                  width=width, activeoutline=BLUE, fill=fill, tags=[f'box-{node["id"]}', 'data'])
         self.canvas.tag_raise(text_id, rect_id)
         self.canvas.tag_bind(
             f'text-{node["id"]}', "<Button-1>", lambda event, node_id=node["id"]: self.edit_node(node_id=node_id,
@@ -529,6 +560,7 @@ class TreeVis:
                 self.draw_expand_children_button(node, box)
                 self.draw_collapse_children_button(node, box)
                 self.draw_mergechildren_button(node, box)
+
 
     def draw_icon(self, node, x_pos, y_pos, icon_name, name=None, method=None):
         if name is None:
