@@ -129,6 +129,8 @@ class Controller:
                 ("New Sibling", 'Alt+Down', None, no_junk_args(self.create_sibling)),
                 ("Merge with parent", 'Shift+Left', None, no_junk_args(self.merge_with_parent)),
                 ("Merge with children", 'Shift+Right', None, no_junk_args(self.merge_with_children)),
+                ("Move up", 'Shift+Up', None, no_junk_args(self.move_up)),
+                ("Move up", 'Shift+Down', None, no_junk_args(self.move_down)),
                 ('Prepend newline', 'N, Ctrl+N', None, no_junk_args(self.prepend_newline)),
                 ('Prepend space', 'Ctrl+Space', None, no_junk_args(self.prepend_space)),
                 ('Copy', 'Ctrl+C', None, no_junk_args(self.copy_text)),
@@ -259,7 +261,7 @@ class Controller:
         self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
 
     #################################
-    #   Create
+    #   Node operations
     #################################
 
     @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Alt-Right>"], display_key="h",)
@@ -278,13 +280,14 @@ class Controller:
     def create_parent(self):
         self.state.create_parent()
 
+
     @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None)
     def change_parent(self):
         if self.change_parent.meta["selected_node"] is None:
-            print('copied node id')
+            self.display.change_cursor("fleur")
             self.change_parent.meta["selected_node"] = self.state.selected_node
         else:
-            print('changing parent')
+            self.display.change_cursor("arrow")
             self.state.change_parent(node=self.change_parent.meta["selected_node"], new_parent_id=self.state.selected_node_id)
             self.change_parent.meta["selected_node"] = None
 
@@ -295,6 +298,14 @@ class Controller:
     @metadata(name="Merge with children", keys=["<Shift-Right>"], display_key="shift-right")
     def merge_children(self):
         self.state.merge_with_children()
+
+    @metadata(name="Move up", keys=["<Shift-Up>"], display_key="shift-up")
+    def move_up(self):
+        self.state.shift(self.state.selected_node, -1)
+
+    @metadata(name="Move down", keys=["<Shift-Down>"], display_key="shift-down")
+    def move_down(self):
+        self.state.shift(self.state.selected_node, 1)
 
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
     def generate(self):
@@ -323,11 +334,14 @@ class Controller:
         self.display.vis.delete_textbox()
 
     @metadata(name="Escape textbox", keys=["<Escape>"], display_key="Escape")
-    def escape_textbox(self):
+    def escape(self):
         self.display.vis.delete_textbox(save=False)
         if self.display.in_edit_mode:
             self.display.set_mode("Read")
             self.refresh_textbox()
+        if self.change_parent.meta["selected_node"]:
+            self.display.change_cursor("arrow")
+            self.change_parent.meta["selected_node"] = None
 
     @metadata(name="Edit history", keys=[], display_key="Escape")
     def edit_history(self, index):
@@ -480,16 +494,16 @@ class Controller:
         self.update_nav_tree_selected()
 
 
-    @metadata(name="Darkmode", keys=["<Control-Shift-KeyPress-D>"], display_key="Ctrl-Shift-D")
-    def toggle_darkmode(self):
-        global darkmode
-        darkmode = not darkmode
-        print("c",darkmode)
-        self.display.frame.pack_forget()
-        self.display.frame.destroy()
-        self.display = Display(self.root, self.callbacks, self.state)
-        self.refresh_textbox()
-        self.update_nav_tree()
+    # @metadata(name="Darkmode", keys=["<Control-Shift-KeyPress-D>"], display_key="Ctrl-Shift-D")
+    # def toggle_darkmode(self):
+    #     global darkmode
+    #     darkmode = not darkmode
+    #     print("c",darkmode)
+    #     self.display.frame.pack_forget()
+    #     self.display.frame.destroy()
+    #     self.display = Display(self.root, self.callbacks, self.state)
+    #     self.refresh_textbox()
+    #     self.update_nav_tree()
 
 
 

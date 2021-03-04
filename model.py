@@ -252,7 +252,7 @@ class TreeModel:
     def select_sibling(self, offset, node=None):
         node = node if node else self.selected_node
         if node and "parent_id" in node:
-            siblings = self.tree_node_dict[node["parent_id"]]["children"]
+            siblings = self.parent(node)["children"]
             sibling = siblings[(siblings.index(node) + offset) % len(siblings)]
             return self.select_node(sibling["id"])
 
@@ -283,7 +283,7 @@ class TreeModel:
         node = node if node else self.selected_node
         if not node:
             return
-        parent = self.tree_node_dict[node["parent_id"]]
+        parent = self.parent(node)
         self.create_child(parent=parent, update_selection=update_selection)
 
     def create_parent(self, node=None):
@@ -300,7 +300,7 @@ class TreeModel:
             assert self.tree_raw_data["root"] == node
             self.tree_raw_data["root"] = new_parent
         else:
-            old_siblings = self.tree_node_dict[node["parent_id"]]["children"]
+            old_siblings = self.parent(node)["children"]
             old_siblings[old_siblings.index(node)] = new_parent
             new_parent["parent_id"] = node["parent_id"]
         node["parent_id"] = new_parent["id"]
@@ -312,7 +312,7 @@ class TreeModel:
         if not node:
             return
 
-        parent = self.tree_node_dict[node["parent_id"]]
+        parent = self.parent(node)
         parent["text"] += node["text"]
 
         index_in_parent = parent["children"].index(node)
@@ -352,7 +352,7 @@ class TreeModel:
         if in_ancestry(node, new_parent, self.tree_node_dict):
             print('error: node is ancestor of new parent')
             return
-        old_siblings = self.tree_node_dict[node["parent_id"]]["children"]
+        old_siblings = self.parent(node)["children"]
         old_siblings.remove(node)
         node["parent_id"] = new_parent_id
         new_parent["children"].append(node)
@@ -367,13 +367,12 @@ class TreeModel:
     def change_main_parent(self, node=None, new_main_parent=None):
         pass
 
-    # moves selected node up in sibling list, or if first node, moves to back
-    def move_up(self, node):
-        pass
-
-    # moves selected node down in sibling list, or if last node, moves to front
-    def move_down(self, node):
-        pass
+    def shift(self, node, interval):
+        siblings = self.parent(node)["children"]
+        old_index = siblings.index(node)
+        new_index = (old_index + interval) % len(siblings)
+        siblings[old_index], siblings[new_index] = siblings[new_index], siblings[old_index]
+        self.tree_updated()
 
     # TODO Doesn't support deleting root
     def delete_node(self, node=None, reassign_children=False):
@@ -381,7 +380,7 @@ class TreeModel:
         if "parent_id" not in node:
             return
 
-        parent = self.tree_node_dict[node["parent_id"]]
+        parent = self.parent(node)
         siblings = parent["children"]
         old_index = siblings.index(node)
         siblings.remove(node)
@@ -594,7 +593,7 @@ class TreeModel:
             for node in nodes:
                 node["text"] = "ERROR: " + error
                 # Just delete instead
-                parent = self.tree_node_dict[node["parent_id"]]
+                parent = self.parent(node)
                 parent["children"].remove(node)
 
         for result in results.choices:

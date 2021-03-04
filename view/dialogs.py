@@ -125,13 +125,13 @@ class MultimediaDialog(Dialog):
         self.viewing.grid(row=3, column=1)
 
     def create_buttons(self):
-        self.next_button = create_button(self.master, "Next", self.next)
+        self.next_button = create_button(self.master, "Next", lambda: self.traverse(1))
         self.next_button.grid(row=4, column=1, sticky='e')
-        self.prev_button = create_button(self.master, "Prev", self.prev)
+        self.prev_button = create_button(self.master, "Prev", lambda: self.traverse(-1))
         self.prev_button.grid(row=4, column=1, sticky='w')
-        self.move_up_button = create_button(self.master, "Move >", self.move_up)
+        self.move_up_button = create_button(self.master, "Move >", lambda: self.shift(1))
         self.move_up_button.grid(row=5, column=1, sticky='e')
-        self.move_down_button = create_button(self.master, "< Move", self.move_down)
+        self.move_down_button = create_button(self.master, "< Move", lambda: self.shift(-1))
         self.move_down_button.grid(row=5, column=1, sticky='w')
         self.caption_button = create_button(self.master, "Change caption", self.change_caption)
         self.caption_button.grid(row=5, column=1)
@@ -142,27 +142,20 @@ class MultimediaDialog(Dialog):
     def set_buttons(self):
         if not self.next_button:
             self.create_buttons()
-        if 'multimedia' in self.node and self.n + 1 < len(self.node['multimedia']):
-            self.next_button["state"] = "normal"
-            self.move_up_button["state"] = "normal"
-        else:
-            self.next_button["state"] = "disabled"
-            self.move_up_button["state"] = "disabled"
-        if self.n > 0:
-            self.prev_button["state"] = "normal"
-        else:
-            self.prev_button["state"] = "disabled"
         if self.num_media() > 0:
+            self.next_button["state"] = "normal"
+            self.prev_button["state"] = "normal"
+            self.move_up_button["state"] = "normal"
+            self.move_down_button["state"] = "normal"
             self.delete_button["state"] = "normal"
             self.caption_button["state"] = "normal"
         else:
+            self.next_button["state"] = "disabled"
+            self.prev_button["state"] = "disabled"
+            self.move_up_button["state"] = "disabled"
+            self.move_down_button["state"] = "disabled"
             self.delete_button["state"] = "disabled"
             self.caption_button["state"] = "disabled"
-
-        if self.n > 0:
-            self.move_down_button["state"] = "normal"
-        else:
-            self.move_down_button["state"] = "disabled"
 
     def change_caption(self):
         if self.num_media() > 0:
@@ -214,7 +207,7 @@ class MultimediaDialog(Dialog):
             self.node['multimedia'] = []
         for filename in filenames:
             self.node['multimedia'].append({'file': filename, 'caption': ''})
-        self.n = len(self.node['multimedia']) - 1
+        self.n = self.num_media() - 1
         self.display_image()
         self.set_buttons()
         self.refresh_event()
@@ -227,27 +220,16 @@ class MultimediaDialog(Dialog):
         self.set_buttons()
         self.refresh_event()
 
-    def prev(self):
-        self.n -= 1
+    def traverse(self, interval):
+        self.n = (self.n + interval) % self.num_media()
         self.display_image()
         self.set_buttons()
 
-    def next(self):
-        self.n += 1
-        self.display_image()
-        self.set_buttons()
-
-    def move_up(self):
-        self.node['multimedia'][self.n], self.node['multimedia'][self.n+1] = self.node['multimedia'][self.n+1], \
-                                                                             self.node['multimedia'][self.n]
-        self.n += 1
-        self.display_image()
-        self.set_buttons()
-
-    def move_down(self):
-        self.node['multimedia'][self.n], self.node['multimedia'][self.n - 1] = self.node['multimedia'][self.n - 1], \
-                                                                               self.node['multimedia'][self.n]
-        self.n -= 1
+    def shift(self, interval):
+        new_index = (self.n + interval) % self.num_media()
+        self.node['multimedia'][self.n], self.node['multimedia'][new_index] = self.node['multimedia'][new_index],\
+                                                                              self.node['multimedia'][self.n]
+        self.n = new_index
         self.display_image()
         self.set_buttons()
 

@@ -13,7 +13,7 @@
 * collapse all sometimes causes duplication?
 * text width when zooming: save defaults
 * zooming causes misalignment
-* vertical mode
+* fix vertical mode
 * view doesn't center when navigating to newly expanded node
 * creating new parent in vis mode causes subtree collapse ??
 * icons sometimes do not zoom
@@ -21,10 +21,8 @@
 
 # Tree visualization
 
-
 * mark as visited in tree mode
 * save vis settings
-
 * increase offsets when text is too long OR scrollbar OR pages
 * collapsed nodes don't need their own column
 * save pointer to offset when drawing tree...
@@ -35,8 +33,6 @@
 * display collapsed ghostchild position
 * ghostchild hysteresis
 * chapter colors
-
-- add expand/collapse functions to menu bar
 
 - editing: 
 global edit mode, where all nodes turn into textboxes, but no zooming?
@@ -51,18 +47,13 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * gradient color for text box history
 * scroll at top of chapter by default and hotkey to go to top of chapter
 * change darkmode in program
-
-# Modifications
-
+* highlight mouseover history
 
 # Tree topology
 
 * create parent for root node
 * multiple root nodes
 * add ghostchildren/ghostparents (using hotkey)
-* visual indication that change parent mode has been toggled
-
-* change order of children
 
 
 # import / export 
@@ -75,6 +66,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * search (global or by subtree or in ancestry)
 * search chapter titles
 * undo
+* versioning
 * right sidebar for (everything else)
 * "floating" notes
     * global or associated with subtree
@@ -121,75 +113,47 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 **memory system**
 
-- semantic search for short-term memory?
-- all entries are (automatically) indexed in memory
-- memory access modes: multiverse vs single world history
-- memory suggestions for easy importing or (toggle) automatic
-- memory in context: when importing memory, option to navigate surrounding tree
 - save multiple memory entries for each node
 - should memory use pointers like chapter?
+- memory dialogue lets you import
+    - memories from ancestry
+    - by search (multiverse or ancestry)
+    - by keying (top n matches) (multiverse or ancestry)
+- memory in context: when importing memory, option to navigate surrounding tree
+- semantic search for short-term memory?
+- when changing memory, option to create new entry vs edit existing one
+
+**saving memory entries**
+
+- toggle automatic memory construction
+- all entries are (automatically) indexed in memory
+- optional title
+- tags
+- keys
+    - automatically generated keys
+- reverse time influence: propagate memory backward
+
 
 ### Story navigation
 
 * "play" mode
 * stochastic walk 
     * mode which doesn't count visited nodes
-    * optional depth limit
+    * depth limit
     * display probabilities
+    * canonical only
     
-    
-
-## "inheritable" attributes (chapter, memory, notes)
-
-
 ### chapter
 
-- different chapter levels
-- chapter nav tree
-- option to view ancestry as linear chapters
+- chapter hierarchy
 - function to collapse all but chapter subtree
-
-### memory
-
-- each memory entry is a unique object stored in the tree; nodes point to memory
-- inheritable or not inheritable
-- if you modify memory for subtree, acts like changing chapter. Or you can modify
-the memory instantiation itself, which modifies memory for all nodes pointing to 
-it and doesn't create a new object
-- you can have multiple memory entries for one node
-- you can create assign a node an existing memory object without creating a new memory object
-bool for whether memory is activated
-- layer variable for order of entries
-- memories are inheritable by default, but you can create a non-inheritable memory
-deleting a memory entry - either for entire subtree or just for one node
-- reverse time influence: option to propagate memory pointers backward
-
-#### interface
-
-- optional custom title
-- tags
-- keys
-    - automatically generated keys
-- view memory entries of a node
-- change enabled status of memory
-- create a new memory entry (for node or subtree) (global) (inheritable?)
-- import an existing memory entry (for node or subtree)
-    - database of memories (tree? keywords? search?)
-    - automatic importing
-- delete a memory entry (for node or subtree)
-- edit (or delete) memory object 
-- edit inheritable status of a memory
-- propagate back in time (with optional max depth)
 
 ### floating notes
 
 - title and tags
-- same as memory, except by default the object is edited and a new instant isn't created
+- global or subtree access like memory, except by default the object is edited and a new instance isn't created (maybe memory should be this way too)
     - default deleting only removes pointers
     - option to duplicate note (create new instance from template)
-- show up as text boxes on the side which are always editable
-- like memory, pointers can be inheritable or not and global or not
-    - global notes are accessible from any node
-- option to minimize without deleting
-- like memory, can import existing notes
+- notes sidebar: boxes on the side which are always editable
+- option to minimize/hide without deleting
 - reverse time propagation

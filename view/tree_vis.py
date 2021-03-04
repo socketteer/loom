@@ -794,8 +794,8 @@ class TreeVis:
         self.delete_textbox()
         self.editing_node_id = node_id
 
-        fontheight = tkinter.font.Font(font=(self.font, self.get_text_size())).metrics('linespace')
-        self.textbox = TextAware(self.canvas, bg=edit_color(), fg='white', padx=10, pady=10, height=10,
+        #fontheight = tkinter.font.Font(font=(self.font, self.get_text_size())).metrics('linespace')
+        self.textbox = TextAware(self.canvas, bg=edit_color(), fg=active_text_color(), padx=10, pady=10, height=10,
                                  font=(self.font, self.get_text_size()))
         self.textbox.insert(tkinter.END, text)
 

@@ -118,6 +118,10 @@ Merge with Parent: `Shift-Left`
 
 Merge with children: `Shift-Right`
 
+Move node up: `Shift-Up`
+
+Move node down: `Shift-Down`
+
 Change parent: `Shift-P`
 
 New Child: `h`, `Control-h`, `Alt-Right`
@@ -135,7 +139,7 @@ Escape textbox: `Escape`
 
 Prepend newline: `n`, `Control-n`
 
-Prepend space: `m`, `Control-m`
+Prepend space: `Control-Space`
 
 
 

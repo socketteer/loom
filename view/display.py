@@ -67,8 +67,11 @@ class Display:
         display_key = f" [{display_key}]" if display_key else ""
         return name + display_key
 
+    def change_cursor(self, cursor_type):
+        self.root.config(cursor=cursor_type)
 
-    # TODO make a decorator which automatically caches default=CACHE args. None should be a cacheable value
+
+        # TODO make a decorator which automatically caches default=CACHE args. None should be a cacheable value
     # Caches param arguments so repeated calls will use the same args unless overridden
     @metadata(first_call=True, args={})
     def build_button(self, frame, name, button_params=None, pack_params=None, pack=True):
