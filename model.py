@@ -11,7 +11,7 @@ from multiprocessing.pool import ThreadPool
 
 from gpt import api_generate, janus_generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip
-from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry
+from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attributed
 
 
 # Calls any callbacks associated with the wrapped function
@@ -81,6 +81,7 @@ class TreeModel:
         self.tree_node_dict = None
         # {chapter_id: chapter}
         self.chapters = None
+        self.memories = None
         self.checkpoint = None
 
         self.selected_node_id = None
@@ -141,10 +142,12 @@ class TreeModel:
 
     # Get a nodes chapter by finding its chapter or its nearest parent's chapter
     def chapter(self, node):
-        for lineage_node in reversed(node_ancestry(node, self.tree_node_dict)):
-            if "chapter_id" in lineage_node:
-                return self.chapters[lineage_node["chapter_id"]]
-        return None
+        chapter_id = get_inherited_attributed("chapter_id", node, self.tree_node_dict)
+        return self.chapters[chapter_id] if chapter_id else None
+
+    def memory(self, node):
+        memory = get_inherited_attributed("memory", node, self.tree_node_dict)
+        return memory if memory else self.generation_settings["memory"]
 
     def node_ancestry_text(self, node=None):
         node = node if node else self.selected_node
@@ -616,7 +619,7 @@ class TreeModel:
 
         prompt = "".join(self.node_ancestry_text(children[0]))
         prompt = prompt[-self.generation_settings['prompt_length']:]
-        memory = self.generation_settings['memory']
+        memory = self.memory(node)
         print("Memory:\n", memory)
         print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
         prompt = memory + prompt

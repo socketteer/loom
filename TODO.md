@@ -4,6 +4,7 @@
 * have to close tab before opening file
 * chapter nav tree scrollbar
 * num leaves calculated incorrectly
+* view doesn't center on new node during walk
 
 ### Tree vis
 * first time switching to vis mode centering bug
@@ -21,7 +22,6 @@
 # Tree visualization
 
 
-- don't calc tree structure when refreshing
 * mark as visited in tree mode
 * save vis settings
 
@@ -34,6 +34,7 @@
 * use callbacks in tree vis
 * display collapsed ghostchild position
 * ghostchild hysteresis
+* chapter colors
 
 - add expand/collapse functions to menu bar
 
@@ -125,9 +126,8 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 - memory access modes: multiverse vs single world history
 - memory suggestions for easy importing or (toggle) automatic
 - memory in context: when importing memory, option to navigate surrounding tree
-- save (multiple) memory entries for each node
-    - each node automatically inherits parent memory entries (can be edited or deleted)
-
+- save multiple memory entries for each node
+- should memory use pointers like chapter?
 
 ### Story navigation
 

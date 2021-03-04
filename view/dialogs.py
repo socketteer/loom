@@ -51,6 +51,34 @@ class NodeChapterDialog(Dialog):
         self.state.create_new_chapter(node=self.node, title=new_title)
 
 
+class MemoryDialog(Dialog):
+    def __init__(self, parent, node, get_memory):
+        self.node = node
+        self.memory_textbox = None
+        self.get_memory = get_memory
+        Dialog.__init__(self, parent, title="Memory")
+
+    def body(self, master):
+        create_label(master, "Memory (prepended to AI input)")
+        self.memory_textbox = ScrolledText(master, height=7)
+        self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
+        self.memory_textbox.configure(
+            font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
+            spacing1=10,
+            foreground=text_color(),  # Darkmode
+            background=bg_color(),
+            padx=3,
+            pady=3,
+            spacing2=5,  # Spacing between lines
+            spacing3=5,
+            wrap="word",
+        )
+        self.memory_textbox.insert("1.0", self.get_memory(self.node))
+
+    def apply(self):
+        self.node["memory"] = self.memory_textbox.get("1.0", 'end-1c')
+
+
 class MultimediaDialog(Dialog):
     def __init__(self, parent, node, refresh_event):
         self.node = node

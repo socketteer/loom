@@ -14,7 +14,7 @@ import bisect
 from view.colors import history_color, not_visited_color, visited_color, darkmode
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
-    NodeChapterDialog, MultimediaDialog
+    NodeChapterDialog, MultimediaDialog, MemoryDialog
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry
@@ -113,7 +113,6 @@ class Controller:
             "View": [
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
-                ('Multimedia', 'U', None, no_junk_args(self.multimedia_dialog)),
                 ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
                 ('Collapse subtree', 'Ctrl-minus', None, no_junk_args(self.collapse_subtree)),
                 ('Collapse all except subtree', 'Ctrl-:', None, no_junk_args(self.collapse_all_except_subtree)),
@@ -130,8 +129,8 @@ class Controller:
                 ("New Sibling", 'Alt+Down', None, no_junk_args(self.create_sibling)),
                 ("Merge with parent", 'Shift+Left', None, no_junk_args(self.merge_with_parent)),
                 ("Merge with children", 'Shift+Right', None, no_junk_args(self.merge_with_children)),
-                ('Prepend newline', 'N', None, no_junk_args(self.prepend_newline)),
-                ('Prepend space', 'M', None, no_junk_args(self.prepend_space)),
+                ('Prepend newline', 'N, Ctrl+N', None, no_junk_args(self.prepend_newline)),
+                ('Prepend space', 'Ctrl+Space', None, no_junk_args(self.prepend_space)),
                 ('Copy', 'Ctrl+C', None, no_junk_args(self.copy_text)),
                 ('Delete', 'Backspace', None, no_junk_args(self.delete_node)),
                 ('Delete and reassign children', '', None, no_junk_args(self.delete_node_reassign_children)),
@@ -144,10 +143,13 @@ class Controller:
                 ("Next Bookmark", "D", None, no_junk_args(self.next_bookmark)),
                 ("Prev Bookmark", "A", None, no_junk_args(self.prev_bookmark)),
                 ("Stochastic walk", "W", None, no_junk_args(self.walk)),
+                ("Change chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
+
             ],
             "Generation": [
                 ('Generation settings', 'Ctrl+P', None, no_junk_args(self.generation_settings_dialog)),
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
+                ('Memory', 'M, Ctrl+M', None, no_junk_args(self.memory)),
             ],
             "Visited": [
                 ("Mark visited", None, None, lambda: self.set_visited(True)),
@@ -159,6 +161,7 @@ class Controller:
             ],
             "Info": [
                 ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
+                ('Multimedia', 'U', None, no_junk_args(self.multimedia_dialog)),
             ],
         }
         return menu_list
@@ -416,7 +419,7 @@ class Controller:
             self.state.update_text(self.state.selected_node, text)
 
 
-    @metadata(name="Prepend space", keys=["<Key-m>", "<Control-m>"], display_key="m")
+    @metadata(name="Prepend space", keys=["<Control-space>"], display_key="ctrl-space")
     def prepend_space(self):
         self.save_edits()
         if self.state.selected_node:
@@ -607,6 +610,10 @@ class Controller:
     def multimedia_dialog(self):
         dialog = MultimediaDialog(parent=self.display.frame, node=self.state.selected_node,
                                   refresh_event=self.state.tree_updated)
+
+    @metadata(name="Memory dialogue", keys=["<m>", "<Control-m>"], display_key="m")
+    def memory(self):
+        dialog = MemoryDialog(parent=self.display.frame, node=self.state.selected_node, get_memory=self.state.memory)
 
 
     #################################

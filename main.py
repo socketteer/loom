@@ -12,10 +12,9 @@ from model import TreeModel, EMPTY_TREE
 from util.custom_tks import ClosableNotebook
 from util.util import json_open, json_create
 from util.util_tk import create_menubar
+from view.colors import darkmode
 import PIL.Image
 import PIL.ImageTk
-
-darkmode = True
 
 class Application:
 

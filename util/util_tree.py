@@ -28,6 +28,12 @@ def in_ancestry(a, b, node_dict):
     return a in ancestry
 
 
+def get_inherited_attributed(attribute, node, tree_node_dict):
+    for lineage_node in reversed(node_ancestry(node, tree_node_dict)):
+        if attribute in lineage_node:
+            return lineage_node[attribute]
+    return None
+
 # recursively called on subtree
 def overwrite_subtree(node, attribute, new_value, old_value=None, force_overwrite=False):
     if force_overwrite or (attribute not in node) or old_value is None or (node[attribute] == old_value) \
