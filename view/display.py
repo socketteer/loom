@@ -12,11 +12,12 @@ from util.util import metadata
 
 class Display:
 
-    def __init__(self, root, callbacks, state):
+    def __init__(self, root, callbacks, state, controller):
         self.root = root
         # Dict of callback names to callback data {**metadata, callback=func}
         self.callbacks = callbacks
         self.state = state
+        self.controller = controller
 
         self.modes = {"Read", "Edit", "Multi Edit", "Visualize"}
         self.mode = "Read"
@@ -133,9 +134,7 @@ class Display:
         self.textbox_frame.pack(expand=True, fill="both")
 
         self.vis = TreeVis(self.story_frame,
-                           self.callbacks["Nav Select"]["callback"],
-                           self.callbacks["Save Edits"]["callback"],
-                           self.state)
+                           self.state, self.controller)
 
         # Button bar
         self.build_main_buttons(self.main_frame)

@@ -40,7 +40,7 @@ class Controller:
 
         self.root = root
         self.state = TreeModel(self.root)
-        self.display = Display(self.root, self.callbacks, self.state)
+        self.display = Display(self.root, self.callbacks, self.state, self)
 
         self.register_model_callbacks()
         self.setup_key_bindings()
@@ -225,6 +225,8 @@ class Controller:
     def nav_select(self, *, node_id):
         if not node_id:
             return
+        if self.change_parent.meta["click_mode"]:
+            self.change_parent(node=self.state.tree_node_dict[node_id])
         # TODO This causes infinite recursion from the vis node. Need to change how updating open status works
         # Update the open state of the node based on the nav bar
         # node = self.state.tree_node_dict[node_id]
@@ -232,8 +234,10 @@ class Controller:
         self.state.select_node(node_id)
 
     @metadata(name="Bookmark", keys=["<Key-b>", "<Control-b>"], display_key="b")
-    def bookmark(self):
-        self.state.selected_node["bookmark"] = not self.state.selected_node.get("bookmark", False)
+    def bookmark(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        node["bookmark"] = not node.get("bookmark", False)
         self.state.tree_updated()
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
@@ -265,69 +269,90 @@ class Controller:
     #################################
 
     @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Alt-Right>"], display_key="h",)
-    def create_child(self):
-        self.state.create_child(update_selection=self.display.mode != "Multi Edit")
+    def create_child(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.create_child(parent=node, update_selection=self.display.mode != "Multi Edit")
         if self.display.mode == "Read":
             self.toggle_edit_mode()
 
     @metadata(name="New Sibling", keys=["<Alt-Down>"], display_key="alt-down")
-    def create_sibling(self):
-        self.state.create_sibling()
+    def create_sibling(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.create_sibling(node=node)
         if self.display.mode == "Read":
             self.toggle_edit_mode()
 
     @metadata(name="New Parent", keys=["<Alt-Left>"], display_key="alt-left")
-    def create_parent(self):
-        self.state.create_parent()
+    def create_parent(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.create_parent(node=node)
 
-
-    @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None)
-    def change_parent(self):
+    @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None, click_mode=False)
+    def change_parent(self, node=None, click_mode=False):
+        if node is None:
+            node = self.state.selected_node
         if self.change_parent.meta["selected_node"] is None:
             self.display.change_cursor("fleur")
-            self.change_parent.meta["selected_node"] = self.state.selected_node
+            self.change_parent.meta["selected_node"] = node
+            self.change_parent.meta["click_mode"] = click_mode
         else:
             self.display.change_cursor("arrow")
-            self.state.change_parent(node=self.change_parent.meta["selected_node"], new_parent_id=self.state.selected_node_id)
+            self.state.change_parent(node=self.change_parent.meta["selected_node"], new_parent_id=node["id"])
             self.change_parent.meta["selected_node"] = None
+            self.change_parent.meta["click_mode"] = False
 
     @metadata(name="Merge with Parent", keys=["<Shift-Left>"], display_key="shift-left",)
-    def merge_parent(self):
-        self.state.merge_with_parent()
+    def merge_parent(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.merge_with_parent(node=node)
 
     @metadata(name="Merge with children", keys=["<Shift-Right>"], display_key="shift-right")
-    def merge_children(self):
-        self.state.merge_with_children()
+    def merge_children(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.merge_with_children(node=node)
 
     @metadata(name="Move up", keys=["<Shift-Up>"], display_key="shift-up")
-    def move_up(self):
-        self.state.shift(self.state.selected_node, -1)
+    def move_up(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.shift(node, -1)
 
     @metadata(name="Move down", keys=["<Shift-Down>"], display_key="shift-down")
-    def move_down(self):
-        self.state.shift(self.state.selected_node, 1)
+    def move_down(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.shift(node, 1)
 
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
-    def generate(self):
+    def generate(self, node=None):
+        if node is None:
+            node = self.state.selected_node
         try:
-            self.state.selected_node["open"] = True
-            self.display.nav_tree.item(self.state.selected_node_id, open=True)
+            node["open"] = True
+            self.display.nav_tree.item(node, open=True)
         except Exception as e:
             print(str(e))
-        self.state.generate_continuation()
+        self.state.generate_continuation(node=node)
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
-    def delete_node(self, reassign_children=False):
-        if not self.state.selected_node or "parent_id" not in self.state.selected_node:
+    def delete_node(self, node=None, reassign_children=False):
+        if node is None:
+            node = self.state.selected_node
+        if not node or "parent_id" not in node:
             return
         result = messagebox.askquestion("Delete", "Delete Node?", icon='warning')
         if result != 'yes':
             return
-        self.state.delete_node(reassign_children=reassign_children)
+        self.state.delete_node(node=node, reassign_children=reassign_children)
 
     @metadata(name="Delete and reassign children")
-    def delete_node_reassign_children(self):
-        self.delete_node(reassign_children=True)
+    def delete_node_reassign_children(self, node=None):
+        self.delete_node(node=node, reassign_children=True)
 
     @metadata(name="Enter text", keys=["<Control-bar>"], display_key="Ctrl-Return")
     def enter_text(self):
@@ -405,7 +430,7 @@ class Controller:
 
 
     @metadata(name="Merge with parent")
-    def merge_with_parent(self):
+    def merge_with_parent(self, node=None):
         self.state.merge_with_parent()
 
 
@@ -632,17 +657,23 @@ class Controller:
     #     dialog = ChaptersInfoDialog(self.display.frame, self.state.chapters)
 
     @metadata(name="Chapter settings", keys=["<Control-y>"], display_key="ctrl-y")
-    def chapter_dialog(self):
-        dialog = NodeChapterDialog(parent=self.display.frame, node=self.state.selected_node, state=self.state)
+    def chapter_dialog(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        dialog = NodeChapterDialog(parent=self.display.frame, node=node, state=self.state)
 
     @metadata(name="Multimedia dialogue", keys=["<u>"], display_key="u")
-    def multimedia_dialog(self):
-        dialog = MultimediaDialog(parent=self.display.frame, node=self.state.selected_node,
+    def multimedia_dialog(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        dialog = MultimediaDialog(parent=self.display.frame, node=node,
                                   refresh_event=self.state.tree_updated)
 
     @metadata(name="Memory dialogue", keys=["<m>", "<Control-m>"], display_key="m")
-    def memory(self):
-        dialog = MemoryDialog(parent=self.display.frame, node=self.state.selected_node, get_memory=self.state.memory)
+    def memory(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
         self.refresh_textbox()
 
 
@@ -747,11 +778,12 @@ class Controller:
             self.display.multi_textboxes[0].configure(foreground=self.HISTORY_COLOR)
 
 
-    def refresh_visualization(self):
+    def refresh_visualization(self, center=False):
         if self.display.mode != "Visualize":
             return
         self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
-        self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+        if center:
+            self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
 
 
     def refresh_vis_selection(self):

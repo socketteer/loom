@@ -52,11 +52,12 @@ def round_rectangle(x1, y1, x2, y2, canvas, radius=25, **kwargs):
 
 
 class TreeVis:
-    def __init__(self, parent_frame, select_node_func, save_edits_func, state):
+    def __init__(self, parent_frame, state, controller):
         self.parent_frame = parent_frame
-        self.select_node_func = select_node_func
-        self.save_edits_func = save_edits_func
+        #self.select_node_func = select_node_func
+        #self.save_edits_func = save_edits_func
         self.state = state
+        self.controller = controller
 
         self.frame = None
         self.canvas = None
@@ -287,10 +288,12 @@ class TreeVis:
 
 
     def refresh_selection(self, root_node, selected_node):
+        if self.selected_node["id"] not in self.node_coords:
+            self.draw(self.root, self.selected_node, center_on_selection=True)
         self.selected_node = selected_node
         if not self.selected_node.get("open", False):
             self.expand_node(self.selected_node)
-            self.draw(self.root, self.selected_node)
+            self.draw(self.root, self.selected_node, center_on_selection=True)
             return
         self.delete_textbox()
         tree_structure_map = self.calc_tree_structure(root_node, self.selected_node)
@@ -317,9 +320,7 @@ class TreeVis:
                     fill = unvisited_node_bg_color()
                 self.canvas.itemconfig(f'box-{node_id}', fill=fill)
 
-
-        if self.selected_node["id"] in self.node_coords:
-            self.center_view_on_canvas_coords(*self.node_coords[self.selected_node["id"]])
+        self.center_view_on_canvas_coords(*self.node_coords[self.selected_node["id"]])
 
 
     def draw_node(self, node, nodex, nodey, tree_structure_map, selected_id):
@@ -377,7 +378,7 @@ class TreeVis:
             self.draw_line(parentx - offset, parenty - offset, childx - offset, childy - offset,
                            name=f'lines-{child["id"]}',
                            fill=color, activefill=BLUE, width=width, offset=smooth_line_offset, smooth=True,
-                           method=lambda event, node_id=child["id"]: self.select_node_func(node_id=node_id))
+                           method=lambda event, node_id=child["id"]: self.controller.nav_select(node_id=node_id))
 
         #TODO lightmode
         if "ghostchildren" in node:
@@ -396,7 +397,7 @@ class TreeVis:
                     self.draw_line(parentx - offset, parenty - offset, ghostx - offset, ghosty - offset,
                                    name=f'ghostlines-{ghost["id"]}',
                                    fill=color, activefill=BLUE, offset=smooth_line_offset, smooth=True,
-                                   method=lambda event, node_id=ghost["id"]: self.select_node_func(node_id=node_id))
+                                   method=lambda event, node_id=ghost["id"]: self.controller.nav_select(node_id=node_id))
                 else:
                     #print("drew collapsed ghostchild")
                     #TODO fix position
@@ -405,7 +406,7 @@ class TreeVis:
                                    parenty - offset,
                                    name=f'ghostlines-{ghost["id"]}',
                                    fill=inactive_line_color(), activefill=BLUE, offset=smooth_line_offset, smooth=True,
-                                   method=lambda event, node_id=ghost["id"]: self.select_node_func(node_id=node_id))
+                                   method=lambda event, node_id=ghost["id"]: self.controller.nav_select(node_id=node_id))
                     self.draw_expand_node_button(ghost, parentx + self.state.visualization_settings["leveldistance"], parenty, ghost=True)
                     return
 
@@ -480,7 +481,6 @@ class TreeVis:
                                                                                     text=node['text'])
         self.canvas.tag_bind(
             f'box-{node["id"]}', "<Button-1>", self.box_click(node["id"], box, node["text"]))
-
 
         if node is not self.root:
             self.draw_collapse_button(node, box)
@@ -603,7 +603,7 @@ class TreeVis:
 
     def draw_memory_button(self, node, box):
         self.draw_icon(node, box[2] - 59, box[3] + 12, "memory",
-                       method=lambda event, _node=node: self.new_child(_node))
+                       method=lambda event, _node=node: self.memory(_node))
 
     def draw_collapse_button(self, node, box):
         self.draw_icon(node, box[0] + 7, box[1] - 10, "close",
@@ -674,14 +674,15 @@ class TreeVis:
         if isinstance(node, str):
             node = self.state.tree_node_dict[node]
         self.selected_node = node
-        self.select_node_func(node_id=node["id"])
+        self.controller.nav_select(node_id=node["id"])
 
 
-    def expand_node(self, node, change_selection=True, center_selection=False):
+    def expand_node(self, node, change_selection=True, center_selection=True):
         ancestry = node_ancestry(node, self.state.tree_node_dict)
         for ancestor in ancestry:
             ancestor['open'] = True
         if change_selection or not self.selected_node['open']:
+            #self.controller.nav_select(node)
             self.select_node(node)
         self.draw(self.root, self.selected_node, center_on_selection=center_selection)
 
@@ -747,35 +748,34 @@ class TreeVis:
         self.expand_node(node, change_selection=False)
 
 
-
     #################################
     #   Topology
     #################################
 
     # all these should use callbacks
     def merge_parent(self, node):
-        pass
+        self.controller.merge_parent(node)
 
     def merge_children(self, node):
-        pass
+        self.controller.merge_children(node)
 
     def change_parent(self, node):
-        pass
+        self.controller.change_parent(node, click_mode=True)
 
     def new_ghostparent(self, node):
         pass
 
     def new_parent(self, node):
-        pass
+        self.controller.create_parent(node)
 
     def new_child(self, node):
-        pass
+        self.controller.create_child(node)
 
     def shift_up(self, node):
-        pass
+        self.controller.move_up(node)
 
     def shift_down(self, node):
-        pass
+        self.controller.move_down(node)
 
     #################################
     #   Interaction
@@ -808,7 +808,7 @@ class TreeVis:
     def delete_textbox(self, save=True):
         if self.textbox is not None:
             if save:
-                self.save_edits_func()
+                self.controller.save_edits()
 
             self.canvas.delete(self.textbox_id)
             #self.textbox.destroy()
@@ -816,23 +816,21 @@ class TreeVis:
             self.editing_node_id = None
             self.textbox_id = None
 
-
-    # TODO use callback
     def toggle_bookmark(self, node):
-        if node.get("bookmark", False):
-            node["bookmark"] = False
-        else:
-            node["bookmark"] = True
-        self.draw(self.root, self.selected_node)
+        self.controller.bookmark(node)
 
     def delete_node(self, node):
-        pass
+        self.controller.delete_node(node)
 
     def generate(self, node):
-        pass
+        self.controller.generate(node)
+
+    def memory(self, node):
+        self.controller.memory(node)
 
     def read_mode(self, node):
-        pass
+        self.select_node(node)
+        self.controller.toggle_visualization_mode()
 
     def show_info(self, node):
         pass

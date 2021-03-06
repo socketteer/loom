@@ -304,6 +304,7 @@ class TreeModel:
             old_siblings[old_siblings.index(node)] = new_parent
             new_parent["parent_id"] = node["parent_id"]
         node["parent_id"] = new_parent["id"]
+        new_parent["open"] = True
 
         self.tree_updated()
 
@@ -321,7 +322,8 @@ class TreeModel:
             # parent["children"].insert(index_in_parent+i, c)
             c["parent_id"] = parent["id"]
 
-        self.select_node(parent["id"])
+        if node == self.selected_node:
+            self.select_node(parent["id"])
         self.tree_updated()
 
     def merge_with_children(self, node=None):
@@ -388,10 +390,11 @@ class TreeModel:
             siblings.extend(node["children"])
 
         # Select parent or the next sibling if possible and not keeping the children
-        if reassign_children or len(siblings) == 0:
-            self.select_node(parent["id"])
-        else:
-            self.select_node(siblings[old_index % len(siblings)]["id"])
+        if node == self.selected_node:
+            if reassign_children or len(siblings) == 0:
+                self.select_node(parent["id"])
+            else:
+                self.select_node(siblings[old_index % len(siblings)]["id"])
         self.tree_updated()
 
     def update_text(self, node, text, active_text=None):

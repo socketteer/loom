@@ -4,7 +4,6 @@
 * have to close tab before opening file
 * chapter nav tree scrollbar
 * num leaves calculated incorrectly
-* view doesn't center on new node during walk
 * ctrl space sometimes clicks button
 
 ### Tree vis
@@ -15,10 +14,7 @@
 * text width when zooming: save defaults
 * zooming causes misalignment
 * fix vertical mode
-* view doesn't center when navigating to newly expanded node
-* creating new parent in vis mode causes subtree collapse ??
 * icons sometimes do not zoom
-* edit text box position wrong after zooming (and?)
 * different icon colors for light mode
 
 # Tree visualization
@@ -31,10 +27,13 @@
  
 * more space after collapsed node
 * dynamic icon position
-* use callbacks in tree vis
 * display collapsed ghostchild position
 * ghostchild hysteresis
 * chapter colors
+
+* padding
+
+* buttons for chapter and multimedia
 
 - editing: 
 global edit mode, where all nodes turn into textboxes, but no zooming?
@@ -49,6 +48,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * scroll at top of chapter by default and hotkey to go to top of chapter
 * change darkmode in program
 * highlight mouseover history
+* implement expand/collapse functions in controller
 
 # Tree topology
 
