@@ -42,7 +42,7 @@ unstable and poorly documented.
 ![](static/readme/read-view-light.png)
 ![](static/readme/tree-view.png)
 ![](static/readme/tree-view-light.png)
-![](static/readme/metadata.png)
+![](static/readme/metadata-light.png)
 
 ooo what features! wow so cool
 
