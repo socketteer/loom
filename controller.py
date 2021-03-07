@@ -164,6 +164,7 @@ class Controller:
             "Info": [
                 ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
                 ('Multimedia', 'U', None, no_junk_args(self.multimedia_dialog)),
+                ('Node metadata', 'Ctrl+Shift+N', None, no_junk_args(self.node_info_dialogue))
             ],
         }
         return menu_list

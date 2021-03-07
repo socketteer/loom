@@ -69,7 +69,10 @@ Visualization Settings: `Control-u`
 
 Multimedia dialogue: `u`
 
-Show Info: `i`, `Control-i`
+Tree Info: `i`, `Control-i`
+
+Node Metadata: `Control+Shift+N`
+
 
 ### Mode
 
