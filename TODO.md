@@ -6,6 +6,7 @@
 * num leaves calculated incorrectly
 * ctrl+space sometimes clicks button
 * ctrl+y hotkey (chapter dialogue) sometimes doesn't work
+* importing tree causes file to be renamed to name of imported file
 
 ### Tree vis
 * first time switching to vis mode centering bug
@@ -84,7 +85,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
     * deal with navigating to node outside subtree (expand to common 
     ancestor of current and new node?)
 * ctrl+c copies node text in read/vis modes
-* copy ancestry
 * split node by clicking/highlighting? is this possible?
 * developer console
 * mark node (and ancestry) as canonical
@@ -101,14 +101,12 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 ### GPT-3
 
-* display logprobs
-* view alternative tokens 
+* view logprobs and alternative tokens 
     * replace with alternative tokens
 * define pre and post prompt
 * active side prompts like "Who is the main character in this story?"
 * playground-like interface
 * load gpt-3 program
-* save metadata from gpt-3 calls
 * min cutoff length for adaptive branching
 
 ### AI memory

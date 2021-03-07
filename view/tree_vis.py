@@ -20,7 +20,7 @@ collapsed_offset = 50
 smooth_line_offset = 50
 leaf_padding = 50
 min_edit_box_height = 100
-canvas_padding = 0
+canvas_padding = 100
 
 
 

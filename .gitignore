@@ -1,6 +1,7 @@
 data/backups/
 data/*
 !data/dialectical.json
+static/media
 
 ### Python template
 # Byte-compiled / optimized / DLL files

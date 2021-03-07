@@ -37,7 +37,7 @@ class NodeInfoDialog(Dialog):
 
             if "generation" in meta:
                 create_side_label(master, "prompt")
-                prompt_text = tk.Text(master)
+                prompt_text = tk.Text(master, height=20)
                 prompt_text.grid(row=master.grid_size()[1] - 1, column=1)
                 prompt_text.insert(tk.INSERT, meta["generation"]["prompt"])
                 prompt_text.configure(state='disabled')
@@ -45,7 +45,7 @@ class NodeInfoDialog(Dialog):
                 prompt_text.bind("<Button>", lambda event: prompt_text.focus_set())
 
                 create_side_label(master, "original generated text")
-                gen_text = tk.Text(master)
+                gen_text = tk.Text(master, height=8)
                 gen_text.grid(row=master.grid_size()[1] - 1, column=1)
                 gen_text.insert(tk.INSERT, meta["generation"]["text"])
 
@@ -86,6 +86,8 @@ class NodeInfoDialog(Dialog):
                 gen_text.bind("<Button>", lambda event: gen_text.focus_set())
                 create_side_label(master, "model")
                 create_label(master, meta["generation"]["model"], row=master.grid_size()[1] - 1, col=1, padx=15)
+        else:
+            create_side_label(master, "no metadata")
 
 
 
