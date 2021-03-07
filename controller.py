@@ -11,7 +11,7 @@ import PIL
 import pyperclip
 import bisect
 
-from view.colors import history_color, not_visited_color, visited_color, ooc_color
+from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, MemoryDialog, NodeInfoDialog
@@ -47,6 +47,8 @@ class Controller:
         self.build_menus()
         self.ancestor_end_indices = None
         self.remember_node_id = None
+        self.canonical_only = False
+        self.display_canonical = True
 
 
     #################################
@@ -203,9 +205,10 @@ class Controller:
         self.state.select_sibling(-1)
 
     @metadata(name="Walk", keys=["<Key-w>", "<Control-w>"], display_key="w")
-    def walk(self):
+    def walk(self, canonical_only=False):
+        filter_set = self.state.calc_canonical_set() if canonical_only else None
         if 'children' in self.state.selected_node and len(self.state.selected_node['children']) > 0:
-            chosen_child = stochastic_transition(self.state.selected_node, mode='descendents')
+            chosen_child = stochastic_transition(self.state.selected_node, mode='descendents', filter_set=filter_set)
             self.state.select_node(chosen_child['id'])
 
     @metadata(name="Return to root", keys=["<Key-r>", "<Control-r>"], display_key="r")
@@ -239,6 +242,13 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         node["bookmark"] = not node.get("bookmark", False)
+        self.state.tree_updated()
+
+    @metadata(name="Toggle canonical", keys=["<Control-Shift-KeyPress-C>"], display_key="ctrl+shift+C")
+    def toggle_canonical(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.toggle_canonical(node=node)
         self.state.tree_updated()
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
@@ -667,7 +677,7 @@ class Controller:
     def node_info_dialogue(self, node=None):
         if node is None:
             node = self.state.selected_node
-        dialog = NodeInfoDialog(parent=self.display.frame, node=node)
+        dialog = NodeInfoDialog(parent=self.display.frame, node=node, state=self.state)
 
     @metadata(name="Multimedia dialogue", keys=["<u>"], display_key="u")
     def multimedia_dialog(self, node=None):
@@ -832,17 +842,24 @@ class Controller:
                 image = self.display.media_icon
             else:
                 image = self.display.bookmark_icon if d.get("bookmark", False) else None
+            tags = ["visited"] if d.get("visited", False) else ["not visited"]
+            if d['id'] in self.state.calc_canonical_set():
+                tags.append("canonical")
+            else:
+                tags.append("uncanonical")
             self.display.nav_tree.insert(
                 parent=d.get("parent_id", ""),
                 index="end",
                 iid=d["id"],
                 text=self.nav_tree_name(d),
                 open=d.get("open", False),
-                tags=["visited"] if d.get("visited", False) else ["not visited"],
+                tags=tags,
                 **dict(image=image) if image else {}
             )
         self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
         self.display.nav_tree.tag_configure("visited", background=visited_color())
+        self.display.nav_tree.tag_configure("canonical", foreground=text_color())
+        self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
 
         # # Restore opened state
         # for node_id in open_nodes:
@@ -891,10 +908,16 @@ class Controller:
         #         node["open"] = self.display.nav_tree.item(node["id"], "open")
 
         # Update tag of node based on visited status
+        d = self.state.selected_node
+        tags = ["visited"] if d.get("visited", False) else ["not visited"]
+        if d['id'] in self.state.calc_canonical_set():
+            tags.append("canonical")
+        else:
+            tags.append("uncanonical")
         self.display.nav_tree.item(
             state_selected_id,
             open=self.state.selected_node.get("open", False),
-            tags=["visited"] if self.state.selected_node.get("visited", False) else ["not visited"]
+            tags=tags
         )
 
         # Scroll to node, open it's parent nodes

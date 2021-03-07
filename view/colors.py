@@ -24,6 +24,7 @@ LIGHTMODE_SCROLL_BG = '#e4e4e4'
 
 DARKMODE_TEXTBOX_BG = "#474747" #"#383838"
 DARKMODE_TEXT = "white"
+DARKMODE_UNCANONICAL = BLUE
 
 DARKMODE_EDIT_BG = "#747474"
 
@@ -39,6 +40,7 @@ DARKMODE_DEFAULT = "#474747"
 
 LIGHTMODE_TEXTBOX_BG = '#e4e4e4'
 LIGHTMODE_TEXT = "black"
+LIGHTMODE_UNCANONICAL = "#1122CD"
 
 LIGHTMODE_EDIT_BG = "#cccccc"
 
@@ -63,6 +65,9 @@ def scroll_bg_color():
 def text_color():
     return DARKMODE_TEXT if darkmode else LIGHTMODE_TEXT
 
+
+def uncanonical_color():
+    return DARKMODE_UNCANONICAL if darkmode else LIGHTMODE_UNCANONICAL
 
 def bg_color():
     return DARKMODE_TEXTBOX_BG if darkmode else LIGHTMODE_TEXTBOX_BG

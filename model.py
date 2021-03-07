@@ -83,6 +83,7 @@ class TreeModel:
         self.chapters = None
         self.memories = None
         self.checkpoint = None
+        self.canonical = None
 
         self.selected_node_id = None
 
@@ -464,6 +465,22 @@ class TreeModel:
         if was_root:
             self.tree_updated()
 
+    #################################
+    #   Canonical
+    #################################
+
+    def toggle_canonical(self, node):
+        if node['id'] in self.canonical:
+            self.canonical.remove(node["id"])
+        else:
+            self.canonical.append(node["id"])
+
+    def calc_canonical_set(self):
+        canonical_set = set()
+        for node_id in self.canonical:
+            for node in node_ancestry(self.tree_node_dict[node_id], self.tree_node_dict):
+                canonical_set.add(node["id"])
+        return canonical_set
 
     #################################
     #   I/O
@@ -475,6 +492,10 @@ class TreeModel:
         if 'chapters' not in self.tree_raw_data:
             self.tree_raw_data['chapters'] = {}
         self.chapters = self.tree_raw_data["chapters"]
+
+        if 'canonical' not in self.tree_raw_data:
+            self.tree_raw_data['canonical'] = []
+        self.canonical = self.tree_raw_data["canonical"]
 
         # Generation settings
         self.tree_raw_data["generation_settings"] = {

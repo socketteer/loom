@@ -22,11 +22,27 @@ class InfoDialog(Dialog):
 
 
 class NodeInfoDialog(Dialog):
-    def __init__(self, parent, node):
+    def __init__(self, parent, node, state):
         self.node = node
+        self.state = state
         Dialog.__init__(self, parent, title="Node Metadata", cancellable=False)
 
     def body(self, master):
+        create_side_label(master, "id")
+        create_label(master, self.node["id"], row=master.grid_size()[1] - 1, col=1, padx=15)
+
+        create_side_label(master, "bookmarked")
+        create_label(master, "true" if self.node.get("bookmark", False) else "false", row=master.grid_size()[1] - 1,
+                     col=1, padx=15)
+
+        create_side_label(master, "visited")
+        create_label(master, "true" if self.node.get("visited", False) else "false", row=master.grid_size()[1] - 1,
+                     col=1, padx=15)
+
+        create_side_label(master, "canonical")
+        create_label(master, "true" if self.node["id"] in self.state.calc_canonical_set() else "false",
+                     row=master.grid_size()[1] - 1, col=1, padx=15)
+
         if "meta" in self.node:
             meta = self.node["meta"]
             create_side_label(master, "origin")
@@ -86,8 +102,6 @@ class NodeInfoDialog(Dialog):
                 gen_text.bind("<Button>", lambda event: gen_text.focus_set())
                 create_side_label(master, "model")
                 create_label(master, meta["generation"]["model"], row=master.grid_size()[1] - 1, col=1, padx=15)
-        else:
-            create_side_label(master, "no metadata")
 
 
 
