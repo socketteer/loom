@@ -9,6 +9,13 @@ RED = '#dc3246'
 YELLOW = '#e3e307'
 LIGHT_YELLOW = '#e4e4d2'
 
+PROB_1 = "#d3facc"
+PROB_2 = "#eaf4c2"
+PROB_3 = "#faedc8"
+PROB_4 = "#fbdecd"
+PROB_5 = "#f6c2c2"
+PROB_6 = "#f5b1b1"
+
 MAGENTA = '#ff00d0'
 
 

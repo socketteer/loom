@@ -4,7 +4,8 @@
 * have to close tab before opening file
 * chapter nav tree scrollbar
 * num leaves calculated incorrectly
-* ctrl space sometimes clicks button
+* ctrl+space sometimes clicks button
+* ctrl+y hotkey (chapter dialogue) sometimes doesn't work
 
 ### Tree vis
 * first time switching to vis mode centering bug
@@ -61,12 +62,16 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * export subtree as json
 
 
+# versioning
+* save version each time node is edited
+* save creation information (prompt, logprobs, merge or branch)
+
+
 # Features
 
 * search (global or by subtree or in ancestry)
 * search chapter titles
 * undo
-* versioning
 * right sidebar for (everything else)
 * "floating" notes
     * global or associated with subtree

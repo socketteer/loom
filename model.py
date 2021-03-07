@@ -595,6 +595,12 @@ class TreeModel:
             else:
                 for index, node in enumerate(nodes):
                     node["text"] = results.choices[index]["text"]
+                    node["meta"] = {}
+                    node["meta"]["generation"] = results.choices[index]
+                    node["meta"]["generation"]["model"] = results["model"]
+                    node["meta"]["generation"]["prompt"] = prompt
+                    node["meta"]["modified"] = False
+                    node["meta"]["origin"] = "generated"
 
         else:
             print("ERROR. Deleting failures")

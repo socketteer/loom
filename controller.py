@@ -14,7 +14,7 @@ import bisect
 from view.colors import history_color, not_visited_color, visited_color, ooc_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
-    NodeChapterDialog, MultimediaDialog, MemoryDialog
+    NodeChapterDialog, MultimediaDialog, MemoryDialog, NodeInfoDialog
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry
@@ -408,7 +408,7 @@ class Controller:
                 self.display.vis.delete_textbox()
 
 
-    @metadata(name="Child Edit", keys=["<Key-c>"], display_key="c")
+    @metadata(name="Child Edit", keys=[], display_key="c")
     def toggle_child_edit_mode(self, to_edit_mode=None):
         self.save_edits()
         to_edit_mode = to_edit_mode if to_edit_mode is not None else not self.display.mode == "Multi Edit"
@@ -662,6 +662,12 @@ class Controller:
             node = self.state.selected_node
         dialog = NodeChapterDialog(parent=self.display.frame, node=node, state=self.state)
 
+    @metadata(name="Node info", keys=["<Control-Shift-KeyPress-N>"], display_key="ctrl-shift-N")
+    def node_info_dialogue(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        dialog = NodeInfoDialog(parent=self.display.frame, node=node)
+
     @metadata(name="Multimedia dialogue", keys=["<u>"], display_key="u")
     def multimedia_dialog(self, node=None):
         if node is None:
@@ -748,9 +754,10 @@ class Controller:
             # self.refresh_textbox.meta["last_num_lines"] = num_lines
 
             self.display.textbox.see(tk.END)
-            # FIXME this prevents highlighting (on MacOS) and copying (on all)
-            # https://stackoverflow.com/questions/3842155/is-there-a-way-to-make-the-tkinter-text-widget-read-only/34811313
             self.display.textbox.configure(state="disabled")
+
+            # makes text copyable
+            self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
 
 
         # Textbox to edit mode, fill with single node

@@ -833,7 +833,7 @@ class TreeVis:
         self.controller.toggle_visualization_mode()
 
     def show_info(self, node):
-        pass
+        self.controller.node_info_dialogue(node)
 
 
     #################################

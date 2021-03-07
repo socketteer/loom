@@ -7,8 +7,8 @@ from tkinter.scrolledtext import ScrolledText
 from gpt import POSSIBLE_MODELS
 from util.custom_tks import Dialog
 from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box
-from view.colors import default_color, text_color, bg_color
-
+from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
+import math
 
 class InfoDialog(Dialog):
     def __init__(self, parent, data_dict):
@@ -19,6 +19,74 @@ class InfoDialog(Dialog):
         for label_text, data_text in self.data_dict.items():
             create_side_label(master, label_text)
             create_label(master, data_text, row=master.grid_size()[1]-1, col=1, padx=15)
+
+
+class NodeInfoDialog(Dialog):
+    def __init__(self, parent, node):
+        self.node = node
+        Dialog.__init__(self, parent, title="Node Metadata", cancellable=False)
+
+    def body(self, master):
+        if "meta" in self.node:
+            meta = self.node["meta"]
+            create_side_label(master, "origin")
+            if "origin" in meta:
+                create_label(master, meta["origin"], row=master.grid_size()[1] - 1, col=1, padx=15)
+            else:
+                create_label(master, "unknown", row=master.grid_size()[1] - 1, col=1, padx=15)
+
+            if "generation" in meta:
+                create_side_label(master, "prompt")
+                prompt_text = tk.Text(master)
+                prompt_text.grid(row=master.grid_size()[1] - 1, column=1)
+                prompt_text.insert(tk.INSERT, meta["generation"]["prompt"])
+                prompt_text.configure(state='disabled')
+                # makes text copyable
+                prompt_text.bind("<Button>", lambda event: prompt_text.focus_set())
+
+                create_side_label(master, "original generated text")
+                gen_text = tk.Text(master)
+                gen_text.grid(row=master.grid_size()[1] - 1, column=1)
+                gen_text.insert(tk.INSERT, meta["generation"]["text"])
+
+                gen_text.tag_config("prob_1", background=PROB_1)
+                gen_text.tag_config("prob_2", background=PROB_2)
+                gen_text.tag_config("prob_3", background=PROB_3)
+                gen_text.tag_config("prob_4", background=PROB_4)
+                gen_text.tag_config("prob_5", background=PROB_5)
+                gen_text.tag_config("prob_6", background=PROB_6)
+
+                # TODO continuous coloration
+                for i, position in enumerate(meta["generation"]["logprobs"]["text_offset"]):
+                    prob = math.exp(meta["generation"]["logprobs"]["token_logprobs"][i])
+                    index_offset = position - len(meta["generation"]["prompt"])
+                    token_length = len(meta["generation"]["logprobs"]["tokens"][i])
+                    if prob >= 0.8:
+                        gen_text.tag_add("prob_1", f"1.0 + {index_offset} chars",
+                                         f"1.0 + {index_offset + token_length} chars")
+                    elif prob >= 0.6:
+                        gen_text.tag_add("prob_2", f"1.0 + {index_offset} chars",
+                                         f"1.0 + {index_offset + token_length} chars")
+                    elif prob >= 0.4:
+                        gen_text.tag_add("prob_3", f"1.0 + {index_offset} chars",
+                                         f"1.0 + {index_offset + token_length} chars")
+                    elif prob >= 0.2:
+                        gen_text.tag_add("prob_4", f"1.0 + {index_offset} chars",
+                                         f"1.0 + {index_offset + token_length} chars")
+                    elif prob >= 0.05:
+                        gen_text.tag_add("prob_5", f"1.0 + {index_offset} chars",
+                                         f"1.0 + {index_offset + token_length} chars")
+                    else:
+                        gen_text.tag_add("prob_6", f"1.0 + {index_offset} chars",
+                                         f"1.0 + {index_offset + token_length} chars")
+
+                gen_text.configure(state='disabled')
+
+                # makes text copyable
+                gen_text.bind("<Button>", lambda event: gen_text.focus_set())
+                create_side_label(master, "model")
+                create_label(master, meta["generation"]["model"], row=master.grid_size()[1] - 1, col=1, padx=15)
+
 
 
 class ChaptersInfoDialog(Dialog):
