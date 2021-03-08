@@ -37,6 +37,14 @@ def event(func):
 #     [callback() for callback in self.callbacks[callers_name]]
 
 
+DEFAULT_PREFERENCES = {
+    'highlight_canonical': True,
+    'canonical_only': False,
+    'walk': 'descendents', #'leaves', 'uniform'
+    # display children preview
+    # darkmode
+}
+
 DEFAULT_GENERATION_SETTINGS = {
     'num_continuations': 4,
     'temperature': 0.9,
@@ -308,6 +316,7 @@ class TreeModel:
         new_parent["open"] = True
 
         self.tree_updated()
+        return new_parent
 
     def merge_with_parent(self, node=None):
         node = node if node else self.selected_node
@@ -596,12 +605,15 @@ class TreeModel:
             errors = [e for e in errors if e]
             error = errors[0] if errors else None
         else:
-            results, error = api_generate(prompt=prompt,
-                                          length=self.generation_settings['response_length'],
-                                          num_continuations=len(nodes),
-                                          temperature=self.generation_settings['temperature'],
-                                          top_p=self.generation_settings['top_p'],
-                                          engine=self.generation_settings['model'])
+            try:
+                results, error = api_generate(prompt=prompt,
+                                              length=self.generation_settings['response_length'],
+                                              num_continuations=len(nodes),
+                                              temperature=self.generation_settings['temperature'],
+                                              top_p=self.generation_settings['top_p'],
+                                              engine=self.generation_settings['model'])
+            except TypeError as e:
+                error = "Typeerror"
         if not error:
             pprint(self.generation_settings)
             if self.generation_settings['adaptive']:
@@ -620,6 +632,7 @@ class TreeModel:
                     node["meta"]["generation"] = results.choices[index]
                     node["meta"]["generation"]["model"] = results["model"]
                     node["meta"]["generation"]["prompt"] = prompt
+                    # created
                     node["meta"]["modified"] = False
                     node["meta"]["origin"] = "generated"
 

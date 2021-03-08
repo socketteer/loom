@@ -46,7 +46,8 @@ class Controller:
         self.setup_key_bindings()
         self.build_menus()
         self.ancestor_end_indices = None
-        self.remember_node_id = None
+
+        # move to preferences dict in state
         self.canonical_only = False
         self.display_canonical = True
 
@@ -299,7 +300,7 @@ class Controller:
     def create_parent(self, node=None):
         if node is None:
             node = self.state.selected_node
-        self.state.create_parent(node=node)
+        return self.state.create_parent(node=node)
 
     @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None, click_mode=False)
     def change_parent(self, node=None, click_mode=False):
@@ -379,15 +380,52 @@ class Controller:
             self.display.change_cursor("arrow")
             self.change_parent.meta["selected_node"] = None
 
-    @metadata(name="Edit history", keys=[], display_key="Escape")
+    @metadata(name="Edit history", keys=[], display_key="", persistent_id=None)
     def edit_history(self, index):
         if self.display.mode == "Read":
             ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
             selected_ancestor = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
-            self.remember_node_id = self.state.selected_node_id
+            self.edit_history.meta["persistent_id"] = self.state.selected_node_id
             self.state.select_node(selected_ancestor["id"])
             self.toggle_edit_mode()
 
+    @metadata(name="Goto history", keys=[], display_key="")
+    def goto_history(self, index):
+        if self.display.mode == "Read":
+            ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
+            selected_ancestor = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
+            self.nav_select(node_id=selected_ancestor["id"])
+
+    @metadata(name="Split node", keys=[], display_key="")
+    def split_node(self, index):
+        if self.display.mode == "Read":
+            ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
+            negative_offset = self.ancestor_end_indices[ancestor_index] - index
+            selected_ancestor = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
+            new_parent = self.create_parent(node=selected_ancestor)
+            parent_text = selected_ancestor["text"][:-negative_offset]
+            child_text = selected_ancestor["text"][-negative_offset:]
+            # remove trailing space
+            if parent_text[-1] == ' ':
+                child_text = ' ' + child_text
+                parent_text = parent_text[:-1]
+            new_parent["text"] = parent_text
+            selected_ancestor["text"] = child_text
+
+            # if 'meta' in selected_ancestor:
+            #     if 'origin' in selected_ancestor['meta']:
+            #         selected_ancestor['meta']['origin'] += f'=> split (to parent {new_parent["id"]})'
+            #     else:
+            #         selected_ancestor['meta']['origin'] = f'unknown => split (to parent {new_parent["id"]})'
+
+            # TODO must make copy of dictionary
+            new_parent["meta"] = {}
+            new_parent['meta']['origin'] = f'split (from child {selected_ancestor["id"]})'
+
+            self.nav_select(node_id=selected_ancestor["id"])
+            self.state.tree_updated()
+            # TODO check for trailing space
+            # TODO deal with metadata
 
     @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
     def reset_zoom(self):
@@ -407,9 +445,9 @@ class Controller:
             if to_edit_mode:
                 self.display.set_mode("Edit")
             else:
-                if self.remember_node_id is not None:
-                    self.state.select_node(self.remember_node_id)
-                    self.remember_node_id = None
+                if self.edit_history.meta["persistent_id"] is not None:
+                    self.state.select_node(self.edit_history.meta["persistent_id"])
+                    self.edit_history.meta["persistent_id"] = None
                 self.display.set_mode("Read")
             self.refresh_textbox()
         else:

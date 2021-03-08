@@ -7,6 +7,7 @@
 * ctrl+space sometimes clicks button
 * ctrl+y hotkey (chapter dialogue) sometimes doesn't work
 * importing tree causes file to be renamed to name of imported file
+* clicking history sometimes causes indexerror
 
 ### Tree vis
 * first time switching to vis mode centering bug
@@ -41,22 +42,37 @@
 global edit mode, where all nodes turn into textboxes, but no zooming?
 
 
+# Windows
+
+* debugger
+* multimedia
+* gpt3 stuff
+* minimap
+* floating notes
+* memories
+
 # Display
  
 * show / hide navtrees
 * if scroll position is regressing, add whitespace and keep instead?? (didn't work, need new approach)
 * toggle gray history / context window 
 * gradient color for text box history
-* scroll at top of chapter by default and hotkey to go to top of chapter
+* scroll to top of node by default and hotkey to go to top of node
 * change darkmode in program
-* highlight mouseover history
+* highlight when mouseover history
 * implement expand/collapse functions in controller
+* right sidebar for (everything else)
 
 # Tree topology
 
 * create parent for root node
-* multiple root nodes
+* multiple root nodes (from single empty root?)
+    * hotkey to create new root
 * add ghostchildren/ghostparents (using hotkey)
+* split node
+    * deal with metadata
+    * option to not nav to split node / otherwise indicate split position
+    * in vis and edit mode
 
 
 # import / export 
@@ -65,32 +81,32 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 # versioning
 * save version each time node is edited
-* save creation information (prompt, logprobs, merge or branch)
+* save origin information (prompt, logprobs, merge or branch)
 
 
 # Features
 
 * search (global or by subtree or in ancestry)
-* search chapter titles
+    * fuzzy?
+* search chapter titles, bookmarks
 * undo
-* right sidebar for (everything else)
 * "floating" notes
     * global or associated with subtree
 * bookmark-like tags define subsets of tree (and option to only display/navigate tag)
 * save open status (not visible status) in tree dict 
 * named bookmarks
-* separate bookmarks (unique) and tags (category) 
-* open non-root node of json as root node
+* bookmarks (unique) vs tags (category) 
 * make arbitrary node act as root node
     * deal with navigating to node outside subtree (expand to common 
     ancestor of current and new node?)
-* ctrl+c copies node text in read/vis modes
-* split node by clicking/highlighting? is this possible?
 * developer console
 * mark node (and ancestry) as canonical
 * visited sessions
+* preferences dialogue
 
 * clickable links in active text
+
+* node edit function in controller which saves version, updates metadata etc
 
 ## multimedia
 
@@ -142,11 +158,14 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 ### Story navigation
 
 * "play" mode
+    * read only 
 * stochastic walk 
     * mode which doesn't count visited nodes
     * depth limit
     * display probabilities
-    * canonical only
+* option to display clickable preview text for children
+    * preview text can be overridden
+    * children can be flagged as hidden
     
 ### chapter
 
