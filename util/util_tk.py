@@ -196,6 +196,7 @@ class Checkbox(ControlComponent):
 class Entry(ControlComponent):
     def __init__(self, frame, row, label_text, default, callback, width=10):
         self.width = width
+        self.entry = None
         super().__init__(frame, row, label_text, default, callback)
 
 
@@ -208,7 +209,11 @@ class Entry(ControlComponent):
 
         control = ttk.Entry(self.frame, textvariable=variable, width=self.width)
         control.grid(row=self.row, column=1, columnspan=10, padx=1, sticky=tk.W)
+        self.entry = control
         return label, control, variable
+
+    def focus_entry(self):
+        self.entry.focus()
 
 
 class EnumDropdown(ControlComponent):

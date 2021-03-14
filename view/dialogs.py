@@ -121,6 +121,8 @@ class SearchDialog(Dialog):
         self.depth_limit = None
         self.search_entry = None
         self.goto = goto
+        self.next_page_button = None
+        self.prev_page_button = None
         Dialog.__init__(self, parent, title="Search")
 
     def body(self, master):
@@ -153,6 +155,7 @@ class SearchDialog(Dialog):
         self.depth_limit = Entry(master, master.grid_size()[1], "Max depth", "", None, width=5)
 
         self.search_entry = Entry(master, master.grid_size()[1], "Search", "", None, width=20)
+        self.search_entry.focus_entry()
         create_button(master, "Search", self.search)
 
     def search(self):
@@ -177,21 +180,29 @@ class SearchDialog(Dialog):
 
         self.search_results(matches)
 
-    def search_results(self, matches):
+
+    def search_results(self, matches, start=0):
         # remove previous search results
         context_padding = 50
-        limit = 5
+        limit = 4
         counter = 0
         if self.num_results_label:
             self.num_results_label.destroy()
-        self.num_results_label = create_side_label(self.master, f'{len(matches)} results')
+        if self.next_page_button:
+            self.next_page_button.destroy()
+        if self.prev_page_button:
+            self.prev_page_button.destroy()
         for result in self.results:
             result.destroy()
         for label in self.labels:
             label.destroy()
         for button in self.goto_buttons:
             button.destroy()
-        for i, match in enumerate(matches):
+        self.results = []
+        self.labels = []
+        self.goto_buttons = []
+        self.num_results_label = create_side_label(self.master, f'{len(matches)} results')
+        for i, match in enumerate(matches[start:]):
             if counter >= limit:
                 break
             node = self.state.tree_node_dict[match['node_id']]
@@ -219,13 +230,20 @@ class SearchDialog(Dialog):
 
             # makes text copyable
             # binding causes computer to freeze
-            #matched_text.bind("<Button>", lambda event: matched_text.focus_set())
+            #self.results[i].bind("<Button>", lambda event, _result=self.results[i]: result.focus_set())
             #matched_text.bind("<Alt-Button-1>", lambda event: self.goto_result(match['node_id']))
 
             self.goto_buttons.append(create_button(self.master, "go to match",
                                                    lambda _match=match: self.goto_result(_match['node_id'])))
             self.goto_buttons[i].grid(row=self.master.grid_size()[1] - 2, column=2)
             counter += 1
+        if start > 0:
+            self.prev_page_button = create_button(self.master, "previous page",
+                                                  lambda _start=start, _limit=limit: self.search_results(matches, start=_start-_limit))
+            self.prev_page_button.config(width=12)
+        if len(matches) > start + limit:
+            self.next_page_button = create_button(self.master, "next page",
+                                                  lambda _start=start, _limit=limit: self.search_results(matches, start=_start+_limit))
 
     def goto_result(self, id):
         self.ok()
