@@ -5,8 +5,9 @@ from tkinter.font import Font
 from tkinter.scrolledtext import ScrolledText
 
 from gpt import POSSIBLE_MODELS
-from util.custom_tks import Dialog
+from util.custom_tks import Dialog, TextAware
 from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box
+from util.util_tree import search
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 import math
 
@@ -17,8 +18,7 @@ class InfoDialog(Dialog):
 
     def body(self, master):
         for label_text, data_text in self.data_dict.items():
-            create_side_label(master, label_text)
-            create_label(master, data_text, row=master.grid_size()[1]-1, col=1, padx=15)
+            d
 
 
 class NodeInfoDialog(Dialog):
@@ -102,6 +102,125 @@ class NodeInfoDialog(Dialog):
                 gen_text.bind("<Button>", lambda event: gen_text.focus_set())
                 create_side_label(master, "model")
                 create_label(master, meta["generation"]["model"], row=master.grid_size()[1] - 1, col=1, padx=15)
+
+
+class SearchDialog(Dialog):
+    def __init__(self, parent, state, goto):
+        self.state = state
+        self.subtree = tk.BooleanVar(value=0)
+        self.text = tk.BooleanVar(value=1)
+        self.chapters = tk.BooleanVar(value=1)
+        self.tags = tk.BooleanVar(value=1)
+        self.canonical = tk.BooleanVar(value=0)
+        self.regex = tk.BooleanVar(value=0)
+        self.case_sensitive = tk.BooleanVar(value=0)
+        self.results = []
+        self.num_results_label = None
+        self.depth_limit = None
+        self.search_entry = None
+        self.goto = goto
+        Dialog.__init__(self, parent, title="Search")
+
+    def body(self, master):
+        self.master = master
+
+
+        ## advanced options - show/hide
+        create_side_label(master, "Subtree only")
+        check = ttk.Checkbutton(master, variable=self.subtree)
+        check.grid(row=self.master.grid_size()[1] - 1, column=1)
+        create_side_label(master, "Case sensitive")
+        check = ttk.Checkbutton(master, variable=self.case_sensitive)
+        check.grid(row=self.master.grid_size()[1] - 1, column=1)
+        create_side_label(master, "Search text")
+        check = ttk.Checkbutton(master, variable=self.text)
+        check.grid(row=self.master.grid_size()[1] - 1, column=1)
+        create_side_label(master, "Search chapter titles")
+        check = ttk.Checkbutton(master, variable=self.chapters)
+        check.grid(row=self.master.grid_size()[1] - 1, column=1)
+        create_side_label(master, "Search tags")
+        check = ttk.Checkbutton(master, variable=self.tags)
+        check.grid(row=self.master.grid_size()[1] - 1, column=1)
+        create_side_label(master, "Canonical only")
+        check = ttk.Checkbutton(master, variable=self.canonical)
+        check.grid(row=self.master.grid_size()[1] - 1, column=1)
+        create_side_label(master, "Regex")
+        check = ttk.Checkbutton(master, variable=self.regex)
+        check.grid(row=self.master.grid_size()[1] - 1, column=1)
+
+        self.depth_limit = Entry(master, master.grid_size()[1], "Max depth", "", None)
+
+        self.search_entry = Entry(master, master.grid_size()[1], "Search", "", None)
+        create_button(master, "Search", self.search)
+
+    def search(self):
+        search_term = self.search_entry.tk_variables.get()
+        if not search_term:
+            print('not')
+            return
+        depth_limit = self.depth_limit.tk_variables.get()
+        if not depth_limit:
+            depth_limit = None
+        else:
+            depth_limit = int(depth_limit)
+        root = self.state.selected_node if self.subtree.get() else self.state.tree_raw_data["root"]
+
+        matches = search(root=root,
+                         pattern=search_term,
+                         text=self.text.get(),
+                         tags=self.tags.get(),
+                         regex=self.regex.get(),
+                         filter_set=self.state.calc_canonical_set() if self.canonical.get() else None,
+                         max_depth=depth_limit)
+
+        self.search_results(matches)
+
+    def search_results(self, matches):
+        # remove previous search results
+        context_padding = 50
+        limit = 5
+        counter = 0
+        if self.num_results_label:
+            self.num_results_label.destroy()
+        self.num_results_label = create_side_label(self.master, f'{len(matches)} results')
+        for result in self.results:
+            result[0].destroy()
+            result[1].destroy()
+        for match in matches:
+            if counter >= limit:
+                break
+            side_label = create_side_label(self.master, match['node_id'])
+            #side_label.config(fg="blue")
+            matched_text = TextAware(self.master, height=2)
+            readable_font = Font(family="Georgia", size=12)
+            matched_text.configure(
+                font=readable_font,
+                spacing1=10,
+                foreground=text_color(),
+                background=bg_color(),
+                wrap="word",
+            )
+            matched_text.grid(row=self.master.grid_size()[1] - 1, column=1)
+            node_text = self.state.tree_node_dict[match['node_id']]["text"]
+            start_index = max(0, match['span'][0] - context_padding)
+            end_index = min(len(node_text), match['span'][1] + context_padding)
+            text_window = node_text[start_index:end_index]
+            matched_text.insert(tk.INSERT, text_window)
+            matched_text.tag_configure("blue", background="blue")
+            matched_text.highlight_pattern(match['match'], "blue")
+            matched_text.configure(state='disabled')
+            # makes text copyable
+            #matched_text.bind("<Button>", lambda event: matched_text.focus_set())
+            matched_text.bind("<Alt-Button-1>", lambda event: self.goto_result(match['node_id']))
+            self.results.append((side_label, matched_text))
+            counter += 1
+
+    def goto_result(self, id):
+        print('goto')
+        #self.ok()
+        #self.goto(node_id=id)
+
+
 
 
 

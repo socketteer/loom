@@ -8,6 +8,9 @@
 * ctrl+y hotkey (chapter dialogue) sometimes doesn't work
 * importing tree causes file to be renamed to name of imported file
 * clicking history sometimes causes indexerror
+* memory dialogue closes when you press enter
+* display history bug - seen with astronomer -> spirals (try disabling context window highlighting)
+* saving is slow for massive trees
 
 ### Tree vis
 * first time switching to vis mode centering bug
@@ -181,3 +184,8 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 - notes sidebar: boxes on the side which are always editable
 - option to minimize/hide without deleting
 - reverse time propagation
+
+## non-floating notes 
+
+- notes for a specific node
+- can be linked from multiple nodes

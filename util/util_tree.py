@@ -1,6 +1,7 @@
 import uuid
 import html2text
 import numpy as np
+import re
 import random
 
 
@@ -96,6 +97,26 @@ def num_leaves(node, filter_set=None):
             return 1
     else:
         return 0
+
+# TODO regex, tags
+def search(root, pattern, text=True, tags=False, regex=False, filter_set=None, max_depth=None):
+    matches = []
+    if not (text or tags) \
+            or (filter_set is not None and root['id'] not in filter_set)\
+            or max_depth == 0:
+        return []
+    if text:
+        # get index
+        for match in re.finditer(pattern, root['text']):
+            matches.append({'node_id': root['id'],
+                            'span': match.span(),
+                            'match': match.group()})
+    if tags:
+        # search for pattern in root['tags']
+        pass
+    for child in root['children']:
+        matches += search(child, pattern, text, tags, regex, filter_set, max_depth-1 if max_depth else None)
+    return matches
 
 # {
 #   root: {

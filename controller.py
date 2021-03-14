@@ -14,7 +14,7 @@ import bisect
 from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
-    NodeChapterDialog, MultimediaDialog, MemoryDialog, NodeInfoDialog
+    NodeChapterDialog, MultimediaDialog, MemoryDialog, NodeInfoDialog, SearchDialog
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry
@@ -74,7 +74,7 @@ class Controller:
         self.state.register_callback(self.state.tree_updated, self.save_edits)
         self.state.register_callback(self.state.tree_updated, self.refresh_textbox)
         self.state.register_callback(self.state.tree_updated, self.refresh_visualization)
-        self.state.register_callback(self.state.tree_updated, lambda: self.save_tree(popup=False))
+        #self.state.register_callback(self.state.tree_updated, lambda: self.save_tree(popup=False))
 
         # Before the selection is updated, save edits
         self.state.register_callback(self.state.pre_selection_updated, self.save_edits)
@@ -397,7 +397,7 @@ class Controller:
             self.nav_select(node_id=selected_ancestor["id"])
 
     @metadata(name="Split node", keys=[], display_key="")
-    def split_node(self, index):
+    def split_node(self, index, change_selection=True):
         if self.display.mode == "Read":
             ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
             negative_offset = self.ancestor_end_indices[ancestor_index] - index
@@ -405,26 +405,21 @@ class Controller:
             new_parent = self.create_parent(node=selected_ancestor)
             parent_text = selected_ancestor["text"][:-negative_offset]
             child_text = selected_ancestor["text"][-negative_offset:]
+
             # remove trailing space
             if parent_text[-1] == ' ':
                 child_text = ' ' + child_text
                 parent_text = parent_text[:-1]
+
             new_parent["text"] = parent_text
             selected_ancestor["text"] = child_text
 
-            # if 'meta' in selected_ancestor:
-            #     if 'origin' in selected_ancestor['meta']:
-            #         selected_ancestor['meta']['origin'] += f'=> split (to parent {new_parent["id"]})'
-            #     else:
-            #         selected_ancestor['meta']['origin'] = f'unknown => split (to parent {new_parent["id"]})'
-
-            # TODO must make copy of dictionary
             new_parent["meta"] = {}
             new_parent['meta']['origin'] = f'split (from child {selected_ancestor["id"]})'
 
-            self.nav_select(node_id=selected_ancestor["id"])
+            if change_selection:
+                self.nav_select(node_id=new_parent["id"])
             self.state.tree_updated()
-            # TODO check for trailing space
             # TODO deal with metadata
 
     @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
@@ -729,6 +724,11 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
+        self.refresh_textbox()
+
+    @metadata(name="Search", keys=["<Control-f>"], display_key="ctrl-f")
+    def search(self):
+        dialog = SearchDialog(parent=self.display.frame, state=self.state, goto=self.nav_select)
         self.refresh_textbox()
 
 
