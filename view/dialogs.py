@@ -158,6 +158,9 @@ class SearchDialog(Dialog):
         self.search_entry.focus_entry()
         create_button(master, "Search", self.search)
 
+        # return causes freeze whether or not bound
+        #self.master.bind('<Return>', lambda event=None: self.search)
+
     def search(self):
         search_term = self.search_entry.tk_variables.get()
         if not search_term:

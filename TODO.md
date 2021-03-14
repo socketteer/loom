@@ -85,14 +85,17 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 # versioning
 * save version each time node is edited
 * save origin information (prompt, logprobs, merge or branch)
+* undo
 
+
+# Search
+* enter to search
+* search chapters
+* regex
+* case (in)sensitive
 
 # Features
 
-* search (global or by subtree or in ancestry)
-    * fuzzy?
-* search chapter titles, bookmarks
-* undo
 * "floating" notes
     * global or associated with subtree
 * bookmark-like tags define subsets of tree (and option to only display/navigate tag)

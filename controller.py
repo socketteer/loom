@@ -148,7 +148,8 @@ class Controller:
                 ("Next Bookmark", "D", None, no_junk_args(self.next_bookmark)),
                 ("Prev Bookmark", "A", None, no_junk_args(self.prev_bookmark)),
                 ("Stochastic walk", "W", None, no_junk_args(self.walk)),
-                ("Change chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
+                ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
+                ("Search", "Ctrl+F", None, no_junk_args(self.search)),
 
             ],
             "Generation": [

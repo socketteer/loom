@@ -111,6 +111,8 @@ Go to prev bookmark: `a`, `Control-a`
 
 Toggle bookmark: `b`, `Control-b`
 
+Search: `Control-f`
+
 
 ### Edit topology
 
