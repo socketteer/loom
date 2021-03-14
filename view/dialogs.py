@@ -115,6 +115,8 @@ class SearchDialog(Dialog):
         self.regex = tk.BooleanVar(value=0)
         self.case_sensitive = tk.BooleanVar(value=0)
         self.results = []
+        self.labels = []
+        self.goto_buttons = []
         self.num_results_label = None
         self.depth_limit = None
         self.search_entry = None
@@ -148,9 +150,9 @@ class SearchDialog(Dialog):
         check = ttk.Checkbutton(master, variable=self.regex)
         check.grid(row=self.master.grid_size()[1] - 1, column=1)
 
-        self.depth_limit = Entry(master, master.grid_size()[1], "Max depth", "", None)
+        self.depth_limit = Entry(master, master.grid_size()[1], "Max depth", "", None, width=5)
 
-        self.search_entry = Entry(master, master.grid_size()[1], "Search", "", None)
+        self.search_entry = Entry(master, master.grid_size()[1], "Search", "", None, width=20)
         create_button(master, "Search", self.search)
 
     def search(self):
@@ -184,44 +186,50 @@ class SearchDialog(Dialog):
             self.num_results_label.destroy()
         self.num_results_label = create_side_label(self.master, f'{len(matches)} results')
         for result in self.results:
-            result[0].destroy()
-            result[1].destroy()
-        for match in matches:
+            result.destroy()
+        for label in self.labels:
+            label.destroy()
+        for button in self.goto_buttons:
+            button.destroy()
+        for i, match in enumerate(matches):
             if counter >= limit:
                 break
-            side_label = create_side_label(self.master, match['node_id'])
+            node = self.state.tree_node_dict[match['node_id']]
+            self.labels.append(create_side_label(self.master,
+                                                 f"chapter: {self.state.chapter(node)['title']}"))
             #side_label.config(fg="blue")
-            matched_text = TextAware(self.master, height=2)
+            self.results.append(TextAware(self.master, height=2))
             readable_font = Font(family="Georgia", size=12)
-            matched_text.configure(
+            self.results[i].configure(
                 font=readable_font,
                 spacing1=10,
                 foreground=text_color(),
                 background=bg_color(),
                 wrap="word",
             )
-            matched_text.grid(row=self.master.grid_size()[1] - 1, column=1)
-            node_text = self.state.tree_node_dict[match['node_id']]["text"]
+            self.results[i].grid(row=self.master.grid_size()[1] - 1, column=1)
+            node_text = node["text"]
             start_index = max(0, match['span'][0] - context_padding)
             end_index = min(len(node_text), match['span'][1] + context_padding)
             text_window = node_text[start_index:end_index]
-            matched_text.insert(tk.INSERT, text_window)
-            matched_text.tag_configure("blue", background="blue")
-            matched_text.highlight_pattern(match['match'], "blue")
-            matched_text.configure(state='disabled')
+            self.results[i].insert(tk.INSERT, text_window)
+            self.results[i].tag_configure("blue", background="blue")
+            self.results[i].highlight_pattern(match['match'], "blue")
+            self.results[i].configure(state='disabled')
+
             # makes text copyable
+            # binding causes computer to freeze
             #matched_text.bind("<Button>", lambda event: matched_text.focus_set())
-            matched_text.bind("<Alt-Button-1>", lambda event: self.goto_result(match['node_id']))
-            self.results.append((side_label, matched_text))
+            #matched_text.bind("<Alt-Button-1>", lambda event: self.goto_result(match['node_id']))
+
+            self.goto_buttons.append(create_button(self.master, "go to match",
+                                                   lambda _match=match: self.goto_result(_match['node_id'])))
+            self.goto_buttons[i].grid(row=self.master.grid_size()[1] - 2, column=2)
             counter += 1
 
     def goto_result(self, id):
-        print('goto')
-        #self.ok()
-        #self.goto(node_id=id)
-
-
-
+        self.ok()
+        self.goto(node_id=id)
 
 
 class ChaptersInfoDialog(Dialog):

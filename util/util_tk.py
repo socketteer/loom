@@ -194,8 +194,10 @@ class Checkbox(ControlComponent):
 
 
 class Entry(ControlComponent):
-    def __init__(self, frame, row, label_text, default, callback):
+    def __init__(self, frame, row, label_text, default, callback, width=10):
+        self.width = width
         super().__init__(frame, row, label_text, default, callback)
+
 
     def build(self):
         label = create_side_label(self.frame, self.label_text, self.row)
@@ -204,7 +206,7 @@ class Entry(ControlComponent):
         if self.callback is not None:
             variable.trace_add("write", lambda *_: self.callback(variable.get()))
 
-        control = ttk.Entry(self.frame, textvariable=variable, width=10)
+        control = ttk.Entry(self.frame, textvariable=variable, width=self.width)
         control.grid(row=self.row, column=1, columnspan=10, padx=1, sticky=tk.W)
         return label, control, variable
 
