@@ -54,15 +54,21 @@ class NodeInfoDialog(Dialog):
 
             if "generation" in meta:
                 create_side_label(master, "prompt")
-                prompt_text = tk.Text(master, height=20)
+                prompt_text = tk.Text(master, height=15)
                 prompt_text.grid(row=master.grid_size()[1] - 1, column=1)
                 prompt_text.insert(tk.INSERT, meta["generation"]["prompt"])
-                prompt_text.configure(state='disabled')
+                prompt_text.configure(
+                    state='disabled',
+                    spacing1=8,
+                    foreground=text_color(),
+                    background=bg_color(),
+                    wrap="word",
+                )
                 # makes text copyable
                 prompt_text.bind("<Button>", lambda event: prompt_text.focus_set())
 
                 create_side_label(master, "original generated text")
-                gen_text = tk.Text(master, height=8)
+                gen_text = tk.Text(master, height=5)
                 gen_text.grid(row=master.grid_size()[1] - 1, column=1)
                 gen_text.insert(tk.INSERT, meta["generation"]["text"])
 
@@ -72,6 +78,8 @@ class NodeInfoDialog(Dialog):
                 gen_text.tag_config("prob_4", background=PROB_4)
                 gen_text.tag_config("prob_5", background=PROB_5)
                 gen_text.tag_config("prob_6", background=PROB_6)
+
+
 
                 # TODO continuous coloration
                 for i, position in enumerate(meta["generation"]["logprobs"]["text_offset"]):
@@ -98,6 +106,14 @@ class NodeInfoDialog(Dialog):
                                          f"1.0 + {index_offset + token_length} chars")
 
                 gen_text.configure(state='disabled')
+                # gen_text.configure(
+                #     state='disabled',
+                #     font=readable_font,
+                #     spacing1=10,
+                #     foreground=text_color(),
+                #     background=bg_color(),
+                #     wrap="word",
+                # )
 
                 # makes text copyable
                 gen_text.bind("<Button>", lambda event: gen_text.focus_set())
@@ -214,10 +230,10 @@ class SearchDialog(Dialog):
                                                  f"chapter: {self.state.chapter(node)['title']}"))
             #side_label.config(fg="blue")
             self.results.append(TextAware(self.master, height=2))
-            readable_font = Font(family="Georgia", size=12)
+            #readable_font = Font(family="Georgia", size=12)
             self.results[i].configure(
-                font=readable_font,
-                spacing1=10,
+                #font=readable_font,
+                spacing1=8,
                 foreground=text_color(),
                 background=bg_color(),
                 wrap="word",
