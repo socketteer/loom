@@ -18,7 +18,8 @@ class InfoDialog(Dialog):
 
     def body(self, master):
         for label_text, data_text in self.data_dict.items():
-            d
+            create_side_label(master, label_text)
+            create_label(master, data_text, row=master.grid_size()[1] - 1, col=1, padx=15)
 
 
 class NodeInfoDialog(Dialog):
