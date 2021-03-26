@@ -261,6 +261,8 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         self.state.toggle_canonical(node=node)
+        #self.state.tree_updated(modified=[n['id'] for n in node_ancestry(node, self.state.tree_node_dict)])
+        # TODO modified set
         self.state.tree_updated()
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
@@ -431,6 +433,7 @@ class Controller:
 
             if change_selection:
                 self.nav_select(node_id=new_parent["id"])
+            # TODO modified set
             self.state.tree_updated()
             # TODO deal with metadata
 
@@ -759,15 +762,14 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
-        print(self.state.build_chapter_trees()[0])
-        print(self.state.build_chapter_trees()[1])
+        print(self.state.selected_node["notes"])
 
     #################################
     #   Story frame TODO call set text, do this in display?
     #################################
 
     @metadata(name="Save Edits")
-    def save_edits(self):
+    def save_edits(self, **kwargs):
         if not self.state.selected_node_id:
             return
 
@@ -783,6 +785,7 @@ class Controller:
             if any([node["text"] != new_text for node, new_text in zip(nodes, new_texts)]):
                 for node, new_text in zip(nodes, new_texts):
                     node["text"] = new_text
+                # TODO modified set
                 self.state.tree_updated()
 
         elif self.display.mode == "Visualize":
@@ -795,7 +798,7 @@ class Controller:
 
     HISTORY_COLOR = history_color()
     # @metadata(last_text="", last_scroll_height=0, last_num_lines=0)
-    def refresh_textbox(self):
+    def refresh_textbox(self, **kwargs):
         if not self.state.tree_raw_data or not self.state.selected_node:
             return
 
@@ -869,7 +872,7 @@ class Controller:
             self.display.multi_textboxes[0].configure(foreground=self.HISTORY_COLOR)
 
 
-    def refresh_visualization(self, center=False):
+    def refresh_visualization(self, center=False, **kwargs):
         if self.display.mode != "Visualize":
             return
         self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
@@ -916,8 +919,9 @@ class Controller:
 
 
     # TODO Probably move this to display
+    # TODO Slow for massive trees
     # (Re)build the nav tree
-    def update_nav_tree(self):
+    def update_nav_tree(self, **kwargs):
         # Save the state of opened nodes
         # open_nodes = [
         #     node_id for node_id in treeview_all_nodes(self.display.nav_tree)
@@ -925,28 +929,59 @@ class Controller:
         # ]
 
         # Delete all nodes and read them from the state tree
-        self.display.nav_tree.delete(*self.display.nav_tree.get_children())
-        for i, d in enumerate(self.state.nodes):
-            if d['id'] == self.state.checkpoint:
+        print(kwargs)
+        if 'modified' not in kwargs:
+            self.display.nav_tree.delete(*self.display.nav_tree.get_children())
+            nodes = self.state.tree_node_dict
+        else:
+            delete_items = [i for i in kwargs['modified'] if self.display.nav_tree.exists(i)]
+            self.display.nav_tree.delete(*delete_items)
+            nodes = [i for i in kwargs['modified'] if i in self.state.tree_node_dict]
+
+        for id in nodes:
+            node = self.state.tree_node_dict[id]
+            if id == self.state.checkpoint:
                 image = self.display.marker_icon
-            elif 'multimedia' in d and len(d['multimedia']) > 0:
+            elif 'multimedia' in node and len(node['multimedia']) > 0:
                 image = self.display.media_icon
             else:
-                image = self.display.bookmark_icon if d.get("bookmark", False) else None
-            tags = ["visited"] if d.get("visited", False) else ["not visited"]
-            if d['id'] in self.state.calc_canonical_set():
+                image = self.display.bookmark_icon if node.get("bookmark", False) else None
+            tags = ["visited"] if node.get("visited", False) else ["not visited"]
+            if node['id'] in self.state.calc_canonical_set():
                 tags.append("canonical")
             else:
                 tags.append("uncanonical")
             self.display.nav_tree.insert(
-                parent=d.get("parent_id", ""),
+                parent=node.get("parent_id", ""),
                 index="end",
-                iid=d["id"],
-                text=self.nav_tree_name(d),
-                open=d.get("open", False),
+                iid=node["id"],
+                text=self.nav_tree_name(node),
+                open=node.get("open", False),
                 tags=tags,
                 **dict(image=image) if image else {}
             )
+
+        # for i, node in enumerate(self.state.nodes):
+        #     if node['id'] == self.state.checkpoint:
+        #         image = self.display.marker_icon
+        #     elif 'multimedia' in node and len(node['multimedia']) > 0:
+        #         image = self.display.media_icon
+        #     else:
+        #         image = self.display.bookmark_icon if node.get("bookmark", False) else None
+        #     tags = ["visited"] if node.get("visited", False) else ["not visited"]
+        #     if node['id'] in self.state.calc_canonical_set():
+        #         tags.append("canonical")
+        #     else:
+        #         tags.append("uncanonical")
+        #     self.display.nav_tree.insert(
+        #         parent=node.get("parent_id", ""),
+        #         index="end",
+        #         iid=node["id"],
+        #         text=self.nav_tree_name(node),
+        #         open=node.get("open", False),
+        #         tags=tags,
+        #         **dict(image=image) if image else {}
+        #     )
         self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
         self.display.nav_tree.tag_configure("visited", background=visited_color())
         self.display.nav_tree.tag_configure("canonical", foreground=text_color())
@@ -958,7 +993,7 @@ class Controller:
         #         self.display.nav_tree.item(node_id, open=True)
 
 
-    def update_chapter_nav_tree(self):
+    def update_chapter_nav_tree(self, **kwargs):
         # Delete all nodes and read them from the state tree
         self.display.chapter_nav_tree.delete(*self.display.chapter_nav_tree.get_children())
 
@@ -981,7 +1016,7 @@ class Controller:
 
     # Update the node in the nav bar that appears to be selected.
     # This was needed because it can get out of sync with the tree state
-    def update_nav_tree_selected(self):
+    def update_nav_tree_selected(self, **kwargs):
         if self.state.selected_node is None:
             return
 
@@ -1016,7 +1051,7 @@ class Controller:
         self.set_nav_scrollbars()
 
 
-    def update_chapter_nav_tree_selected(self):
+    def update_chapter_nav_tree_selected(self, **kwargs):
         if self.state.selected_node is None:
             return
         chapter = self.state.chapter(self.state.selected_node)

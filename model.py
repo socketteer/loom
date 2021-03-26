@@ -11,7 +11,8 @@ from multiprocessing.pool import ThreadPool
 
 from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip
-from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attributed
+from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attributed, \
+    subtree_list
 
 
 # Calls any callbacks associated with the wrapped function
@@ -22,7 +23,7 @@ def event(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         output = func(self, *args, **kwargs)
-        [callback() for callback in self.callbacks[func.__name__]]
+        [callback(**kwargs) if kwargs else callback() for callback in self.callbacks[func.__name__]]
         return output
 
     return wrapper
@@ -133,7 +134,7 @@ class TreeModel:
 
     # Decorator calls callbacks
     @event
-    def tree_updated(self, rebuild_dict=True):
+    def tree_updated(self, rebuild_dict=True, **kwargs):
         if self.tree_raw_data and rebuild_dict:
             self.tree_node_dict = {d["id"]: d for d in flatten_tree(self.tree_raw_data["root"])}
             fix_miro_tree(self.nodes)
@@ -307,7 +308,7 @@ class TreeModel:
     #   Updates
     #################################
 
-    def create_child(self, parent=None, update_selection=True, expand=True):
+    def create_child(self, parent=None, update_selection=True, expand=True, tree_updated=True):
         parent = parent if parent else self.selected_node
         if not parent:
             return
@@ -316,8 +317,9 @@ class TreeModel:
                      "text": "",
                      "children": []}
         parent["children"].append(new_child)
-        self.tree_updated()
 
+        if tree_updated:
+            self.tree_updated(modified=[new_child['id']])
         if update_selection:
             self.select_node(new_child["id"])
         if expand:
@@ -352,7 +354,7 @@ class TreeModel:
         node["parent_id"] = new_parent["id"]
         new_parent["open"] = True
 
-        self.tree_updated()
+        self.tree_updated(modified=[new_parent['id'], node['id']])
         return new_parent
 
     def merge_with_parent(self, node=None):
@@ -371,7 +373,7 @@ class TreeModel:
 
         if node == self.selected_node:
             self.select_node(parent["id"])
-        self.tree_updated()
+        self.tree_updated(modified=[n['id'] for n in subtree_list(parent)])
 
     def merge_with_children(self, node=None):
         node = node if node else self.selected_node
@@ -405,6 +407,7 @@ class TreeModel:
         old_siblings.remove(node)
         node["parent_id"] = new_parent_id
         new_parent["children"].append(node)
+        # TODO
         self.tree_updated()
 
     # adds node to ghostchildren of new ghostparent
@@ -421,7 +424,7 @@ class TreeModel:
         old_index = siblings.index(node)
         new_index = (old_index + interval) % len(siblings)
         siblings[old_index], siblings[new_index] = siblings[new_index], siblings[old_index]
-        self.tree_updated()
+        self.tree_updated(modified=[n['id'] for n in subtree_list(self.parent(node))])
 
     # TODO Doesn't support deleting root
     def delete_node(self, node=None, reassign_children=False):
@@ -442,7 +445,7 @@ class TreeModel:
                 self.select_node(parent["id"])
             else:
                 self.select_node(siblings[old_index % len(siblings)]["id"])
-        self.tree_updated()
+        self.tree_updated(modified=[node['id']])
 
     def update_text(self, node, text, active_text=None):
         assert node["id"] in self.tree_node_dict, text
@@ -467,7 +470,7 @@ class TreeModel:
             edited = True
 
         if edited:
-            self.tree_updated()
+            self.tree_updated(modified=[node['id']])
 
 
     def update_note(self, node, text, index=0):
@@ -508,13 +511,13 @@ class TreeModel:
             }
             self.chapters[new_chapter["id"]] = new_chapter
             node["chapter_id"] = new_chapter["id"]
-        self.tree_updated()
+        self.tree_updated(modified=[])
 
     def delete_chapter(self, chapter, update_tree=True):
         self.chapters.pop(chapter["id"])
         self.tree_node_dict[chapter["root_id"]].pop("chapter_id")
         if update_tree:
-            self.tree_updated()
+            self.tree_updated(modified=[])
 
     def remove_all_chapters(self, node=None):
         was_root = node is None
@@ -524,7 +527,7 @@ class TreeModel:
         for child in node["children"]:
             self.remove_all_chapters(child)
         if was_root:
-            self.tree_updated()
+            self.tree_updated(modified=[])
 
     #################################
     #   Canonical
@@ -717,11 +720,13 @@ class TreeModel:
         grandchildren = []
         pprint(self.generation_settings)
         for i in range(self.generation_settings['num_continuations']):
-            child = self.create_child(node, update_selection=False, expand=True)
+            child = self.create_child(node, update_selection=False, expand=True, tree_updated=False)
             children.append(child)
             if self.generation_settings['adaptive']:
-                grandchildren.append(self.create_child(child, update_selection=False, expand=True))
+                grandchildren.append(self.create_child(child, update_selection=False, expand=True, tree_updated=False))
 
+        modified_ids = [n['id'] for n in subtree_list(node)]
+        self.tree_updated(modified=modified_ids)
         prompt = "".join(self.node_ancestry_text(children[0])[0])
         memory = self.memory(node)
         prompt_length = self.generation_settings['prompt_length'] - len(memory)
@@ -737,7 +742,7 @@ class TreeModel:
             child["text"] = "\n\n** Generating **"
         for grandchild in grandchildren:
             grandchild["text"] = "\n\n** Generating **"
-        self.tree_updated()
+        self.tree_updated(modified=modified_ids)
         if update_selection:
             self.select_node(children[0]["id"])
 

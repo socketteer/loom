@@ -119,6 +119,15 @@ def search(root, pattern, text=True, tags=False, case_sensitive=False, regex=Fal
         matches += search(child, pattern, text, tags, case_sensitive, regex, filter_set, max_depth-1 if max_depth else None)
     return matches
 
+
+def subtree_list(root, depth_limit=None):
+    if depth_limit == 0:
+        return []
+    subtree = [root]
+    for child in root['children']:
+        subtree += subtree_list(child, depth_limit - 1 if depth_limit else None)
+    return subtree
+
 # {
 #   root: {
 #       text: ...

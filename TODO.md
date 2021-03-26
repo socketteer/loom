@@ -47,6 +47,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 - collapse nodes when too many are expanded
 
+
 # Windows
 
 * debugger

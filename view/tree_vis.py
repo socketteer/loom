@@ -22,7 +22,9 @@ leaf_padding = 50
 min_edit_box_height = 100
 canvas_padding = 100
 
-chapters = 1
+# TODO custom
+chapter_leafdist = 20
+chapter_leveldist = 50
 
 
 def round_rectangle(x1, y1, x2, y2, canvas, radius=25, **kwargs):
@@ -358,14 +360,21 @@ class TreeVis:
         offset = textheight # TODO vertical
         # Draw children with increasing offsets
         child_offset = 0
+
+        level_distance = chapter_leveldist if self.state.visualization_settings['chaptermode'] \
+            else self.state.visualization_settings['leveldistance']
+
+        leaf_distance = chapter_leafdist if self.state.visualization_settings['chaptermode'] \
+            else self.state.visualization_settings['leafdist']
+
         for child in node['children']:
-            childx = nodex + self.state.visualization_settings['leveldistance'] + textwidth + width_diff
+            childx = nodex + level_distance + textwidth + width_diff
             childy = nodey + child_offset
             parentx = nodex + textwidth
             parenty = nodey
             # TODO if vertical
 
-            child_offset += self.state.visualization_settings['leafdist']
+            child_offset += leaf_distance
             child_offset += self.draw_node(child, childx, childy)
 
             # Draw line to child
@@ -378,10 +387,11 @@ class TreeVis:
                 color = active_line_color() if active else inactive_line_color()
                 width = 2 if active else 1
 
+            goto_id = node["chapter"]["root_id"] if self.state.visualization_settings['chaptermode'] else child["id"]
             self.draw_line(parentx - padding, parenty - padding, childx - padding, childy - padding,
                            name=f'lines-{child["id"]}',
                            fill=color, activefill=BLUE, width=width, offset=smooth_line_offset, smooth=True,
-                           method=lambda event, node_id=child["id"]: self.controller.nav_select(node_id=node_id))
+                           method=lambda event, node_id=goto_id: self.controller.nav_select(node_id=node_id))
 
         #TODO lightmode
         # if "ghostchildren" in node:
@@ -502,7 +512,7 @@ class TreeVis:
             self.canvas.tag_bind(
                 f'box-{node["id"]}', "<Button-1>", self.box_click(node["id"], box, node["text"]))
 
-        # TODO collapsing chapters...
+        # TODO collapsing and buttons for chapters...
 
         if not self.state.visualization_settings["chaptermode"]:
             if node is not self.root:

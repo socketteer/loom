@@ -47,6 +47,7 @@ class Display:
         self.vis_frame = None
         self.vis = None
         self.notes_frame = None
+        self.notes_textbox_frame = None
         self.notes_textbox = None
 
         self.multi_edit_frame = None
@@ -283,9 +284,10 @@ class Display:
 
     def build_side(self, frame):
         self.side_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
-
-        self._build_textbox(self.side_frame, "notes_frame", "notes_textbox", height=1)
-        self.notes_frame.pack(expand=True, fill="both")
+        self.notes_frame = self.story_frame = ttk.Frame(self.side_frame)
+        self.notes_frame.pack(expand=True, fill='both')
+        self._build_textbox(self.notes_frame, "notes_textbox_frame", "notes_textbox", height=1)
+        self.notes_textbox_frame.pack(expand=True, fill="both")
 
     def open_side(self):
         self.build_side(self.pane)
