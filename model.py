@@ -354,7 +354,7 @@ class TreeModel:
         node["parent_id"] = new_parent["id"]
         new_parent["open"] = True
 
-        self.tree_updated(modified=[new_parent['id'], node['id']])
+        self.tree_updated(modified=[n['id'] for n in subtree_list(new_parent)])
         return new_parent
 
     def merge_with_parent(self, node=None):
@@ -407,8 +407,8 @@ class TreeModel:
         old_siblings.remove(node)
         node["parent_id"] = new_parent_id
         new_parent["children"].append(node)
-        # TODO
-        self.tree_updated()
+        # TODO does this cause bugs
+        self.tree_updated(modified=[n['id'] for n in subtree_list(new_parent)])
 
     # adds node to ghostchildren of new ghostparent
     def add_parent(self, node=None, new_ghostparent=None):
@@ -470,7 +470,8 @@ class TreeModel:
             edited = True
 
         if edited:
-            self.tree_updated(modified=[node['id']])
+            # TODO faster solution for nodes with large subtree - don't need to reinsert into nav?
+            self.tree_updated(modified=[n['id'] for n in subtree_list(node)])
 
 
     def update_note(self, node, text, index=0):

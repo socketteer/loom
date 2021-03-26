@@ -929,10 +929,12 @@ class Controller:
         # ]
 
         # Delete all nodes and read them from the state tree
-        print(kwargs)
+
         if 'modified' not in kwargs:
             self.display.nav_tree.delete(*self.display.nav_tree.get_children())
             nodes = self.state.tree_node_dict
+        elif not kwargs['modified']:
+            return
         else:
             delete_items = [i for i in kwargs['modified'] if self.display.nav_tree.exists(i)]
             self.display.nav_tree.delete(*delete_items)
