@@ -963,27 +963,6 @@ class Controller:
                 **dict(image=image) if image else {}
             )
 
-        # for i, node in enumerate(self.state.nodes):
-        #     if node['id'] == self.state.checkpoint:
-        #         image = self.display.marker_icon
-        #     elif 'multimedia' in node and len(node['multimedia']) > 0:
-        #         image = self.display.media_icon
-        #     else:
-        #         image = self.display.bookmark_icon if node.get("bookmark", False) else None
-        #     tags = ["visited"] if node.get("visited", False) else ["not visited"]
-        #     if node['id'] in self.state.calc_canonical_set():
-        #         tags.append("canonical")
-        #     else:
-        #         tags.append("uncanonical")
-        #     self.display.nav_tree.insert(
-        #         parent=node.get("parent_id", ""),
-        #         index="end",
-        #         iid=node["id"],
-        #         text=self.nav_tree_name(node),
-        #         open=node.get("open", False),
-        #         tags=tags,
-        #         **dict(image=image) if image else {}
-        #     )
         self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
         self.display.nav_tree.tag_configure("visited", background=visited_color())
         self.display.nav_tree.tag_configure("canonical", foreground=text_color())

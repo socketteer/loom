@@ -11,6 +11,8 @@
 * memory dialog closes when you press enter
 * display history bug - seen with astronomer -> spirals (try disabling context window highlighting)
 * saving is slow for massive trees
+* reinserting into nav tree causes change in node ordering
+* various bugs w/r/t splitting, merging (seems to have been caused by partial nav updating?)
 
 ### Tree vis
 * first time switching to vis mode centering bug

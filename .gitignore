@@ -1,6 +1,7 @@
 data/backups/
 data/*
 !data/dialectical.json
+!data/prime_intellect.json
 static/media
 
 ### Python template

@@ -677,7 +677,7 @@ class TreeModel:
             except TypeError as e:
                 error = "Typeerror"
         if not error:
-            pprint(self.generation_settings)
+            #pprint(self.generation_settings)
             if self.generation_settings['adaptive']:
                 for i, result in enumerate(results.choices):
                     min_logprob = np.argmin(result["logprobs"]["token_logprobs"])
@@ -719,7 +719,7 @@ class TreeModel:
 
         children = []
         grandchildren = []
-        pprint(self.generation_settings)
+        #pprint(self.generation_settings)
         for i in range(self.generation_settings['num_continuations']):
             child = self.create_child(node, update_selection=False, expand=True, tree_updated=False)
             children.append(child)
