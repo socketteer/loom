@@ -131,7 +131,7 @@ class Application:
     def build_menus(self):
         menu_list = defaultdict(list, {
             "File": [
-                ('New Tab', 'Ctrl+N', '<Control-n>', self.create_tab),
+                #('New Tab', 'Ctrl+N', '<Control-n>', self.create_tab),
                 ('Open', 'O', None, lambda event=None: self.forward_command(Controller.open_tree)),
                 ('Import subtree', 'Ctrl+Shift+O', None, lambda event=None: self.forward_command(Controller.import_tree)),
                 ('Save', 'S', None, lambda event=None: self.forward_command(Controller.save_tree)),

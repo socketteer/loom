@@ -9,7 +9,7 @@ import numpy as np
 from collections import defaultdict, ChainMap
 from multiprocessing.pool import ThreadPool
 
-from gpt import api_generate, janus_generate
+from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attributed
 
@@ -41,6 +41,9 @@ DEFAULT_PREFERENCES = {
     'highlight_canonical': True,
     'canonical_only': False,
     'walk': 'descendents', #'leaves', 'uniform'
+    'darken_history': True,
+    'darken_ooc': True,
+    'side_pane': False
     # display children preview
     # darkmode
 }
@@ -65,6 +68,11 @@ DEFAULT_VISUALIZATION_SETTINGS = {
     'horizontal': True,
     'displaytext': True,
     'showbuttons': True,
+    'chaptermode': False
+    # show chapters only
+    # show canonical only
+    # highlight canonical
+    # auto collapse
 }
 
 EMPTY_TREE = {
@@ -110,6 +118,11 @@ class TreeModel:
             if self.tree_raw_data and "generation_settings" in self.tree_raw_data \
             else DEFAULT_GENERATION_SETTINGS
 
+    @property
+    def preferences(self):
+        return self.tree_raw_data.get("preferences") \
+            if self.tree_raw_data and "preferences" in self.tree_raw_data \
+            else DEFAULT_PREFERENCES
 
     #################################
     #   Hooks
@@ -242,9 +255,33 @@ class TreeModel:
 
     def traverse_tree(self, offset):
         if self.tree_node_dict:
-            new_idx = clip_num(self.tree_traversal_idx + offset, 0, len(self.tree_node_dict) - 1)
-            new_node_id = self.nodes[new_idx]["id"]
+            new_node_id = self.next_id(offset)
             return self.select_node(new_node_id)
+
+    def next_id(self, offset):
+        new_idx = clip_num(self.tree_traversal_idx + offset, 0, len(self.tree_node_dict) - 1)
+        return self.nodes[new_idx]["id"]
+
+
+    # TODO this is bad
+    def next_canonical(self):
+        id = ''
+        canonical_set = self.calc_canonical_set()
+        i = 1
+        while id not in canonical_set:
+            id = self.next_id(i)
+            i += 1
+        return self.select_node(node_id=id)
+
+    def prev_canonical(self):
+        id = ''
+        canonical_set = self.calc_canonical_set()
+        i = 1
+        while id not in canonical_set:
+            id = self.next_id(-i)
+            i += 1
+        return self.select_node(node_id=id)
+
 
     def select_parent(self, node=None):
         node = node if node else self.selected_node
@@ -432,6 +469,21 @@ class TreeModel:
         if edited:
             self.tree_updated()
 
+
+    def update_note(self, node, text, index=0):
+        assert node["id"] in self.tree_node_dict, text
+
+        edited = False
+        # TODO should be pointer
+        if "notes" not in node:
+            node["notes"] = ['']
+        if node["notes"][index] != text:
+            node["notes"][index] = text
+            edited = True
+
+        # if edited:
+        #     self.tree_updated()
+
     #################################
     #   Chapters
     #################################
@@ -517,11 +569,17 @@ class TreeModel:
             **DEFAULT_VISUALIZATION_SETTINGS.copy(),
             **self.tree_raw_data.get("visualization_settings", {})
         }
+
+        self.tree_raw_data["preferences"] = {
+            **DEFAULT_PREFERENCES.copy(),
+            **self.tree_raw_data.get("preferences", {})
+        }
+
         # Accidentally added generation settings to this dict once. Remove them
         # FIXME remove when this is no longer a problem
-        for key in DEFAULT_GENERATION_SETTINGS.keys():
-            if key not in DEFAULT_VISUALIZATION_SETTINGS:
-                self.tree_raw_data["visualization_settings"].pop(key, None)
+        # for key in DEFAULT_GENERATION_SETTINGS.keys():
+        #     if key not in DEFAULT_VISUALIZATION_SETTINGS:
+        #         self.tree_raw_data["visualization_settings"].pop(key, None)
 
 
     def load_tree_data(self, data):
@@ -682,3 +740,18 @@ class TreeModel:
         self.tree_updated()
         if update_selection:
             self.select_node(children[0]["id"])
+
+    # TODO range
+    def semantic_search_memory(self, node, document_limit=100, max_length=1000):
+        documents = []
+
+        # join nodes that are too small
+        for ancestor in node_ancestry(node, self.tree_node_dict)[:-1]:
+            text = ancestor['text']
+            while len(text) > max_length:
+                documents.append(text[:max_length])
+                text = text[max_length:]
+            documents.append(text)
+        #documents.reverse()
+        query = node['text']
+        return search(query, documents)

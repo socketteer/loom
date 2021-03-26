@@ -14,7 +14,8 @@ import bisect
 from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
-    NodeChapterDialog, MultimediaDialog, MemoryDialog, NodeInfoDialog, SearchDialog
+    NodeChapterDialog, MultimediaDialog, MemoryDialog, NodeInfoDialog, SearchDialog, \
+    PreferencesDialog
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry
@@ -74,6 +75,7 @@ class Controller:
         self.state.register_callback(self.state.tree_updated, self.save_edits)
         self.state.register_callback(self.state.tree_updated, self.refresh_textbox)
         self.state.register_callback(self.state.tree_updated, self.refresh_visualization)
+        # TODO autosaving takes too long for a big tree
         #self.state.register_callback(self.state.tree_updated, lambda: self.save_tree(popup=False))
 
         # Before the selection is updated, save edits
@@ -84,6 +86,7 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.update_chapter_nav_tree_selected)
         self.state.register_callback(self.state.selection_updated, self.refresh_textbox)
         self.state.register_callback(self.state.selection_updated, self.refresh_vis_selection)
+        self.state.register_callback(self.state.selection_updated, self.refresh_notes)
 
 
     def setup_key_bindings(self):
@@ -168,7 +171,8 @@ class Controller:
             "Info": [
                 ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
                 ('Multimedia', 'U', None, no_junk_args(self.multimedia_dialog)),
-                ('Node metadata', 'Ctrl+Shift+N', None, no_junk_args(self.node_info_dialogue))
+                ('Node metadata', 'Ctrl+Shift+N', None, no_junk_args(self.node_info_dialogue)),
+                ('Preferences', '', None, no_junk_args(self.preferences))
             ],
         }
         return menu_list
@@ -182,13 +186,19 @@ class Controller:
     # @metadata(name=, keys=, display_key=)
     @metadata(name="Next", keys=["<period>", "<Return>", "<Control-period>"], display_key=">")
     def next(self):
-        self.state.traverse_tree(1)
+        if self.state.preferences["canonical_only"]:
+            self.state.next_canonical()
+        else:
+            self.state.traverse_tree(1)
     # next.meta = dict(name="Next", keys=["<period>", "<Return>"], display_key=">")
     # .meta = dict(name=, keys=, display_key=)
 
     @metadata(name="Prev", keys=["<comma>", "<Control-comma>"], display_key="<",)
     def prev(self):
-        self.state.traverse_tree(-1)
+        if self.state.preferences["canonical_only"]:
+            self.state.prev_canonical()
+        else:
+            self.state.traverse_tree(-1)
 
     @metadata(name="Go to parent", keys=["<Left>", "<Control-Left>"], display_key="←")
     def parent(self):
@@ -275,7 +285,8 @@ class Controller:
 
     @metadata(name="Center view", keys=["<Key-l>", "<Control-l>"])
     def center_view(self):
-        self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+        #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+        self.display.vis.center_view_on_node(self.state.selected_node)
 
     #################################
     #   Node operations
@@ -732,6 +743,24 @@ class Controller:
         dialog = SearchDialog(parent=self.display.frame, state=self.state, goto=self.nav_select)
         self.refresh_textbox()
 
+    @metadata(name="Preferences", keys=[], display_key="")
+    def preferences(self):
+        dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
+        self.refresh_textbox()
+
+    @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
+    def ancestry_semantic_search(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        results = self.state.semantic_search_memory(node)
+        print(results)
+        for entry in results['data']:
+            print(entry['score'])
+
+    @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
+    def debug(self):
+        print(self.state.build_chapter_trees()[0])
+        print(self.state.build_chapter_trees()[1])
 
     #################################
     #   Story frame TODO call set text, do this in display?
@@ -793,7 +822,12 @@ class Controller:
                 out_context = history[:len(history)-prompt_length]
                 self.display.textbox.insert("end-1c", out_context, "ooc_history")
             self.display.textbox.insert("end-1c", in_context, "history")
+
+            end = self.display.textbox.index(tk.END)
+            #self.display.textbox.see(tk.END)
+
             self.display.textbox.insert("end-1c", selected_text)
+            self.display.textbox.see(end)
             self.display.textbox.insert("end-1c", self.state.selected_node.get("active_text", ""))
 
             # TODO Not quite right. We may need to compare the actual text content? Hmm...
@@ -803,7 +837,7 @@ class Controller:
             #     num_lines = int(self.display.textbox.index('end-1c').split('.')[0])
             # self.refresh_textbox.meta["last_num_lines"] = num_lines
 
-            self.display.textbox.see(tk.END)
+
             self.display.textbox.configure(state="disabled")
 
             # makes text copyable
@@ -840,7 +874,8 @@ class Controller:
             return
         self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
         if center:
-            self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+            #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+            self.display.vis.center_view_on_node(self.state.selected_node)
 
 
     def refresh_vis_selection(self):
@@ -850,6 +885,23 @@ class Controller:
         # TODO Without redrawing, the new open state won't be reflected
         # self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node)
         # self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+
+    def refresh_notes(self):
+        if not self.state.tree_raw_data or not self.state.selected_node or not self.state.preferences['side_pane']:
+            return
+
+        self.display.notes_textbox.configure(state="normal")
+        self.display.notes_textbox.delete("1.0", "end")
+
+        notes = self.state.selected_node.get("notes", None)
+        note = notes[0] if notes else ""
+        #print('note: ', note)
+        self.display.notes_textbox.insert("end-1c", note)
+
+    # TODO When to call this?
+    def save_notes(self):
+        new_note_text = self.display.notes_textbox.get("1.0", 'end-1c')
+        self.state.update_note(self.state.selected_node, new_note_text)
 
     #################################
     #   Navtree
@@ -1138,93 +1190,3 @@ if __name__ == "__main__":
     #     # if self.edit_mode and self.selected_node_id:
     #     #     self.selected_node["text"] = self.display.textbox.get("1.0", 'end-1c')
 
-
-    # Old way
-    # def build_event_dicts(self):
-    #     return {
-    #         "Next": {
-    #             "call": lambda: self.state.traverse_tree(1),
-    #             "display_key": ">",
-    #             "keys": ["<period>", "<Return>"]
-    #         },
-    #         "Prev": {
-    #             "call": lambda: self.state.traverse_tree(-1),
-    #             "display_key": "<",
-    #             "keys": ["<comma>"]
-    #         },
-    #
-    #         "Parent": {
-    #             "call": self.state.select_parent,
-    #             "display_key": "←",
-    #             "keys": ["<Left>"]
-    #         },
-    #         "Child": {
-    #             "call": lambda: self.state.select_child(0),
-    #             "display_key": "→",
-    #             "keys": ["<Right>"]
-    #         },
-    #         "SiblingNext": {
-    #             "call": lambda: self.state.select_sibling(1),
-    #             "display_key": "↓",
-    #             "keys": ["<Down>"]
-    #         },
-    #         "SiblingPrevious": {
-    #             "call": lambda: self.state.select_sibling(-1),
-    #             "display_key": "↑",
-    #             "keys": ["<Up>"]
-    #         },
-    #
-    #         "New Child": {
-    #             "call": self.create_child,
-    #             "display_key": "h",
-    #             "keys": ["<h>"]
-    #         },
-    #         "Generate": {
-    #             "call": self.generate,
-    #             "display_key": "g",
-    #             "keys": ["<g>"]
-    #         },
-    #
-    #         "Delete": {
-    #             "call": self.delete_node,
-    #             "display_key": "«",
-    #             "keys": ["<BackSpace>"]
-    #         },
-    #         "Newline": {
-    #             "call": self.prepend_newline,
-    #             "display_key": "n",
-    #             "keys": ["<n>"]
-    #         },
-    #         "Space": {
-    #             "call": self.prepend_space,
-    #             "display_key": " ",
-    #             "keys": ["<space>"],
-    #         },
-    #         "Copy": {
-    #             "call": self.copy_text,
-    #             "display_key": "c",
-    #             "keys": ["<c>"]
-    #         },
-    #
-    #         "Edit": {
-    #             "call": self.switch_edit_mode,
-    #             "display_key": "e",
-    #             "keys": ["<e>", "<Control-e>", "<Escape>"]
-    #         },
-    #
-    #         "Save": {
-    #             "call": self.save_tree,
-    #             "display_key": "s",
-    #             "keys": ["<s>", "<Control-s>"]
-    #         },
-    #         "Open": {
-    #             "call": self.open_tree,
-    #             "display_key": "o",
-    #             "keys": ["<o>", "<Control-o>"]
-    #         },
-    #
-    #         # Done differently
-    #         "NavTreeSelect": {
-    #             "call": lambda node_id: self.state.select_node(node_id)
-    #         },
-    #     }

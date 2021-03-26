@@ -22,7 +22,7 @@ leaf_padding = 50
 min_edit_box_height = 100
 canvas_padding = 100
 
-
+chapters = 1
 
 
 def round_rectangle(x1, y1, x2, y2, canvas, radius=25, **kwargs):
@@ -78,7 +78,9 @@ class TreeVis:
         self.buttons_hidden = False
         self.textbox_events = {}
 
-        #TODO instead of root width, long textboxes should have scrollbars (possible?)
+        self.active = []
+
+        #TODO instead of root width, long textboxes should have scrollbars
         #if not possible, multiple pages (!)
         self.root_width = self.state.visualization_settings['textwidth']
         self.font = "Georgia"
@@ -251,27 +253,35 @@ class TreeVis:
     #   Drawing
     #################################
 
-
+    # TODO Slow for big tree; do not redraw everything?
     def draw(self, root_node, selected_node, center_on_selection=False):
         # pprint(self.state.visualization_settings)
+        if self.state.visualization_settings["chaptermode"]:
+            self.root = self.state.build_chapter_trees()[0][0]
+        else:
+            self.root = root_node
+
         self.canvas.delete('data')
-        self.root = root_node
+
         self.selected_node = selected_node
         self.delete_textbox()
 
         # TODO change this
-        if not self.root.get('open', False):
-            self.collapse_all()
 
-        if not self.selected_node.get('open', False):
-            #TODO also expand ancestors
-            self.expand_node(self.selected_node)
+        if not self.state.visualization_settings["chaptermode"]:
+            if not self.root.get('open', False):
+                self.collapse_all()
 
-        tree_structure_map = self.calc_tree_structure(root_node, self.selected_node)
+            if not self.selected_node.get('open', False):
+                #TODO also expand ancestors
+                self.expand_node(self.selected_node)
+
         self.node_coords = {}
         self.resize_icon_events = []
 
-        self.draw_node(root_node, 100, 100, tree_structure_map, self.selected_node["id"])
+        self.active = self.get_active()
+
+        self.draw_node(self.root, 100, 100)
 
         self.canvas.scale("all", 0, 0, self.scroll_ratio, self.scroll_ratio)
 
@@ -281,10 +291,7 @@ class TreeVis:
         self.fix_image_zoom()
 
         if center_on_selection:
-            if self.selected_node["id"] in self.node_coords:
-                self.center_view_on_canvas_coords(*self.node_coords[self.selected_node["id"]])
-            else:
-                print('error: not in node coords')
+            self.center_view_on_node(self.selected_node)
 
 
     def refresh_selection(self, root_node, selected_node):
@@ -296,119 +303,117 @@ class TreeVis:
             self.draw(self.root, self.selected_node, center_on_selection=True)
             return
         self.delete_textbox()
-        tree_structure_map = self.calc_tree_structure(root_node, self.selected_node)
-        for node_id, structure in tree_structure_map.items():
-            if self.state.tree_node_dict[node_id].get("open", False):
-                if structure['active']:
+        old_active = self.active
+        self.active = self.get_active()
 
-                    self.canvas.itemconfig(f'text-{node_id}', fill=active_text_color())
-                    if node_id == self.selected_node["id"]:
-                        self.canvas.itemconfig(f'box-{node_id}', outline=selected_line_color(), width=2)
-                        self.canvas.itemconfig(f'lines-{node_id}', fill=selected_line_color(), width=2)
-                        self.canvas.itemconfig(f'ghostlines-{node_id}', fill=selected_line_color())
-                    else:
-                        self.canvas.itemconfig(f'box-{node_id}', outline=active_line_color(), width=1)
-                        self.canvas.itemconfig(f'lines-{node_id}', fill=active_line_color(), width=1)
-                else:
-                    self.canvas.itemconfig(f'lines-{node_id}', fill=inactive_line_color(), width=1)
-                    self.canvas.itemconfig(f'ghostlines-{node_id}', fill=inactive_line_color())
-                    self.canvas.itemconfig(f'text-{node_id}', fill=inactive_text_color())
-                    self.canvas.itemconfig(f'box-{node_id}', outline=inactive_line_color(), width=1)
-                if self.state.tree_node_dict[node_id].get("visited", False):
-                    fill = visited_node_bg_color()
-                else:
-                    fill = unvisited_node_bg_color()
-                self.canvas.itemconfig(f'box-{node_id}', fill=fill)
+        for node in old_active:
+            if node not in self.active:
+                self.canvas.itemconfig(f'lines-{node["id"]}', fill=inactive_line_color(), width=1)
+                self.canvas.itemconfig(f'ghostlines-{node["id"]}', fill=inactive_line_color())
+                self.canvas.itemconfig(f'text-{node["id"]}', fill=inactive_text_color())
+                self.canvas.itemconfig(f'box-{node["id"]}', outline=inactive_line_color(), width=1)
 
-        self.center_view_on_canvas_coords(*self.node_coords[self.selected_node["id"]])
+        for node in self.active:
+            self.canvas.itemconfig(f'text-{node["id"]}', fill=active_text_color())
+            if self.node_selected(node):
+                self.canvas.itemconfig(f'box-{node["id"]}', outline=selected_line_color(), width=2)
+                self.canvas.itemconfig(f'lines-{node["id"]}', fill=selected_line_color(), width=2)
+                self.canvas.itemconfig(f'ghostlines-{node["id"]}', fill=selected_line_color())
+            else:
+                self.canvas.itemconfig(f'box-{node["id"]}', outline=active_line_color(), width=1)
+                self.canvas.itemconfig(f'lines-{node["id"]}', fill=active_line_color(), width=1)
+            if not self.state.visualization_settings["chaptermode"] \
+                    and self.state.tree_node_dict[node["id"]].get("visited", False):
+                self.canvas.itemconfig(f'box-{node["id"]}', fill=visited_node_bg_color())
+
+        self.center_view_on_node(self.selected_node)
 
 
-    def draw_node(self, node, nodex, nodey, tree_structure_map, selected_id):
-        # Draw textbox
+
+    def draw_node(self, node, nodex, nodey):
         self.node_coords[node["id"]] = (nodex, nodey)
 
-        if not node.get("open", False):
-            bbox = self.draw_expand_node_button(node, nodex, nodey)
-            return
-
-        display_text = self.state.visualization_settings['displaytext'] and self.showtext
-        if display_text:
-            bbox = self.draw_textbox(node, nodex, nodey, tree_structure_map, selected_id)
-            offset = 10
+        if self.state.visualization_settings["chaptermode"]:
+            bbox = self.draw_textbox(node, nodex, nodey)
+            padding = 10
         else:
-            bbox = (nodex, nodey, nodex, nodey)
-            offset = 0
+            if not node.get("open", False):
+                bbox = self.draw_expand_node_button(node, nodex, nodey)
+                return collapsed_offset
+
+            display_text = self.state.visualization_settings['displaytext'] and self.showtext
+            if display_text:
+                bbox = self.draw_textbox(node, nodex, nodey)
+                padding = 10
+            else:
+                bbox = (nodex, nodey, nodex, nodey)
+                padding = 0
 
         textheight = bbox[3] - bbox[1]
         textwidth = bbox[2] - bbox[0]
         width_diff = self.state.visualization_settings['textwidth'] - textwidth \
-            if (self.state.visualization_settings['displaytext'] and fixed_level_width) else 0
+            if (self.state.visualization_settings['displaytext'] and fixed_level_width
+                and not self.state.visualization_settings["chaptermode"]) else 0
 
+        offset = textheight # TODO vertical
         # Draw children with increasing offsets
         child_offset = 0
-        child_offset_collapsed = 0
         for child in node['children']:
-            if self.state.visualization_settings["horizontal"]:
-                childx = nodex + self.state.visualization_settings['leveldistance'] + textwidth + width_diff
-                childy = nodey + (child_offset * self.state.visualization_settings['leafdist'])\
-                         + (child_offset_collapsed * collapsed_offset)
-                parentx = nodex + textwidth
-                parenty = nodey
-            else:
-                childx = nodex + (child_offset * self.state.visualization_settings['leafdist'])\
-                         + (child_offset_collapsed * collapsed_offset)
-                childy = nodey + self.state.visualization_settings['leveldistance'] + textheight
+            childx = nodex + self.state.visualization_settings['leveldistance'] + textwidth + width_diff
+            childy = nodey + child_offset
+            parentx = nodex + textwidth
+            parenty = nodey
+            # TODO if vertical
 
-                parentx = nodex
-                parenty = nodey + textheight
-
-
-            self.draw_node(child, childx, childy, tree_structure_map, selected_id)
-            child_offset = child_offset + tree_structure_map[child["id"]]['offset']
-            child_offset_collapsed += tree_structure_map[child["id"]]['offset2']
+            child_offset += self.state.visualization_settings['leafdist']
+            child_offset += self.draw_node(child, childx, childy)
 
             # Draw line to child
-            if tree_structure_map[child["id"]] == selected_id:
+
+            if self.node_selected(child):
                 color = selected_line_color()
                 width = 2
             else:
-                color = active_line_color() if tree_structure_map[child["id"]]['active'] else inactive_line_color()
-                width = 2 if tree_structure_map[child["id"]]['active'] else 1
+                active = child in self.active
+                color = active_line_color() if active else inactive_line_color()
+                width = 2 if active else 1
 
-            self.draw_line(parentx - offset, parenty - offset, childx - offset, childy - offset,
+            self.draw_line(parentx - padding, parenty - padding, childx - padding, childy - padding,
                            name=f'lines-{child["id"]}',
                            fill=color, activefill=BLUE, width=width, offset=smooth_line_offset, smooth=True,
                            method=lambda event, node_id=child["id"]: self.controller.nav_select(node_id=node_id))
 
         #TODO lightmode
-        if "ghostchildren" in node:
-            parentx = nodex + textwidth
-            parenty = nodey
-            for ghost_id in node["ghostchildren"]:
-                ghost = self.state.tree_node_dict.get(ghost_id, None)
-                if ghost is None:
-                    continue
-                if ghost.get("open", False) and ghost["id"] in self.node_coords:
-                    ghostx, ghosty = self.node_coords[ghost["id"]]
-                    if tree_structure_map[ghost["id"]] == selected_id:
-                        color = active_line_color()
-                    else:
-                        color = inactive_line_color()
-                    self.draw_line(parentx - offset, parenty - offset, ghostx - offset, ghosty - offset,
-                                   name=f'ghostlines-{ghost["id"]}',
-                                   fill=color, activefill=BLUE, offset=smooth_line_offset, smooth=True,
-                                   method=lambda event, node_id=ghost["id"]: self.controller.nav_select(node_id=node_id))
-                else:
-                    #print("drew collapsed ghostchild")
-                    #TODO fix position
-                    self.draw_line(parentx - offset, parenty - offset,
-                                   parentx + self.state.visualization_settings["leveldistance"] - offset,
-                                   parenty - offset,
-                                   name=f'ghostlines-{ghost["id"]}',
-                                   fill=inactive_line_color(), activefill=BLUE, offset=smooth_line_offset, smooth=True,
-                                   method=lambda event, node_id=ghost["id"]: self.controller.nav_select(node_id=node_id))
-                    self.draw_expand_node_button(ghost, parentx + self.state.visualization_settings["leveldistance"], parenty, ghost=True)
-                    return
+        # if "ghostchildren" in node:
+        #     parentx = nodex + textwidth
+        #     parenty = nodey
+        #     for ghost_id in node["ghostchildren"]:
+        #         ghost = self.state.tree_node_dict.get(ghost_id, None)
+        #         if ghost is None:
+        #             continue
+        #         if ghost.get("open", False) and ghost["id"] in self.node_coords:
+        #             ghostx, ghosty = self.node_coords[ghost["id"]]
+        #             if tree_structure_map[ghost["id"]] == selected_id:
+        #                 color = active_line_color()
+        #             else:
+        #                 color = inactive_line_color()
+        #             self.draw_line(parentx - offset, parenty - offset, ghostx - offset, ghosty - offset,
+        #                            name=f'ghostlines-{ghost["id"]}',
+        #                            fill=color, activefill=BLUE, offset=smooth_line_offset, smooth=True,
+        #                            method=lambda event, node_id=ghost["id"]: self.controller.nav_select(node_id=node_id))
+        #         else:
+        #             #print("drew collapsed ghostchild")
+        #             #TODO fix position
+        #             self.draw_line(parentx - offset, parenty - offset,
+        #                            parentx + self.state.visualization_settings["leveldistance"] - offset,
+        #                            parenty - offset,
+        #                            name=f'ghostlines-{ghost["id"]}',
+        #                            fill=inactive_line_color(), activefill=BLUE, offset=smooth_line_offset, smooth=True,
+        #                            method=lambda event, node_id=ghost["id"]: self.controller.nav_select(node_id=node_id))
+        #             self.draw_expand_node_button(ghost, parentx + self.state.visualization_settings["leveldistance"], parenty, ghost=True)
+        #             return
+
+        return offset if child_offset == 0 else child_offset
 
 
     def draw_line(self, x1, y1, x2, y2, fill, name, width=1, activefill=None, offset=0, smooth=True ,method=None):
@@ -445,10 +450,17 @@ class TreeVis:
         return text
 
 
-    def draw_textbox(self, node, nodex, nodey, tree_structure_map, selected_id):
-        text_color = active_text_color() if tree_structure_map[node["id"]]['active'] else inactive_text_color()
+    def draw_textbox(self, node, nodex, nodey):
+        active = node in self.active
+        text_color = active_text_color() if active else inactive_text_color()
         width = self.root_width if node['id'] == self.root['id'] else self.state.visualization_settings['textwidth']
-        text = self.split_text(node) if self.overflow_display == 'PAGE' else node['text']
+
+        if self.state.visualization_settings["chaptermode"]:
+            text = node["chapter"]["title"]
+        else:
+            text = self.split_text(node) if self.overflow_display == 'PAGE' else node['text']
+
+
         text_id = self.canvas.create_text(
             nodex, nodey, fill=text_color, activefill=BLUE,
             font=(self.font, self.get_text_size()),
@@ -461,32 +473,43 @@ class TreeVis:
         bbox = self.canvas.bbox(text_id)
         box = tuple(map(lambda i, j: i + j, padding, bbox))
 
+        # TODO different for chapter mode
         fill = visited_node_bg_color() if node.get("visited", False) else unvisited_node_bg_color()
-        outline_color = selected_line_color() if selected_id == node["id"] else \
-            (active_line_color() if tree_structure_map[node["id"]]['active'] else inactive_line_color())
-        width = 2 if tree_structure_map[node["id"]]['active'] else 1
-        # rect_id = self.canvas.create_rectangle(box, outline=outline_color, width=width,
-        #                                        activeoutline=BLUE, fill=fill,
-        #                                        tags=[f'box-{node["id"]}', 'data'])
+        outline_color = selected_line_color() if self.node_selected(node) else \
+            (active_line_color() if active else inactive_line_color())
+        width = 2 if active else 1
         rect_id = round_rectangle(x1=box[0], x2=box[2], y1=box[1], y2=box[3], canvas=self.canvas, outline=outline_color,
                                   width=width, activeoutline=BLUE, fill=fill, tags=[f'box-{node["id"]}', 'data'])
         self.canvas.tag_raise(text_id, rect_id)
-        self.canvas.tag_bind(
-            f'text-{node["id"]}', "<Button-1>", lambda event, node_id=node["id"]: self.edit_node(node_id=node_id,
-                                                                                                 box=box,
-                                                                                                 text=node['text'])
-        )
-        self.textbox_events[node["id"]] = lambda node_id=node["id"]: self.edit_node(node_id=node_id,
-                                                                                    box=box,
-                                                                                    text=node['text'])
-        self.canvas.tag_bind(
-            f'box-{node["id"]}', "<Button-1>", self.box_click(node["id"], box, node["text"]))
 
-        if node is not self.root:
-            self.draw_collapse_button(node, box)
-        if self.state.visualization_settings["showbuttons"]:
-            self.draw_buttons(node, box)
-        self.draw_bookmark_star(node, box)
+        if self.state.visualization_settings["chaptermode"]:
+            self.canvas.tag_bind(
+                f'box-{node["id"]}', "<Button-1>", lambda event, node_id=node["chapter"]["root_id"]: self.select_node(
+                    node_id=node_id))
+
+            self.canvas.tag_bind(
+                f'text-{node["id"]}', "<Button-1>", lambda event, node_id=node["chapter"]["root_id"]: self.select_node(
+                    node_id=node_id))
+        else:
+            self.canvas.tag_bind(
+                f'text-{node["id"]}', "<Button-1>", lambda event, node_id=node["id"]: self.edit_node(node_id=node_id,
+                                                                                                     box=box,
+                                                                                                     text=node['text'])
+            )
+            self.textbox_events[node["id"]] = lambda node_id=node["id"]: self.edit_node(node_id=node_id,
+                                                                                        box=box,
+                                                                                        text=node['text'])
+            self.canvas.tag_bind(
+                f'box-{node["id"]}', "<Button-1>", self.box_click(node["id"], box, node["text"]))
+
+        # TODO collapsing chapters...
+
+        if not self.state.visualization_settings["chaptermode"]:
+            if node is not self.root:
+                self.draw_collapse_button(node, box)
+            if self.state.visualization_settings["showbuttons"]:
+                self.draw_buttons(node, box)
+            self.draw_bookmark_star(node, box)
         return box
 
 
@@ -670,11 +693,11 @@ class TreeVis:
     #   Expand/Collapse
     #################################
 
-    def select_node(self, node):
-        if isinstance(node, str):
-            node = self.state.tree_node_dict[node]
-        self.selected_node = node
-        self.controller.nav_select(node_id=node["id"])
+    def select_node(self, node_id):
+        if isinstance(node_id, str):
+            node_id = self.state.tree_node_dict[node_id]
+        self.selected_node = node_id
+        self.controller.nav_select(node_id=node_id["id"])
 
 
     def expand_node(self, node, change_selection=True, center_selection=True):
@@ -786,7 +809,7 @@ class TreeVis:
         if text == '':
             return lambda event, node_id=node_id, box=box: self.edit_node(node_id=node_id, box=box, text=text)
         else:
-            return lambda event, node_id=node_id: self.select_node(node=node_id)
+            return lambda event, node_id=node_id: self.select_node(node_id=node_id)
 
 
     def edit_node(self, node_id, box, text):
@@ -841,47 +864,26 @@ class TreeVis:
     #################################
 
 
-    def calc_tree_structure(self, node, selected_node, node_id_to_structure=None):
-        # Create the map from id to structure if this is the root node
-        if node_id_to_structure is None:
-            node_id_to_structure = {}
+    def get_active(self):
+        if self.state.visualization_settings["chaptermode"]:
+            chapter_tree = self.state.build_chapter_trees()[1]
+            return node_ancestry(chapter_tree[self.state.chapter(self.selected_node)['id']], chapter_tree)
+        else:
+            return node_ancestry(self.selected_node, self.state.tree_node_dict)
 
-        # default structure
-        structure = {
-            "depth": 1,
-            "descendants": 0,
-            "offset": 1 if node.get('open', False) else 0,
-            "offset2": 1 if not node.get('open', False) else 0,
-            "active": node["id"] == selected_node["id"]
-        }
+    # in node mode, returns true if node is selected node
+    # in chapter mode, returns true if node corresponds to chapter of selected node
+    def node_selected(self, node):
+        if self.state.visualization_settings["chaptermode"]:
+            return node["id"] == self.state.chapter(self.selected_node)["id"]
+        else:
+            return node["id"] == self.selected_node["id"]
 
-        # Have each child figure out their own structure and add themselves to the map recursively
-        for child in node["children"]:
-            self.calc_tree_structure(child, selected_node, node_id_to_structure)
-
-        # Calculate own structure information based on children
-        if node.get('open', False):
-            for child in node["children"]:
-                child_structure = node_id_to_structure[child["id"]]
-                # Depth is max of child depth + 1
-                structure["depth"] = max(structure["depth"], child_structure["depth"] + 1)
-                # Descendants is sum of child descendants + 1 for the child itself
-                structure["descendants"] += child_structure["descendants"] + 1
-                structure["offset"] += child_structure["offset"]
-                structure["offset2"] += child_structure["offset2"]
-                # Active if any child is active
-                structure["active"] = True if child_structure["active"] else structure["active"]
-
-            if len(node["children"]) != 0 and structure["offset"] > 1:
-                structure["offset"] -= 1
-            elif len(node["children"]) != 0 and structure["offset2"] > 1:
-                 structure["offset2"] -= 1
-            #TODO
-            # if len(node["children"]) != 0 and structure["offset2"] > 1:
-            #     structure["offset2"] -= 1
-        node_id_to_structure[node["id"]] = structure
-        return node_id_to_structure
-
+    def center_view_on_node(self, node):
+        if not self.state.visualization_settings["chaptermode"]:
+            self.center_view_on_canvas_coords(*self.node_coords[node["id"]])
+        else:
+            self.center_view_on_canvas_coords(*self.node_coords[self.state.chapter(node)["id"]])
 
     def center_view_on_canvas_coords(self, x, y):
         x = x * self.scroll_ratio

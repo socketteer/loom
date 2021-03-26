@@ -5,10 +5,10 @@
 * chapter nav tree scrollbar
 * num leaves calculated incorrectly
 * ctrl+space sometimes clicks button
-* ctrl+y hotkey (chapter dialogue) sometimes doesn't work
+* ctrl+y hotkey (chapter dialog) sometimes doesn't work
 * importing tree causes file to be renamed to name of imported file
-* clicking history sometimes causes indexerror
-* memory dialogue closes when you press enter
+* clicking history sometimes causes index error
+* memory dialog closes when you press enter
 * display history bug - seen with astronomer -> spirals (try disabling context window highlighting)
 * saving is slow for massive trees
 
@@ -22,6 +22,7 @@
 * fix vertical mode
 * icons sometimes do not zoom
 * different icon colors for light mode
+* vis expanded state out of synch with nav tree expanded state
 
 # Tree visualization
 
@@ -44,6 +45,7 @@
 - editing: 
 global edit mode, where all nodes turn into textboxes, but no zooming?
 
+- collapse nodes when too many are expanded
 
 # Windows
 
@@ -93,12 +95,14 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * search chapters
 * regex
 * case (in)sensitive
+* search ancestry
+* integrated search
+* key filter -> semantic search among matches
 
 # Features
 
 * "floating" notes
     * global or associated with subtree
-* bookmark-like tags define subsets of tree (and option to only display/navigate tag)
 * save open status (not visible status) in tree dict 
 * named bookmarks
 * bookmarks (unique) vs tags (category) 
@@ -106,9 +110,8 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
     * deal with navigating to node outside subtree (expand to common 
     ancestor of current and new node?)
 * developer console
-* mark node (and ancestry) as canonical
 * visited sessions
-* preferences dialogue
+* preferences dialog
 
 * clickable links in active text
 
@@ -116,7 +119,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 ## multimedia
 
-* multimedia dialogue
+* multimedia dialog
     * change caption
 * indicate presence of multimedia in vis, textbox
 * display multimedia in sidebar
@@ -142,13 +145,18 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 - save multiple memory entries for each node
 - should memory use pointers like chapter?
-- memory dialogue lets you import
+- importing
     - memories from ancestry
     - by search (multiverse or ancestry)
     - by keying (top n matches) (multiverse or ancestry)
 - memory in context: when importing memory, option to navigate surrounding tree
-- semantic search for short-term memory?
+- semantic search
+    - search ancestry
+        - including context window
+        - search only manually saved entries
 - when changing memory, option to create new entry vs edit existing one
+- create memory entry by highlighting
+- summary associated with node; goes into memory once node exits context window
 
 **saving memory entries**
 

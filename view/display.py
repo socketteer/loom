@@ -46,6 +46,8 @@ class Display:
         self.secondary_textbox = None
         self.vis_frame = None
         self.vis = None
+        self.notes_frame = None
+        self.notes_textbox = None
 
         self.multi_edit_frame = None
         self.multi_textboxes = None
@@ -97,6 +99,19 @@ class Display:
             button.pack(**{**dict(side="left", fill="y"), **(pack_params if pack_params else {})})
         return button
 
+
+    def ctrl_click(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Edit history"]["callback"](index=char_index)
+
+    def alt_click(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Goto history"]["callback"](index=char_index)
+
+    def ctrl_alt_click(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Split node"]["callback"](index=char_index)
+
     #################################
     #   Display
     #################################
@@ -117,6 +132,8 @@ class Display:
         self.build_main_frame(self.pane)
         self.pane.add(self.main_frame, weight=6)
 
+        if self.state.preferences["side_pane"]:
+            self.open_side()
 
     #################################
     #   Main frame
@@ -140,22 +157,10 @@ class Display:
         self.build_main_buttons(self.main_frame)
         self.button_bar.pack(side="bottom", fill="x")
 
-
     def build_textboxes(self, frame):
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
-    def ctrl_click(self, txt, event=None):
-        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
-        self.callbacks["Edit history"]["callback"](index=char_index)
-
-    def alt_click(self, txt, event=None):
-        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
-        self.callbacks["Goto history"]["callback"](index=char_index)
-
-    def ctrl_alt_click(self, txt, event=None):
-        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
-        self.callbacks["Split node"]["callback"](index=char_index)
 
     # Text area and scroll bar  TODO Make a scrollable textbox tkutil
     def _build_textbox(self, frame, frame_attr, textbox_attr, height=1):
@@ -166,6 +171,7 @@ class Display:
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         textbox = TextAware(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
         self.__setattr__(textbox_attr, textbox)
+        # TODO move this out
         textbox.bind("<Control-Button-1>", lambda event: self.ctrl_click(txt=textbox))
         textbox.bind("<Alt-Button-1>", lambda event: self.alt_click(txt=textbox))
         textbox.bind("<Control-Alt-Button-1>", lambda event: self.ctrl_alt_click(txt=textbox))
@@ -270,6 +276,26 @@ class Display:
         if scrollbarx_attr is not None:
             self.__setattr__(scrollbarx_attr, scrollbarx)
 
+
+    #################################
+    #   Side panel
+    #################################
+
+    def build_side(self, frame):
+        self.side_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
+
+        self._build_textbox(self.side_frame, "notes_frame", "notes_textbox", height=1)
+        self.notes_frame.pack(expand=True, fill="both")
+
+    def open_side(self):
+        self.build_side(self.pane)
+        self.pane.add(self.side_frame, weight=1)
+
+    def destroy_side(self):
+        if self.side_frame is not None:
+            self.side_frame.pack_forget()
+            self.side_frame.destroy()
+            self.notes_frame = None
 
     #################################
     #   Edit mode

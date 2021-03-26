@@ -11,6 +11,35 @@ from util.util_tree import search
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 import math
 
+
+class PreferencesDialog(Dialog):
+    def __init__(self, parent, orig_params):
+        print(orig_params)
+        self.orig_params = orig_params
+        self.vars = {
+            "canonical_only": tk.BooleanVar,
+            "side_pane": tk.BooleanVar,
+        }
+        for key in self.vars.keys():
+            self.vars[key] = self.vars[key](value=orig_params[key])
+
+        Dialog.__init__(self, parent, title="Preferences")
+
+    def body(self, master):
+        print(self.orig_params)
+        row = master.grid_size()[1]
+        create_side_label(master, "Canonical only", row)
+        check = ttk.Checkbutton(master, variable=self.vars["canonical_only"])
+        check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
+        create_side_label(master, "Show side pane", row)
+        check = ttk.Checkbutton(master, variable=self.vars["side_pane"])
+        check.grid(row=row, column=1, pady=3)
+
+    def apply(self):
+        for key, var in self.vars.items():
+            self.orig_params[key] = var.get()
+
 class InfoDialog(Dialog):
     def __init__(self, parent, data_dict):
         self.data_dict = data_dict
@@ -145,11 +174,13 @@ class SearchDialog(Dialog):
     def body(self, master):
         self.master = master
 
-
-        ## advanced options - show/hide
+        # TODO
+        # advanced options - show/hide
+        # search ancestry
         create_side_label(master, "Subtree only")
         check = ttk.Checkbutton(master, variable=self.subtree)
         check.grid(row=self.master.grid_size()[1] - 1, column=1)
+
         create_side_label(master, "Case sensitive")
         check = ttk.Checkbutton(master, variable=self.case_sensitive)
         check.grid(row=self.master.grid_size()[1] - 1, column=1)
@@ -189,11 +220,12 @@ class SearchDialog(Dialog):
         else:
             depth_limit = int(depth_limit)
         root = self.state.selected_node if self.subtree.get() else self.state.tree_raw_data["root"]
-
+        print('case sensitive: ', self.case_sensitive.get())
         matches = search(root=root,
                          pattern=search_term,
                          text=self.text.get(),
                          tags=self.tags.get(),
+                         case_sensitive=self.case_sensitive.get(),
                          regex=self.regex.get(),
                          filter_set=self.state.calc_canonical_set() if self.canonical.get() else None,
                          max_depth=depth_limit)
@@ -571,6 +603,7 @@ class VisualizationSettingsDialog(Dialog):
             'horizontal': tk.BooleanVar,
             'displaytext': tk.BooleanVar,
             'showbuttons': tk.BooleanVar,
+            'chaptermode': tk.BooleanVar,
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
@@ -588,7 +621,7 @@ class VisualizationSettingsDialog(Dialog):
         for name, value_range in sliders.items():
             create_slider(master, name, self.vars[name], value_range)
 
-        for name in ['horizontal', 'displaytext', 'showbuttons']:
+        for name in ['horizontal', 'displaytext', 'showbuttons', 'chaptermode']:
             row = master.grid_size()[1]
             create_side_label(master, name, row)
             check = ttk.Checkbutton(master, variable=self.vars[name])
