@@ -4,6 +4,8 @@
     - save changes or make new branch
     - highlight indicates whether edits have been saved    
 
+- memory with context window activation
+
 # bugs
 
 * key bindings only work in most recent tab
