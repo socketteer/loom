@@ -60,7 +60,7 @@ def api_generate(prompt, length=150, num_continuations=1, temperature=0.8, top_p
         temperature=temperature,
         max_tokens=length,
         top_p=top_p,
-        logprobs=0,
+        logprobs=10,
         n=num_continuations,
         **kwargs
     )

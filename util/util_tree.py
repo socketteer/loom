@@ -23,13 +23,26 @@ def node_ancestry(node, node_dict):
     return ancestry
 
 
+def nearest_common_ancestor(node_a, node_b, node_dict):
+    ancestry_a = node_ancestry(node_a, node_dict)
+    ancestry_b = node_ancestry(node_b, node_dict)
+    for i in range(1, len(ancestry_a)):
+        if i > (len(ancestry_b) - 1) or ancestry_a[i] is not ancestry_b[i]:
+            return ancestry_a[i-1], i-1
+    return ancestry_a[-1], len(ancestry_a) - 1
+
+
+def node_index(node, node_dict):
+    return len(node_ancestry(node, node_dict)) - 1
+
+
 # Returns True if a is ancestor of b
 def in_ancestry(a, b, node_dict):
     ancestry = node_ancestry(b, node_dict)
     return a in ancestry
 
 
-def get_inherited_attributed(attribute, node, tree_node_dict):
+def get_inherited_attribute(attribute, node, tree_node_dict):
     for lineage_node in reversed(node_ancestry(node, tree_node_dict)):
         if attribute in lineage_node:
             return lineage_node[attribute]

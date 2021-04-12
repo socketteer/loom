@@ -3,6 +3,7 @@ import os
 import threading
 import time
 import uuid
+from asyncio import Queue
 from pprint import pprint
 
 import numpy as np
@@ -11,7 +12,7 @@ from multiprocessing.pool import ThreadPool
 
 from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip
-from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attributed, \
+from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list
 
 
@@ -42,8 +43,7 @@ DEFAULT_PREFERENCES = {
     'highlight_canonical': True,
     'canonical_only': False,
     'walk': 'descendents', #'leaves', 'uniform'
-    'darken_history': True,
-    'darken_ooc': True,
+    'coloring': 'edit', #'read', 'none'
     'side_pane': False
     # display children preview
     # darkmode
@@ -89,6 +89,8 @@ class TreeModel:
     def __init__(self, root):
         self.app = root
         self.app.bind("<<TreeUpdated>>", lambda _: self.tree_updated())
+        self.app.bind("<<NewNodes>>", lambda _: self.edit_new_nodes())
+
 
         # All variables initialized below
         self.tree_filename = None
@@ -105,6 +107,7 @@ class TreeModel:
         self.selected_node_id = None
 
         self.callbacks = defaultdict(list)
+        self.new_nodes = []
 
 
     @property
@@ -140,6 +143,11 @@ class TreeModel:
             fix_miro_tree(self.nodes)
 
     @event
+    def edit_new_nodes(self):
+        self.tree_updated(edit=self.new_nodes[0])
+        del self.new_nodes[0]
+
+    @event
     def pre_selection_updated(self):
         pass
 
@@ -165,11 +173,11 @@ class TreeModel:
 
     # Get a nodes chapter by finding its chapter or its nearest parent's chapter
     def chapter(self, node):
-        chapter_id = get_inherited_attributed("chapter_id", node, self.tree_node_dict)
+        chapter_id = get_inherited_attribute("chapter_id", node, self.tree_node_dict)
         return self.chapters[chapter_id] if chapter_id else None
 
     def memory(self, node):
-        memory = get_inherited_attributed("memory", node, self.tree_node_dict)
+        memory = get_inherited_attribute("memory", node, self.tree_node_dict)
         return memory if memory else self.generation_settings["memory"]
 
     def node_ancestry_text(self, node=None):
@@ -319,7 +327,7 @@ class TreeModel:
         parent["children"].append(new_child)
 
         if tree_updated:
-            self.tree_updated(modified=[new_child['id']])
+            self.tree_updated(add=[new_child['id']])
         if update_selection:
             self.select_node(new_child["id"])
         if expand:
@@ -354,7 +362,7 @@ class TreeModel:
         node["parent_id"] = new_parent["id"]
         new_parent["open"] = True
 
-        self.tree_updated(modified=[n['id'] for n in subtree_list(new_parent)])
+        self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
         return new_parent
 
     def merge_with_parent(self, node=None):
@@ -373,7 +381,7 @@ class TreeModel:
 
         if node == self.selected_node:
             self.select_node(parent["id"])
-        self.tree_updated(modified=[n['id'] for n in subtree_list(parent)])
+        self.tree_updated(add=[n['id'] for n in subtree_list(parent)])
 
     def merge_with_children(self, node=None):
         node = node if node else self.selected_node
@@ -408,7 +416,7 @@ class TreeModel:
         node["parent_id"] = new_parent_id
         new_parent["children"].append(node)
         # TODO does this cause bugs
-        self.tree_updated(modified=[n['id'] for n in subtree_list(new_parent)])
+        self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
 
     # adds node to ghostchildren of new ghostparent
     def add_parent(self, node=None, new_ghostparent=None):
@@ -424,7 +432,7 @@ class TreeModel:
         old_index = siblings.index(node)
         new_index = (old_index + interval) % len(siblings)
         siblings[old_index], siblings[new_index] = siblings[new_index], siblings[old_index]
-        self.tree_updated(modified=[n['id'] for n in subtree_list(self.parent(node))])
+        self.tree_updated(add=[n['id'] for n in subtree_list(self.parent(node))])
 
     # TODO Doesn't support deleting root
     def delete_node(self, node=None, reassign_children=False):
@@ -445,7 +453,7 @@ class TreeModel:
                 self.select_node(parent["id"])
             else:
                 self.select_node(siblings[old_index % len(siblings)]["id"])
-        self.tree_updated(modified=[node['id']])
+        self.tree_updated(delete=[node['id']])
 
     def update_text(self, node, text, active_text=None):
         assert node["id"] in self.tree_node_dict, text
@@ -470,8 +478,7 @@ class TreeModel:
             edited = True
 
         if edited:
-            # TODO faster solution for nodes with large subtree - don't need to reinsert into nav?
-            self.tree_updated(modified=[n['id'] for n in subtree_list(node)])
+            self.tree_updated(edit=[node['id']])
 
 
     def update_note(self, node, text, index=0):
@@ -512,13 +519,13 @@ class TreeModel:
             }
             self.chapters[new_chapter["id"]] = new_chapter
             node["chapter_id"] = new_chapter["id"]
-        self.tree_updated(modified=[])
+        self.tree_updated()
 
     def delete_chapter(self, chapter, update_tree=True):
         self.chapters.pop(chapter["id"])
         self.tree_node_dict[chapter["root_id"]].pop("chapter_id")
         if update_tree:
-            self.tree_updated(modified=[])
+            self.tree_updated()
 
     def remove_all_chapters(self, node=None):
         was_root = node is None
@@ -528,7 +535,7 @@ class TreeModel:
         for child in node["children"]:
             self.remove_all_chapters(child)
         if was_root:
-            self.tree_updated(modified=[])
+            self.tree_updated()
 
     #################################
     #   Canonical
@@ -601,7 +608,7 @@ class TreeModel:
             node["open"] = node.get("open", False)
 
         self._init_global_objects()
-        self.tree_updated()
+        self.tree_updated(rebuild=True)
         self.select_node(self.tree_raw_data.get("selected_node_id", self.nodes[0]["id"]))
 
     # Open a new tree json
@@ -710,7 +717,7 @@ class TreeModel:
             print("Generated continuation:\n", result['text'], "\nerror", error)
 
         # DO NOT CALL FROM THREAD: self.tree_updated()
-        self.app.event_generate("<<TreeUpdated>>", when="tail")
+        self.app.event_generate("<<NewNodes>>", when="tail")
 
     def generate_continuation(self, node=None, update_selection=False):
         node = node if node else self.selected_node
@@ -719,15 +726,20 @@ class TreeModel:
 
         children = []
         grandchildren = []
+        new_nodes = []
         #pprint(self.generation_settings)
         for i in range(self.generation_settings['num_continuations']):
             child = self.create_child(node, update_selection=False, expand=True, tree_updated=False)
             children.append(child)
+            new_nodes.append(child['id'])
             if self.generation_settings['adaptive']:
-                grandchildren.append(self.create_child(child, update_selection=False, expand=True, tree_updated=False))
+                grandchild = self.create_child(child, update_selection=False, expand=True, tree_updated=False)
+                grandchildren.append(grandchild)
+                new_nodes.append(grandchild['id'])
 
-        modified_ids = [n['id'] for n in subtree_list(node)]
-        self.tree_updated(modified=modified_ids)
+        self.new_nodes.append(new_nodes)
+        #modified_ids = [n['id'] for n in subtree_list(node)]
+        self.tree_updated(add=new_nodes)
         prompt = "".join(self.node_ancestry_text(children[0])[0])
         memory = self.memory(node)
         prompt_length = self.generation_settings['prompt_length'] - len(memory)
@@ -743,7 +755,7 @@ class TreeModel:
             child["text"] = "\n\n** Generating **"
         for grandchild in grandchildren:
             grandchild["text"] = "\n\n** Generating **"
-        self.tree_updated(modified=modified_ids)
+        self.tree_updated(edit=new_nodes)
         if update_selection:
             self.select_node(children[0]["id"])
 
@@ -761,3 +773,15 @@ class TreeModel:
         #documents.reverse()
         query = node['text']
         return search(query, documents)
+
+
+    def delete_counterfactuals(self, root=None):
+        if not root:
+            root = self.tree_raw_data["root"]
+        if 'meta' in root:
+            if 'generation' in root['meta']:
+                if 'logprobs' in root['meta']['generation']:
+                    root['meta']['generation']["logprobs"]["top_logprobs"] = []
+                    #print('deleted logprobs')
+        for child in root['children']:
+            self.delete_counterfactuals(root=child)

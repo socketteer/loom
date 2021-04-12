@@ -1,3 +1,9 @@
+# priority 
+
+- counterfactual tokens
+    - save changes or make new branch
+    - highlight indicates whether edits have been saved    
+
 # bugs
 
 * key bindings only work in most recent tab
@@ -12,7 +18,7 @@
 * display history bug - seen with astronomer -> spirals (try disabling context window highlighting)
 * saving is slow for massive trees
 * reinserting into nav tree causes change in node ordering
-* various bugs w/r/t splitting, merging (seems to have been caused by partial nav updating?)
+* various bugs splitting, merging (seems to have been caused by partial nav updating?)
 
 ### Tree vis
 * first time switching to vis mode centering bug
@@ -70,6 +76,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * highlight when mouseover history
 * implement expand/collapse functions in controller
 * right sidebar for (everything else)
+* toggle highlighting gpt-3 vs user contributions
 
 # Tree topology
 
@@ -136,6 +143,9 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * playground-like interface
 * load gpt-3 program
 * min cutoff length for adaptive branching
+* hover + hotkey(s) to access alternate tokens 
+    * hotkey to apply change
+    * hotkey to begin new branch with counterfactual word
 
 ### AI memory
 

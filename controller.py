@@ -18,7 +18,8 @@ from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSett
     PreferencesDialog
 from model import TreeModel
 from util.util import clip_num, metadata
-from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry
+from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
+    nearest_common_ancestor
 
 
 def gated_call(f, condition):
@@ -228,9 +229,11 @@ class Controller:
         self.state.select_node(self.state.tree_raw_data["root"]["id"])
 
     @metadata(name="Save checkpoint", keys=["<Control-t>"], display_key="ctrl-t")
-    def save_checkpoint(self):
-        self.state.checkpoint = self.state.selected_node_id
-        self.state.tree_updated()
+    def save_checkpoint(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        self.state.checkpoint = node['id']
+        self.state.tree_updated(edit=[node['id']])
 
     @metadata(name="Go to checkpoint", keys=["<Key-t>"], display_key="t")
     def goto_checkpoint(self):
@@ -254,16 +257,14 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         node["bookmark"] = not node.get("bookmark", False)
-        self.state.tree_updated()
+        self.state.tree_updated(edit=[node['id']])
 
     @metadata(name="Toggle canonical", keys=["<Control-Shift-KeyPress-C>"], display_key="ctrl+shift+C")
     def toggle_canonical(self, node=None):
         if node is None:
             node = self.state.selected_node
         self.state.toggle_canonical(node=node)
-        #self.state.tree_updated(modified=[n['id'] for n in node_ancestry(node, self.state.tree_node_dict)])
-        # TODO modified set
-        self.state.tree_updated()
+        self.state.tree_updated(edit=[n['id'] for n in node_ancestry(node, self.state.tree_node_dict)])
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
@@ -274,7 +275,8 @@ class Controller:
             go_to_book = next(i for i, idx in enumerate(book_indices.keys()) if idx > self.state.tree_traversal_idx)
         except StopIteration:
             go_to_book = 0
-        self.state.select_node(list(book_indices.values())[go_to_book]["id"])
+        #self.state.select_node(list(book_indices.values())[go_to_book]["id"])
+        self.select_node(list(book_indices.values())[go_to_book])
 
     @metadata(name="Go to prev bookmark", keys=["<Key-a>", "<Control-a>"])
     def prev_bookmark(self):
@@ -283,12 +285,29 @@ class Controller:
             return
         earlier_books = list(i for i, idx in enumerate(book_indices.keys()) if idx < self.state.tree_traversal_idx)
         go_to_book = earlier_books[-1] if len(earlier_books) > 0 else -1
-        self.state.select_node(list(book_indices.values())[go_to_book]["id"])
+        #self.state.select_node(list(book_indices.values())[go_to_book]["id"])
+        self.select_node(list(book_indices.values())[go_to_book])
 
     @metadata(name="Center view", keys=["<Key-l>", "<Control-l>"])
     def center_view(self):
         #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
         self.display.vis.center_view_on_node(self.state.selected_node)
+
+    def select_node(self, node):
+        if self.state.preferences['coloring'] == 'read':
+            old_node = self.state.selected_node
+            self.state.select_node(node['id'])
+            _, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
+            nca_end_index = self.ancestor_end_indices[index]
+            self.display.textbox.tag_delete("old")
+            self.display.textbox.tag_add("old",
+                                         "1.0",
+                                         f"1.0 + {nca_end_index} chars")
+            self.display.textbox.tag_config("old", foreground=history_color())
+        else:
+            self.state.select_node(node['id'])
+
+
 
     #################################
     #   Node operations
@@ -431,11 +450,77 @@ class Controller:
             new_parent["meta"] = {}
             new_parent['meta']['origin'] = f'split (from child {selected_ancestor["id"]})'
 
+
+            self.state.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
             if change_selection:
                 self.nav_select(node_id=new_parent["id"])
-            # TODO modified set
-            self.state.tree_updated()
             # TODO deal with metadata
+
+    @metadata(name="Select token", keys=[], display_key="")
+    def select_token(self, index):
+        if self.display.mode == "Read":
+            self.display.textbox.tag_remove("selected", "1.0", 'end')
+            ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
+            negative_offset = self.ancestor_end_indices[ancestor_index] - index
+            selected_node = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
+            offset = len(selected_node['text']) - negative_offset
+
+            # TODO new token offsets if changed
+            if "meta" in selected_node and "generation" in selected_node["meta"]:
+                self.change_token.meta["counterfactual_index"] = 0
+                self.change_token.meta["prev_token"] = None
+                token_offsets = [n - len(selected_node['meta']['generation']['prompt'])
+                                 for n in selected_node['meta']['generation']["logprobs"]["text_offset"]]
+
+                token_index = bisect.bisect_left(token_offsets, offset) - 1
+                start_position = token_offsets[token_index]
+                token = selected_node['meta']['generation']["logprobs"]["tokens"][token_index]
+
+                counterfactuals = selected_node['meta']['generation']["logprobs"]["top_logprobs"][token_index]
+                sorted_counterfactuals = dict(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
+
+
+
+                #print('start position: ', self.ancestor_end_indices[ancestor_index - 1] + start_position)
+                self.display.textbox.tag_add("selected", f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + start_position} chars",
+                                             f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + start_position + len(token)} chars")
+
+                #self.change_token(selected_node, token_index)
+                self.select_token.meta["selected_node"] = selected_node
+                self.select_token.meta["token_index"] = token_index
+
+    @metadata(name="Change token", keys=["<Control-Shift-KeyPress-Down>"], display_key="", counterfactual_index=0, prev_token=None)
+    def change_token(self, node=None, token_index=None):
+        if not self.select_token.meta["selected_node"]:
+            return
+        elif not node:
+            node = self.select_token.meta["selected_node"]
+            token_index = self.select_token.meta["token_index"]
+        token_offsets = [n - len(node['meta']['generation']['prompt'])
+                         for n in node['meta']['generation']["logprobs"]["text_offset"]]
+        start_position = token_offsets[token_index]
+        token = node['meta']['generation']["logprobs"]["tokens"][token_index]
+        counterfactuals = node['meta']['generation']["logprobs"]["top_logprobs"][token_index].copy()
+        original_token = (token, counterfactuals.pop(token, None))
+        index = node_index(node, self.state.tree_node_dict)
+        sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
+        sorted_counterfactuals.insert(0, original_token)
+        #print('start position: ', self.ancestor_end_indices[index - 1] + start_position)
+        print(sorted_counterfactuals)
+        self.change_token.meta["counterfactual_index"] += 1
+        new_token = sorted_counterfactuals[self.change_token.meta["counterfactual_index"]][0]
+        self.display.textbox.config(state="normal")
+        if not self.change_token.meta['prev_token']:
+            self.change_token.meta['prev_token'] = token
+        self.display.textbox.delete(f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars",
+                                    f"1.0 + {self.ancestor_end_indices[index - 1] + start_position + len(self.change_token.meta['prev_token'])} chars")
+        self.display.textbox.insert(f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars", new_token)
+
+        self.display.textbox.config(state="disabled")
+        self.display.textbox.tag_add("selected",
+                                     f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars",
+                                     f"1.0 + {self.ancestor_end_indices[index - 1] + start_position + len(new_token)} chars")
+        self.change_token.meta['prev_token'] = new_token
 
     @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
     def reset_zoom(self):
@@ -633,6 +718,7 @@ class Controller:
     @metadata(name="Save", keys=["<s>", "<Control-s>"], display_key="s")
     def save_tree(self, popup=True):
         try:
+            self.state.delete_counterfactuals()
             self.save_edits()
             self.state.save_tree(backup=popup)
             if popup:
@@ -682,7 +768,7 @@ class Controller:
         if dialog.result:
             print("Settings saved")
             pprint(self.state.generation_settings)
-            self.save_tree(popup=False)
+            #self.save_tree(popup=False)
             self.refresh_textbox()
 
 
@@ -732,7 +818,7 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         dialog = MultimediaDialog(parent=self.display.frame, node=node,
-                                  refresh_event=self.state.tree_updated)
+                                  refresh_event=lambda node_id=node['id']: self.state.tree_updated(edit=[node_id]))
 
     @metadata(name="Memory dialogue", keys=["<m>", "<Control-m>"], display_key="m")
     def memory(self, node=None):
@@ -762,7 +848,7 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
-        print(self.state.selected_node["notes"])
+        self.state.delete_counterfactuals()
 
     #################################
     #   Story frame TODO call set text, do this in display?
@@ -807,8 +893,14 @@ class Controller:
             self.display.textbox.configure(state="normal")
             self.display.textbox.delete("1.0", "end")
 
-            self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
-            self.display.textbox.tag_config('history', foreground=history_color())
+            if self.state.preferences['coloring'] == 'edit':
+                self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
+                self.display.textbox.tag_config('history', foreground=history_color())
+            else:
+                self.display.textbox.tag_config('ooc_history', foreground=text_color())
+                self.display.textbox.tag_config('history', foreground=text_color())
+
+            self.display.textbox.tag_config("selected", background="blue", foreground=text_color())
             ancestry, indices = self.state.node_ancestry_text()
             self.ancestor_end_indices = indices
             history = ''
@@ -897,6 +989,14 @@ class Controller:
         self.display.notes_textbox.delete("1.0", "end")
 
         notes = self.state.selected_node.get("notes", None)
+        # active note = last active else first note
+        if notes:
+            text = active['text']
+            title = active['title']
+            # scope
+            # root
+
+
         note = notes[0] if notes else ""
         #print('note: ', note)
         self.display.notes_textbox.insert("end-1c", note)
@@ -912,35 +1012,15 @@ class Controller:
 
     def nav_tree_name(self, node):
         text = node['text'].strip()[:20].replace('\n', ' ')
-        text = text + "..." if text else "EMPTY"
+        text = text if text else "EMPTY"
+        text = text + "..." if len(node['text']) > 20 else text
         if 'chapter_id' in node:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
 
-
-    # TODO Probably move this to display
-    # TODO Slow for massive trees
-    # (Re)build the nav tree
-    def update_nav_tree(self, **kwargs):
-        # Save the state of opened nodes
-        # open_nodes = [
-        #     node_id for node_id in treeview_all_nodes(self.display.nav_tree)
-        #     if self.display.nav_tree.item(node_id, "open")
-        # ]
-
-        # Delete all nodes and read them from the state tree
-
-        if 'modified' not in kwargs:
-            self.display.nav_tree.delete(*self.display.nav_tree.get_children())
-            nodes = self.state.tree_node_dict
-        elif not kwargs['modified']:
-            return
-        else:
-            delete_items = [i for i in kwargs['modified'] if self.display.nav_tree.exists(i)]
-            self.display.nav_tree.delete(*delete_items)
-            nodes = [i for i in kwargs['modified'] if i in self.state.tree_node_dict]
-
-        for id in nodes:
+    def build_nav_tree(self):
+        self.display.nav_tree.delete(*self.display.nav_tree.get_children())
+        for id in self.state.tree_node_dict:
             node = self.state.tree_node_dict[id]
             if id == self.state.checkpoint:
                 image = self.display.marker_icon
@@ -953,6 +1033,8 @@ class Controller:
                 tags.append("canonical")
             else:
                 tags.append("uncanonical")
+            if not image:
+                image = self.display.empty_icon
             self.display.nav_tree.insert(
                 parent=node.get("parent_id", ""),
                 index="end",
@@ -962,11 +1044,70 @@ class Controller:
                 tags=tags,
                 **dict(image=image) if image else {}
             )
-
         self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
         self.display.nav_tree.tag_configure("visited", background=visited_color())
         self.display.nav_tree.tag_configure("canonical", foreground=text_color())
         self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
+
+    # TODO Probably move this to display
+    # (Re)build the nav tree
+    def update_nav_tree(self, **kwargs):
+        # Save the state of opened nodes
+        # open_nodes = [
+        #     node_id for node_id in treeview_all_nodes(self.display.nav_tree)
+        #     if self.display.nav_tree.item(node_id, "open")
+        # ]
+        if not self.display.nav_tree.get_children() or kwargs.get('rebuild', False):
+            self.build_nav_tree()
+
+        if 'edit' not in kwargs and 'add' not in kwargs and 'delete' not in kwargs:
+            return
+        else:
+            delete_items = [i for i in kwargs['delete']] if 'delete' in kwargs else []
+            edit_items = [i for i in kwargs['edit']] if 'edit' in kwargs else []
+            add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict] if 'add' in kwargs else []
+
+        self.display.nav_tree.delete(*delete_items)
+
+        for id in add_items + edit_items:
+            node = self.state.tree_node_dict[id]
+            if id == self.state.checkpoint:
+                image = self.display.marker_icon
+            elif 'multimedia' in node and len(node['multimedia']) > 0:
+                image = self.display.media_icon
+            else:
+                image = self.display.bookmark_icon if node.get("bookmark", False) else None
+            tags = ["visited"] if node.get("visited", False) else ["not visited"]
+            if node['id'] in self.state.calc_canonical_set():
+                tags.append("canonical")
+            else:
+                tags.append("uncanonical")
+            if not image:
+                image = self.display.empty_icon
+            if id in add_items:
+                #print('adding id', id)
+                if self.display.nav_tree.exists(id):
+                    self.display.nav_tree.delete(id)
+                self.display.nav_tree.insert(
+                    parent=node.get("parent_id", ""),
+                    index="end",
+                    iid=node["id"],
+                    text=self.nav_tree_name(node),
+                    open=node.get("open", False),
+                    tags=tags,
+                    **dict(image=image) if image else {}
+                )
+            elif id in edit_items:
+                self.display.nav_tree.item(id,
+                                           text=self.nav_tree_name(node),
+                                           open=node.get("open", False),
+                                           tags=tags,
+                                           **dict(image=image) if image else {})
+        #
+        # self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
+        # self.display.nav_tree.tag_configure("visited", background=visited_color())
+        # self.display.nav_tree.tag_configure("canonical", foreground=text_color())
+        # self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
 
         # # Restore opened state
         # for node_id in open_nodes:
@@ -1123,8 +1264,7 @@ class Controller:
 
         open_height = max([
             depth(self.state.tree_node_dict.get(iid, {}), self.state.tree_node_dict)
-            for iid in visible_ids
-        ] + [0])
+            for iid in visible_ids] + [0])
 
         total_width = start_width + open_height * WIDTH_PER_INDENT
 

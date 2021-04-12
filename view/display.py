@@ -46,9 +46,16 @@ class Display:
         self.secondary_textbox = None
         self.vis_frame = None
         self.vis = None
+
         self.notes_frame = None
         self.notes_textbox_frame = None
         self.notes_textbox = None
+        self.notes_options_frame = None
+        self.notes_title = None
+        self.notes_select = None
+        self.scope_select = None
+        self.change_root_button = None
+        self.delete_note_button = None
 
         self.multi_edit_frame = None
         self.multi_textboxes = None
@@ -101,17 +108,21 @@ class Display:
         return button
 
 
-    def ctrl_click(self, txt, event=None):
+    def edit_history(self, txt, event=None):
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
         self.callbacks["Edit history"]["callback"](index=char_index)
 
-    def alt_click(self, txt, event=None):
+    def goto_history(self, txt, event=None):
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
         self.callbacks["Goto history"]["callback"](index=char_index)
 
-    def ctrl_alt_click(self, txt, event=None):
+    def split_node(self, txt, event=None):
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
         self.callbacks["Split node"]["callback"](index=char_index)
+
+    def select_token(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Select token"]["callback"](index=char_index)
 
     #################################
     #   Display
@@ -121,6 +132,7 @@ class Display:
         self.bookmark_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/star_small.png"))
         self.marker_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/marker.png"))
         self.media_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/media.png"))
+        self.empty_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/empty.png"))
 
 
     def build_display(self, frame):
@@ -133,6 +145,7 @@ class Display:
         self.build_main_frame(self.pane)
         self.pane.add(self.main_frame, weight=6)
 
+        #self.open_side()
         if self.state.preferences["side_pane"]:
             self.open_side()
 
@@ -173,9 +186,10 @@ class Display:
         textbox = TextAware(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
         self.__setattr__(textbox_attr, textbox)
         # TODO move this out
-        textbox.bind("<Control-Button-1>", lambda event: self.ctrl_click(txt=textbox))
-        textbox.bind("<Alt-Button-1>", lambda event: self.alt_click(txt=textbox))
-        textbox.bind("<Control-Alt-Button-1>", lambda event: self.ctrl_alt_click(txt=textbox))
+        textbox.bind("<Control-Button-1>", lambda event: self.edit_history(txt=textbox))
+        textbox.bind("<Alt-Button-1>", lambda event: self.goto_history(txt=textbox))
+        textbox.bind("<Control-Alt-Button-1>", lambda event: self.split_node(txt=textbox))
+        textbox.bind("<Control-Shift-Button-1>", lambda event: self.select_token(txt=textbox))
         textbox.pack(expand=True, fill='both')
 
         readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
@@ -282,9 +296,46 @@ class Display:
     #   Side panel
     #################################
 
+    # TODO bind to variables
     def build_side(self, frame):
         self.side_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
-        self.notes_frame = self.story_frame = ttk.Frame(self.side_frame)
+        self.notes_options_frame = ttk.Frame(self.side_frame, height=200, width=300)
+        self.notes_options_frame.pack(fill='both')
+
+        tk.Label(self.notes_options_frame, text="Select note", bg=bg_color(), fg=text_color()).grid(column=0, row=0)
+        placeholder_options = ('aaaaa', 'bbbbbb', 'cccccc')
+        v = tk.StringVar()
+        v.set(placeholder_options[0])
+
+        self.notes_select = tk.OptionMenu(self.notes_options_frame, v, *placeholder_options)
+        #self.notes_select['menu'].config(relief='raised')
+        self.notes_select.grid(column=1, row=0)
+
+        tk.Label(self.notes_options_frame,
+                 text="Scope",
+                 bg=bg_color(),
+                 fg=text_color()).grid(column=2, row=0, padx=5)
+
+        scope_options = ('node', 'subtree', 'global')
+        v = tk.StringVar()
+        v.set(scope_options[0])
+        self.scope_select = tk.OptionMenu(self.notes_options_frame, v, *scope_options)
+        self.scope_select.grid(column=3, row=0)
+
+        tk.Label(self.notes_options_frame, text="Note title", bg=bg_color(), fg=text_color()).grid(column=0, row=1)
+        self.notes_title = tk.Entry(self.notes_options_frame,
+                                    bg=bg_color(),
+                                    fg=text_color(),
+                                    relief='sunken')
+        self.notes_title.grid(column=1, row=1, padx=10)
+        tk.Label(self.notes_options_frame, text="Root node", bg=bg_color(), fg=text_color()).grid(column=2, row=1)
+        tk.Label(self.notes_options_frame, text="placeholder id ...", bg=bg_color(), fg='blue').grid(column=3, row=1)
+        self.change_root_button = tk.Button(self.notes_options_frame, text='Change', bg=bg_color(), fg=text_color())
+        self.change_root_button.grid(column=4, row=1)
+        self.change_root_button = tk.Button(self.notes_options_frame, text='Delete', bg=bg_color(), fg=text_color())
+        self.change_root_button.grid(column=5, row=1, padx=10)
+
+        self.notes_frame = ttk.Frame(self.side_frame)
         self.notes_frame.pack(expand=True, fill='both')
         self._build_textbox(self.notes_frame, "notes_textbox_frame", "notes_textbox", height=1)
         self.notes_textbox_frame.pack(expand=True, fill="both")
@@ -298,6 +349,12 @@ class Display:
             self.side_frame.pack_forget()
             self.side_frame.destroy()
             self.notes_frame = None
+            self.notes_options_frame = None
+            self.notes_select = None
+            self.notes_title = None
+            self.scope_select = None
+            self.change_root_button = None
+            self.delete_note_button = None
 
     #################################
     #   Edit mode
