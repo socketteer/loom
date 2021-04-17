@@ -11,6 +11,8 @@ import PIL
 import pyperclip
 import bisect
 
+import traceback
+
 from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
@@ -88,6 +90,7 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.refresh_textbox)
         self.state.register_callback(self.state.selection_updated, self.refresh_vis_selection)
         self.state.register_callback(self.state.selection_updated, self.refresh_notes)
+        self.state.register_callback(self.state.selection_updated, self.refresh_counterfactual_meta)
 
 
     def setup_key_bindings(self):
@@ -190,7 +193,8 @@ class Controller:
         if self.state.preferences["canonical_only"]:
             self.state.next_canonical()
         else:
-            self.state.traverse_tree(1)
+            #self.state.traverse_tree(1)
+            self.select_node(node=self.state.next(1))
     # next.meta = dict(name="Next", keys=["<period>", "<Return>"], display_key=">")
     # .meta = dict(name=, keys=, display_key=)
 
@@ -199,34 +203,41 @@ class Controller:
         if self.state.preferences["canonical_only"]:
             self.state.prev_canonical()
         else:
-            self.state.traverse_tree(-1)
+            #self.state.traverse_tree(-1)
+            self.select_node(node=self.state.next(-1))
 
     @metadata(name="Go to parent", keys=["<Left>", "<Control-Left>"], display_key="←")
     def parent(self):
-        self.state.select_parent()
+        #self.state.select_parent()
+        self.select_node(node=self.state.parent())
 
     @metadata(name="Go to child", keys=["<Right>", "<Control-Right>"], display_key="→")
     def child(self):
-        self.state.select_child(0)
+        #self.state.select_child(0)
+        self.select_node(node=self.state.child())
 
     @metadata(name="Go to next sibling", keys=["<Down>", "<Control-Down>"], display_key="↓")
     def next_sibling(self):
-        self.state.select_sibling(1)
+        #self.state.select_sibling(1)
+        self.select_node(node=self.state.sibling(1))
 
     @metadata(name="Go to previous Sibling", keys=["<Up>", "<Control-Up>"], display_key="↑")
     def prev_sibling(self):
-        self.state.select_sibling(-1)
+        #self.state.select_sibling(-1)
+        self.select_node(node=self.state.sibling(-1))
 
     @metadata(name="Walk", keys=["<Key-w>", "<Control-w>"], display_key="w")
     def walk(self, canonical_only=False):
         filter_set = self.state.calc_canonical_set() if canonical_only else None
         if 'children' in self.state.selected_node and len(self.state.selected_node['children']) > 0:
             chosen_child = stochastic_transition(self.state.selected_node, mode='descendents', filter_set=filter_set)
-            self.state.select_node(chosen_child['id'])
+            #self.state.select_node(chosen_child['id'])
+            self.select_node(node=chosen_child)
 
     @metadata(name="Return to root", keys=["<Key-r>", "<Control-r>"], display_key="r")
     def return_to_root(self):
-        self.state.select_node(self.state.tree_raw_data["root"]["id"])
+        #self.state.select_node(self.state.tree_raw_data["root"]["id"])
+        self.select_node(node=self.state.tree_raw_data["root"])
 
     @metadata(name="Save checkpoint", keys=["<Control-t>"], display_key="ctrl-t")
     def save_checkpoint(self, node=None):
@@ -238,11 +249,12 @@ class Controller:
     @metadata(name="Go to checkpoint", keys=["<Key-t>"], display_key="t")
     def goto_checkpoint(self):
         if self.state.checkpoint:
-            self.state.select_node(self.state.checkpoint)
+            #self.state.select_node(self.state.checkpoint)
+            self.select_node(node=self.state.tree_node_dict[self.state.checkpoint])
 
     @metadata(name="Nav Select")
     def nav_select(self, *, node_id):
-        if not node_id:
+        if not node_id or node_id == self.state.selected_node_id:
             return
         if self.change_parent.meta["click_mode"]:
             self.change_parent(node=self.state.tree_node_dict[node_id])
@@ -250,7 +262,8 @@ class Controller:
         # Update the open state of the node based on the nav bar
         # node = self.state.tree_node_dict[node_id]
         # node["open"] = self.display.nav_tree.item(node["id"], "open")
-        self.state.select_node(node_id)
+        #self.state.select_node(node_id)
+        self.select_node(node=self.state.tree_node_dict[node_id])
 
     @metadata(name="Bookmark", keys=["<Key-b>", "<Control-b>"], display_key="b")
     def bookmark(self, node=None):
@@ -293,17 +306,20 @@ class Controller:
         #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
         self.display.vis.center_view_on_node(self.state.selected_node)
 
+    @metadata(name="Select node")
     def select_node(self, node):
         if self.state.preferences['coloring'] == 'read':
             old_node = self.state.selected_node
             self.state.select_node(node['id'])
-            _, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
+            nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
             nca_end_index = self.ancestor_end_indices[index]
             self.display.textbox.tag_delete("old")
             self.display.textbox.tag_add("old",
                                          "1.0",
                                          f"1.0 + {nca_end_index} chars")
             self.display.textbox.tag_config("old", foreground=history_color())
+            #traceback.print_stack()
+            print('done')
         else:
             self.state.select_node(node['id'])
 
@@ -456,7 +472,7 @@ class Controller:
                 self.nav_select(node_id=new_parent["id"])
             # TODO deal with metadata
 
-    @metadata(name="Select token", keys=[], display_key="")
+    @metadata(name="Select token", keys=[], display_key="", selected_node=None, token_index=None)
     def select_token(self, index):
         if self.display.mode == "Read":
             self.display.textbox.tag_remove("selected", "1.0", 'end')
@@ -466,11 +482,12 @@ class Controller:
             offset = len(selected_node['text']) - negative_offset
 
             # TODO new token offsets if changed
-            if "meta" in selected_node and "generation" in selected_node["meta"]:
+            if "meta" in selected_node and "generation" in selected_node["meta"] and not selected_node['meta']['modified']:
                 self.change_token.meta["counterfactual_index"] = 0
                 self.change_token.meta["prev_token"] = None
-                token_offsets = [n - len(selected_node['meta']['generation']['prompt'])
-                                 for n in selected_node['meta']['generation']["logprobs"]["text_offset"]]
+                #token_offsets = [n - len(selected_node['meta']['generation']['prompt'])
+                 #                for n in selected_node['meta']['generation']["logprobs"]["text_offset"]]
+                token_offsets = selected_node['meta']['generation']["logprobs"]["text_offset"]
 
                 token_index = bisect.bisect_left(token_offsets, offset) - 1
                 start_position = token_offsets[token_index]
@@ -489,15 +506,22 @@ class Controller:
                 self.select_token.meta["selected_node"] = selected_node
                 self.select_token.meta["token_index"] = token_index
 
-    @metadata(name="Change token", keys=["<Control-Shift-KeyPress-Down>"], display_key="", counterfactual_index=0, prev_token=None)
-    def change_token(self, node=None, token_index=None):
+    @metadata(name="Change token", keys=[], display_key="", counterfactual_index=0, prev_token=None, temp_token_offsets=None)
+    def change_token(self, node=None, token_index=None, traverse=1):
         if not self.select_token.meta["selected_node"]:
             return
         elif not node:
             node = self.select_token.meta["selected_node"]
             token_index = self.select_token.meta["token_index"]
-        token_offsets = [n - len(node['meta']['generation']['prompt'])
-                         for n in node['meta']['generation']["logprobs"]["text_offset"]]
+
+        if not self.change_token.meta['temp_token_offsets']:
+            #token_offsets = [n - len(node['meta']['generation']['prompt'])
+            #                 for n in node['meta']['generation']["logprobs"]["text_offset"]]
+            token_offsets = node['meta']['generation']["logprobs"]["text_offset"]
+            self.change_token.meta['temp_token_offsets'] = token_offsets
+        else:
+            token_offsets = self.change_token.meta['temp_token_offsets']
+
         start_position = token_offsets[token_index]
         token = node['meta']['generation']["logprobs"]["tokens"][token_index]
         counterfactuals = node['meta']['generation']["logprobs"]["top_logprobs"][token_index].copy()
@@ -505,26 +529,64 @@ class Controller:
         index = node_index(node, self.state.tree_node_dict)
         sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
         sorted_counterfactuals.insert(0, original_token)
-        #print('start position: ', self.ancestor_end_indices[index - 1] + start_position)
-        print(sorted_counterfactuals)
-        self.change_token.meta["counterfactual_index"] += 1
+
+        self.change_token.meta["counterfactual_index"] += traverse
+        if self.change_token.meta["counterfactual_index"] < 0 or self.change_token.meta["counterfactual_index"] > len(sorted_counterfactuals) - 1:
+            self.change_token.meta["counterfactual_index"] -= traverse
+            return
+
         new_token = sorted_counterfactuals[self.change_token.meta["counterfactual_index"]][0]
-        self.display.textbox.config(state="normal")
         if not self.change_token.meta['prev_token']:
             self.change_token.meta['prev_token'] = token
+
+
+        self.display.textbox.config(state="normal")
+
+
         self.display.textbox.delete(f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars",
                                     f"1.0 + {self.ancestor_end_indices[index - 1] + start_position + len(self.change_token.meta['prev_token'])} chars")
         self.display.textbox.insert(f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars", new_token)
 
         self.display.textbox.config(state="disabled")
-        self.display.textbox.tag_add("selected",
+        self.display.textbox.tag_add("modified",
                                      f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars",
                                      f"1.0 + {self.ancestor_end_indices[index - 1] + start_position + len(new_token)} chars")
+
+
+        #update temp token offsets
+        diff = len(new_token) - len(self.change_token.meta['prev_token'])
+        for index, offset in enumerate(self.change_token.meta['temp_token_offsets'][token_index:]):
+            self.change_token.meta['temp_token_offsets'][index] += diff
+
         self.change_token.meta['prev_token'] = new_token
 
-    @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
-    def reset_zoom(self):
-        self.display.vis.reset_zoom()
+    @metadata(name="Next token", keys=["<Alt-period>"], display_key="", counterfactual_index=0, prev_token=None)
+    def next_token(self, node=None, token_index=None):
+        self.change_token(node, token_index, traverse=1)
+
+    @metadata(name="Prev token", keys=["<Alt-comma>"], display_key="", counterfactual_index=0, prev_token=None)
+    def prev_token(self, node=None, token_index=None):
+        self.change_token(node, token_index, traverse=-1)
+
+    @metadata(name="Apply counterfactual", keys=["<Alt-Return>"], display_key="", counterfactual_index=0, prev_token=None)
+    def apply_counterfactual_changes(self):
+        # TODO apply to non selected nodes
+        index = node_index(self.state.selected_node, self.state.tree_node_dict)
+
+        new_text = self.display.textbox.get(f"1.0 + {self.ancestor_end_indices[index - 1]} chars", "end-1c")
+        self.state.update_text(node=self.state.selected_node, text=new_text, modified_flag=False)
+        self.display.textbox.tag_remove("modified", "1.0", 'end-1c')
+
+        # TODO don't do this if no meta
+        self.state.selected_node['meta']['generation']["logprobs"]["text_offset"] = self.change_token.meta['temp_token_offsets']
+        self.refresh_counterfactual_meta()
+
+
+    @metadata(name="Refresh counterfactual")
+    def refresh_counterfactual_meta(self):
+        self.change_token.meta['prev_token'] = None
+        self.change_token.meta['temp_token_offsets'] = None
+
 
     #################################
     #   State
@@ -900,7 +962,9 @@ class Controller:
                 self.display.textbox.tag_config('ooc_history', foreground=text_color())
                 self.display.textbox.tag_config('history', foreground=text_color())
 
-            self.display.textbox.tag_config("selected", background="blue", foreground=text_color())
+            # TODO bad color for lightmode
+            self.display.textbox.tag_config("selected", background="black", foreground=text_color())
+            self.display.textbox.tag_config("modified", background="blue", foreground=text_color())
             ancestry, indices = self.state.node_ancestry_text()
             self.ancestor_end_indices = indices
             history = ''
@@ -980,6 +1044,11 @@ class Controller:
         # TODO Without redrawing, the new open state won't be reflected
         # self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node)
         # self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+
+    @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
+    def reset_zoom(self):
+        self.display.vis.reset_zoom()
+
 
     def refresh_notes(self):
         if not self.state.tree_raw_data or not self.state.selected_node or not self.state.preferences['side_pane']:

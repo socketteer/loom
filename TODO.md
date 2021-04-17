@@ -2,7 +2,10 @@
 
 - counterfactual tokens
     - save changes or make new branch
-    - highlight indicates whether edits have been saved    
+    - highlight indicates whether edits have been saved
+    - save modified state
+    
+- new memory system
 
 # bugs
 

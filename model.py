@@ -168,9 +168,6 @@ class TreeModel:
             return self.selected_node
         return self.tree_node_dict[node_id] if self.tree_node_dict and node_id in self.tree_node_dict else None
 
-    def parent(self, node):
-        return self.tree_node_dict[node['parent_id']]
-
     # Get a nodes chapter by finding its chapter or its nearest parent's chapter
     def chapter(self, node):
         chapter_id = get_inherited_attribute("chapter_id", node, self.tree_node_dict)
@@ -268,9 +265,11 @@ class TreeModel:
             return self.select_node(new_node_id)
 
     def next_id(self, offset):
-        new_idx = clip_num(self.tree_traversal_idx + offset, 0, len(self.tree_node_dict) - 1)
-        return self.nodes[new_idx]["id"]
+        return self.next(offset)["id"]
 
+    def next(self, offset):
+        new_idx = clip_num(self.tree_traversal_idx + offset, 0, len(self.tree_node_dict) - 1)
+        return self.nodes[new_idx]
 
     # TODO this is bad
     def next_canonical(self):
@@ -311,6 +310,23 @@ class TreeModel:
             sibling = siblings[(siblings.index(node) + offset) % len(siblings)]
             return self.select_node(sibling["id"])
 
+    # return parent
+    def parent(self, node=None):
+        node = node if node else self.selected_node
+        return self.tree_node_dict[node['parent_id']]
+
+    # return child
+    def child(self, child_num, node=None):
+        node = node if node else self.selected_node
+        if node and len(node["children"]) > 0:
+            return index_clip(node["children"], child_num)["id"]
+
+    # return sibling
+    def sibling(self, offset, node=None):
+        node = node if node else self.selected_node
+        if node and "parent_id" in node:
+            siblings = self.parent(node)["children"]
+            return siblings[(siblings.index(node) + offset) % len(siblings)]
 
     #################################
     #   Updates
@@ -455,7 +471,7 @@ class TreeModel:
                 self.select_node(siblings[old_index % len(siblings)]["id"])
         self.tree_updated(delete=[node['id']])
 
-    def update_text(self, node, text, active_text=None):
+    def update_text(self, node, text, active_text=None, modified_flag=True):
         assert node["id"] in self.tree_node_dict, text
 
         # Remove trailing spaces
@@ -478,6 +494,10 @@ class TreeModel:
             edited = True
 
         if edited:
+            if modified_flag:
+                if not node['meta']:
+                    node['meta'] = {}
+                node['meta']['modified'] = True
             self.tree_updated(edit=[node['id']])
 
 
@@ -704,6 +724,11 @@ class TreeModel:
                     # created
                     node["meta"]["modified"] = False
                     node["meta"]["origin"] = "generated"
+
+                    # remove offset of prompt
+                    # TODO fix old nodes
+                    corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
+                    node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
 
         else:
             print("ERROR. Deleting failures")

@@ -85,26 +85,26 @@ class NodeInfoDialog(Dialog):
                 # TODO continuous coloration
                 for i, position in enumerate(meta["generation"]["logprobs"]["text_offset"]):
                     prob = math.exp(meta["generation"]["logprobs"]["token_logprobs"][i])
-                    index_offset = position - len(meta["generation"]["prompt"])
+                    #index_offset = position - len(meta["generation"]["prompt"])
                     token_length = len(meta["generation"]["logprobs"]["tokens"][i])
                     if prob >= 0.8:
-                        gen_text.tag_add("prob_1", f"1.0 + {index_offset} chars",
-                                         f"1.0 + {index_offset + token_length} chars")
+                        gen_text.tag_add("prob_1", f"1.0 + {position} chars",
+                                         f"1.0 + {position + token_length} chars")
                     elif prob >= 0.6:
-                        gen_text.tag_add("prob_2", f"1.0 + {index_offset} chars",
-                                         f"1.0 + {index_offset + token_length} chars")
+                        gen_text.tag_add("prob_2", f"1.0 + {position} chars",
+                                         f"1.0 + {position + token_length} chars")
                     elif prob >= 0.4:
-                        gen_text.tag_add("prob_3", f"1.0 + {index_offset} chars",
-                                         f"1.0 + {index_offset + token_length} chars")
+                        gen_text.tag_add("prob_3", f"1.0 + {position} chars",
+                                         f"1.0 + {position + token_length} chars")
                     elif prob >= 0.2:
-                        gen_text.tag_add("prob_4", f"1.0 + {index_offset} chars",
-                                         f"1.0 + {index_offset + token_length} chars")
+                        gen_text.tag_add("prob_4", f"1.0 + {position} chars",
+                                         f"1.0 + {position + token_length} chars")
                     elif prob >= 0.05:
-                        gen_text.tag_add("prob_5", f"1.0 + {index_offset} chars",
-                                         f"1.0 + {index_offset + token_length} chars")
+                        gen_text.tag_add("prob_5", f"1.0 + {position} chars",
+                                         f"1.0 + {position + token_length} chars")
                     else:
-                        gen_text.tag_add("prob_6", f"1.0 + {index_offset} chars",
-                                         f"1.0 + {index_offset + token_length} chars")
+                        gen_text.tag_add("prob_6", f"1.0 + {position} chars",
+                                         f"1.0 + {position + token_length} chars")
 
                 gen_text.configure(state='disabled')
                 # gen_text.configure(

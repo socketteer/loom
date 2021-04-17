@@ -85,6 +85,8 @@ Child edit: `c`
 
 ### Navigate
 
+Click to go to node: `Control-shift-click`
+
 Next: `period`, `Return`, `Control-period`
 
 Prev: `comma`, `Control-comma`
@@ -113,6 +115,9 @@ Toggle bookmark: `b`, `Control-b`
 
 Search: `Control-f`
 
+Click to split node: `Control-alt-click`
+
+
 
 ### Edit topology
 
@@ -138,6 +143,16 @@ New Sibling: `Alt-Down`
 
 
 ### Edit text
+
+Click to edit history: `Control-click`
+
+Click to select token: `Alt-click`
+
+Next counterfactual token: `Alt-period`
+
+Previous counterfactual token: `Alt-comma`
+
+Apply counterfactual changes: `Alt-return`
 
 Enter text: `Control-bar`
 

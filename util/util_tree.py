@@ -26,6 +26,11 @@ def node_ancestry(node, node_dict):
 def nearest_common_ancestor(node_a, node_b, node_dict):
     ancestry_a = node_ancestry(node_a, node_dict)
     ancestry_b = node_ancestry(node_b, node_dict)
+    # for node in ancestry_a:
+    #     print(node['id'])
+    # print('ancestry b')
+    # for node in ancestry_b:
+    #     print(node['id'])
     for i in range(1, len(ancestry_a)):
         if i > (len(ancestry_b) - 1) or ancestry_a[i] is not ancestry_b[i]:
             return ancestry_a[i-1], i-1

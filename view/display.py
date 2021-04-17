@@ -187,9 +187,9 @@ class Display:
         self.__setattr__(textbox_attr, textbox)
         # TODO move this out
         textbox.bind("<Control-Button-1>", lambda event: self.edit_history(txt=textbox))
-        textbox.bind("<Alt-Button-1>", lambda event: self.goto_history(txt=textbox))
+        textbox.bind("<Control-Shift-Button-1>", lambda event: self.goto_history(txt=textbox))
         textbox.bind("<Control-Alt-Button-1>", lambda event: self.split_node(txt=textbox))
-        textbox.bind("<Control-Shift-Button-1>", lambda event: self.select_token(txt=textbox))
+        textbox.bind("<Alt-Button-1>", lambda event: self.select_token(txt=textbox))
         textbox.pack(expand=True, fill='both')
 
         readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
