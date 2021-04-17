@@ -7,6 +7,8 @@
     
 - new memory system
 
+- memory with context window activation
+
 # bugs
 
 * key bindings only work in most recent tab
