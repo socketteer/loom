@@ -1,13 +1,7 @@
 # priority 
-
-- counterfactual tokens
-    - save changes or make new branch
-    - highlight indicates whether edits have been saved
-    - save modified state
     
 - new memory system
-
-- memory with context window activation
+    - memory with context window activation
 
 # bugs
 
@@ -24,6 +18,7 @@
 * saving is slow for massive trees
 * reinserting into nav tree causes change in node ordering
 * various bugs splitting, merging (seems to have been caused by partial nav updating?)
+
 
 ### Tree vis
 * first time switching to vis mode centering bug

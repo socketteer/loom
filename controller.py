@@ -17,7 +17,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, MemoryDialog, NodeInfoDialog, SearchDialog, \
-    PreferencesDialog
+    PreferencesDialog, NodeMemory, CreateMemory
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
@@ -162,7 +162,7 @@ class Controller:
             "Generation": [
                 ('Generation settings', 'Ctrl+P', None, no_junk_args(self.generation_settings_dialog)),
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
-                ('Memory', 'M, Ctrl+M', None, no_junk_args(self.memory)),
+                ('Memory', 'M, Ctrl+M', None, no_junk_args(self.add_memory)),
             ],
             "Visited": [
                 ("Mark visited", None, None, lambda: self.set_visited(True)),
@@ -539,25 +539,23 @@ class Controller:
         if not self.change_token.meta['prev_token']:
             self.change_token.meta['prev_token'] = token
 
+        token_start = self.ancestor_end_indices[index - 1] + start_position
 
         self.display.textbox.config(state="normal")
-
-
-        self.display.textbox.delete(f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars",
-                                    f"1.0 + {self.ancestor_end_indices[index - 1] + start_position + len(self.change_token.meta['prev_token'])} chars")
-        self.display.textbox.insert(f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars", new_token)
-
+        self.display.textbox.delete(f"1.0 + {token_start} chars",
+                                    f"1.0 + {token_start + len(self.change_token.meta['prev_token'])} chars")
+        self.display.textbox.insert(f"1.0 + {token_start} chars", new_token)
         self.display.textbox.config(state="disabled")
+
         self.display.textbox.tag_add("modified",
-                                     f"1.0 + {self.ancestor_end_indices[index - 1] + start_position} chars",
-                                     f"1.0 + {self.ancestor_end_indices[index - 1] + start_position + len(new_token)} chars")
+                                     f"1.0 + {token_start} chars",
+                                     f"1.0 + {token_start + len(new_token)} chars")
 
 
         #update temp token offsets
         diff = len(new_token) - len(self.change_token.meta['prev_token'])
-        for index, offset in enumerate(self.change_token.meta['temp_token_offsets'][token_index:]):
-            self.change_token.meta['temp_token_offsets'][index] += diff
-
+        for index, offset in enumerate(self.change_token.meta['temp_token_offsets'][token_index + 1:]):
+            self.change_token.meta['temp_token_offsets'][index + token_index + 1] += diff
         self.change_token.meta['prev_token'] = new_token
 
     @metadata(name="Next token", keys=["<Alt-period>"], display_key="", counterfactual_index=0, prev_token=None)
@@ -882,11 +880,20 @@ class Controller:
         dialog = MultimediaDialog(parent=self.display.frame, node=node,
                                   refresh_event=lambda node_id=node['id']: self.state.tree_updated(edit=[node_id]))
 
-    @metadata(name="Memory dialogue", keys=["<m>", "<Control-m>"], display_key="m")
-    def memory(self, node=None):
+    @metadata(name="Memory dialogue", keys=["<Control--Shift-KeyPress-M>"], display_key="m")
+    def node_memory(self, node=None):
         if node is None:
             node = self.state.selected_node
-        dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
+        #dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
+        dialog = NodeMemory(parent=self.display.frame, node=node, state=self.state)
+        self.refresh_textbox()
+
+    @metadata(name="Add memory", keys=["<m>", "<Control-m>"], display_key="m")
+    def add_memory(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        # dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
+        dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state)
         self.refresh_textbox()
 
     @metadata(name="Search", keys=["<Control-f>"], display_key="ctrl-f")
@@ -1060,10 +1067,11 @@ class Controller:
         notes = self.state.selected_node.get("notes", None)
         # active note = last active else first note
         if notes:
-            text = active['text']
-            title = active['title']
+            # text = active['text']
+            # title = active['title']
             # scope
             # root
+            pass
 
 
         note = notes[0] if notes else ""

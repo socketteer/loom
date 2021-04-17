@@ -332,6 +332,35 @@ class MemoryDialog(Dialog):
         self.node["memory"] = self.memory_textbox.get("1.0", 'end-1c')
 
 
+class NodeMemory(Dialog):
+    def __init__(self, parent, node, state):
+        self.node = node
+        self.state = state
+        Dialog.__init__(self, parent, title="Node Memory")
+
+    def body(self, master):
+        create_label(master, "Memory (prepended to AI input)")
+        self.memory_textbox = ScrolledText(master, height=3)
+        self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
+        self.memory_textbox.insert("1.0", "test memory entry")
+
+    def apply(self):
+        pass
+
+
+class CreateMemory(Dialog):
+    def __init__(self, parent, node, state):
+        self.node = node
+        self.state = state
+        Dialog.__init__(self, parent, title="Node Memory")
+
+    def body(self, master):
+        create_label(master, "Add memory entry")
+        self.memory_textbox = ScrolledText(master, height=3)
+        self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
+
+    def apply(self):
+        pass
 
 class PreferencesDialog(Dialog):
     def __init__(self, parent, orig_params):
