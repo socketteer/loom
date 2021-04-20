@@ -5,7 +5,7 @@ import time
 import uuid
 from asyncio import Queue
 from pprint import pprint
-
+import bisect
 import numpy as np
 from collections import defaultdict, ChainMap
 from multiprocessing.pool import ThreadPool
@@ -495,7 +495,7 @@ class TreeModel:
 
         if edited:
             if modified_flag:
-                if not node['meta']:
+                if 'meta' not in node:
                     node['meta'] = {}
                 node['meta']['modified'] = True
             self.tree_updated(edit=[node['id']])
@@ -575,6 +575,50 @@ class TreeModel:
         return canonical_set
 
     #################################
+    #   Memory
+    #################################
+
+    def create_memory_entry(self, node, text, inheritability='none'):
+        new_memory = {
+            "id": str(uuid.uuid1()),
+            "root_id": node["id"],
+            "text": text,
+            "inheritability": inheritability
+        }
+
+        self.memories[new_memory['id']] = new_memory
+
+        if 'memories' not in node:
+           node['memories'] = []
+
+        node['memories'].append(new_memory['id'])
+
+    def construct_memory(self, node):
+        ancestry = node_ancestry(node, self.tree_node_dict)
+        memories = []
+        for i, ancestor in enumerate(ancestry):
+            if 'memories' in ancestor:
+                for memory_id in ancestor['memories']:
+                    memory = self.memories[memory_id]
+                    if (memory['inheritability'] == 'none' and memory['root_id'] == node['id']) \
+                            or memory['inheritability'] == 'subtree' \
+                            or (memory['inheritability'] == 'delayed' and i < self.context_window_index()):
+                        memories.append(memory)
+        return memories
+
+
+    #returns first node that is fully in the context window
+    def context_window_index(self):
+        _, indices = self.node_ancestry_text()
+        first_in_context_index = indices[-1] - self.generation_settings['prompt_length']
+        if first_in_context_index < 0:
+            return 0
+        context_node_index = bisect.bisect_left(indices, first_in_context_index) + 1
+        print(context_node_index)
+        return context_node_index
+
+
+    #################################
     #   I/O
     #################################
 
@@ -588,6 +632,10 @@ class TreeModel:
         if 'canonical' not in self.tree_raw_data:
             self.tree_raw_data['canonical'] = []
         self.canonical = self.tree_raw_data["canonical"]
+
+        if 'memories' not in self.tree_raw_data:
+            self.tree_raw_data['memories'] = {}
+        self.memories = self.tree_raw_data["memories"]
 
         # Generation settings
         self.tree_raw_data["generation_settings"] = {

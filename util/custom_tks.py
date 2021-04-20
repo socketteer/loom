@@ -8,8 +8,9 @@ from view.colors import scroll_bg_color, darkmode
 # Class to create a basic dialog pop-up box.  Designed for extension.
 # From http://effbot.org/tkinterbook/tkinter-dialog-windows.htm
 class Dialog(tk.Toplevel):
-    def __init__(self, parent, title=None, cancellable=False):
+    def __init__(self, parent, title=None, cancellable=False, enter_to_apply=True):
         tk.Toplevel.__init__(self, parent)
+        self.enter_to_apply = enter_to_apply
         self.transient(parent)
         self.wm_resizable(height=False, width=False)
 
@@ -38,6 +39,8 @@ class Dialog(tk.Toplevel):
 
         self.wait_window(self)
 
+
+
     # construction hooks
     def body(self, master):
         # create dialog body.  return widget that should have
@@ -54,7 +57,8 @@ class Dialog(tk.Toplevel):
             w = ttk.Button(box, text="Cancel", width=10, command=self.cancel)
             w.pack(side=tk.LEFT, padx=5, pady=5)
 
-        self.bind("<Return>", self.ok)
+        if self.enter_to_apply:
+            self.bind("<Return>", self.ok)
         self.bind("<Escape>", self.cancel)
         box.pack()
 

@@ -352,15 +352,35 @@ class CreateMemory(Dialog):
     def __init__(self, parent, node, state):
         self.node = node
         self.state = state
-        Dialog.__init__(self, parent, title="Node Memory")
+        self.inheritability = tk.StringVar()
+        Dialog.__init__(self, parent, title="Node Memory", enter_to_apply=False)
 
     def body(self, master):
         create_label(master, "Add memory entry")
         self.memory_textbox = ScrolledText(master, height=3)
         self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
+        self.memory_textbox.configure(
+            font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
+            spacing1=10,
+            foreground=text_color(),  # Darkmode
+            background=bg_color(),
+            padx=3,
+            pady=3,
+            spacing2=3,  # Spacing between lines
+            spacing3=5,
+            wrap="word",
+        )
+        self.memory_textbox.focus()
+        row = master.grid_size()[1]
+        create_side_label(master, "Text coloring", row)
+        inheritability_options = ('none', 'subtree', 'delayed')
+        self.inheritability.set(inheritability_options[1])
+        dropdown = tk.OptionMenu(master, self.inheritability, *inheritability_options)
+        dropdown.grid(row=row, column=1, pady=3)
 
     def apply(self):
-        pass
+        memory_text = self.memory_textbox.get("1.0", 'end-1c')
+        self.state.create_memory_entry(self.node, memory_text, self.inheritability.get())
 
 class PreferencesDialog(Dialog):
     def __init__(self, parent, orig_params):
@@ -411,7 +431,7 @@ class GenerationSettingsDialog(Dialog):
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
-        self.memory_textbox = None
+        #self.memory_textbox = None
 
         Dialog.__init__(self, parent, title="Generation Settings")
 
@@ -438,21 +458,21 @@ class GenerationSettingsDialog(Dialog):
 
         create_combo_box(master, "Model", self.vars["model"], POSSIBLE_MODELS, width=20)
 
-        create_label(master, "Memory")
-        self.memory_textbox = ScrolledText(master, height=7)
-        self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
-        self.memory_textbox.configure(
-            font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
-            spacing1=10,
-            foreground=text_color(),  # Darkmode
-            background=bg_color(),
-            padx=3,
-            pady=3,
-            spacing2=5,  # Spacing between lines
-            spacing3=5,
-            wrap="word",
-        )
-        self.memory_textbox.insert("1.0", self.orig_params["memory"])
+        # create_label(master, "Memory")
+        # self.memory_textbox = ScrolledText(master, height=7)
+        # self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
+        # self.memory_textbox.configure(
+        #     font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
+        #     spacing1=10,
+        #     foreground=text_color(),  # Darkmode
+        #     background=bg_color(),
+        #     padx=3,
+        #     pady=3,
+        #     spacing2=5,  # Spacing between lines
+        #     spacing3=5,
+        #     wrap="word",
+        # )
+        # self.memory_textbox.insert("1.0", self.orig_params["memory"])
 
         create_button(master, "Reset", self.reset_variables)
 
@@ -461,15 +481,15 @@ class GenerationSettingsDialog(Dialog):
     def reset_variables(self):
         for key, var in self.vars.items():
             var.set(self.orig_params[key])
-        self.memory_textbox.delete("1.0", "end")
-        self.memory_textbox.insert("1.0", self.orig_params["memory"])
+        #self.memory_textbox.delete("1.0", "end")
+        #self.memory_textbox.insert("1.0", self.orig_params["memory"])
 
 
     # Put the slider values into the result field
     def apply(self):
         for key, var in self.vars.items():
             self.orig_params[key] = var.get()
-        self.orig_params["memory"] = self.memory_textbox.get("1.0", 'end-1c')
+        #self.orig_params["memory"] = self.memory_textbox.get("1.0", 'end-1c')
         self.result = self.orig_params
 
 

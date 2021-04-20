@@ -214,7 +214,7 @@ class Controller:
     @metadata(name="Go to child", keys=["<Right>", "<Control-Right>"], display_key="→")
     def child(self):
         #self.state.select_child(0)
-        self.select_node(node=self.state.child())
+        self.select_node(node=self.state.child(0))
 
     @metadata(name="Go to next sibling", keys=["<Down>", "<Control-Down>"], display_key="↓")
     def next_sibling(self):
@@ -917,7 +917,7 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
-        self.state.delete_counterfactuals()
+        print(self.state.construct_memory(self.state.selected_node))
 
     #################################
     #   Story frame TODO call set text, do this in display?
@@ -1019,6 +1019,7 @@ class Controller:
 
             self.display.secondary_textbox.delete("1.0", "end")
             self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
+            self.display.textbox.focus()
 
 
         elif self.display.mode == "Multi Edit":
