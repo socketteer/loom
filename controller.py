@@ -16,8 +16,8 @@ import traceback
 from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
-    NodeChapterDialog, MultimediaDialog, MemoryDialog, NodeInfoDialog, SearchDialog, \
-    PreferencesDialog, NodeMemory, CreateMemory
+    NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, \
+    PreferencesDialog, AIMemory, CreateMemory
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
@@ -885,15 +885,14 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         #dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
-        dialog = NodeMemory(parent=self.display.frame, node=node, state=self.state)
+        dialog = AIMemory(parent=self.display.frame, node=node, state=self.state)
         self.refresh_textbox()
 
     @metadata(name="Add memory", keys=["<m>", "<Control-m>"], display_key="m")
     def add_memory(self, node=None):
         if node is None:
             node = self.state.selected_node
-        # dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
-        dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state)
+        dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state, default_inheritability='delayed')
         self.refresh_textbox()
 
     @metadata(name="Search", keys=["<Control-f>"], display_key="ctrl-f")

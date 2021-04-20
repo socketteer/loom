@@ -593,6 +593,12 @@ class TreeModel:
 
         node['memories'].append(new_memory['id'])
 
+    def delete_memory_entry(self, memory):
+        self.memories.pop(memory['id'])
+        root_node = self.tree_node_dict[memory["root_id"]]
+        root_node['memories'].remove(memory['id'])
+
+    # TODO also return list of pending
     def construct_memory(self, node):
         ancestry = node_ancestry(node, self.tree_node_dict)
         memories = []
@@ -614,7 +620,6 @@ class TreeModel:
         if first_in_context_index < 0:
             return 0
         context_node_index = bisect.bisect_left(indices, first_in_context_index) + 1
-        print(context_node_index)
         return context_node_index
 
 
@@ -814,8 +819,10 @@ class TreeModel:
         #modified_ids = [n['id'] for n in subtree_list(node)]
         self.tree_updated(add=new_nodes)
         prompt = "".join(self.node_ancestry_text(children[0])[0])
-        memory = self.memory(node)
-        prompt_length = self.generation_settings['prompt_length'] - len(memory)
+        #memory = self.memory(node)
+        memory_list = self.construct_memory(node)
+        memory = '\n'.join(memory['text'] for memory in memory_list)
+        prompt_length = self.generation_settings['prompt_length'] #- len(memory)
         prompt = prompt[-prompt_length:]
         print("Memory:\n", memory)
         print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])

@@ -141,6 +141,7 @@ class SearchDialog(Dialog):
         self.goto = goto
         self.next_page_button = None
         self.prev_page_button = None
+        self.master = None
         Dialog.__init__(self, parent, title="Search")
 
     def body(self, master):
@@ -304,65 +305,122 @@ class NodeChapterDialog(Dialog):
         self.state.create_new_chapter(node=self.node, title=new_title)
 
 
-class MemoryDialog(Dialog):
-    def __init__(self, parent, node, get_memory):
-        self.node = node
-        self.memory_textbox = None
-        self.get_memory = get_memory
-        Dialog.__init__(self, parent, title="Memory")
+# class MemoryDialog(Dialog):
+#     def __init__(self, parent, node, get_memory):
+#         self.node = node
+#         self.memory_textbox = None
+#         self.get_memory = get_memory
+#         Dialog.__init__(self, parent, title="Memory")
+#
+#     def body(self, master):
+#         create_label(master, "Memory (prepended to AI input)")
+#         self.memory_textbox = ScrolledText(master, height=7)
+#         self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
+#         self.memory_textbox.configure(
+#             font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
+#             spacing1=10,
+#             foreground=text_color(),
+#             background=bg_color(),
+#             padx=3,
+#             pady=3,
+#             spacing2=5,  # Spacing between lines
+#             spacing3=5,
+#             wrap="word",
+#         )
+#         self.memory_textbox.insert("1.0", self.get_memory(self.node))
+#
+#     def apply(self):
+#         self.node["memory"] = self.memory_textbox.get("1.0", 'end-1c')
 
-    def body(self, master):
-        create_label(master, "Memory (prepended to AI input)")
-        self.memory_textbox = ScrolledText(master, height=7)
-        self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
-        self.memory_textbox.configure(
-            font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
-            spacing1=10,
-            foreground=text_color(),  # Darkmode
-            background=bg_color(),
-            padx=3,
-            pady=3,
-            spacing2=5,  # Spacing between lines
-            spacing3=5,
-            wrap="word",
-        )
-        self.memory_textbox.insert("1.0", self.get_memory(self.node))
 
-    def apply(self):
-        self.node["memory"] = self.memory_textbox.get("1.0", 'end-1c')
-
-
-class NodeMemory(Dialog):
+class AIMemory(Dialog):
     def __init__(self, parent, node, state):
         self.node = node
         self.state = state
-        Dialog.__init__(self, parent, title="Node Memory")
+        self.memories = []
+        self.checks = []
+        self.edit_buttons = []
+        self.master = None
+        self.new_button = None
+        Dialog.__init__(self, parent, title="AI Memory")
 
     def body(self, master):
         create_label(master, "Memory (prepended to AI input)")
-        self.memory_textbox = ScrolledText(master, height=3)
-        self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
-        self.memory_textbox.insert("1.0", "test memory entry")
+        self.master = master
+        self.refresh()
+
+
+    def refresh(self):
+        if self.new_button:
+            self.new_button.destroy()
+        for memory in self.memories:
+            memory.destroy()
+        for check in self.checks:
+            check.destroy()
+        for edit_button in self.edit_buttons:
+            edit_button.destroy()
+        self.memories = []
+        self.checks = []
+        self.edit_buttons = []
+
+        for i, memory in enumerate(self.state.construct_memory(self.node)):
+            if memory['text']:
+                temp_check = tk.BooleanVar()
+                temp_check.set(True)
+                row = self.master.grid_size()[1]
+                self.memories.append(TextAware(self.master, height=1))
+                self.memories[i].grid(row=row, column=0, columnspan=2, padx=5)
+                self.memories[i].insert(tk.INSERT, memory['text'])
+                self.memories[i].configure(
+                    state='disabled',
+                    foreground=text_color(),
+                    background=bg_color(),
+                    wrap="word",
+                )
+                # FIXME checks are unchecked by default
+                self.checks.append(tk.Checkbutton(self.master, variable=temp_check))
+                self.checks[i].grid(row=row, column=2, padx=3)
+                self.edit_buttons.append(create_button(self.master, "Edit", lambda _memory=memory: self.edit_memory(_memory), width=4))
+                self.edit_buttons[i].grid(row=row, column=3)
+        self.new_button = create_button(self.master, "Add memory", self.create_new, width=11)
+
+
+    def create_new(self):
+        dialog = CreateMemory(parent=self.parent, node=self.node, state=self.state, default_inheritability='subtree')
+        self.refresh()
+
+    def edit_memory(self, memory):
+        dialog = EditMemory(parent=self.parent, memory=memory, state=self.state)
+        self.refresh()
 
     def apply(self):
         pass
 
 
-class CreateMemory(Dialog):
+# TODO
+class NodeMemory(Dialog):
     def __init__(self, parent, node, state):
         self.node = node
         self.state = state
+        Dialog.__init__(self, parent, title="AI Memory")
+
+
+class CreateMemory(Dialog):
+    def __init__(self, parent, node, state, default_inheritability='delayed'):
+        self.node = node
+        self.state = state
         self.inheritability = tk.StringVar()
-        Dialog.__init__(self, parent, title="Node Memory", enter_to_apply=False)
+        self.default_inheritability = default_inheritability
+        self.memory_textbox = None
+        Dialog.__init__(self, parent, title="Add memory entry", enter_to_apply=False)
 
     def body(self, master):
-        create_label(master, "Add memory entry")
         self.memory_textbox = ScrolledText(master, height=3)
         self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
         self.memory_textbox.configure(
             font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
             spacing1=10,
-            foreground=text_color(),  # Darkmode
+            foreground=text_color(),
             background=bg_color(),
             padx=3,
             pady=3,
@@ -372,15 +430,60 @@ class CreateMemory(Dialog):
         )
         self.memory_textbox.focus()
         row = master.grid_size()[1]
-        create_side_label(master, "Text coloring", row)
+        create_side_label(master, "Inheritability", row)
         inheritability_options = ('none', 'subtree', 'delayed')
-        self.inheritability.set(inheritability_options[1])
+        self.inheritability.set(self.default_inheritability)
         dropdown = tk.OptionMenu(master, self.inheritability, *inheritability_options)
         dropdown.grid(row=row, column=1, pady=3)
 
     def apply(self):
         memory_text = self.memory_textbox.get("1.0", 'end-1c')
-        self.state.create_memory_entry(self.node, memory_text, self.inheritability.get())
+        if memory_text:
+            self.state.create_memory_entry(self.node, memory_text, self.inheritability.get())
+
+
+class EditMemory(Dialog):
+    def __init__(self, parent, memory, state):
+        self.memory = memory
+        self.state = state
+        self.inheritability = tk.StringVar()
+        self.delete_button = None
+        self.memory_textbox = None
+        Dialog.__init__(self, parent, title="Edit memory entry", enter_to_apply=False)
+
+    def body(self, master):
+        self.memory_textbox = ScrolledText(master, height=3)
+        self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
+        self.memory_textbox.configure(
+            font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
+            spacing1=10,
+            foreground=text_color(),
+            background=bg_color(),
+            padx=3,
+            pady=3,
+            spacing2=3,  # Spacing between lines
+            spacing3=5,
+            wrap="word",
+        )
+        self.memory_textbox.insert(tk.INSERT, self.memory['text'])
+        self.memory_textbox.focus()
+        row = master.grid_size()[1]
+        create_side_label(master, "Inheritability", row)
+        inheritability_options = ('none', 'subtree', 'delayed')
+        self.inheritability.set(self.memory['inheritability'])
+        dropdown = tk.OptionMenu(master, self.inheritability, *inheritability_options)
+        dropdown.grid(row=row, column=1, pady=3)
+        self.delete_button = create_button(master, "Delete memory", self.delete_memory, width=15)
+
+    def delete_memory(self):
+        self.state.delete_memory_entry(self.memory)
+        self.cancel()
+
+    def apply(self):
+        memory_text = self.memory_textbox.get("1.0", 'end-1c')
+        self.memory['text'] = memory_text
+        self.memory['inheritability'] = self.inheritability.get()
+
 
 class PreferencesDialog(Dialog):
     def __init__(self, parent, orig_params):
