@@ -162,9 +162,12 @@ class Controller:
             "Generation": [
                 ('Generation settings', 'Ctrl+P', None, no_junk_args(self.generation_settings_dialog)),
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
-                ('Memory', 'M, Ctrl+M', None, no_junk_args(self.add_memory)),
             ],
-            "Visited": [
+            "Memory": [
+                ('AI Memory', 'Ctrl+Shift-M', None, no_junk_args(self.AI_memory)),
+                ('Create memory', 'Ctrl+M', None, no_junk_args(self.add_memory)),
+            ],
+            "Flags": [
                 ("Mark visited", None, None, lambda: self.set_visited(True)),
                 ("Mark unvisited", None, None, lambda: self.set_visited(False)),
                 ("Mark subtree visited", None, None, lambda: self.set_subtree_visited(True)),
@@ -788,7 +791,7 @@ class Controller:
 
     @metadata(name="Save as sibling", keys=["<Alt-e>"], display_key="alt-e")
     def save_as_sibling(self):
-
+        # TODO fails on root node
         if self.display.mode == "Edit":
             new_text = self.display.textbox.get("1.0", 'end-1c')
             new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
@@ -893,7 +896,7 @@ class Controller:
                                   refresh_event=lambda node_id=node['id']: self.state.tree_updated(edit=[node_id]))
 
     @metadata(name="Memory dialogue", keys=["<Control--Shift-KeyPress-M>"], display_key="m")
-    def node_memory(self, node=None):
+    def AI_memory(self, node=None):
         if node is None:
             node = self.state.selected_node
         #dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
