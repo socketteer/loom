@@ -786,6 +786,18 @@ class Controller:
         except Exception as e:
             messagebox.showerror(title="Error", message=f"Failed to Save!\n{str(e)}")
 
+    @metadata(name="Save as sibling", keys=["<Alt-e>"], display_key="alt-e")
+    def save_as_sibling(self):
+
+        if self.display.mode == "Edit":
+            new_text = self.display.textbox.get("1.0", 'end-1c')
+            new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
+            self.escape()
+            sibling = self.state.create_sibling()
+            self.nav_select(node_id=sibling['id'])
+            self.state.update_text(sibling, new_text, new_active_text)
+
+
     @metadata(name="Export to text", keys=["<Control-Shift-KeyPress-X>"], display_key="Ctrl-Shift-X")
     def export_text(self):
         try:
@@ -979,8 +991,7 @@ class Controller:
                 history += node_text
                 #self.display.textbox.insert("end-1c", node_text, "history")
             selected_text = self.state.selected_node["text"]
-            prompt_length = self.state.generation_settings['prompt_length'] \
-                            - len(self.state.memory(self.state.selected_node)) - len(selected_text)
+            prompt_length = self.state.generation_settings['prompt_length'] - len(selected_text)
 
             in_context = history[-prompt_length:]
             if prompt_length < len(history):

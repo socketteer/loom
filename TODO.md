@@ -1,5 +1,9 @@
 # priority 
  
+- memory system
+    - enable/disable memory entries
+    - goto root 
+ 
 # bugs
 
 * key bindings only work in most recent tab

@@ -173,9 +173,9 @@ class TreeModel:
         chapter_id = get_inherited_attribute("chapter_id", node, self.tree_node_dict)
         return self.chapters[chapter_id] if chapter_id else None
 
-    def memory(self, node):
-        memory = get_inherited_attribute("memory", node, self.tree_node_dict)
-        return memory if memory else self.generation_settings["memory"]
+    # def memory(self, node):
+    #     memory = get_inherited_attribute("memory", node, self.tree_node_dict)
+    #     return memory if memory else self.generation_settings["memory"]
 
     def node_ancestry_text(self, node=None):
         node = node if node else self.selected_node
@@ -356,7 +356,7 @@ class TreeModel:
         if not node:
             return
         parent = self.parent(node)
-        self.create_child(parent=parent, update_selection=update_selection)
+        return self.create_child(parent=parent, update_selection=update_selection)
 
     def create_parent(self, node=None):
         node = node if node else self.selected_node
@@ -475,7 +475,7 @@ class TreeModel:
         assert node["id"] in self.tree_node_dict, text
 
         # Remove trailing spaces
-        # count spaces that will be removedbb
+        # count spaces that will be removed
         num_spaces = 0
         while text.endswith(" "):
             num_spaces += 1
@@ -821,7 +821,7 @@ class TreeModel:
         prompt = "".join(self.node_ancestry_text(children[0])[0])
         #memory = self.memory(node)
         memory_list = self.construct_memory(node)
-        memory = '\n'.join(memory['text'] for memory in memory_list)
+        memory = ' '.join(memory['text'] for memory in memory_list)
         prompt_length = self.generation_settings['prompt_length'] #- len(memory)
         prompt = prompt[-prompt_length:]
         print("Memory:\n", memory)

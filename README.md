@@ -76,7 +76,7 @@ Node Metadata: `Control+Shift+N`
 
 ### Mode
 
-Toggle edit: `e`, `Control-e`
+Toggle edit / save edits: `e`, `Control-e`
 
 Toggle visualize: `j`, `Control-j`
 
@@ -143,6 +143,10 @@ New Sibling: `Alt-Down`
 
 
 ### Edit text
+
+Toggle edit / save edits: `Control-e`
+
+Save edits as new sibling: `Alt-e`
 
 Click to edit history: `Control-click`
 
