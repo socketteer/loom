@@ -119,11 +119,20 @@ Click to split node: `Control-alt-click`
 
 
 
+### Generation and memory
+
+Generate: `g`, `Control-g`
+
+Add memory: `Control-m`
+
+View current AI memory: `Control-Shift-m`
+
+View node memory: `Alt-m`
+
+
 ### Edit topology
 
 Delete: `BackSpace`, `Control-BackSpace`
-
-Generate: `g`, `Control-g`
 
 Merge with Parent: `Shift-Left`
 
@@ -140,6 +149,7 @@ New Child: `h`, `Control-h`, `Alt-Right`
 New Parent: `Alt-Left`
 
 New Sibling: `Alt-Down`
+
 
 
 ### Edit text

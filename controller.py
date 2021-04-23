@@ -17,7 +17,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, \
-    PreferencesDialog, AIMemory, CreateMemory
+    PreferencesDialog, AIMemory, CreateMemory, NodeMemory
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
@@ -164,8 +164,9 @@ class Controller:
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
             ],
             "Memory": [
-                ('AI Memory', 'Ctrl+Shift-M', None, no_junk_args(self.AI_memory)),
+                ('AI Memory', 'Ctrl+Shift+M', None, no_junk_args(self.ai_memory)),
                 ('Create memory', 'Ctrl+M', None, no_junk_args(self.add_memory)),
+                ('Node memory', 'Alt+M', None, no_junk_args(self.node_memory)),
             ],
             "Flags": [
                 ("Mark visited", None, None, lambda: self.set_visited(True)),
@@ -895,12 +896,18 @@ class Controller:
         dialog = MultimediaDialog(parent=self.display.frame, node=node,
                                   refresh_event=lambda node_id=node['id']: self.state.tree_updated(edit=[node_id]))
 
-    @metadata(name="Memory dialogue", keys=["<Control--Shift-KeyPress-M>"], display_key="m")
-    def AI_memory(self, node=None):
+    @metadata(name="Memory dialogue", keys=["<Control-Shift-KeyPress-M>"], display_key="Control-shift-m")
+    def ai_memory(self, node=None):
         if node is None:
             node = self.state.selected_node
-        #dialog = MemoryDialog(parent=self.display.frame, node=node, get_memory=self.state.memory)
         dialog = AIMemory(parent=self.display.frame, node=node, state=self.state)
+        self.refresh_textbox()
+
+    @metadata(name="Node memory", keys=["<Alt-m>"], display_key="Alt-m")
+    def node_memory(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        dialog = NodeMemory(parent=self.display.frame, node=node, state=self.state)
         self.refresh_textbox()
 
     @metadata(name="Add memory", keys=["<m>", "<Control-m>"], display_key="m")
@@ -920,14 +927,14 @@ class Controller:
         dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
         self.refresh_textbox()
 
-    @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
-    def ancestry_semantic_search(self, node=None):
-        if node is None:
-            node = self.state.selected_node
-        results = self.state.semantic_search_memory(node)
-        print(results)
-        for entry in results['data']:
-            print(entry['score'])
+    # @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
+    # def ancestry_semantic_search(self, node=None):
+    #     if node is None:
+    #         node = self.state.selected_node
+    #     results = self.state.semantic_search_memory(node)
+    #     print(results)
+    #     for entry in results['data']:
+    #         print(entry['score'])
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):

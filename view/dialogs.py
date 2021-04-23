@@ -305,34 +305,6 @@ class NodeChapterDialog(Dialog):
         self.state.create_new_chapter(node=self.node, title=new_title)
 
 
-# class MemoryDialog(Dialog):
-#     def __init__(self, parent, node, get_memory):
-#         self.node = node
-#         self.memory_textbox = None
-#         self.get_memory = get_memory
-#         Dialog.__init__(self, parent, title="Memory")
-#
-#     def body(self, master):
-#         create_label(master, "Memory (prepended to AI input)")
-#         self.memory_textbox = ScrolledText(master, height=7)
-#         self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
-#         self.memory_textbox.configure(
-#             font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
-#             spacing1=10,
-#             foreground=text_color(),
-#             background=bg_color(),
-#             padx=3,
-#             pady=3,
-#             spacing2=5,  # Spacing between lines
-#             spacing3=5,
-#             wrap="word",
-#         )
-#         self.memory_textbox.insert("1.0", self.get_memory(self.node))
-#
-#     def apply(self):
-#         self.node["memory"] = self.memory_textbox.get("1.0", 'end-1c')
-
-
 class AIMemory(Dialog):
     def __init__(self, parent, node, state):
         self.node = node
@@ -397,12 +369,61 @@ class AIMemory(Dialog):
         pass
 
 
-# TODO
 class NodeMemory(Dialog):
     def __init__(self, parent, node, state):
         self.node = node
         self.state = state
-        Dialog.__init__(self, parent, title="AI Memory")
+        self.memories = []
+        self.master = None
+        self.new_button = None
+        self.edit_buttons = []
+        Dialog.__init__(self, parent, title="Node Memory")
+
+    def body(self, master):
+        create_label(master, "Memory entries associated with this node")
+        self.master = master
+        self.refresh()
+
+    def refresh(self):
+        if self.new_button:
+            self.new_button.destroy()
+        for memory in self.memories:
+            memory.destroy()
+        for edit_button in self.edit_buttons:
+            edit_button.destroy()
+        self.memories = []
+        self.checks = []
+        self.edit_buttons = []
+
+        if 'memories' in self.node:
+            for i, memory_id in enumerate(self.node['memories']):
+                memory = self.state.memories[memory_id]
+                if memory['text']:
+                    row = self.master.grid_size()[1]
+                    self.memories.append(TextAware(self.master, height=1))
+                    self.memories[i].grid(row=row, column=0, columnspan=2, padx=5)
+                    self.memories[i].insert(tk.INSERT, memory['text'])
+                    self.memories[i].configure(
+                        state='disabled',
+                        foreground=text_color(),
+                        background=bg_color(),
+                        wrap="word",
+                    )
+                    self.edit_buttons.append(create_button(self.master, "Edit", lambda _memory=memory: self.edit_memory(_memory), width=4))
+                    self.edit_buttons[i].grid(row=row, column=3)
+        self.new_button = create_button(self.master, "Add memory", self.create_new, width=11)
+
+
+    def create_new(self):
+        dialog = CreateMemory(parent=self.parent, node=self.node, state=self.state, default_inheritability='subtree')
+        self.refresh()
+
+    def edit_memory(self, memory):
+        dialog = EditMemory(parent=self.parent, memory=memory, state=self.state)
+        self.refresh()
+
+    def apply(self):
+        pass
 
 
 class CreateMemory(Dialog):
