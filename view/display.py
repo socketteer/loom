@@ -195,12 +195,12 @@ class Display:
         readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
         textbox.configure(
             font=readable_font,
-            spacing1=10,
+            spacing1=10, # spacing between paragraphs
             foreground=text_color(),
             background=bg_color(),
             padx=2,
             pady=5,
-            spacing2=8,  # Spacing between lines4
+            spacing2=8,  # Spacing between lines
             spacing3=5,
             wrap="word",
         )
@@ -211,7 +211,7 @@ class Display:
 
         # First a large edit button
         self.edit_button = self.build_button(frame, "Edit", dict(width=12))
-        self.build_button(frame, "Child Edit")
+        #self.build_button(frame, "Child Edit")
         self.build_button(frame, "Visualize")
 
         # Button name, button params, pack params
@@ -225,7 +225,7 @@ class Display:
             ["Generate"],
             # Navigation on the right
             ["Next", {}, dict(side="right")],
-            ["Prev"],
+            ["Prev", {}, dict(side="right")],
             # ["Parent"],
             ["Bookmark"],
         ]

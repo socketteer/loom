@@ -513,7 +513,10 @@ class PreferencesDialog(Dialog):
         self.vars = {
             "canonical_only": tk.BooleanVar,
             "side_pane": tk.BooleanVar,
-            "coloring": tk.StringVar
+            "coloring": tk.StringVar,
+            "font_size": tk.IntVar,
+            "line_spacing": tk.IntVar,
+            "paragraph_spacing": tk.IntVar
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
@@ -535,6 +538,11 @@ class PreferencesDialog(Dialog):
         options = ['edit', 'read', 'none']
         dropdown = tk.OptionMenu(master, self.vars["coloring"], *options)
         dropdown.grid(row=row, column=1, pady=3)
+        create_slider(master, "Font size", self.vars["font_size"], (5, 20))
+        create_slider(master, "Line spacing", self.vars["line_spacing"], (0, 20))
+        create_slider(master, "Paragraph spacing", self.vars["paragraph_spacing"], (0, 40))
+
+
 
     def apply(self):
         for key, var in self.vars.items():

@@ -44,7 +44,10 @@ DEFAULT_PREFERENCES = {
     'canonical_only': False,
     'walk': 'descendents', #'leaves', 'uniform'
     'coloring': 'edit', #'read', 'none'
-    'side_pane': False
+    'side_pane': False,
+    'font_size': 12,
+    'line_spacing': 8,
+    'paragraph_spacing': 10,
     # display children preview
     # darkmode
 }
@@ -598,7 +601,7 @@ class TreeModel:
         root_node = self.tree_node_dict[memory["root_id"]]
         root_node['memories'].remove(memory['id'])
 
-    # TODO also return list of pending
+    # TODO also return list of pending?
     def construct_memory(self, node):
         ancestry = node_ancestry(node, self.tree_node_dict)
         memories = []

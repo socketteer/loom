@@ -4,6 +4,11 @@
     - enable/disable memory entries
     - goto root 
  
+- remake child edit mode
+    - button(?) to goto
+    - button(?) to delete
+    - show # descendants and ask before deleting subtree
+ 
 # bugs
 
 * key bindings only work in most recent tab

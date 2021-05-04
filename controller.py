@@ -6,6 +6,7 @@ from functools import reduce
 from pprint import pprint
 from tkinter import filedialog, ttk
 from tkinter import messagebox
+from tkinter.font import Font
 
 import PIL
 import pyperclip
@@ -977,6 +978,10 @@ class Controller:
     def refresh_textbox(self, **kwargs):
         if not self.state.tree_raw_data or not self.state.selected_node:
             return
+
+        self.display.textbox.configure(font=Font(family="Georgia", size=self.state.preferences['font_size']),
+                                       spacing1=self.state.preferences['paragraph_spacing'],
+                                       spacing2=self.state.preferences['line_spacing'])
 
         # Fill textbox with text history, disable editing
         if self.display.mode == "Read":
