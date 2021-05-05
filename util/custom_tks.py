@@ -18,9 +18,9 @@ class Dialog(tk.Toplevel):
         if title:
             self.title(title)
 
-        style = ThemedStyle(self)
-        if darkmode:
-            style.set_theme("black")
+        # style = ThemedStyle(self)
+        # if darkmode:
+        #     style.set_theme("black")
 
         self.parent = parent
         self.result = None

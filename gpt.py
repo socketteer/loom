@@ -35,7 +35,6 @@ def janus_generate(prompt, memory=""):
 #   OpenAI
 #################################
 
-
 openai.api_key = os.environ.get("OPENAI_API_KEY", None)
 
 # pprint([d["id"] for d in openai.Engine.list()["data"]])
