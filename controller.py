@@ -176,6 +176,13 @@ class Controller:
                 ("Mark subtree unvisited", None, None, lambda: self.set_subtree_visited(False)),
                 ("Mark all visited", None, None, lambda: self.set_all_visited(True)),
                 ("Mark all unvisited", None, None, lambda: self.set_all_visited(False)),
+                ("Mark as prompt", None, None, lambda: self.set_source('prompt')),
+                ("Mark as AI completion", None, None, lambda: self.set_source('AI')),
+                ("Mark subtree as prompt", None, None, lambda: self.set_subtree_source('prompt')),
+                ("Mark subtree as AI completion", None, None, lambda: self.set_subtree_source('AI')),
+                ("Mark all as prompt", None, None, lambda: self.set_all_source('prompt')),
+                ("Mark all as AI completion", None, None, lambda: self.set_all_source('AI')),
+
             ],
             "Info": [
                 ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
@@ -477,6 +484,11 @@ class Controller:
                 self.nav_select(node_id=new_parent["id"])
             # TODO deal with metadata
 
+
+    #################################
+    #   Token manipulation
+    #################################
+
     @metadata(name="Select token", keys=[], display_key="", selected_node=None, token_index=None)
     def select_token(self, index):
         if self.display.mode == "Read":
@@ -720,12 +732,48 @@ class Controller:
         self.update_nav_tree()
         self.update_nav_tree_selected()
 
-
     def set_all_visited(self, status=True):
         for d in self.state.nodes:
             d["visited"] = status
         self.update_nav_tree()
         self.update_nav_tree_selected()
+
+    def set_source(self, source='AI', node=None, refresh=True):
+        if not node:
+            node = self.state.selected_node
+        if not 'meta' in node:
+            node['meta'] = {}
+        node['meta']['source'] = source
+        if refresh:
+            self.refresh_textbox()
+            self.update_nav_tree()
+            self.update_nav_tree_selected()
+
+    def set_subtree_source(self, source='AI', node=None):
+        if not node:
+            node = self.state.selected_node
+        for d in flatten_tree(node):
+            self.set_source(source=source, node=d, refresh=False)
+        self.refresh_textbox()
+        self.update_nav_tree()
+        self.update_nav_tree_selected()
+
+    def set_all_source(self, source='AI'):
+        for d in self.state.nodes:
+            self.set_source(source=source, node=d, refresh=False)
+        self.refresh_textbox()
+        self.update_nav_tree()
+        self.update_nav_tree_selected()
+
+    @metadata(name="Toggle prompt", keys=["<Control-Shift-KeyPress-A>"], display_key="")
+    def toggle_source(self, node=None):
+        if not node:
+            node = self.state.selected_node
+        if 'meta' in node and 'source' in node['meta'] and node['meta']['source'] == 'AI':
+            self.set_source(source='prompt', node=node)
+        else:
+            self.set_source(source='AI', node=node)
+
 
 
     # @metadata(name="Darkmode", keys=["<Control-Shift-KeyPress-D>"], display_key="Ctrl-Shift-D")
@@ -738,16 +786,6 @@ class Controller:
     #     self.display = Display(self.root, self.callbacks, self.state)
     #     self.refresh_textbox()
     #     self.update_nav_tree()
-
-
-
-
-    #################################
-    #   Chapters
-    #################################
-
-    # def change_chapter(self):
-    #     self.state.selected_node
 
 
     #################################
@@ -1018,7 +1056,7 @@ class Controller:
             #self.display.textbox.see(tk.END)
 
             self.display.textbox.insert("end-1c", selected_text)
-            self.display.textbox.see(end)
+            #self.display.textbox.see(end)
             self.display.textbox.insert("end-1c", self.state.selected_node.get("active_text", ""))
 
             # TODO Not quite right. We may need to compare the actual text content? Hmm...
@@ -1028,11 +1066,13 @@ class Controller:
             #     num_lines = int(self.display.textbox.index('end-1c').split('.')[0])
             # self.refresh_textbox.meta["last_num_lines"] = num_lines
 
-
+            self.tag_prompts()
             self.display.textbox.configure(state="disabled")
 
             # makes text copyable
             self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+            self.display.textbox.see(tk.END)
+
 
 
         # Textbox to edit mode, fill with single node
@@ -1059,6 +1099,21 @@ class Controller:
 
             # Make the first text box history colors
             self.display.multi_textboxes[0].configure(foreground=self.HISTORY_COLOR)
+
+    # TODO nodes with mixed prompt/continuation
+    def tag_prompts(self):
+        if self.state.preferences['bold_prompt']:
+            self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size'], 'bold'))
+        else:
+            self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size']))
+        self.display.textbox.tag_remove("prompt", "1.0", 'end')
+        ancestry_text, indices = self.state.node_ancestry_text()
+        start_index = 0
+        for i, ancestor in enumerate(node_ancestry(self.state.selected_node, self.state.tree_node_dict)):
+            if not ('meta' in ancestor and 'source' in ancestor['meta'] and ancestor['meta']['source'] == 'AI'):
+                self.display.textbox.tag_add("prompt", f"1.0 + {start_index} chars", f"1.0 + {indices[i]} chars")
+                print(ancestry_text[i])
+            start_index = indices[i]
 
 
     def refresh_visualization(self, center=False, **kwargs):

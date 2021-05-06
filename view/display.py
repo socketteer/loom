@@ -175,6 +175,20 @@ class Display:
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
+    def build_input_box(self, frame):
+        input_box = TextAware(frame, bd=3, height=1, undo=True)
+        readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
+        textbox.configure(
+            font=readable_font,
+            spacing1=10,  # spacing between paragraphs
+            foreground=text_color(),
+            background=bg_color(),
+            padx=2,
+            pady=5,
+            spacing2=8,  # Spacing between lines
+            spacing3=5,
+            wrap="word",
+        )
 
     # Text area and scroll bar  TODO Make a scrollable textbox tkutil
     def _build_textbox(self, frame, frame_attr, textbox_attr, height=1):

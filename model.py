@@ -44,6 +44,7 @@ DEFAULT_PREFERENCES = {
     'canonical_only': False,
     'walk': 'descendents', #'leaves', 'uniform'
     'coloring': 'edit', #'read', 'none'
+    'bold_prompt': True,
     'side_pane': False,
     'font_size': 12,
     'line_spacing': 8,
@@ -335,14 +336,20 @@ class TreeModel:
     #   Updates
     #################################
 
+    def new_node(self, node_id=None, text=''):
+        if not node_id:
+            node_id = str(uuid.uuid1())
+        node = {"id": node_id,
+                "text": text,
+                "children": []}
+        return node
+
     def create_child(self, parent=None, update_selection=True, expand=True, tree_updated=True):
         parent = parent if parent else self.selected_node
         if not parent:
             return
 
-        new_child = {"id": str(uuid.uuid1()),
-                     "text": "",
-                     "children": []}
+        new_child = self.new_node()
         parent["children"].append(new_child)
 
         if tree_updated:
@@ -366,11 +373,7 @@ class TreeModel:
         if not node:
             return
 
-        new_parent = {
-            "id": str(uuid.uuid1()),
-            "text": "",
-            "children": [node]
-        }
+        new_parent = self.new_node()
         if "parent_id" not in node:
             assert self.tree_raw_data["root"] == node
             self.tree_raw_data["root"] = new_parent
@@ -769,6 +772,7 @@ class TreeModel:
                     grandchild_text = result["text"][split_position:]
                     nodes[i]["text"] = childtext
                     grandchildren[i]["text"] = grandchild_text
+                    # TODO meta
 
             else:
                 for index, node in enumerate(nodes):
@@ -780,6 +784,7 @@ class TreeModel:
                     # created
                     node["meta"]["modified"] = False
                     node["meta"]["origin"] = "generated"
+                    node["meta"]["source"] = "AI"
 
                     # remove offset of prompt
                     # TODO fix old nodes
@@ -841,6 +846,8 @@ class TreeModel:
         self.tree_updated(edit=new_nodes)
         if update_selection:
             self.select_node(children[0]["id"])
+
+
 
     # TODO range
     def semantic_search_memory(self, node, document_limit=100, max_length=1000):

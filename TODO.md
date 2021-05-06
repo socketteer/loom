@@ -1,5 +1,29 @@
 # priority 
  
+ 
+- generation 
+    - stop sequences (comma separated)
+    - logit bias
+ 
+- gpt modes
+    - default
+    - antisummarization 
+    - chat
+    - presets
+ 
+- input textbox
+    - default: append text as new node (like ai dungeon)
+    - in various gpt modes 
+    - show / hide textbox
+ 
+ 
+- human / ai metadata
+    - generated nodes AI
+    - new nodes human
+    - change node assignment
+    - if modify text, change diff to human
+    - display mode 
+
 - memory system
     - enable/disable memory entries
     - goto root 
@@ -7,6 +31,7 @@
 - remake child edit mode
     - button(?) to goto
     - button(?) to delete
+    - button(?) to hide / show hidden
     - show # descendants and ask before deleting subtree
  
 # bugs
