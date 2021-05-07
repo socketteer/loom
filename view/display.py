@@ -179,8 +179,8 @@ class Display:
         self.build_main_buttons(self.bottom_frame)
         self.button_bar.pack(side="top", fill="both")
 
-        if self.state.preferences['input_box']:
-            self.build_input_box(self.bottom_frame)
+        # if self.state.preferences['input_box']:
+        #     self.build_input_box(self.bottom_frame)
 
         #self.destroy_input_box()
 

@@ -79,6 +79,7 @@ class Controller:
         self.state.register_callback(self.state.tree_updated, self.save_edits)
         self.state.register_callback(self.state.tree_updated, self.refresh_textbox)
         self.state.register_callback(self.state.tree_updated, self.refresh_visualization)
+        self.state.register_callback(self.state.tree_updated, self.refresh_display)
         # TODO autosaving takes too long for a big tree
         #self.state.register_callback(self.state.tree_updated, lambda: self.save_tree(popup=False))
 
@@ -92,6 +93,7 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.refresh_vis_selection)
         self.state.register_callback(self.state.selection_updated, self.refresh_notes)
         self.state.register_callback(self.state.selection_updated, self.refresh_counterfactual_meta)
+        self.state.register_callback(self.state.selection_updated, self.refresh_display)
 
 
     def setup_key_bindings(self):
@@ -1042,10 +1044,10 @@ class Controller:
         else:
             return
 
-    def refresh_display(self):
-        if self.state.preferences['input_box']:
+    def refresh_display(self, **kwargs):
+        if self.state.preferences['input_box'] and not self.display.input_box:
             self.display.build_input_box(self.display.bottom_frame)
-        else:
+        elif not self.state.preferences['input_box'] and self.display.input_box:
             self.display.destroy_input_box()
 
     HISTORY_COLOR = history_color()
