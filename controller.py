@@ -984,7 +984,7 @@ class Controller:
     def toggle_input_box(self):
         if self.display.mode == "Read":
             if not self.state.preferences['input_box']:
-                self.display.build_input_box(self.display.bottom_frame)
+                self.display.build_input_box()
                 self.state.preferences['input_box'] = True
                 self.display.input_box.focus()
             else:

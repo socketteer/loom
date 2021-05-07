@@ -172,10 +172,14 @@ class Display:
         self.vis = TreeVis(self.story_frame,
                            self.state, self.controller)
 
-        # Button bar        self.input_frame.pack(side="bottom", fill="x")
+
+
+        self.bottom_input_frame = ttk.Frame(self.main_frame)
+        self.bottom_input_frame.pack(side="bottom", fill="both")
+
         self.bottom_frame = ttk.Frame(self.main_frame)
         self.bottom_frame.pack(side="bottom", fill="both")
-
+        # Button bar        self.input_frame.pack(side="bottom", fill="x")
         self.build_main_buttons(self.bottom_frame)
         self.button_bar.pack(side="top", fill="both")
 
@@ -188,8 +192,14 @@ class Display:
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
-    def build_input_box(self, frame):
-        self.input_frame = ttk.Frame(frame, width=500, height=20)
+    def build_input_box(self):
+        self.bottom_frame.pack_forget()
+        self.bottom_input_frame.pack_forget()
+        self.bottom_input_frame.pack(side="bottom", fill="both")
+        self.bottom_frame.pack(side="bottom", fill="both")
+
+
+        self.input_frame = ttk.Frame(self.bottom_input_frame, width=500, height=20)
         self.input_box = TextAware(self.input_frame, bd=3, height=1, undo=True)
         readable_font = Font(family="Georgia", size=12)
         self.input_box.pack(expand=True, fill='x')
@@ -215,6 +225,8 @@ class Display:
             self.input_frame.destroy()
             self.input_box = None
             self.submit_button = None
+            self.bottom_input_frame.pack_forget()
+            # self.bottom_frame.pack(side="bottom", fill="both")
 
     # Text area and scroll bar  TODO Make a scrollable textbox tkutil
     def _build_textbox(self, frame, frame_attr, textbox_attr, height=1):
