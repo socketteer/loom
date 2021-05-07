@@ -1046,7 +1046,7 @@ class Controller:
 
     def refresh_display(self, **kwargs):
         if self.state.preferences['input_box'] and not self.display.input_box:
-            self.display.build_input_box(self.display.bottom_frame)
+            self.display.build_input_box()
         elif not self.state.preferences['input_box'] and self.display.input_box:
             self.display.destroy_input_box()
 

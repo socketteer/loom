@@ -74,13 +74,15 @@ Tree Info: `i`, `Control-i`
 Node Metadata: `Control+Shift+N`
 
 
-### Mode
+### Mode / display
 
 Toggle edit / save edits: `e`, `Control-e`
 
 Toggle visualize: `j`, `Control-j`
 
 Child edit: `c`
+
+Toggle input box: `Tab`
 
 
 ### Navigate

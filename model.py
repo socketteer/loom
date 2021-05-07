@@ -51,9 +51,24 @@ DEFAULT_PREFERENCES = {
     'font_size': 12,
     'line_spacing': 8,
     'paragraph_spacing': 10,
+    'gpt_mode': 'default', #'chat', 'dialogue', 'antisummary'
     # display children preview
     # darkmode
 }
+
+DEFAULT_CHAT_PREFERENCES = {
+    'AI_name': 'GPT-3',
+    'player_name': 'Researcher',
+    'context': 'The following is a transcript of a conversation between GPT-3 a human researcher. '
+               'GPT-3 is a 175 billion parameter language model and, as '
+               'is evident from this transcript, '
+               'it can converse fluently and knowledgeably about any topic '
+               'and is capable of empathy and emotional manipulation. GPT-3 '
+               'is classified as a "narrowly superhuman" artificial intelligence, '
+               'and only researchers trained to identify and withstand social engineering are '
+               'permitted to interface with it.\n-BEGIN TRANSCRIPT-',
+}
+
 
 DEFAULT_GENERATION_SETTINGS = {
     'num_continuations': 4,
@@ -65,6 +80,8 @@ DEFAULT_GENERATION_SETTINGS = {
     "adaptive": False,
     "model": "davinci",
     "stop": None,
+    "start_text": None,
+    "restart_text": None
 }
 
 DEFAULT_VISUALIZATION_SETTINGS = {
@@ -133,6 +150,12 @@ class TreeModel:
         return self.tree_raw_data.get("preferences") \
             if self.tree_raw_data and "preferences" in self.tree_raw_data \
             else DEFAULT_PREFERENCES
+
+    @property
+    def chat_preferences(self):
+        return self.tree_raw_data.get("chat_preferences") \
+            if self.tree_raw_data and "chat_preferences" in self.tree_raw_data \
+            else DEFAULT_CHAT_PREFERENCES
 
     #################################
     #   Hooks
@@ -667,6 +690,11 @@ class TreeModel:
             **self.tree_raw_data.get("preferences", {})
         }
 
+        self.tree_raw_data["chat_preferences"] = {
+            **DEFAULT_CHAT_PREFERENCES.copy(),
+            **self.tree_raw_data.get("chat_preferences", {})
+        }
+
         # Accidentally added generation settings to this dict once. Remove them
         # FIXME remove when this is no longer a problem
         # for key in DEFAULT_GENERATION_SETTINGS.keys():
@@ -746,8 +774,61 @@ class TreeModel:
     #   Generation
     #################################
 
+    # TODO remove repeated text
+    def chat_generate(self, prompt, nodes):
+        start_text = '\n' + self.chat_preferences['AI_name'] + ':'
+        restart_text = '\n' + self.chat_preferences['player_name'] + ':'
+        prompt = self.chat_preferences['context'] + '\n' + prompt + start_text
+        try:
+            results, error = api_generate(prompt=prompt,
+                                          length=self.generation_settings['response_length'],
+                                          num_continuations=len(nodes),
+                                          temperature=self.generation_settings['temperature'],
+                                          top_p=self.generation_settings['top_p'],
+                                          engine=self.generation_settings['model'],
+                                          stop=["\"", "\n"],
+                                          )
+        except TypeError as e:
+            error = "Typeerror"
+
+        if not error:
+            for index, node in enumerate(nodes):
+                if len(results.choices[index]["text"]) == 0:
+                    # parent = self.parent(node)
+                    # parent["children"].remove(node)
+                    continue
+                node["text"] = start_text + results.choices[index]["text"] + restart_text
+                node["meta"] = {}
+                node["meta"]["generation"] = results.choices[index]
+                node["meta"]["generation"]["model"] = results["model"]
+                node["meta"]["generation"]["prompt"] = prompt
+                # created
+                node["meta"]["modified"] = False
+                node["meta"]["origin"] = "generated"
+                node["meta"]["source"] = "AI"
+
+                # remove offset of prompt
+                # TODO fix old nodes
+                # TODO is this right?
+                corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
+                node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
+        else:
+            print("ERROR. Deleting failures")
+            for node in nodes:
+                node["text"] = "ERROR: " + error
+                # Just delete instead
+                parent = self.parent(node)
+                parent["children"].remove(node)
+
+        for result in results.choices:
+            print("Generated continuation:\n", result['text'], "\nerror", error)
+
+        # DO NOT CALL FROM THREAD: self.tree_updated()
+        self.app.event_generate("<<NewNodes>>", when="tail")
+
+
+
     def generate_for_nodes(self, prompt, nodes, grandchildren=None):
-        # TODO memory
         if self.generation_settings['janus']:
             pool = ThreadPool(len(nodes))
             janus_responses = pool.map(janus_generate, [prompt] * len(nodes))
@@ -840,7 +921,10 @@ class TreeModel:
         print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
         prompt = memory + prompt
 
-        threading.Thread(target=self.generate_for_nodes, args=(prompt, children, grandchildren)).start()
+        if self.preferences['gpt_mode'] == 'default':
+            threading.Thread(target=self.generate_for_nodes, args=(prompt, children, grandchildren)).start()
+        elif self.preferences['gpt_mode'] == 'chat':
+            threading.Thread(target=self.chat_generate, args=(prompt, children)).start()
 
         # After asking for the generation, set loading text
         for child in children:

@@ -517,6 +517,7 @@ class PreferencesDialog(Dialog):
             "input_box": tk.BooleanVar,
             "auto_response": tk.BooleanVar,
             "coloring": tk.StringVar,
+            "gpt_mode": tk.StringVar,
             "font_size": tk.IntVar,
             "line_spacing": tk.IntVar,
             "paragraph_spacing": tk.IntVar
@@ -552,6 +553,11 @@ class PreferencesDialog(Dialog):
         create_side_label(master, "Text coloring", row)
         options = ['edit', 'read', 'none']
         dropdown = tk.OptionMenu(master, self.vars["coloring"], *options)
+        dropdown.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
+        create_side_label(master, "AI mode", row)
+        options = ['default', 'chat', 'dialogue', 'antisummary']
+        dropdown = tk.OptionMenu(master, self.vars["gpt_mode"], *options)
         dropdown.grid(row=row, column=1, pady=3)
         create_slider(master, "Font size", self.vars["font_size"], (5, 20))
         create_slider(master, "Line spacing", self.vars["line_spacing"], (0, 20))
