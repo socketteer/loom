@@ -1,28 +1,24 @@
 # priority 
- 
- 
+
+- various problems when opening a new tree
+
 - generation 
     - stop sequences (comma separated)
     - logit bias
  
 - gpt modes
-    - default
+    - dialogue
     - antisummarization 
-    - chat
-    - presets
+    - account for additional prompt length (abstract)
  
-- input textbox
-    - default: append text as new node (like ai dungeon)
-    - in various gpt modes 
-    - show / hide textbox
- 
+- presets
+    - load preset
+    - save preset
+    - toggle whether context appears in textbox
+    - toggle whether context remains in prompt
  
 - human / ai metadata
-    - generated nodes AI
-    - new nodes human
-    - change node assignment
     - if modify text, change diff to human
-    - display mode 
 
 - memory system
     - enable/disable memory entries

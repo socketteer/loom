@@ -1014,7 +1014,7 @@ class Controller:
     @metadata(name="Chat settings", keys=[], display_key="")
     def chat_settings(self):
         dialog = ChatSettingsDialog(parent=self.display.frame, orig_params=self.state.chat_preferences)
-        self.refresh_textbox()
+        #self.refresh_textbox()
 
     def has_focus(self, widget):
         return self.display.textbox.focus_displayof() == widget

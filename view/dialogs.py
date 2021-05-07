@@ -563,8 +563,6 @@ class PreferencesDialog(Dialog):
         create_slider(master, "Line spacing", self.vars["line_spacing"], (0, 20))
         create_slider(master, "Paragraph spacing", self.vars["paragraph_spacing"], (0, 40))
 
-
-
     def apply(self):
         for key, var in self.vars.items():
             self.orig_params[key] = var.get()
@@ -653,6 +651,7 @@ class ChatSettingsDialog(Dialog):
         self.AI_name_textbox = None
         self.player_name_textbox = None
         self.context_textbox = None
+        self.preset = tk.StringVar
         self.vars = {
             'AI_name': tk.StringVar,
             'player_name': tk.StringVar,
@@ -682,6 +681,22 @@ class ChatSettingsDialog(Dialog):
         self.context_textbox = TextAware(self.master, height=4)
         self.context_textbox.insert(tk.INSERT, self.vars['context'].get())
         self.context_textbox.grid(row=row, column=1)
+
+        row = master.grid_size()[1]
+        create_side_label(master, "Use preset", row)
+
+        # TODO load json
+        options = ['GPT-3/researcher', 'chatroulette']
+        #self.preset.set(options[0])
+        dropdown = tk.OptionMenu(master, self.preset, *options)
+        dropdown.grid(row=row, column=1, pady=3)
+        button = create_button(master, "Apply", self.apply_preset)
+        button.grid(row=row, column=2, sticky='w')
+
+    def apply_preset(self):
+        pass
+
+    # TODO save as preset
 
     def apply(self):
         self.orig_params['AI_name'] = self.AI_name_textbox.get("1.0", 'end-1c')

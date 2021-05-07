@@ -775,6 +775,7 @@ class TreeModel:
     #################################
 
     # TODO remove repeated text
+    # TODO detect whether in the middle or beginning of dialog and dont inject start text in the former case
     def chat_generate(self, prompt, nodes):
         start_text = '\n' + self.chat_preferences['AI_name'] + ':'
         restart_text = '\n' + self.chat_preferences['player_name'] + ':'
