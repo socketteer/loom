@@ -46,6 +46,8 @@ DEFAULT_PREFERENCES = {
     'coloring': 'edit', #'read', 'none'
     'bold_prompt': True,
     'side_pane': False,
+    'input_box': False,
+    'auto_response': True,
     'font_size': 12,
     'line_spacing': 8,
     'paragraph_spacing': 10,
@@ -62,7 +64,7 @@ DEFAULT_GENERATION_SETTINGS = {
     "janus": False,
     "adaptive": False,
     "model": "davinci",
-    "memory": "",
+    "stop": None,
 }
 
 DEFAULT_VISUALIZATION_SETTINGS = {
@@ -759,7 +761,9 @@ class TreeModel:
                                               num_continuations=len(nodes),
                                               temperature=self.generation_settings['temperature'],
                                               top_p=self.generation_settings['top_p'],
-                                              engine=self.generation_settings['model'])
+                                              engine=self.generation_settings['model'],
+                                              stop=self.generation_settings['stop']
+                                              )
             except TypeError as e:
                 error = "Typeerror"
         if not error:

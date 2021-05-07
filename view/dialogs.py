@@ -514,6 +514,8 @@ class PreferencesDialog(Dialog):
             "canonical_only": tk.BooleanVar,
             "side_pane": tk.BooleanVar,
             "bold_prompt": tk.BooleanVar,
+            "input_box": tk.BooleanVar,
+            "auto_response": tk.BooleanVar,
             "coloring": tk.StringVar,
             "font_size": tk.IntVar,
             "line_spacing": tk.IntVar,
@@ -537,6 +539,14 @@ class PreferencesDialog(Dialog):
         row = master.grid_size()[1]
         create_side_label(master, "Bold prompt", row)
         check = ttk.Checkbutton(master, variable=self.vars["bold_prompt"])
+        check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
+        create_side_label(master, "Show input box", row)
+        check = ttk.Checkbutton(master, variable=self.vars["input_box"])
+        check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
+        create_side_label(master, "AI responses on submit", row)
+        check = ttk.Checkbutton(master, variable=self.vars["auto_response"])
         check.grid(row=row, column=1, pady=3)
         row = master.grid_size()[1]
         create_side_label(master, "Text coloring", row)

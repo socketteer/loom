@@ -100,7 +100,8 @@ class Controller:
 
         def in_edit():
             return self.display.mode in ["Edit", "Child Edit"] \
-                   or (self.display.mode == "Visualize" and self.display.vis.textbox)
+                   or (self.display.mode == "Visualize" and self.display.vis.textbox) \
+                   or self.has_focus(self.display.input_box)
 
         valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete"]
         for f in funcs_with_keys:
@@ -170,14 +171,14 @@ class Controller:
                 ('Node memory', 'Alt+M', None, no_junk_args(self.node_memory)),
             ],
             "Flags": [
-                ("Mark visited", None, None, lambda: self.set_visited(True)),
-                ("Mark unvisited", None, None, lambda: self.set_visited(False)),
+                ("Mark node visited", None, None, lambda: self.set_visited(True)),
+                ("Mark node unvisited", None, None, lambda: self.set_visited(False)),
                 ("Mark subtree visited", None, None, lambda: self.set_subtree_visited(True)),
                 ("Mark subtree unvisited", None, None, lambda: self.set_subtree_visited(False)),
                 ("Mark all visited", None, None, lambda: self.set_all_visited(True)),
                 ("Mark all unvisited", None, None, lambda: self.set_all_visited(False)),
-                ("Mark as prompt", None, None, lambda: self.set_source('prompt')),
-                ("Mark as AI completion", None, None, lambda: self.set_source('AI')),
+                ("Mark node as prompt", None, None, lambda: self.set_source('prompt')),
+                ("Mark node as AI completion", None, None, lambda: self.set_source('AI')),
                 ("Mark subtree as prompt", None, None, lambda: self.set_subtree_source('prompt')),
                 ("Mark subtree as AI completion", None, None, lambda: self.set_subtree_source('AI')),
                 ("Mark all as prompt", None, None, lambda: self.set_all_source('prompt')),
@@ -342,12 +343,13 @@ class Controller:
     #################################
 
     @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Alt-Right>"], display_key="h",)
-    def create_child(self, node=None):
+    def create_child(self, node=None, update_selection=True, toggle_edit=True):
         if node is None:
             node = self.state.selected_node
-        self.state.create_child(parent=node, update_selection=self.display.mode != "Multi Edit")
-        if self.display.mode == "Read":
+        child = self.state.create_child(parent=node, update_selection=update_selection)
+        if self.display.mode == "Read" and toggle_edit:
             self.toggle_edit_mode()
+        return child
 
     @metadata(name="New Sibling", keys=["<Alt-Down>"], display_key="alt-down")
     def create_sibling(self, node=None):
@@ -965,6 +967,7 @@ class Controller:
     def preferences(self):
         dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
         self.refresh_textbox()
+        self.refresh_display()
 
     # @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
     # def ancestry_semantic_search(self, node=None):
@@ -975,9 +978,37 @@ class Controller:
     #     for entry in results['data']:
     #         print(entry['score'])
 
+    @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
+    def toggle_input_box(self):
+        if self.display.mode == "Read":
+            if not self.state.preferences['input_box']:
+                self.display.build_input_box(self.display.bottom_frame)
+                self.state.preferences['input_box'] = True
+                self.display.input_box.focus()
+            else:
+                self.display.destroy_input_box()
+                self.state.preferences['input_box'] = False
+
+    @metadata(name="Submit", keys=[], display_key="")
+    def submit(self):
+        input_text = self.display.input_box.get("1.0", 'end-1c')
+        if input_text:
+            current_text = self.state.selected_node['text']
+            new_child = self.create_child(toggle_edit=False)
+            new_child['text'] = input_text
+            self.display.input_box.delete("1.0", "end")
+            if current_text[-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*']:
+                self.prepend_space()
+            self.state.tree_updated(add=[new_child['id']])
+        if self.state.preferences['auto_response']:
+            self.generate()
+
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
-        print(self.state.construct_memory(self.state.selected_node))
+        print(self.has_focus(self.display.input_box))
+
+    def has_focus(self, widget):
+        return self.display.textbox.focus_displayof() == widget
 
     #################################
     #   Story frame TODO call set text, do this in display?
@@ -1010,6 +1041,12 @@ class Controller:
 
         else:
             return
+
+    def refresh_display(self):
+        if self.state.preferences['input_box']:
+            self.display.build_input_box(self.display.bottom_frame)
+        else:
+            self.display.destroy_input_box()
 
     HISTORY_COLOR = history_color()
     # @metadata(last_text="", last_scroll_height=0, last_num_lines=0)
@@ -1112,7 +1149,6 @@ class Controller:
         for i, ancestor in enumerate(node_ancestry(self.state.selected_node, self.state.tree_node_dict)):
             if not ('meta' in ancestor and 'source' in ancestor['meta'] and ancestor['meta']['source'] == 'AI'):
                 self.display.textbox.tag_add("prompt", f"1.0 + {start_index} chars", f"1.0 + {indices[i]} chars")
-                print(ancestry_text[i])
             start_index = indices[i]
 
 

@@ -52,7 +52,8 @@ POSSIBLE_MODELS = [
 
 
 @retry(n_tries=3, delay=1, backoff=2, on_failure=lambda *args, **kwargs: "")
-def api_generate(prompt, length=150, num_continuations=1, temperature=0.8, top_p=1, engine='davinci', **kwargs):
+def api_generate(prompt, length=150, num_continuations=1, temperature=0.8, top_p=1, stop=None, engine='davinci', **kwargs):
+
     response = openai.Completion.create(
         engine=engine,
         prompt=prompt,
@@ -61,6 +62,7 @@ def api_generate(prompt, length=150, num_continuations=1, temperature=0.8, top_p
         top_p=top_p,
         logprobs=10,
         n=num_continuations,
+        stop=stop,
         **kwargs
     )
     return response, None

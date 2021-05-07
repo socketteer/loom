@@ -57,6 +57,11 @@ class Display:
         self.change_root_button = None
         self.delete_note_button = None
 
+        self.bottom_frame = None
+        self.input_box = None
+        self.input_frame = None
+        self.submit_button = None
+
         self.multi_edit_frame = None
         self.multi_textboxes = None
 
@@ -167,18 +172,28 @@ class Display:
         self.vis = TreeVis(self.story_frame,
                            self.state, self.controller)
 
-        # Button bar
-        self.build_main_buttons(self.main_frame)
-        self.button_bar.pack(side="bottom", fill="x")
+        # Button bar        self.input_frame.pack(side="bottom", fill="x")
+        self.bottom_frame = ttk.Frame(self.main_frame)
+        self.bottom_frame.pack(side="bottom", fill="both")
+
+        self.build_main_buttons(self.bottom_frame)
+        self.button_bar.pack(side="top", fill="both")
+
+        if self.state.preferences['input_box']:
+            self.build_input_box(self.bottom_frame)
+
+        #self.destroy_input_box()
 
     def build_textboxes(self, frame):
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
     def build_input_box(self, frame):
-        input_box = TextAware(frame, bd=3, height=1, undo=True)
-        readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
-        textbox.configure(
+        self.input_frame = ttk.Frame(frame, width=500, height=20)
+        self.input_box = TextAware(self.input_frame, bd=3, height=1, undo=True)
+        readable_font = Font(family="Georgia", size=12)
+        self.input_box.pack(expand=True, fill='x')
+        self.input_box.configure(
             font=readable_font,
             spacing1=10,  # spacing between paragraphs
             foreground=text_color(),
@@ -189,6 +204,17 @@ class Display:
             spacing3=5,
             wrap="word",
         )
+        self.submit_button = ttk.Button(self.input_frame, text="Submit",
+                                        command=self.callbacks["Submit"]["callback"], width=10)
+        self.submit_button.pack(side='right')
+        self.input_frame.pack(side="bottom", expand=True, fill="both")
+
+    def destroy_input_box(self):
+        if self.input_frame is not None:
+            self.input_frame.pack_forget()
+            self.input_frame.destroy()
+            self.input_box = None
+            self.submit_button = None
 
     # Text area and scroll bar  TODO Make a scrollable textbox tkutil
     def _build_textbox(self, frame, frame_attr, textbox_attr, height=1):
