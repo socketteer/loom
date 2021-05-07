@@ -646,6 +646,49 @@ class GenerationSettingsDialog(Dialog):
         self.result = self.orig_params
 
 
+class ChatSettingsDialog(Dialog):
+    def __init__(self, parent, orig_params):
+        # print(orig_params)
+        self.orig_params = orig_params
+        self.AI_name_textbox = None
+        self.player_name_textbox = None
+        self.context_textbox = None
+        self.vars = {
+            'AI_name': tk.StringVar,
+            'player_name': tk.StringVar,
+            'context': tk.StringVar,
+        }
+        for key in self.vars.keys():
+            self.vars[key] = self.vars[key](value=orig_params[key])
+
+        Dialog.__init__(self, parent, title="Preferences")
+
+    def body(self, master):
+        # print(self.orig_params)
+        self.master = master
+        row = master.grid_size()[1]
+        create_side_label(master, "AI name", row)
+        self.AI_name_textbox = TextAware(self.master, height=1)
+        self.AI_name_textbox.insert(tk.INSERT, self.vars['AI_name'].get())
+        self.AI_name_textbox.grid(row=row, column=1)
+        row = master.grid_size()[1]
+        create_side_label(master, "Player name", row)
+        self.player_name_textbox = TextAware(self.master, height=1)
+        self.player_name_textbox.insert(tk.INSERT, self.vars['player_name'].get())
+        self.player_name_textbox.grid(row=row, column=1)
+        row = master.grid_size()[1]
+
+        create_side_label(master, "Context (prepended to AI input)", row)
+        self.context_textbox = TextAware(self.master, height=4)
+        self.context_textbox.insert(tk.INSERT, self.vars['context'].get())
+        self.context_textbox.grid(row=row, column=1)
+
+    def apply(self):
+        self.orig_params['AI_name'] = self.AI_name_textbox.get("1.0", 'end-1c')
+        self.orig_params['player_name'] = self.player_name_textbox.get("1.0", 'end-1c')
+        self.orig_params['context'] = self.context_textbox.get("1.0", 'end-1c')
+
+
 class VisualizationSettingsDialog(Dialog):
     def __init__(self, parent, orig_params):
         self.orig_params = orig_params

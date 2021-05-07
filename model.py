@@ -786,7 +786,7 @@ class TreeModel:
                                           temperature=self.generation_settings['temperature'],
                                           top_p=self.generation_settings['top_p'],
                                           engine=self.generation_settings['model'],
-                                          stop=["\"", "\n"],
+                                          stop=["\n", self.chat_preferences['player_name'] + ':'],
                                           )
         except TypeError as e:
             error = "Typeerror"

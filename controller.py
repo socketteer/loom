@@ -18,7 +18,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, \
-    PreferencesDialog, AIMemory, CreateMemory, NodeMemory
+    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, ChatSettingsDialog
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
@@ -165,7 +165,9 @@ class Controller:
             ],
             "Generation": [
                 ('Generation settings', 'Ctrl+P', None, no_junk_args(self.generation_settings_dialog)),
+                ('Chat settings', None, None, no_junk_args(self.chat_settings)),
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
+
             ],
             "Memory": [
                 ('AI Memory', 'Ctrl+Shift+M', None, no_junk_args(self.ai_memory)),
@@ -1007,7 +1009,12 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
-        print(self.has_focus(self.display.input_box))
+        pass
+
+    @metadata(name="Chat settings", keys=[], display_key="")
+    def chat_settings(self):
+        dialog = ChatSettingsDialog(parent=self.display.frame, orig_params=self.state.chat_preferences)
+        self.refresh_textbox()
 
     def has_focus(self, widget):
         return self.display.textbox.focus_displayof() == widget
