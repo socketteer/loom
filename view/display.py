@@ -154,6 +154,8 @@ class Display:
         if self.state.preferences["side_pane"]:
             self.open_side()
 
+        #self.destroy_chapter_nav()
+
     #################################
     #   Main frame
     #################################
@@ -171,8 +173,6 @@ class Display:
 
         self.vis = TreeVis(self.story_frame,
                            self.state, self.controller)
-
-
 
         self.bottom_input_frame = ttk.Frame(self.main_frame)
         self.bottom_input_frame.pack(side="bottom", fill="both")
@@ -298,9 +298,8 @@ class Display:
         # Tree nav
         self._build_treeview(self.nav_frame, "nav_tree", "nav_scrollbarx", "nav_scrollbary")
         self.nav_pane.add(self.nav_tree, weight=3)
-        # Chapter nav
-        self._build_treeview(self.nav_frame, "chapter_nav_tree")
-        self.nav_pane.add(self.chapter_nav_tree, weight=1)
+
+        self.build_chapter_nav()
 
         # Make display nav (but not chapter) selection update real selection (e.g. arrow keys
         f = self.callbacks["Nav Select"]["callback"]
@@ -322,6 +321,9 @@ class Display:
         for btn in buttons:
             self.build_button(self.nav_frame, *btn)
 
+    def build_chapter_nav(self):
+        self._build_treeview(self.nav_frame, "chapter_nav_tree")
+        self.nav_pane.add(self.chapter_nav_tree, weight=1)
 
     # # TODO make a scrollable obj so I don't have to keep doing this
     def _build_treeview(self, frame, tree_attr, scrollbarx_attr=None, scrollbary_attr=None):
@@ -407,6 +409,16 @@ class Display:
             self.scope_select = None
             self.change_root_button = None
             self.delete_note_button = None
+
+    # TODO chapter_nav_frame is currently not used
+    def destroy_chapter_nav(self):
+        print('destroy chapter nav')
+        if self.chapter_nav_frame is not None:
+            print('destroying')
+            self.chapter_nav_frame.pack_forget()
+            self.chapter_nav_frame.destroy()
+            self.chapter_nav_tree = None
+            self.chapter_nav_scrollbarx = None
 
     #################################
     #   Edit mode

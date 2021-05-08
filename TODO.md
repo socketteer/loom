@@ -8,9 +8,9 @@
     - dialogue
     - antisummarization 
     - account for additional prompt length (abstract)
+    - save generation mode metadata
  
 - presets
-    - load preset
     - save preset
     - toggle whether context appears in textbox
     - toggle whether context remains in prompt

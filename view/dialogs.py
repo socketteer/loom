@@ -10,6 +10,7 @@ from util.util_tk import create_side_label, create_label, Entry, create_button, 
 from util.util_tree import search
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 import math
+import json
 
 
 class InfoDialog(Dialog):
@@ -650,7 +651,8 @@ class ChatSettingsDialog(Dialog):
         self.AI_name_textbox = None
         self.player_name_textbox = None
         self.context_textbox = None
-        self.preset = tk.StringVar
+        self.preset = tk.StringVar()
+        self.presets_dict = None
         self.vars = {
             'AI_name': tk.StringVar,
             'player_name': tk.StringVar,
@@ -668,34 +670,61 @@ class ChatSettingsDialog(Dialog):
         create_side_label(master, "AI name", row)
         self.AI_name_textbox = TextAware(self.master, height=1)
         self.AI_name_textbox.insert(tk.INSERT, self.vars['AI_name'].get())
-        self.AI_name_textbox.grid(row=row, column=1)
+        self.AI_name_textbox.grid(row=row, column=1, columnspan=3)
+        self.AI_name_textbox.configure(
+            foreground=text_color(),
+            background=bg_color())
         row = master.grid_size()[1]
         create_side_label(master, "Player name", row)
         self.player_name_textbox = TextAware(self.master, height=1)
         self.player_name_textbox.insert(tk.INSERT, self.vars['player_name'].get())
-        self.player_name_textbox.grid(row=row, column=1)
-        row = master.grid_size()[1]
+        self.player_name_textbox.grid(row=row, column=1, columnspan=3)
+        self.player_name_textbox.configure(
+            foreground=text_color(),
+            background=bg_color())
 
-        create_side_label(master, "Context (prepended to AI input)", row)
+        row = master.grid_size()[1]
+        create_side_label(master, "Context (prepended)", row)
         self.context_textbox = TextAware(self.master, height=4)
         self.context_textbox.insert(tk.INSERT, self.vars['context'].get())
-        self.context_textbox.grid(row=row, column=1)
+        self.context_textbox.grid(row=row, column=1, columnspan=3)
+        self.context_textbox.configure(
+            foreground=text_color(),
+            background=bg_color(),
+            padx=3,
+            wrap="word",
+        )
 
         row = master.grid_size()[1]
-        create_side_label(master, "Use preset", row)
+        create_side_label(master, "Preset", row)
 
-        # TODO load json
-        options = ['GPT-3/researcher', 'chatroulette']
+        with open('./config/chat_presets.json') as f:
+            self.presets_dict = json.load(f)
+        options = [p['preset_name'] for p in self.presets_dict.values()]
+        #options = ['GPT-3/researcher', 'chatroulette']
         #self.preset.set(options[0])
         dropdown = tk.OptionMenu(master, self.preset, *options)
         dropdown.grid(row=row, column=1, pady=3)
         button = create_button(master, "Apply", self.apply_preset)
         button.grid(row=row, column=2, sticky='w')
+        button = create_button(master, "Save preset", self.save_preset)
+        button.grid(row=row, column=3, sticky='w')
 
     def apply_preset(self):
-        pass
+        new_preset = self.presets_dict[self.preset.get()]
+        self.AI_name_textbox.delete("1.0", "end")
+        self.player_name_textbox.delete("1.0", "end")
+        self.context_textbox.delete("1.0", "end")
 
-    # TODO save as preset
+        self.AI_name_textbox.insert(tk.INSERT, new_preset['AI_name'])
+        self.player_name_textbox.insert(tk.INSERT, new_preset['player_name'])
+        self.context_textbox.insert(tk.INSERT, new_preset['context'])
+
+    # TODO checkbox for show prepended context in story box
+    # TODO preset name textbox
+
+    def save_preset(self):
+        pass
 
     def apply(self):
         self.orig_params['AI_name'] = self.AI_name_textbox.get("1.0", 'end-1c')

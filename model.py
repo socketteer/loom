@@ -774,8 +774,6 @@ class TreeModel:
     #   Generation
     #################################
 
-    # TODO remove repeated text
-    # TODO dont inject player name; do that in submit
     def chat_generate(self, prompt, nodes):
         print('chat generate')
         start_text = ''
@@ -816,6 +814,7 @@ class TreeModel:
                 # remove offset of prompt
                 # TODO fix old nodes
                 # TODO is this right?
+                # TODO save chat metadata and align tokens when selecting
                 corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
                 node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
         else:
