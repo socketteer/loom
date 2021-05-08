@@ -177,7 +177,7 @@ class Display:
         self.bottom_input_frame = ttk.Frame(self.main_frame)
         self.bottom_input_frame.pack(side="bottom", fill="both")
 
-        self.bottom_frame = ttk.Frame(self.main_frame)
+        self.bottom_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)#ttk.Frame(self.main_frame)
         self.bottom_frame.pack(side="bottom", fill="both")
         # Button bar        self.input_frame.pack(side="bottom", fill="x")
         self.build_main_buttons(self.bottom_frame)
@@ -200,7 +200,7 @@ class Display:
 
 
         self.input_frame = ttk.Frame(self.bottom_input_frame, width=500, height=20)
-        self.input_box = TextAware(self.input_frame, bd=3, height=1, undo=True)
+        self.input_box = TextAware(self.input_frame, bd=3, height=2, undo=True)
         readable_font = Font(family="Georgia", size=12)
         self.input_box.pack(expand=True, fill='x')
         self.input_box.configure(

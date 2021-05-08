@@ -508,7 +508,6 @@ class EditMemory(Dialog):
 
 class PreferencesDialog(Dialog):
     def __init__(self, parent, orig_params):
-        #print(orig_params)
         self.orig_params = orig_params
         self.vars = {
             "canonical_only": tk.BooleanVar,

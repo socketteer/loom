@@ -1,7 +1,5 @@
 # priority 
 
-- various problems when opening a new tree
-
 - generation 
     - stop sequences (comma separated)
     - logit bias
@@ -33,14 +31,11 @@
 # bugs
 
 * key bindings only work in most recent tab
-* have to close tab before opening file
-* chapter nav tree scrollbar
 * num leaves calculated incorrectly
 * ctrl+space sometimes clicks button
 * ctrl+y hotkey (chapter dialog) sometimes doesn't work
 * importing tree causes file to be renamed to name of imported file
-* clicking history sometimes causes index error
-* memory dialog closes when you press enter
+* clicking textbox sometimes causes index error
 * display history bug - seen with astronomer -> spirals (try disabling context window highlighting)
 * saving is slow for massive trees
 * reinserting into nav tree causes change in node ordering
@@ -86,11 +81,9 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 # Windows
 
 * debugger
-* multimedia
 * gpt3 stuff
 * minimap
 * floating notes
-* memories
 
 # Display
  
@@ -107,6 +100,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 # Tree topology
 
+* always have secret root node
 * create parent for root node
 * multiple root nodes (from single empty root?)
     * hotkey to create new root
@@ -163,16 +157,11 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 ### GPT-3
 
-* view logprobs and alternative tokens 
-    * replace with alternative tokens
 * define pre and post prompt
 * active side prompts like "Who is the main character in this story?"
 * playground-like interface
 * load gpt-3 program
 * min cutoff length for adaptive branching
-* hover + hotkey(s) to access alternate tokens 
-    * hotkey to apply change
-    * hotkey to begin new branch with counterfactual word
 
 ### AI memory
 
@@ -183,8 +172,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 **memory system**
 
-- save multiple memory entries for each node
-- should memory use pointers like chapter?
 - importing
     - memories from ancestry
     - by search (multiverse or ancestry)
@@ -196,7 +183,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
         - search only manually saved entries
 - when changing memory, option to create new entry vs edit existing one
 - create memory entry by highlighting
-- summary associated with node; goes into memory once node exits context window
 
 **saving memory entries**
 

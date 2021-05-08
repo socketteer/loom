@@ -969,6 +969,7 @@ class Controller:
 
     @metadata(name="Preferences", keys=[], display_key="")
     def preferences(self):
+        print(self.state.preferences)
         dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
         self.refresh_textbox()
         self.refresh_display()
@@ -999,7 +1000,10 @@ class Controller:
         if input_text:
             current_text = self.state.selected_node['text']
             new_child = self.create_child(toggle_edit=False)
-            new_child['text'] = input_text
+            if self.state.preferences['gpt_mode'] == 'chat':
+                new_child['text'] = '\n' + self.state.chat_preferences['player_name'] + ': ' + input_text
+            else:
+                new_child['text'] = input_text
             self.display.input_box.delete("1.0", "end")
             if current_text[-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*']:
                 self.prepend_space()

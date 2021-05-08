@@ -45,9 +45,6 @@ class Application:
         self.app_data = None
         self.initialize_app_state()
 
-        # Build the menu bar
-        self.build_menus()
-
         # Bind Button-1 to tab click so tabs can be closed
         self.notebook.bind('<Button-1>', self.tab_click)
         self.notebook.bind()
@@ -90,12 +87,14 @@ class Application:
 
     # Create a tab
     def create_tab(self, filename=None, event=None):
-        if len(self.tabs) > 0:
-            messagebox.showwarning("Error", "Only use one tab right now. hehe")
-            return
+        # if len(self.tabs) > 0:
+        #     messagebox.showwarning("Error", "Only use one tab right now. hehe")
+        #     return
         tab = Controller(self.root)
         self.tabs.append(tab)
         self.notebook.add(tab.display.frame, text=f"Tab {len(self.tabs)}")
+        # Build the menu bar
+        self.build_menus()
 
         tab.state.register_callback(tab.state.io_update, self.update_app_data)
         if filename is not None:
@@ -118,6 +117,7 @@ class Application:
         if "close" in event.widget.identify(event.x, event.y):
             index = self.notebook.index(f"@{event.x},{event.y}")
             self.close_tab(index=index)
+        self.build_menus()
 
 
     def set_tab_names(self):
@@ -129,6 +129,8 @@ class Application:
     # Build the applications menubar
     # TODO Splitting between here and tab is bad. Move this to the tab
     def build_menus(self):
+        if hasattr(self, "menu"):
+            self.menu.destroy()
         menu_list = defaultdict(list, {
             "File": [
                 #('New Tab', 'Ctrl+N', '<Control-n>', self.create_tab),
@@ -142,9 +144,9 @@ class Application:
                 ('Quit', 'Ctrl+Q', '<Control-q>', self.quit_app)
             ]
         })
-        for menu, items in self.tabs[0].build_menus().items():
+        for menu, items in self.tabs[self.notebook.index("current")].build_menus().items():
             menu_list[menu].extend(items)
-        create_menubar(self.root, menu_list)
+        self.menu = create_menubar(self.root, menu_list)
 
 
     # Forward the given command to the current display controller

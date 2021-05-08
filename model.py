@@ -775,9 +775,14 @@ class TreeModel:
     #################################
 
     # TODO remove repeated text
-    # TODO detect whether in the middle or beginning of dialog and dont inject start text in the former case
+    # TODO dont inject player name; do that in submit
     def chat_generate(self, prompt, nodes):
-        start_text = '\n' + self.chat_preferences['AI_name'] + ':'
+        print('chat generate')
+        start_text = ''
+
+        # only inject start text if current node isn't AI
+        if not self.selected_node['text'].startswith('\n' + self.chat_preferences['AI_name']):
+            start_text += '\n' + self.chat_preferences['AI_name'] + ':'
         restart_text = '\n' + self.chat_preferences['player_name'] + ':'
         prompt = self.chat_preferences['context'] + '\n' + prompt + start_text
         try:
@@ -798,7 +803,7 @@ class TreeModel:
                     # parent = self.parent(node)
                     # parent["children"].remove(node)
                     continue
-                node["text"] = start_text + results.choices[index]["text"] + restart_text
+                node["text"] = start_text + results.choices[index]["text"]
                 node["meta"] = {}
                 node["meta"]["generation"] = results.choices[index]
                 node["meta"]["generation"]["model"] = results["model"]
