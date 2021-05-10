@@ -230,8 +230,9 @@ class Controller:
 
     @metadata(name="Go to child", keys=["<Right>", "<Control-Right>"], display_key="→")
     def child(self):
-        #self.state.select_child(0)
-        self.select_node(node=self.state.child(0))
+        child_id = self.state.child(0)
+        if child_id is not None:
+            self.select_node(node=self.state.tree_node_dict[child_id])
 
     @metadata(name="Go to next sibling", keys=["<Down>", "<Control-Down>"], display_key="↓")
     def next_sibling(self):

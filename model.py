@@ -398,7 +398,12 @@ class TreeModel:
         if not node:
             return
 
-        new_parent = self.new_node()
+        new_parent = {
+            "id": str(uuid.uuid1()),
+            "text": "",
+            "children": [node]
+        }
+
         if "parent_id" not in node:
             assert self.tree_raw_data["root"] == node
             self.tree_raw_data["root"] = new_parent

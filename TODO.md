@@ -3,6 +3,7 @@
 - generation 
     - stop sequences (comma separated)
     - logit bias
+    - multiverse generation options (depth, branching factor, branching interval/conditions)
  
 - gpt modes
     - dialogue
