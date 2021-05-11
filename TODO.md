@@ -1,5 +1,7 @@
 # priority 
 
+- autocomplete mode
+
 - generation 
     - stop sequences (comma separated)
     - logit bias

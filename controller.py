@@ -1016,6 +1016,48 @@ class Controller:
     def debug(self):
         pass
 
+    @metadata(name="Autocomplete", keys=["<Alt_L>"], display_key="", in_autocomplete=False, autocomplete_range=None,
+              possible_tokens=None, token_index=None)
+    def autocomplete(self):
+        self.display.input_box.tag_config('autocomplete', background="blue")
+        # TODO determine whether in edit mode, input box, or vis textbox
+        if self.has_focus(self.display.input_box):
+            if not self.autocomplete.meta["in_autocomplete"]:
+                self.autocomplete.meta["possible_tokens"] = self.state.generate_autocomplete(self.display.input_box.get("1.0", "end-1c"), engine='curie')
+                self.autocomplete.meta["token_index"] = 0
+                self.autocomplete.meta["in_autocomplete"] = True
+            else:
+                self.autocomplete.meta["token_index"] += 1
+                self.display.input_box.delete(*self.autocomplete.meta["autocomplete_range"])
+            self.insert_autocomplete()
+
+    def insert_autocomplete(self):
+        insert = self.display.input_box.index(tk.INSERT)
+        suggested_token = self.autocomplete.meta["possible_tokens"][self.autocomplete.meta["token_index"]][0]
+        self.autocomplete.meta["autocomplete_range"] = (insert, f'insert + {str(len(suggested_token))} chars')
+        self.display.input_box.insert(tk.INSERT, suggested_token, "autocomplete")
+        self.display.input_box.mark_set(tk.INSERT, insert)
+
+    @metadata(name="Apply Autocomplete", keys=["<Alt_R>"], display_key="")
+    def apply_autocomplete(self):
+        if self.autocomplete.meta["in_autocomplete"]:
+            self.display.input_box.tag_delete("autocomplete")
+            self.display.input_box.mark_set(tk.INSERT, self.autocomplete.meta["autocomplete_range"][1])
+            self.exit_autocomplete()
+
+
+    @metadata(name="Key Pressed", keys=[], display_key="")
+    def key_pressed(self, char):
+        if char and self.autocomplete.meta["in_autocomplete"]:
+            self.display.input_box.delete(*self.autocomplete.meta["autocomplete_range"])
+            self.exit_autocomplete()
+
+    def exit_autocomplete(self):
+        self.autocomplete.meta["autocomplete_range"] = None
+        self.autocomplete.meta["in_autocomplete"] = False
+        self.autocomplete.meta["token_index"] = None
+        self.autocomplete.meta["possible_tokens"] = None
+
     @metadata(name="Chat settings", keys=[], display_key="")
     def chat_settings(self):
         dialog = ChatSettingsDialog(parent=self.display.frame, orig_params=self.state.chat_preferences)

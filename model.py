@@ -780,7 +780,6 @@ class TreeModel:
     #################################
 
     def chat_generate(self, prompt, nodes):
-        print('chat generate')
         start_text = ''
 
         # only inject start text if current node isn't AI
@@ -945,9 +944,29 @@ class TreeModel:
         if update_selection:
             self.select_node(children[0]["id"])
 
+    def generate_autocomplete(self, appended_text, engine='curie'):
+        # TODO memory and chat presets - abstract this
+        # TODO apply submit modifiers to appended text
+        prompt = "".join(self.node_ancestry_text(self.selected_node)[0])
+        prompt_length = 700
+        prompt = prompt + appended_text
+
+        prompt = prompt[-prompt_length:]
+        results, error = api_generate(prompt=prompt,
+                               length=1,  # TODO 3 or so
+                               num_continuations=1,
+                               temperature=0,
+                               top_p=self.generation_settings['top_p'],
+                               engine=engine
+                               # TODO stop
+                               )
+
+        counterfactuals = results.choices[0]['logprobs']['top_logprobs'][0]
+        sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
+        return sorted_counterfactuals
 
 
-    # TODO range
+        # TODO range
     def semantic_search_memory(self, node, document_limit=100, max_length=1000):
         documents = []
 

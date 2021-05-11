@@ -214,10 +214,16 @@ class Display:
             spacing3=5,
             wrap="word",
         )
+
+        self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
+
         self.submit_button = ttk.Button(self.input_frame, text="Submit",
                                         command=self.callbacks["Submit"]["callback"], width=10)
         self.submit_button.pack(side='right')
         self.input_frame.pack(side="bottom", expand=True, fill="both")
+
+    def key_pressed(self, event=None):
+        self.callbacks["Key Pressed"]["callback"](char=event.char)
 
     def destroy_input_box(self):
         if self.input_frame is not None:
