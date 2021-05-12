@@ -945,8 +945,8 @@ class TreeModel:
             self.select_node(children[0]["id"])
 
     def generate_autocomplete(self, appended_text, engine='curie'):
-        # TODO memory and chat presets - abstract this
-        # TODO apply submit modifiers to appended text
+        # TODO memory and chat prepending - abstract this
+        appended_text = self.submit_modifications(appended_text)
         prompt = "".join(self.node_ancestry_text(self.selected_node)[0])
         prompt_length = 700
         prompt = prompt + appended_text
@@ -993,3 +993,18 @@ class TreeModel:
                     #print('deleted logprobs')
         for child in root['children']:
             self.delete_counterfactuals(root=child)
+
+
+    # modifications made to text submitted using input box
+    def submit_modifications(self, text):
+        if self.preferences['gpt_mode'] == 'chat':
+            if text and text[0] != ' ':
+                modified_text = '\n' + self.chat_preferences['player_name'] + ': ' + text
+            else:
+                modified_text = '\n' + self.chat_preferences['player_name'] + ':' + text
+        else:
+            if text and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] and text[0] != ' ':
+                modified_text = ' ' + text
+            else:
+                modified_text = text
+        return modified_text

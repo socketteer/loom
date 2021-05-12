@@ -999,15 +999,18 @@ class Controller:
     def submit(self):
         input_text = self.display.input_box.get("1.0", 'end-1c')
         if input_text:
-            current_text = self.state.selected_node['text']
+            new_text = self.state.submit_modifications(input_text)
+            #current_text = self.state.selected_node['text']
             new_child = self.create_child(toggle_edit=False)
-            if self.state.preferences['gpt_mode'] == 'chat':
-                new_child['text'] = '\n' + self.state.chat_preferences['player_name'] + ': ' + input_text
-            else:
-                new_child['text'] = input_text
+            # if self.state.preferences['gpt_mode'] == 'chat':
+            #     new_child['text'] = '\n' + self.state.chat_preferences['player_name'] + ': ' + input_text
+            # else:
+            #     new_child['text'] = input_text
+            #
+            # if current_text[-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*']:
+            #     self.prepend_space()
             self.display.input_box.delete("1.0", "end")
-            if current_text[-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*']:
-                self.prepend_space()
+            new_child['text'] = new_text
             self.state.tree_updated(add=[new_child['id']])
         if self.state.preferences['auto_response']:
             self.generate()
