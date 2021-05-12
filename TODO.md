@@ -1,6 +1,11 @@
 # priority 
 
 - autocomplete mode
+    - submit preprocessing
+    - edit mode and vis
+    - longer range mode?
+    - more than one token for first (worth latency)?
+    - save counterfactuals?
 
 - generation 
     - stop sequences (comma separated)

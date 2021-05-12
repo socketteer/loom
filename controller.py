@@ -1026,10 +1026,10 @@ class Controller:
                 self.autocomplete.meta["possible_tokens"] = self.state.generate_autocomplete(self.display.input_box.get("1.0", "end-1c"), engine='curie')
                 self.autocomplete.meta["token_index"] = 0
                 self.autocomplete.meta["in_autocomplete"] = True
+                self.insert_autocomplete()
             else:
-                self.autocomplete.meta["token_index"] += 1
-                self.display.input_box.delete(*self.autocomplete.meta["autocomplete_range"])
-            self.insert_autocomplete()
+                self.scroll_autocomplete(1)
+
 
     def insert_autocomplete(self):
         insert = self.display.input_box.index(tk.INSERT)
@@ -1038,12 +1038,25 @@ class Controller:
         self.display.input_box.insert(tk.INSERT, suggested_token, "autocomplete")
         self.display.input_box.mark_set(tk.INSERT, insert)
 
-    @metadata(name="Apply Autocomplete", keys=["<Alt_R>"], display_key="")
+    # TODO <Right> doesn't work
+    @metadata(name="Apply Autocomplete", keys=["<Alt_R>", "<Right>"], display_key="")
     def apply_autocomplete(self):
-        if self.autocomplete.meta["in_autocomplete"]:
+        if self.has_focus(self.display.input_box) and self.autocomplete.meta["in_autocomplete"]:
             self.display.input_box.tag_delete("autocomplete")
             self.display.input_box.mark_set(tk.INSERT, self.autocomplete.meta["autocomplete_range"][1])
             self.exit_autocomplete()
+
+    @metadata(name="Rewind Autocomplete", keys=["<Control_L>"], display_key="")
+    def rewind_autocomplete(self):
+        if self.has_focus(self.display.input_box) and self.autocomplete.meta["in_autocomplete"]:
+            self.scroll_autocomplete(-1)
+
+    def scroll_autocomplete(self, step=1):
+        new_index = self.autocomplete.meta["token_index"] + step
+        if 0 <= new_index < 100:
+            self.autocomplete.meta["token_index"] = new_index
+            self.display.input_box.delete(*self.autocomplete.meta["autocomplete_range"])
+            self.insert_autocomplete()
 
 
     @metadata(name="Key Pressed", keys=[], display_key="")

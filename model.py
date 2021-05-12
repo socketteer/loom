@@ -953,13 +953,14 @@ class TreeModel:
 
         prompt = prompt[-prompt_length:]
         results, error = api_generate(prompt=prompt,
-                               length=1,  # TODO 3 or so
-                               num_continuations=1,
-                               temperature=0,
-                               top_p=self.generation_settings['top_p'],
-                               engine=engine
-                               # TODO stop
-                               )
+                                      length=1,  # TODO 3 or so
+                                      num_continuations=1,
+                                      temperature=0,
+                                      logprobs=100,
+                                      top_p=self.generation_settings['top_p'],
+                                      engine=engine
+                                      # TODO stop
+                                      )
 
         counterfactuals = results.choices[0]['logprobs']['top_logprobs'][0]
         sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
