@@ -1022,9 +1022,10 @@ class Controller:
     @metadata(name="Autocomplete", keys=["<Alt_L>"], display_key="", in_autocomplete=False, autocomplete_range=None,
               possible_tokens=None, token_index=None)
     def autocomplete(self):
-        self.display.input_box.tag_config('autocomplete', background="blue")
+
         # TODO determine whether in edit mode, input box, or vis textbox
         if self.has_focus(self.display.input_box):
+            self.display.input_box.tag_config('autocomplete', background="blue")
             if not self.autocomplete.meta["in_autocomplete"]:
                 self.autocomplete.meta["possible_tokens"] = self.state.generate_autocomplete(self.display.input_box.get("1.0", "end-1c"), engine='curie')
                 self.autocomplete.meta["token_index"] = 0
