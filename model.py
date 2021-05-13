@@ -785,7 +785,7 @@ class TreeModel:
         # only inject start text if current node isn't AI
         if not self.selected_node['text'].startswith('\n' + self.chat_preferences['AI_name']):
             start_text += '\n' + self.chat_preferences['AI_name'] + ':'
-        restart_text = '\n' + self.chat_preferences['player_name'] + ':'
+        # restart_text = '\n' + self.chat_preferences['player_name'] + ':'
         prompt = self.chat_preferences['context'] + '\n' + prompt + start_text
         try:
             results, error = api_generate(prompt=prompt,
@@ -867,24 +867,25 @@ class TreeModel:
                     grandchild_text = result["text"][split_position:]
                     nodes[i]["text"] = childtext
                     grandchildren[i]["text"] = grandchild_text
-                    # TODO meta
+                    # TODO metadata
 
             else:
-                for index, node in enumerate(nodes):
-                    node["text"] = results.choices[index]["text"]
-                    node["meta"] = {}
-                    node["meta"]["generation"] = results.choices[index]
-                    node["meta"]["generation"]["model"] = results["model"]
-                    node["meta"]["generation"]["prompt"] = prompt
-                    # created
-                    node["meta"]["modified"] = False
-                    node["meta"]["origin"] = "generated"
-                    node["meta"]["source"] = "AI"
-
-                    # remove offset of prompt
-                    # TODO fix old nodes
-                    corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
-                    node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
+                # for index, node in enumerate(nodes):
+                #     node["text"] = results.choices[index]["text"]
+                #     node["meta"] = {}
+                #     node["meta"]["generation"] = results.choices[index]
+                #     node["meta"]["generation"]["model"] = results["model"]
+                #     node["meta"]["generation"]["prompt"] = prompt
+                #     # created
+                #     node["meta"]["modified"] = False
+                #     node["meta"]["origin"] = "generated"
+                #     node["meta"]["source"] = "AI"
+                #
+                #     # remove offset of prompt
+                #     # TODO fix old nodes
+                #     corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
+                #     node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
+                self.generated_nodes_metadata(nodes, results, prompt)
 
         else:
             print("ERROR. Deleting failures")
@@ -899,6 +900,25 @@ class TreeModel:
 
         # DO NOT CALL FROM THREAD: self.tree_updated()
         self.app.event_generate("<<NewNodes>>", when="tail")
+
+
+    def generated_nodes_metadata(self, nodes, results, prompt):
+        for index, node in enumerate(nodes):
+            node["text"] = results.choices[index]["text"]
+            node["meta"] = {}
+            node["meta"]["generation"] = results.choices[index]
+            node["meta"]["generation"]["model"] = results["model"]
+            node["meta"]["generation"]["prompt"] = prompt
+            # created
+            node["meta"]["modified"] = False
+            node["meta"]["origin"] = "generated"
+            node["meta"]["source"] = "AI"
+
+            # remove offset of prompt
+            # TODO fix old nodes
+            corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
+            node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
+
 
     def generate_continuation(self, node=None, update_selection=False):
         node = node if node else self.selected_node
