@@ -1,5 +1,7 @@
 # priority 
 
+ask before quitting if unsaved changes
+
 bug: mark as prompt doesn't always work? or display doesnt update
 
 - change gpt mode from text box
