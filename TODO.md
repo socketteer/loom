@@ -13,7 +13,6 @@ bug: mark as prompt doesn't always work? or display doesnt update
     - save counterfactuals?
 
 - generation 
-    - stop sequences (comma separated)
     - logit bias
     - multiverse generation options (depth, branching factor, branching interval/conditions)
  

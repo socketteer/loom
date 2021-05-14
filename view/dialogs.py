@@ -583,6 +583,7 @@ class GenerationSettingsDialog(Dialog):
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
         #self.memory_textbox = None
+        self.stop_textbox = None
 
         Dialog.__init__(self, parent, title="Generation Settings")
 
@@ -599,13 +600,21 @@ class GenerationSettingsDialog(Dialog):
             create_slider(master, name, self.vars[name], value_range)
 
 
+
         row = master.grid_size()[1]
-        create_side_label(master, "Use Janus?", row)
+        create_side_label(master, "stop (| delimited)", row)
+        self.stop_textbox = TextAware(master, height=1, width=20)
+        stop_var = self.orig_params.get("stop", '')
+        if not stop_var:
+            stop_var = ''
+        self.stop_textbox.insert("1.0", stop_var)
+        self.stop_textbox.grid(row=row, column=1)
+        create_side_label(master, "Use Janus?", row+1)
         check = ttk.Checkbutton(master, variable=self.vars["janus"])
-        check.grid(row=row, column=1, pady=3)
-        create_side_label(master, "Adaptive branching", row+1)
+        check.grid(row=row+1, column=1, pady=3)
+        create_side_label(master, "Adaptive branching", row+2)
         check2 = ttk.Checkbutton(master, variable=self.vars["adaptive"])
-        check2.grid(row=row+1, column=1, pady=3)
+        check2.grid(row=row+2, column=1, pady=3)
 
         create_combo_box(master, "Model", self.vars["model"], POSSIBLE_MODELS, width=20)
 
@@ -632,15 +641,15 @@ class GenerationSettingsDialog(Dialog):
     def reset_variables(self):
         for key, var in self.vars.items():
             var.set(self.orig_params[key])
-        #self.memory_textbox.delete("1.0", "end")
-        #self.memory_textbox.insert("1.0", self.orig_params["memory"])
+        self.stop_textbox.delete("1.0", "end")
+        self.stop_textbox.insert("1.0", self.orig_params["stop"])
 
 
     # Put the slider values into the result field
     def apply(self):
         for key, var in self.vars.items():
             self.orig_params[key] = var.get()
-        #self.orig_params["memory"] = self.memory_textbox.get("1.0", 'end-1c')
+        self.orig_params["stop"] = rf'{self.stop_textbox.get("1.0", "end-1c")}'
         self.result = self.orig_params
 
 

@@ -79,7 +79,7 @@ DEFAULT_GENERATION_SETTINGS = {
     "janus": False,
     "adaptive": False,
     "model": "davinci",
-    "stop": None,
+    "stop": '',# separated by '|'
     "start_text": None,
     "restart_text": None
 }
@@ -874,7 +874,7 @@ class TreeModel:
                                               top_p=self.generation_settings['top_p'],
                                               logprobs=30,
                                               engine=self.generation_settings['model'],
-                                              stop=self.generation_settings['stop']
+                                              stop=self.generation_settings["stop"].split('|')
                                               )
             except TypeError as e:
                 error = "Typeerror"
@@ -1027,3 +1027,5 @@ class TreeModel:
             else:
                 text = text
         return text
+
+
