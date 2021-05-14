@@ -783,9 +783,9 @@ class TreeModel:
         start_text = ''
 
         # only inject start text if current node isn't AI
+        # TODO what if more than one node ago? Use source attribute instead?
         if not self.selected_node['text'].startswith('\n' + self.chat_preferences['AI_name']):
             start_text += '\n' + self.chat_preferences['AI_name'] + ':'
-        # restart_text = '\n' + self.chat_preferences['player_name'] + ':'
         prompt = self.chat_preferences['context'] + '\n' + prompt + start_text
         try:
             results, error = api_generate(prompt=prompt,
@@ -800,44 +800,65 @@ class TreeModel:
             error = "Typeerror"
 
         if not error:
-            for index, node in enumerate(nodes):
-                if len(results.choices[index]["text"]) == 0:
-                    # parent = self.parent(node)
-                    # parent["children"].remove(node)
-                    continue
-                node["text"] = start_text + results.choices[index]["text"]
-                node["meta"] = {}
-                node["meta"]["generation"] = results.choices[index]
-                node["meta"]["generation"]["model"] = results["model"]
-                node["meta"]["generation"]["prompt"] = prompt
-                # created
-                node["meta"]["modified"] = False
-                node["meta"]["origin"] = "generated"
-                node["meta"]["source"] = "AI"
-
-                # remove offset of prompt
-                # TODO fix old nodes
-                # TODO is this right?
-                # TODO save chat metadata and align tokens when selecting
-                corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
-                node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
+            self.generated_nodes_metadata(nodes, results, prompt, prepend_text=start_text)
         else:
-            print("ERROR. Deleting failures")
-            for node in nodes:
-                node["text"] = "ERROR: " + error
-                # Just delete instead
-                parent = self.parent(node)
-                parent["children"].remove(node)
+            self.delete_failed_nodes(nodes, error)
+            return
 
         for result in results.choices:
             print("Generated continuation:\n", result['text'], "\nerror", error)
 
-        # DO NOT CALL FROM THREAD: self.tree_updated()
         self.app.event_generate("<<NewNodes>>", when="tail")
 
+    def dialogue_generate(self, prompt, nodes):
+        start_text = '\n"'
+        prompt = prompt + start_text
+        try:
+            results, error = api_generate(prompt=prompt,
+                                          length=self.generation_settings['response_length'],
+                                          num_continuations=len(nodes),
+                                          temperature=self.generation_settings['temperature'],
+                                          top_p=self.generation_settings['top_p'],
+                                          engine=self.generation_settings['model'],
+                                          stop=['\n'],
+                                          )
+        except TypeError as e:
+            error = "Typeerror"
 
+        if not error:
+            self.generated_nodes_metadata(nodes, results, prompt, prepend_text=start_text)
+        else:
+            self.delete_failed_nodes(nodes, error)
+            return
 
-    def generate_for_nodes(self, prompt, nodes, grandchildren=None):
+        for result in results.choices:
+            print("Generated continuation:\n", result['text'], "\nerror", error)
+
+        self.app.event_generate("<<NewNodes>>", when="tail")
+
+    def autocomplete_generate(self, appended_text, engine='curie'):
+        # TODO memory and chat prepending - abstract this
+        appended_text = self.submit_modifications(appended_text)
+        prompt = "".join(self.node_ancestry_text(self.selected_node)[0])
+        prompt_length = 700
+        prompt = prompt + appended_text
+
+        prompt = prompt[-prompt_length:]
+        results, error = api_generate(prompt=prompt,
+                                      length=1,  # TODO 3 or so
+                                      num_continuations=1,
+                                      temperature=0,
+                                      logprobs=100,
+                                      top_p=self.generation_settings['top_p'],
+                                      engine=engine
+                                      # TODO stop
+                                      )
+
+        counterfactuals = results.choices[0]['logprobs']['top_logprobs'][0]
+        sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
+        return sorted_counterfactuals
+
+    def default_generate(self, prompt, nodes, grandchildren=None):
         if self.generation_settings['janus']:
             pool = ThreadPool(len(nodes))
             janus_responses = pool.map(janus_generate, [prompt] * len(nodes))
@@ -870,30 +891,11 @@ class TreeModel:
                     # TODO metadata
 
             else:
-                # for index, node in enumerate(nodes):
-                #     node["text"] = results.choices[index]["text"]
-                #     node["meta"] = {}
-                #     node["meta"]["generation"] = results.choices[index]
-                #     node["meta"]["generation"]["model"] = results["model"]
-                #     node["meta"]["generation"]["prompt"] = prompt
-                #     # created
-                #     node["meta"]["modified"] = False
-                #     node["meta"]["origin"] = "generated"
-                #     node["meta"]["source"] = "AI"
-                #
-                #     # remove offset of prompt
-                #     # TODO fix old nodes
-                #     corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
-                #     node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
                 self.generated_nodes_metadata(nodes, results, prompt)
 
         else:
-            print("ERROR. Deleting failures")
-            for node in nodes:
-                node["text"] = "ERROR: " + error
-                # Just delete instead
-                parent = self.parent(node)
-                parent["children"].remove(node)
+            self.delete_failed_nodes(nodes, error)
+            return
 
         for result in results.choices:
             print("Generated continuation:\n", result['text'], "\nerror", error)
@@ -901,10 +903,9 @@ class TreeModel:
         # DO NOT CALL FROM THREAD: self.tree_updated()
         self.app.event_generate("<<NewNodes>>", when="tail")
 
-
-    def generated_nodes_metadata(self, nodes, results, prompt):
+    def generated_nodes_metadata(self, nodes, results, prompt, prepend_text='', append_text=''):
         for index, node in enumerate(nodes):
-            node["text"] = results.choices[index]["text"]
+            node["text"] = prepend_text + results.choices[index]["text"] + append_text
             node["meta"] = {}
             node["meta"]["generation"] = results.choices[index]
             node["meta"]["generation"]["model"] = results["model"]
@@ -919,6 +920,13 @@ class TreeModel:
             corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
             node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
 
+    def delete_failed_nodes(self, nodes, error):
+        print("ERROR. Deleting failures")
+        for node in nodes:
+            node["text"] = "ERROR: " + error
+            # Just delete instead
+            parent = self.parent(node)
+            parent["children"].remove(node)
 
     def generate_continuation(self, node=None, update_selection=False):
         node = node if node else self.selected_node
@@ -952,9 +960,14 @@ class TreeModel:
         prompt = memory + prompt
 
         if self.preferences['gpt_mode'] == 'default':
-            threading.Thread(target=self.generate_for_nodes, args=(prompt, children, grandchildren)).start()
+            threading.Thread(target=self.default_generate, args=(prompt, children, grandchildren)).start()
         elif self.preferences['gpt_mode'] == 'chat':
             threading.Thread(target=self.chat_generate, args=(prompt, children)).start()
+        elif self.preferences['gpt_mode'] == 'dialogue':
+            threading.Thread(target=self.dialogue_generate, args=(prompt, children)).start()
+        else:
+            print('ERROR: mode not implemented!')
+            return
 
         # After asking for the generation, set loading text
         for child in children:
@@ -964,28 +977,6 @@ class TreeModel:
         self.tree_updated(edit=new_nodes)
         if update_selection:
             self.select_node(children[0]["id"])
-
-    def generate_autocomplete(self, appended_text, engine='curie'):
-        # TODO memory and chat prepending - abstract this
-        appended_text = self.submit_modifications(appended_text)
-        prompt = "".join(self.node_ancestry_text(self.selected_node)[0])
-        prompt_length = 700
-        prompt = prompt + appended_text
-
-        prompt = prompt[-prompt_length:]
-        results, error = api_generate(prompt=prompt,
-                                      length=1,  # TODO 3 or so
-                                      num_continuations=1,
-                                      temperature=0,
-                                      logprobs=100,
-                                      top_p=self.generation_settings['top_p'],
-                                      engine=engine
-                                      # TODO stop
-                                      )
-
-        counterfactuals = results.choices[0]['logprobs']['top_logprobs'][0]
-        sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
-        return sorted_counterfactuals
 
 
         # TODO range
@@ -1020,12 +1011,19 @@ class TreeModel:
     def submit_modifications(self, text):
         if self.preferences['gpt_mode'] == 'chat':
             if text and text[0] != ' ':
-                modified_text = '\n' + self.chat_preferences['player_name'] + ': ' + text
+                text = '\n' + self.chat_preferences['player_name'] + ': ' + text
             else:
-                modified_text = '\n' + self.chat_preferences['player_name'] + ':' + text
+                text = '\n' + self.chat_preferences['player_name'] + ':' + text
+        elif self.preferences['gpt_mode'] == 'dialogue':
+            # add punctuation if there isn't any
+            if text[-1] not in [',', '.', '!', '?', '-']:
+                # TODO figure out most appropriate puntuation
+                text = text + '.'
+            text = '\n"' + text + '"'
         else:
+            # default
             if text and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] and text[0] != ' ':
-                modified_text = ' ' + text
+                text = ' ' + text
             else:
-                modified_text = text
-        return modified_text
+                text = text
+        return text

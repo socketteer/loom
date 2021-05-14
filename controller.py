@@ -1027,7 +1027,7 @@ class Controller:
         if self.has_focus(self.display.input_box):
             self.display.input_box.tag_config('autocomplete', background="blue")
             if not self.autocomplete.meta["in_autocomplete"]:
-                self.autocomplete.meta["possible_tokens"] = self.state.generate_autocomplete(self.display.input_box.get("1.0", "end-1c"), engine='curie')
+                self.autocomplete.meta["possible_tokens"] = self.state.autocomplete_generate(self.display.input_box.get("1.0", "end-1c"), engine='curie')
                 self.autocomplete.meta["token_index"] = 0
                 self.autocomplete.meta["in_autocomplete"] = True
                 self.insert_autocomplete()
