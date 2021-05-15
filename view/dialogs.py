@@ -618,21 +618,6 @@ class GenerationSettingsDialog(Dialog):
 
         create_combo_box(master, "Model", self.vars["model"], POSSIBLE_MODELS, width=20)
 
-        # create_label(master, "Memory")
-        # self.memory_textbox = ScrolledText(master, height=7)
-        # self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
-        # self.memory_textbox.configure(
-        #     font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
-        #     spacing1=10,
-        #     foreground=text_color(),  # Darkmode
-        #     background=bg_color(),
-        #     padx=3,
-        #     pady=3,
-        #     spacing2=5,  # Spacing between lines
-        #     spacing3=5,
-        #     wrap="word",
-        # )
-        # self.memory_textbox.insert("1.0", self.orig_params["memory"])
 
         create_button(master, "Reset", self.reset_variables)
 
@@ -649,7 +634,7 @@ class GenerationSettingsDialog(Dialog):
     def apply(self):
         for key, var in self.vars.items():
             self.orig_params[key] = var.get()
-        self.orig_params["stop"] = rf'{self.stop_textbox.get("1.0", "end-1c")}'
+        self.orig_params["stop"] = self.stop_textbox.get("1.0", "end-1c")
         self.result = self.orig_params
 
 

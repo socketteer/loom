@@ -9,6 +9,7 @@ import bisect
 import numpy as np
 from collections import defaultdict, ChainMap
 from multiprocessing.pool import ThreadPool
+import codecs
 
 from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip
@@ -867,6 +868,10 @@ class TreeModel:
             error = errors[0] if errors else None
         else:
             try:
+                if self.generation_settings["stop"]:
+                    stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
+                else:
+                    stop = None
                 results, error = api_generate(prompt=prompt,
                                               length=self.generation_settings['response_length'],
                                               num_continuations=len(nodes),
@@ -874,7 +879,7 @@ class TreeModel:
                                               top_p=self.generation_settings['top_p'],
                                               logprobs=30,
                                               engine=self.generation_settings['model'],
-                                              stop=self.generation_settings["stop"].split('|')
+                                              stop=stop
                                               )
             except TypeError as e:
                 error = "Typeerror"
@@ -1027,5 +1032,3 @@ class TreeModel:
             else:
                 text = text
         return text
-
-
