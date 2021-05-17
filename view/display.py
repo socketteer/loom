@@ -60,7 +60,9 @@ class Display:
         self.bottom_frame = None
         self.input_box = None
         self.input_frame = None
+        self.mode_select = None
         self.submit_button = None
+        self.mode_var = None
 
         self.multi_edit_frame = None
         self.multi_textboxes = None
@@ -217,10 +219,32 @@ class Display:
 
         self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
 
+        self.mode_var = tk.StringVar()
+        choices = ('default', 'chat', 'dialogue')
+        self.mode_select = tk.OptionMenu(self.input_frame, self.mode_var, *choices)
+        self.mode_var.trace('w', self.callbacks["Update mode"]["callback"])
+
+        tk.Label(self.input_frame, text="Mode", bg=bg_color(), fg=text_color()).pack(side='left')
+        self.mode_select.pack(side='left')
+
+
         self.submit_button = ttk.Button(self.input_frame, text="Submit",
                                         command=self.callbacks["Submit"]["callback"], width=10)
         self.submit_button.pack(side='right')
         self.input_frame.pack(side="bottom", expand=True, fill="both")
+
+    def dummy(self):
+        print('var changed!')
+
+    # def new_submit_options(self, options=None):
+    #     var = tk.StringVar()
+    #     var.set('')
+    #     self.mode_select['menu'].delete(0, 'end')
+    #
+    #     # Insert list of new options (tk._setit hooks them up to var)
+    #     new_choices = ('one', 'two', 'three')
+    #     for choice in new_choices:
+    #         self.mode_select['menu'].add_command(label=choice, command=tk._setit(var, choice))
 
     def key_pressed(self, event=None):
         self.callbacks["Key Pressed"]["callback"](char=event.char)

@@ -726,6 +726,7 @@ class TreeModel:
         self.tree_updated(rebuild=True)
         self.select_node(self.tree_raw_data.get("selected_node_id", self.nodes[0]["id"]))
 
+
     # Open a new tree json
     def open_tree(self, filename):
         self.tree_filename = os.path.abspath(filename)

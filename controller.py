@@ -94,6 +94,7 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.refresh_notes)
         self.state.register_callback(self.state.selection_updated, self.refresh_counterfactual_meta)
         self.state.register_callback(self.state.selection_updated, self.refresh_display)
+        self.state.register_callback(self.state.io_update, self.update_dropdown)
 
 
     def setup_key_bindings(self):
@@ -974,6 +975,7 @@ class Controller:
         dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
         self.refresh_textbox()
         self.refresh_display()
+        self.update_dropdown()
 
     # @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
     # def ancestry_semantic_search(self, node=None):
@@ -990,10 +992,18 @@ class Controller:
             if not self.state.preferences['input_box']:
                 self.display.build_input_box()
                 self.state.preferences['input_box'] = True
+                self.update_dropdown()
                 self.display.input_box.focus()
             else:
                 self.display.destroy_input_box()
                 self.state.preferences['input_box'] = False
+
+    def update_dropdown(self):
+        self.display.mode_var.set(self.state.preferences['gpt_mode'])
+
+    @metadata(name="Update mode", keys=[], display_key="")
+    def update_mode(self, *args):
+        self.state.preferences['gpt_mode'] = self.display.mode_var.get()
 
     @metadata(name="Submit", keys=[], display_key="")
     def submit(self):
