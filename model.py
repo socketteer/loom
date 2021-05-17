@@ -15,6 +15,7 @@ from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list
+from util.gpt_util import conditional_logprob
 
 
 # Calls any callbacks associated with the wrapped function
@@ -838,27 +839,6 @@ class TreeModel:
 
         self.app.event_generate("<<NewNodes>>", when="tail")
 
-    def autocomplete_generate(self, appended_text, engine='curie'):
-        # TODO memory and chat prepending - abstract this
-        appended_text = self.submit_modifications(appended_text)
-        prompt = "".join(self.node_ancestry_text(self.selected_node)[0])
-        prompt_length = 700
-        prompt = prompt + appended_text
-
-        prompt = prompt[-prompt_length:]
-        results, error = api_generate(prompt=prompt,
-                                      length=1,  # TODO 3 or so
-                                      num_continuations=1,
-                                      temperature=0,
-                                      logprobs=100,
-                                      top_p=self.generation_settings['top_p'],
-                                      engine=engine
-                                      # TODO stop
-                                      )
-
-        counterfactuals = results.choices[0]['logprobs']['top_logprobs'][0]
-        sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
-        return sorted_counterfactuals
 
     def default_generate(self, prompt, nodes, grandchildren=None):
         if self.generation_settings['janus']:
@@ -934,6 +914,42 @@ class TreeModel:
             parent = self.parent(node)
             parent["children"].remove(node)
 
+    def build_prompt(self, node=None, prompt_length=None, memory=True, quiet=True):
+        if not node:
+            node = self.selected_node
+        prompt = "".join(self.node_ancestry_text(node)[0])
+        if not prompt_length:
+            prompt_length = self.generation_settings['prompt_length']
+        prompt = prompt[-prompt_length:]
+        if memory:
+            memory_list = self.construct_memory(node)
+            memory = ' '.join(memory['text'] for memory in memory_list)
+        else:
+            memory = ''
+        if not quiet:
+            print("Memory:\n", memory)
+            print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
+        return memory + prompt
+
+
+    def autocomplete_generate(self, appended_text, engine='curie'):
+        # TODO memory and chat prepending - abstract this
+        appended_text = self.submit_modifications(appended_text)
+        prompt = self.build_prompt(prompt_length=2000) + appended_text
+        results, error = api_generate(prompt=prompt,
+                                      length=1,  # TODO 3 or so
+                                      num_continuations=1,
+                                      temperature=0,
+                                      logprobs=100,
+                                      top_p=self.generation_settings['top_p'],
+                                      engine=engine
+                                      # TODO stop
+                                      )
+
+        counterfactuals = results.choices[0]['logprobs']['top_logprobs'][0]
+        sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
+        return sorted_counterfactuals
+
     def generate_continuation(self, node=None, update_selection=False):
         node = node if node else self.selected_node
         if not node:
@@ -953,17 +969,8 @@ class TreeModel:
                 new_nodes.append(grandchild['id'])
 
         self.new_nodes.append(new_nodes)
-        #modified_ids = [n['id'] for n in subtree_list(node)]
         self.tree_updated(add=new_nodes)
-        prompt = "".join(self.node_ancestry_text(children[0])[0])
-        #memory = self.memory(node)
-        memory_list = self.construct_memory(node)
-        memory = ' '.join(memory['text'] for memory in memory_list)
-        prompt_length = self.generation_settings['prompt_length'] #- len(memory)
-        prompt = prompt[-prompt_length:]
-        print("Memory:\n", memory)
-        print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
-        prompt = memory + prompt
+        prompt = self.build_prompt(quiet=False)
 
         if self.preferences['gpt_mode'] == 'default':
             threading.Thread(target=self.default_generate, args=(prompt, children, grandchildren)).start()
@@ -1033,3 +1040,13 @@ class TreeModel:
             else:
                 text = text
         return text
+
+
+    #TODO token index
+    def score_counterfactual(self, node=None, target=None, context_breaker='', engine='curie'):
+        if not target:
+            return
+        if not node:
+            node = self.selected_node
+        story = self.build_prompt(node=node, memory=False)
+        return conditional_logprob(prompt=story+context_breaker, target=target, engine=engine)

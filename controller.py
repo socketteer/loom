@@ -1,6 +1,7 @@
 import functools
 import os
 import tkinter as tk
+import threading
 from collections import defaultdict, ChainMap
 from functools import reduce
 from pprint import pprint
@@ -1027,7 +1028,19 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
-        pass
+        threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
+                                                           target=' scary')).start()
+        threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
+                                                           target=' sexy')).start()
+        threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
+                                                           target=' weird')).start()
+        threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
+                                                           target=' interesting')).start()
+
+
+    def report_counterfactual(self, context_breaker, target):
+        print(f'{target}: ',
+              self.state.score_counterfactual(context_breaker=context_breaker, target=target, engine='davinci'))
 
     @metadata(name="Autocomplete", keys=["<Alt_L>"], display_key="", in_autocomplete=False, autocomplete_range=None,
               possible_tokens=None, token_index=None)
