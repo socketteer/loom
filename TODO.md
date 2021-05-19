@@ -16,9 +16,10 @@ bug: mark as prompt doesn't always work? or display doesnt update
     - logit bias
     - multiverse generation options (depth, branching factor, branching interval/conditions)
  
+- display gpt prompt mode
+ 
 - gpt modes
-    - dialogue
-    - antisummarization 
+    - dialogue        
     - account for additional prompt length (abstract)
     - save generation mode metadata
  

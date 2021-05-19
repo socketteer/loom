@@ -115,21 +115,6 @@ class Display:
         return button
 
 
-    def edit_history(self, txt, event=None):
-        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
-        self.callbacks["Edit history"]["callback"](index=char_index)
-
-    def goto_history(self, txt, event=None):
-        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
-        self.callbacks["Goto history"]["callback"](index=char_index)
-
-    def split_node(self, txt, event=None):
-        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
-        self.callbacks["Split node"]["callback"](index=char_index)
-
-    def select_token(self, txt, event=None):
-        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
-        self.callbacks["Select token"]["callback"](index=char_index)
 
     #################################
     #   Display
@@ -220,7 +205,7 @@ class Display:
         self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
 
         self.mode_var = tk.StringVar()
-        choices = ('default', 'chat', 'dialogue')
+        choices = ('default', 'chat', 'dialogue', 'antisummary')
         self.mode_select = tk.OptionMenu(self.input_frame, self.mode_var, *choices)
         self.mode_var.trace('w', self.callbacks["Update mode"]["callback"])
 
@@ -233,18 +218,6 @@ class Display:
         self.submit_button.pack(side='right')
         self.input_frame.pack(side="bottom", expand=True, fill="both")
 
-    def dummy(self):
-        print('var changed!')
-
-    # def new_submit_options(self, options=None):
-    #     var = tk.StringVar()
-    #     var.set('')
-    #     self.mode_select['menu'].delete(0, 'end')
-    #
-    #     # Insert list of new options (tk._setit hooks them up to var)
-    #     new_choices = ('one', 'two', 'three')
-    #     for choice in new_choices:
-    #         self.mode_select['menu'].add_command(label=choice, command=tk._setit(var, choice))
 
     def key_pressed(self, event=None):
         self.callbacks["Key Pressed"]["callback"](char=event.char)
@@ -272,6 +245,7 @@ class Display:
         textbox.bind("<Control-Shift-Button-1>", lambda event: self.goto_history(txt=textbox))
         textbox.bind("<Control-Alt-Button-1>", lambda event: self.split_node(txt=textbox))
         textbox.bind("<Alt-Button-1>", lambda event: self.select_token(txt=textbox))
+        textbox.bind("<Button-3>", lambda event: self.add_summary(txt=textbox))
         textbox.pack(expand=True, fill='both')
 
         readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
@@ -287,6 +261,27 @@ class Display:
             wrap="word",
         )
 
+
+    def edit_history(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Edit history"]["callback"](index=char_index)
+
+    def goto_history(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Goto history"]["callback"](index=char_index)
+
+    def split_node(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Split node"]["callback"](index=char_index)
+
+    def select_token(self, txt, event=None):
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Select token"]["callback"](index=char_index)
+
+    def add_summary(self, txt, event=None):
+        #print('clicked')
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Insert summary"]["callback"](index=char_index)
 
     def build_main_buttons(self, frame):
         self.button_bar = ttk.Frame(frame, width=500, height=20)

@@ -126,6 +126,7 @@ class TreeModel:
         # {chapter_id: chapter}
         self.chapters = None
         self.memories = None
+        self.summaries = None
         self.checkpoint = None
         self.canonical = None
 
@@ -175,6 +176,7 @@ class TreeModel:
 
     @event
     def edit_new_nodes(self):
+        print('new nodes:', self.new_nodes)
         self.tree_updated(edit=self.new_nodes[0])
         del self.new_nodes[0]
 
@@ -207,6 +209,20 @@ class TreeModel:
     # def memory(self, node):
     #     memory = get_inherited_attribute("memory", node, self.tree_node_dict)
     #     return memory if memory else self.generation_settings["memory"]
+
+    def ancestry(self, node=None):
+        node = node if node else self.selected_node
+        return node_ancestry(node, self.tree_node_dict)
+
+
+    # returns node ancestry starting from root
+    def ancestry_since(self, root, node=None):
+        node = node if node else self.selected_node
+        ancestry = self.ancestry(node)
+        i = 0
+        while ancestry[i]['id'] != root['id']:
+            i += 1
+        return ancestry[i:]
 
     def node_ancestry_text(self, node=None):
         node = node if node else self.selected_node
@@ -553,6 +569,33 @@ class TreeModel:
         # if edited:
         #     self.tree_updated()
 
+    def split_node(self, node, split_index):
+        new_parent = self.create_parent(node)
+        parent_text = node['text'][:split_index]
+        child_text = node['text'][split_index:]
+
+        if parent_text[-1] == ' ':
+            child_text = ' ' + child_text
+            parent_text = parent_text[:-1]
+
+        new_parent["text"] = parent_text
+        node["text"] = child_text
+
+        new_parent["meta"] = {}
+        new_parent['meta']['origin'] = f'split (from child {node["id"]})'
+        if 'summaries' in node:
+            print('moving summaries to parent')
+            print('summaries:', node['summaries'])
+            new_parent['summaries'] = node['summaries']
+            for summary_id in new_parent['summaries']:
+                summary = self.summaries[summary_id]
+                summary['root_id'] = new_parent['id']
+            node['summaries'] = []
+            print(new_parent['summaries'])
+            print(node['summaries'])
+        self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
+        return new_parent, node
+
     #################################
     #   Chapters
     #################################
@@ -613,7 +656,7 @@ class TreeModel:
         return canonical_set
 
     #################################
-    #   Memory
+    #   Memory, summaries
     #################################
 
     def create_memory_entry(self, node, text, inheritability='none'):
@@ -650,6 +693,39 @@ class TreeModel:
                         memories.append(memory)
         return memories
 
+    def create_summary(self, root_node, end_node, summary_text):
+        new_summary = {
+            "id": str(uuid.uuid1()),
+            "root_id": root_node["id"],
+            "end_id": end_node["id"],
+            "text": summary_text,
+        }
+
+        self.summaries[new_summary['id']] = new_summary
+
+        if 'summaries' not in root_node:
+            root_node['summaries'] = []
+
+        root_node['summaries'].append(new_summary['id'])
+
+    def delete_summary(self, summary):
+        self.summaries.pop(summary['id'])
+        root_node = self.tree_node_dict[summary["root_id"]]
+        root_node['summmaries'].remove(summary['id'])
+
+    def past_summaries(self, node=None):
+        node = node if node else self.selected_node
+        ancestry = self.ancestry(node)
+        ancestry_ids = [ancestor['id'] for ancestor in ancestry]
+        summaries = []
+        for i, ancestor in enumerate(ancestry):
+            if 'summaries' in ancestor:
+                for summary_id in ancestor['summaries']:
+                    summary = self.summaries[summary_id]
+                    if summary['end_id'] in ancestry_ids:
+                        summaries.append(summary)
+        return summaries
+
 
     #returns first node that is fully in the context window
     def context_window_index(self):
@@ -679,6 +755,10 @@ class TreeModel:
         if 'memories' not in self.tree_raw_data:
             self.tree_raw_data['memories'] = {}
         self.memories = self.tree_raw_data["memories"]
+
+        if 'summaries' not in self.tree_raw_data:
+            self.tree_raw_data['summaries'] = {}
+        self.summaries = self.tree_raw_data["summaries"]
 
         # Generation settings
         self.tree_raw_data["generation_settings"] = {
@@ -839,6 +919,40 @@ class TreeModel:
 
         self.app.event_generate("<<NewNodes>>", when="tail")
 
+    def antisummary_generate(self, prompt, nodes, summary):
+        start_text = f'\n\n[{summary}]\n'
+        prompt = prompt + start_text
+        print('antisummary prompt:\n', prompt)
+        try:
+            if self.generation_settings["stop"]:
+                stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
+            else:
+                stop = []
+            stop.append('[')
+            stop.append('\n\n')
+            results, error = api_generate(prompt=prompt,
+                                          length=self.generation_settings['response_length'],
+                                          num_continuations=len(nodes),
+                                          temperature=self.generation_settings['temperature'],
+                                          top_p=self.generation_settings['top_p'],
+                                          engine=self.generation_settings['model'],
+                                          stop=stop,
+                                          )
+        except TypeError as e:
+            error = "Typeerror"
+
+        if not error:
+            for node in nodes:
+                self.create_summary(root_node=node, end_node=node, summary_text=summary)
+            self.generated_nodes_metadata(nodes, results, prompt)
+        else:
+            self.delete_failed_nodes(nodes, error)
+            return
+
+        for result in results.choices:
+            print("Generated continuation:\n", result['text'], "\nerror", error)
+
+        self.app.event_generate("<<NewNodes>>", when="tail")
 
     def default_generate(self, prompt, nodes, grandchildren=None):
         if self.generation_settings['janus']:
@@ -853,6 +967,11 @@ class TreeModel:
                     stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
                 else:
                     stop = None
+                if self.preferences['gpt_mode'] == 'antisummary':
+                    if not stop:
+                        stop = []
+                    stop.append('[')
+                    stop.append('\n\n')
                 results, error = api_generate(prompt=prompt,
                                               length=self.generation_settings['response_length'],
                                               num_continuations=len(nodes),
@@ -917,7 +1036,19 @@ class TreeModel:
     def build_prompt(self, node=None, prompt_length=None, memory=True, quiet=True):
         if not node:
             node = self.selected_node
-        prompt = "".join(self.node_ancestry_text(node)[0])
+        if self.preferences['gpt_mode'] == 'antisummary':
+            prompt = ''
+            ancestry = self.ancestry(node)
+            ancestor_ids = [ancestor['id'] for ancestor in ancestry]
+            for ancestor in ancestry:
+                if 'summaries' in ancestor and len(ancestor['summaries']) > 0:
+                    for summary_id in ancestor['summaries']:
+                        summary = self.summaries[summary_id]
+                        if summary['end_id'] in ancestor_ids:
+                            prompt += f'\n\n[{summary["text"]}]\n'
+                prompt += ancestor['text']
+        else:
+            prompt = "".join(self.node_ancestry_text(node)[0])
         if not prompt_length:
             prompt_length = self.generation_settings['prompt_length']
         prompt = prompt[-prompt_length:]
@@ -929,6 +1060,7 @@ class TreeModel:
         if not quiet:
             print("Memory:\n", memory)
             print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
+            #print("Prompt:\n", prompt)
         return memory + prompt
 
 
@@ -950,7 +1082,7 @@ class TreeModel:
         sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
         return sorted_counterfactuals
 
-    def generate_continuation(self, node=None, update_selection=False):
+    def generate_continuation(self, node=None, update_selection=False, **kwargs):
         node = node if node else self.selected_node
         if not node:
             return
@@ -972,15 +1104,14 @@ class TreeModel:
         self.tree_updated(add=new_nodes)
         prompt = self.build_prompt(quiet=False)
 
-        if self.preferences['gpt_mode'] == 'default':
-            threading.Thread(target=self.default_generate, args=(prompt, children, grandchildren)).start()
+        if 'summary' in kwargs:
+            threading.Thread(target=self.antisummary_generate, args=(prompt, children, kwargs['summary'])).start()
         elif self.preferences['gpt_mode'] == 'chat':
             threading.Thread(target=self.chat_generate, args=(prompt, children)).start()
         elif self.preferences['gpt_mode'] == 'dialogue':
             threading.Thread(target=self.dialogue_generate, args=(prompt, children)).start()
         else:
-            print('ERROR: mode not implemented!')
-            return
+            threading.Thread(target=self.default_generate, args=(prompt, children, grandchildren)).start()
 
         # After asking for the generation, set loading text
         for child in children:
@@ -1033,6 +1164,8 @@ class TreeModel:
                 # TODO figure out most appropriate puntuation
                 text = text + '.'
             text = '\n"' + text + '"'
+        elif self.preferences['gpt_mode'] == 'antisummary':
+            text = ''
         else:
             # default
             if text and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] and text[0] != ' ':

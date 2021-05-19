@@ -19,7 +19,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, \
-    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, ChatSettingsDialog
+    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, ChatSettingsDialog, CreateSummary, Summaries
 from model import TreeModel
 from util.util import clip_num, metadata
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
@@ -169,6 +169,7 @@ class Controller:
                 ('Generation settings', 'Ctrl+P', None, no_junk_args(self.generation_settings_dialog)),
                 ('Chat settings', None, None, no_junk_args(self.chat_settings)),
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
+                ('View summaries', '', None, no_junk_args(self.view_summaries)),
 
             ],
             "Memory": [
@@ -411,7 +412,7 @@ class Controller:
         self.state.shift(node, 1)
 
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
-    def generate(self, node=None):
+    def generate(self, node=None, **kwargs):
         if node is None:
             node = self.state.selected_node
         try:
@@ -419,7 +420,7 @@ class Controller:
             self.display.nav_tree.item(node, open=True)
         except Exception as e:
             print(str(e))
-        self.state.generate_continuation(node=node)
+        self.state.generate_continuation(node=node, **kwargs)
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
     def delete_node(self, node=None, reassign_children=False):
@@ -453,46 +454,30 @@ class Controller:
     @metadata(name="Edit history", keys=[], display_key="", persistent_id=None)
     def edit_history(self, index):
         if self.display.mode == "Read":
-            ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
-            selected_ancestor = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
-            self.edit_history.meta["persistent_id"] = self.state.selected_node_id
+            _, selected_ancestor = self.index_to_ancestor(index)
             self.state.select_node(selected_ancestor["id"])
             self.toggle_edit_mode()
 
     @metadata(name="Goto history", keys=[], display_key="")
     def goto_history(self, index):
         if self.display.mode == "Read":
-            ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
-            selected_ancestor = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
+            _, selected_ancestor = self.index_to_ancestor(index)
             self.nav_select(node_id=selected_ancestor["id"])
 
     @metadata(name="Split node", keys=[], display_key="")
     def split_node(self, index, change_selection=True):
         if self.display.mode == "Read":
-            ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
+            ancestor_index, selected_ancestor = self.index_to_ancestor(index)
             negative_offset = self.ancestor_end_indices[ancestor_index] - index
-            selected_ancestor = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
-            new_parent = self.create_parent(node=selected_ancestor)
-            parent_text = selected_ancestor["text"][:-negative_offset]
-            child_text = selected_ancestor["text"][-negative_offset:]
-
-            # remove trailing space
-            if parent_text[-1] == ' ':
-                child_text = ' ' + child_text
-                parent_text = parent_text[:-1]
-
-            new_parent["text"] = parent_text
-            selected_ancestor["text"] = child_text
-
-            new_parent["meta"] = {}
-            new_parent['meta']['origin'] = f'split (from child {selected_ancestor["id"]})'
-
-
-            self.state.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
+            split_index = len(selected_ancestor['text']) - negative_offset
+            new_parent, _ = self.state.split_node(selected_ancestor, split_index)
             if change_selection:
                 self.nav_select(node_id=new_parent["id"])
             # TODO deal with metadata
 
+    def index_to_ancestor(self, index):
+        ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
+        return ancestor_index, node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
 
     #################################
     #   Token manipulation
@@ -502,9 +487,8 @@ class Controller:
     def select_token(self, index):
         if self.display.mode == "Read":
             self.display.textbox.tag_remove("selected", "1.0", 'end')
-            ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
+            ancestor_index, selected_node = self.index_to_ancestor(index)
             negative_offset = self.ancestor_end_indices[ancestor_index] - index
-            selected_node = node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
             offset = len(selected_node['text']) - negative_offset
 
             # TODO new token offsets if changed
@@ -1000,7 +984,8 @@ class Controller:
                 self.state.preferences['input_box'] = False
 
     def update_dropdown(self):
-        self.display.mode_var.set(self.state.preferences['gpt_mode'])
+        if self.display.mode_var:
+            self.display.mode_var.set(self.state.preferences['gpt_mode'])
 
     @metadata(name="Update mode", keys=[], display_key="")
     def update_mode(self, *args):
@@ -1009,25 +994,33 @@ class Controller:
     @metadata(name="Submit", keys=[], display_key="")
     def submit(self):
         input_text = self.display.input_box.get("1.0", 'end-1c')
-        if input_text:
+        if input_text and not self.state.preferences['gpt_mode'] == 'antisummary':
             new_text = self.state.submit_modifications(input_text)
-            #current_text = self.state.selected_node['text']
             new_child = self.create_child(toggle_edit=False)
-            # if self.state.preferences['gpt_mode'] == 'chat':
-            #     new_child['text'] = '\n' + self.state.chat_preferences['player_name'] + ': ' + input_text
-            # else:
-            #     new_child['text'] = input_text
-            #
-            # if current_text[-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*']:
-            #     self.prepend_space()
-            self.display.input_box.delete("1.0", "end")
             new_child['text'] = new_text
             self.state.tree_updated(add=[new_child['id']])
-        if self.state.preferences['auto_response']:
+        self.display.input_box.delete("1.0", "end")
+        if input_text and self.state.preferences['gpt_mode'] == 'antisummary':
+            self.generate(summary=input_text)
+        elif self.state.preferences['auto_response']:
             self.generate()
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
+        dialog = CreateSummary(parent=self.display.frame, root_node=self.state.ancestry()[1], state=self.state)
+
+
+    @metadata(name="Insert summary")
+    def insert_summary(self, index):
+        ancestor_index, selected_ancestor = self.index_to_ancestor(index)
+        negative_offset = self.ancestor_end_indices[ancestor_index] - index
+        offset = len(selected_ancestor['text']) - negative_offset
+        dialog = CreateSummary(parent=self.display.frame, root_node=selected_ancestor, state=self.state, position=offset)
+
+    def view_summaries(self):
+        dialog = Summaries(parent=self.display.frame, node=self.state.selected_node, state=self.state)
+
+    def test_counterfactual(self):
         threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
                                                            target=' scary')).start()
         threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',

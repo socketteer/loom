@@ -7,7 +7,7 @@ from tkinter.scrolledtext import ScrolledText
 from gpt import POSSIBLE_MODELS
 from util.custom_tks import Dialog, TextAware
 from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box
-from util.util_tree import search
+from util.util_tree import search, node_ancestry
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 import math
 import json
@@ -369,7 +369,7 @@ class AIMemory(Dialog):
     def apply(self):
         pass
 
-
+# TODO repeated code
 class NodeMemory(Dialog):
     def __init__(self, parent, node, state):
         self.node = node
@@ -427,50 +427,8 @@ class NodeMemory(Dialog):
         pass
 
 
-class CreateMemory(Dialog):
-    def __init__(self, parent, node, state, default_inheritability='delayed'):
-        self.node = node
-        self.state = state
-        self.inheritability = tk.StringVar()
-        self.default_inheritability = default_inheritability
-        self.memory_textbox = None
-        Dialog.__init__(self, parent, title="Add memory entry", enter_to_apply=False)
-
-    def body(self, master):
-        self.memory_textbox = ScrolledText(master, height=3)
-        self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
-        self.memory_textbox.configure(
-            font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
-            spacing1=10,
-            foreground=text_color(),
-            background=bg_color(),
-            padx=3,
-            pady=3,
-            spacing2=3,  # Spacing between lines
-            spacing3=5,
-            wrap="word",
-        )
-        self.memory_textbox.focus()
-        row = master.grid_size()[1]
-        create_side_label(master, "Inheritability", row)
-        inheritability_options = ('none', 'subtree', 'delayed')
-        self.inheritability.set(self.default_inheritability)
-        dropdown = tk.OptionMenu(master, self.inheritability, *inheritability_options)
-        dropdown.grid(row=row, column=1, pady=3)
-
-    def apply(self):
-        memory_text = self.memory_textbox.get("1.0", 'end-1c')
-        if memory_text:
-            self.state.create_memory_entry(self.node, memory_text, self.inheritability.get())
-
-
-class EditMemory(Dialog):
-    def __init__(self, parent, memory, state):
-        self.memory = memory
-        self.state = state
-        self.inheritability = tk.StringVar()
-        self.delete_button = None
-        self.memory_textbox = None
+class MemoryDialog(Dialog):
+    def __init__(self, parent):
         Dialog.__init__(self, parent, title="Edit memory entry", enter_to_apply=False)
 
     def body(self, master):
@@ -487,14 +445,46 @@ class EditMemory(Dialog):
             spacing3=5,
             wrap="word",
         )
-        self.memory_textbox.insert(tk.INSERT, self.memory['text'])
+        self.memory_textbox.insert(tk.INSERT, self.memory_text)
         self.memory_textbox.focus()
         row = master.grid_size()[1]
         create_side_label(master, "Inheritability", row)
         inheritability_options = ('none', 'subtree', 'delayed')
-        self.inheritability.set(self.memory['inheritability'])
+        self.inheritability.set(self.memory_inheritability)
         dropdown = tk.OptionMenu(master, self.inheritability, *inheritability_options)
         dropdown.grid(row=row, column=1, pady=3)
+
+
+class CreateMemory(MemoryDialog):
+    def __init__(self, parent, node, state, default_inheritability='delayed'):
+        self.node = node
+        self.state = state
+        self.inheritability = tk.StringVar()
+        self.memory_textbox = None
+        self.memory_text = ''
+        self.memory_inheritability = default_inheritability
+        MemoryDialog.__init__(self, parent)
+
+    def apply(self):
+        memory_text = self.memory_textbox.get("1.0", 'end-1c')
+        if memory_text:
+            self.state.create_memory_entry(self.node, memory_text, self.inheritability.get())
+
+
+class EditMemory(MemoryDialog):
+    def __init__(self, parent, memory, state):
+        self.memory = memory
+        self.state = state
+        self.inheritability = tk.StringVar()
+        self.delete_button = None
+        self.memory_textbox = None
+        self.memory_text = self.memory['text']
+        self.memory_inheritability = self.memory['inheritability']
+        self.delete_button = None
+        MemoryDialog.__init__(self, parent)
+
+    def body(self, master):
+        MemoryDialog.body(self, master)
         self.delete_button = create_button(master, "Delete memory", self.delete_memory, width=15)
 
     def delete_memory(self):
@@ -505,6 +495,194 @@ class EditMemory(Dialog):
         memory_text = self.memory_textbox.get("1.0", 'end-1c')
         self.memory['text'] = memory_text
         self.memory['inheritability'] = self.inheritability.get()
+
+
+class SummaryDialog(Dialog):
+    def __init__(self, parent):
+        Dialog.__init__(self, parent, title="Edit summary", enter_to_apply=False)
+
+    def body(self, master):
+        self.summary_textbox = ScrolledText(master, height=2)
+        self.summary_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
+        self.summary_textbox.configure(
+            font=Font(family="Georgia", size=12),
+            spacing1=10,
+            foreground=text_color(),
+            background=bg_color(),
+            padx=3,
+            pady=3,
+            spacing2=3,
+            spacing3=5,
+            wrap="word",
+        )
+        self.summary_textbox.insert(tk.INSERT, self.init_text)
+        self.summary_textbox.focus()
+        self.referent_textbox = ScrolledText(master, height=6)
+        self.referent_textbox.configure(
+            font=Font(family="Georgia", size=12),
+            spacing1=10,
+            foreground=text_color(),
+            background=bg_color(),
+            padx=3,
+            pady=3,
+            spacing2=3,
+            spacing3=5,
+            wrap="word",
+        )
+        row = master.grid_size()[1]
+        self.referent_textbox.grid(row=row, column=0, columnspan=2, rowspan=4)
+        self.refresh_referent()
+        self.remove_all_button = create_button(master, "--", self.remove_all_children, width=3)
+        self.remove_all_button.grid(row=row, column=2, sticky='w')
+        self.remove_child_button = create_button(master, "-", self.remove_child, width=3)
+        self.remove_child_button.grid(row=row + 1, column=2, sticky='w')
+        self.add_child_button = create_button(master, "+", self.add_child, width=3)
+        self.add_child_button.grid(row=row + 2, column=2, sticky='w')
+        self.add_all_button = create_button(master, "++", self.add_all_children, width=3)
+        self.add_all_button.grid(row=row + 3, column=2, sticky='w')
+        self.refresh_buttons()
+
+    def refresh_referent(self):
+        self.referent_textbox.configure(state='normal')
+        self.referent_textbox.delete("1.0", "end")
+        self.referent_textbox.insert(tk.INSERT, self.root['text'][self.position:])
+        for node in self.included_nodes[1:]:
+            self.referent_textbox.insert(tk.INSERT, node['text'])
+        self.referent_textbox.configure(state='disabled')
+
+    def refresh_buttons(self):
+        if len(self.included_nodes) == 1:
+            self.remove_all_button.configure(state='disabled')
+            self.remove_child_button.configure(state='disabled')
+        else:
+            self.remove_all_button.configure(state='normal')
+            self.remove_child_button.configure(state='normal')
+
+        if len(self.included_nodes) == len(self.descendents):
+            self.add_all_button.configure(state='disabled')
+            self.add_child_button.configure(state='disabled')
+        else:
+            self.add_all_button.configure(state='normal')
+            self.add_child_button.configure(state='normal')
+
+    def remove_all_children(self):
+        self.included_nodes = [self.root]
+        self.refresh_referent()
+        self.refresh_buttons()
+
+    def remove_child(self):
+        self.included_nodes = self.included_nodes[:-1]
+        self.refresh_referent()
+        self.refresh_buttons()
+
+    def add_child(self):
+        self.included_nodes.append(self.descendents[len(self.included_nodes)])
+        self.refresh_referent()
+        self.refresh_buttons()
+
+    def add_all_children(self):
+        self.included_nodes = self.descendents
+        self.refresh_referent()
+        self.refresh_buttons()
+
+
+class CreateSummary(SummaryDialog):
+    def __init__(self, parent, root_node, state, position=0):
+        self.root = root_node
+        self.position = position
+        self.summary_textbox = None
+        self.referent_textbox = None
+        self.state = state
+        self.included_nodes = [self.root]
+        self.remove_all_button = None
+        self.remove_child_button = None
+        self.add_child_button = None
+        self.add_all_button = None
+        self.init_text = ''
+        self.descendents = self.state.ancestry_since(root=self.root, node=self.state.selected_node)
+        Dialog.__init__(self, parent)
+
+    def apply(self):
+        summary_text = self.summary_textbox.get("1.0", 'end-1c')
+        if summary_text:
+            if self.position != 0:
+                self.state.split_node(self.root, self.position)
+            self.state.create_summary(root_node=self.root, end_node=self.included_nodes[-1], summary_text=summary_text)
+
+
+class EditSummary(SummaryDialog):
+    def __init__(self, parent, summary, state):
+        self.state = state
+        self.root = self.state.tree_node_dict[summary['root_id']]
+        self.position = 0
+        self.summary = summary
+        self.summary_textbox = None
+        self.referent_textbox = None
+        end_node = self.state.tree_node_dict[summary['end_id']]
+        self.included_nodes = self.state.ancestry_since(root=self.root, node=end_node)
+        self.remove_all_button = None
+        self.remove_child_button = None
+        self.add_child_button = None
+        self.add_all_button = None
+        self.init_text = self.summary['text']
+        self.descendents = self.state.ancestry_since(root=self.root, node=self.state.selected_node)
+        Dialog.__init__(self, parent)
+
+    def body(self, master):
+        SummaryDialog.body(self, master)
+        self.delete_button = create_button(master, "Delete summary", self.delete_summary, width=15)
+
+    def delete_summary(self):
+        self.state.delete_summary(self.summary)
+        self.cancel()
+
+    def apply(self):
+        summary_text = self.summary_textbox.get("1.0", 'end-1c')
+        self.state.summaries[self.summary['id']]['text'] = summary_text
+        self.state.summaries[self.summary['id']]['end_id'] = self.included_nodes[-1]['id']
+
+
+class Summaries(Dialog):
+    def __init__(self, parent, node, state):
+        self.node = node
+        self.state = state
+        self.summaries = []
+        self.edit_buttons = []
+        self.master = None
+        Dialog.__init__(self, parent, title="Summaries")
+
+    def body(self, master):
+        self.master = master
+        self.refresh()
+
+    def refresh(self):
+        for summary in self.summaries:
+            summary.destroy()
+        for edit_button in self.edit_buttons:
+            edit_button.destroy()
+        self.memories = []
+        self.edit_buttons = []
+
+        for i, summary in enumerate(self.state.past_summaries(self.node)):
+            if summary['text']:
+                row = self.master.grid_size()[1]
+                self.summaries.append(TextAware(self.master, height=1))
+                self.summaries[i].grid(row=row, column=0, columnspan=2, padx=5)
+                self.summaries[i].insert(tk.INSERT, summary['text'])
+                self.summaries[i].configure(
+                    state='disabled',
+                    foreground=text_color(),
+                    background=bg_color(),
+                    wrap="word",
+                )
+                self.edit_buttons.append(create_button(self.master, "Edit", lambda _summary=summary: self.edit_summary(_summary), width=4))
+                self.edit_buttons[i].grid(row=row, column=3)
+
+    def edit_summary(self, summary):
+        dialog = EditSummary(parent=self.parent, summary=summary, state=self.state)
+
+    def apply(self):
+        pass
 
 
 class PreferencesDialog(Dialog):

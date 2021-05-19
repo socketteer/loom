@@ -29,6 +29,7 @@ class Dialog(tk.Toplevel):
         body.pack(padx=5, pady=5)
 
         self.buttonbox()
+        self.wait_visibility()
         self.grab_set()
         if not self.initial_focus:
             self.initial_focus = self
