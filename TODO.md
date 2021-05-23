@@ -4,8 +4,6 @@ ask before quitting if unsaved changes
 
 bug: mark as prompt doesn't always work? or display doesnt update
 
-- change gpt mode from text box
-
 - autocomplete mode
     - edit mode and vis
     - longer range suggestions mode?
@@ -30,6 +28,8 @@ bug: mark as prompt doesn't always work? or display doesnt update
  
 - human / ai metadata
     - if modify text, change diff to human
+
+- optimization logging
 
 - memory system
     - enable/disable memory entries

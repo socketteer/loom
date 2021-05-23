@@ -584,15 +584,13 @@ class TreeModel:
         new_parent["meta"] = {}
         new_parent['meta']['origin'] = f'split (from child {node["id"]})'
         if 'summaries' in node:
-            print('moving summaries to parent')
-            print('summaries:', node['summaries'])
             new_parent['summaries'] = node['summaries']
             for summary_id in new_parent['summaries']:
                 summary = self.summaries[summary_id]
                 summary['root_id'] = new_parent['id']
             node['summaries'] = []
-            print(new_parent['summaries'])
-            print(node['summaries'])
+        if 'meta' in node and 'source' in node['meta']:
+            new_parent['meta']['source'] = node['meta']['source']
         self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
         return new_parent, node
 
@@ -945,6 +943,9 @@ class TreeModel:
             for node in nodes:
                 self.create_summary(root_node=node, end_node=node, summary_text=summary)
             self.generated_nodes_metadata(nodes, results, prompt)
+            for node in nodes:
+                if node['text'][0] != '\n':
+                    node['text'] = '\n' + node['text']
         else:
             self.delete_failed_nodes(nodes, error)
             return
@@ -1045,7 +1046,7 @@ class TreeModel:
                     for summary_id in ancestor['summaries']:
                         summary = self.summaries[summary_id]
                         if summary['end_id'] in ancestor_ids:
-                            prompt += f'\n\n[{summary["text"]}]\n'
+                            prompt += f'\n[{summary["text"]}]\n'
                 prompt += ancestor['text']
         else:
             prompt = "".join(self.node_ancestry_text(node)[0])
