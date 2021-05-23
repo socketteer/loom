@@ -25,9 +25,6 @@ bug: mark as prompt doesn't always work? or display doesnt update
     - save preset
     - toggle whether context appears in textbox
     - toggle whether context remains in prompt
- 
-- human / ai metadata
-    - if modify text, change diff to human
 
 - optimization logging
 

@@ -23,6 +23,7 @@ def total_logprob(response):
     logprobs = [i for i in logprobs if not math.isnan(i)]
     return sum(logprobs)
 
+
 def tokenize_ada(prompt):
     response = openai.Completion.create(
         engine='ada',

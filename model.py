@@ -12,7 +12,7 @@ from multiprocessing.pool import ThreadPool
 import codecs
 
 from gpt import api_generate, janus_generate, search
-from util.util import json_create, timestamp, json_open, clip_num, index_clip
+from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list
 from util.gpt_util import conditional_logprob
@@ -525,7 +525,7 @@ class TreeModel:
                 self.select_node(siblings[old_index % len(siblings)]["id"])
         self.tree_updated(delete=[node['id']])
 
-    def update_text(self, node, text, active_text=None, modified_flag=True):
+    def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False):
         assert node["id"] in self.tree_node_dict, text
 
         # Remove trailing spaces
@@ -536,7 +536,8 @@ class TreeModel:
             text = text[:-1]
 
         edited = False
-        if node["text"] != text:
+        old_text = node["text"]
+        if old_text != text:
             # Give children spaces removed from text
             for child in node["children"]:
                 child["text"] = " " * num_spaces + child["text"]
@@ -548,10 +549,19 @@ class TreeModel:
             edited = True
 
         if edited:
+            if 'meta' not in node:
+                node['meta'] = {}
             if modified_flag:
-                if 'meta' not in node:
-                    node['meta'] = {}
                 node['meta']['modified'] = True
+            if 'source' not in node['meta']:
+                node['meta']['source'] = 'prompt'
+            elif node['meta']['source'] == 'AI':
+                node['meta']['source'] = 'mixed'
+            if log_diff:
+                if 'diffs' not in node['meta']:
+                    node['meta']['diffs'] = []
+                node['meta']['diffs'].append({'diff': diff(old_text, text),
+                                              'revision timestamp': timestamp()})
             self.tree_updated(edit=[node['id']])
 
 

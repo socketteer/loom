@@ -14,6 +14,8 @@ from functools import reduce, partial, wraps
 import operator
 from pprint import pprint
 from random import shuffle
+from util.gpt_util import tokenize_ada
+import difflib
 
 import numpy as np
 import pandas as pd
@@ -131,7 +133,34 @@ def word_ngrams_indices(s, n):
     return ((" ".join(ngram_seq), (indices[0][0], indices[-1][1])) for ngram_seq, indices in ngram_indices_pairs)
 
 
-################################################################################
+# TODO cache tokenizations
+# TODO do in thread because of lag?
+def diff(old, new):
+    added = []
+    removed = []
+    added_index = 0
+    removed_index = 0
+    old_tokens, old_positions = tokenize_ada(old)
+    new_tokens, new_positions = tokenize_ada(new)
+    for i, s in enumerate(difflib.ndiff(old_tokens, new_tokens)):
+        word = s.split(' ')[-1]
+        if s[0] == ' ':
+            added_index += 1
+            removed_index += 1
+        elif s[0] == '-':
+            removed.append({'word': s.split()[-1], 'indices': (old_positions[removed_index],
+                                                               old_positions[removed_index] + len(word) + 1)})
+            removed_index += 1
+        elif s[0] == '+':
+            added.append({'word': s.split()[-1], 'indices': (new_positions[added_index],
+                                                             new_positions[added_index] + len(word) + 1)})
+            added_index += 1
+    # print('added:', added)
+    # print('removed:', removed)
+    return {'added': added, 'removed': removed}
+
+
+        ################################################################################
 # I/O
 ################################################################################
 

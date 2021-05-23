@@ -764,7 +764,7 @@ class Controller:
             node = self.state.selected_node
         if 'meta' in node and 'source' in node['meta'] and node['meta']['source'] == 'AI':
             self.set_source(source='prompt', node=node)
-        else:
+        elif 'meta' in node and 'source' in node['meta'] and node['meta']['source'] == 'prompt':
             self.set_source(source='AI', node=node)
 
 
@@ -1007,7 +1007,9 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
-        dialog = CreateSummary(parent=self.display.frame, root_node=self.state.ancestry()[1], state=self.state)
+        print(self.state.selected_node['meta']['source'])
+        print(self.state.selected_node['meta']['diffs'])
+        # dialog = CreateSummary(parent=self.display.frame, root_node=self.state.ancestry()[1], state=self.state)
 
 
     @metadata(name="Insert summary")
@@ -1111,7 +1113,7 @@ class Controller:
         if self.display.mode == "Edit":
             new_text = self.display.textbox.get("1.0", 'end-1c')
             new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
-            self.state.update_text(self.state.selected_node, new_text, new_active_text)
+            self.state.update_text(self.state.selected_node, new_text, new_active_text, log_diff=True)
 
         elif self.display.mode == "Multi Edit":
             nodes = [self.state.selected_node, *self.state.selected_node["children"]]
@@ -1126,7 +1128,7 @@ class Controller:
         elif self.display.mode == "Visualize":
             if self.display.vis.textbox:
                 new_text = self.display.vis.textbox.get("1.0", 'end-1c')
-                self.state.update_text(self.state.node(self.display.vis.editing_node_id), new_text)
+                self.state.update_text(self.state.node(self.display.vis.editing_node_id), new_text, log_diff=True)
 
         else:
             return
@@ -1236,8 +1238,16 @@ class Controller:
         ancestry_text, indices = self.state.node_ancestry_text()
         start_index = 0
         for i, ancestor in enumerate(node_ancestry(self.state.selected_node, self.state.tree_node_dict)):
-            if not ('meta' in ancestor and 'source' in ancestor['meta'] and ancestor['meta']['source'] == 'AI'):
-                self.display.textbox.tag_add("prompt", f"1.0 + {start_index} chars", f"1.0 + {indices[i]} chars")
+            if 'meta' in ancestor and 'source' in ancestor['meta']:
+                if not (ancestor['meta']['source'] == 'AI' or ancestor['meta']['source'] == 'mixed'):
+                    self.display.textbox.tag_add("prompt", f"1.0 + {start_index} chars", f"1.0 + {indices[i]} chars")
+                elif ancestor['meta']['source'] == 'mixed':
+                    if 'diffs' in ancestor['meta']:
+                        # TODO multiple diffs in sequence
+                        latest_diff = ancestor['meta']['diffs'][-1]
+                        for addition in latest_diff['diff']['added']:
+                            self.display.textbox.tag_add("prompt", f"1.0 + {start_index + addition['indices'][0]} chars",
+                                                         f"1.0 + {start_index + addition['indices'][1]} chars")
             start_index = indices[i]
 
 
