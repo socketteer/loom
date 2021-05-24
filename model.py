@@ -15,7 +15,7 @@ from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list
-from util.gpt_util import conditional_logprob
+from util.gpt_util import conditional_logprob, tokenize_ada
 
 
 # Calls any callbacks associated with the wrapped function
@@ -558,9 +558,18 @@ class TreeModel:
             elif node['meta']['source'] == 'AI':
                 node['meta']['source'] = 'mixed'
             if log_diff:
+                old_tokens = None
                 if 'diffs' not in node['meta']:
                     node['meta']['diffs'] = []
-                node['meta']['diffs'].append({'diff': diff(old_text, text),
+                else:
+                    old_tokens = node['meta']['diffs'][-1]['diff']['new']
+                if not old_tokens:
+                    if 'meta' in node and 'generation' in node['meta']:
+                        old_tokens = node['meta']['generation']["logprobs"]["tokens"], \
+                                     node['meta']['generation']["logprobs"]["text_offset"]
+                    else:
+                        old_tokens = tokenize_ada(old_text)
+                node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
                                               'revision timestamp': timestamp()})
             self.tree_updated(edit=[node['id']])
 

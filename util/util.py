@@ -133,16 +133,15 @@ def word_ngrams_indices(s, n):
     return ((" ".join(ngram_seq), (indices[0][0], indices[-1][1])) for ngram_seq, indices in ngram_indices_pairs)
 
 
-# TODO cache tokenizations
-# TODO do in thread because of lag?
 def diff(old, new):
     added = []
     removed = []
     added_index = 0
     removed_index = 0
-    old_tokens, old_positions = tokenize_ada(old)
-    new_tokens, new_positions = tokenize_ada(new)
-    for i, s in enumerate(difflib.ndiff(old_tokens, new_tokens)):
+    old_tokens, old_positions = old
+    new_tokens, new_positions = new
+    ndiff = difflib.ndiff(old_tokens, new_tokens)
+    for i, s in enumerate(ndiff):
         word = s.split(' ')[-1]
         if s[0] == ' ':
             added_index += 1
@@ -157,7 +156,7 @@ def diff(old, new):
             added_index += 1
     # print('added:', added)
     # print('removed:', removed)
-    return {'added': added, 'removed': removed}
+    return {'added': added, 'removed': removed, 'old': old, 'new': new}
 
 
         ################################################################################

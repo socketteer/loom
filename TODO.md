@@ -2,7 +2,6 @@
 
 ask before quitting if unsaved changes
 
-bug: mark as prompt doesn't always work? or display doesnt update
 
 - autocomplete mode
     - edit mode and vis
@@ -16,10 +15,12 @@ bug: mark as prompt doesn't always work? or display doesnt update
  
 - display gpt prompt mode
  
-- gpt modes
-    - dialogue        
+- gpt modes     
     - account for additional prompt length (abstract)
     - save generation mode metadata
+ 
+- dialogue
+    - optimize prompt / multiple modes 
  
 - presets
     - save preset
@@ -27,6 +28,9 @@ bug: mark as prompt doesn't always work? or display doesnt update
     - toggle whether context remains in prompt
 
 - optimization logging
+    - selection
+    - manual editing
+    - autocomplete
 
 - memory system
     - enable/disable memory entries
@@ -50,6 +54,8 @@ bug: mark as prompt doesn't always work? or display doesnt update
 * saving is slow for massive trees
 * reinserting into nav tree causes change in node ordering
 * various bugs splitting, merging (seems to have been caused by partial nav updating?)
+* memory causes freeze?
+* mark as prompt doesn't always work? or display doesnt update
 
 
 ### Tree vis

@@ -21,7 +21,7 @@ from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSett
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, \
     PreferencesDialog, AIMemory, CreateMemory, NodeMemory, ChatSettingsDialog, CreateSummary, Summaries
 from model import TreeModel
-from util.util import clip_num, metadata
+from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
     nearest_common_ancestor
 
@@ -1244,8 +1244,11 @@ class Controller:
                 elif ancestor['meta']['source'] == 'mixed':
                     if 'diffs' in ancestor['meta']:
                         # TODO multiple diffs in sequence
-                        latest_diff = ancestor['meta']['diffs'][-1]
-                        for addition in latest_diff['diff']['added']:
+                        original_tokens = ancestor['meta']['diffs'][0]['diff']['old']
+
+                        current_tokens = ancestor['meta']['diffs'][-1]['diff']['new']
+                        total_diff = diff(original_tokens, current_tokens)
+                        for addition in total_diff['added']:
                             self.display.textbox.tag_add("prompt", f"1.0 + {start_index + addition['indices'][0]} chars",
                                                          f"1.0 + {start_index + addition['indices'][1]} chars")
             start_index = indices[i]
