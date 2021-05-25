@@ -29,7 +29,7 @@ def created_before(node_a, node_b):
     try:
         timestamp1 = node_a['meta']['creation_timestamp']
         timestamp2 = node_b['meta']['creation_timestamp']
-    except AttributeError:
+    except KeyError:
         print('error: one or more of the nodes has no timestamp attribute')
         return None
     t1 = datetime.strptime(timestamp1, "%Y-%m-%d-%H.%M.%S")

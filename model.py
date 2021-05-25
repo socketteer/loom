@@ -1221,7 +1221,7 @@ class TreeModel:
         intervention_bits = 0
         total_tokens = 0
         for n in nodes_list:
-            optimization_info = self.measure_node_optimization(n, quiet=True, final_node=node)
+            optimization_info = self.measure_node_optimization(node=n, quiet=True, final_node=node)
             intervention_bits += optimization_info['intervention_bits']
             selection_bits += optimization_info['selection_bits']
             total_tokens += optimization_info['num_tokens']
@@ -1250,8 +1250,11 @@ class TreeModel:
             # human-written node, intervention optimization only
             has_intervention_optimization = True
 
+
         node_tokens = None
 
+        print(node['text'])
+        print(node["meta"]["source"])
         if has_intervention_optimization:
             tokens_logprobs, node_tokens = self.changed_tokens_logprobs(node)
             if not quiet:
@@ -1312,8 +1315,11 @@ class TreeModel:
             if node["meta"]["source"] == "AI":
                 return []
             if node["meta"]["source"] == "mixed":
-                original_tokens = node['meta']['diffs'][0]['diff']['old']
-                current_tokens = node['meta']['diffs'][-1]['diff']['new']
+                try:
+                    original_tokens = node['meta']['diffs'][0]['diff']['old']
+                    current_tokens = node['meta']['diffs'][-1]['diff']['new']
+                except KeyError:
+                    return [], None
                 total_diff = diff(original_tokens, current_tokens)
                 # uses original prompt
                 prompt = node["meta"]["generation"]["prompt"] + node['text']

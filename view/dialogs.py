@@ -48,9 +48,9 @@ class NodeInfoDialog(Dialog):
 
         if "meta" in self.node:
             meta = self.node["meta"]
-            create_side_label(master, "origin")
-            if "origin" in meta:
-                create_label(master, meta["origin"], row=master.grid_size()[1] - 1, col=1, padx=15)
+            create_side_label(master, "source")
+            if "source" in meta:
+                create_label(master, meta["source"], row=master.grid_size()[1] - 1, col=1, padx=15)
             else:
                 create_label(master, "unknown", row=master.grid_size()[1] - 1, col=1, padx=15)
 
