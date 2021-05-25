@@ -3,6 +3,7 @@ import html2text
 import numpy as np
 import re
 import random
+from datetime import datetime
 
 
 # Height of d, root has the greatest height, minimum is 1
@@ -22,6 +23,18 @@ def node_ancestry(node, node_dict):
         ancestry.insert(0, node)
     return ancestry
 
+# returns whether node_a was created before node_b
+# TODO for old nodes, extract date from generation metadata...?
+def created_before(node_a, node_b):
+    try:
+        timestamp1 = node_a['meta']['creation_timestamp']
+        timestamp2 = node_b['meta']['creation_timestamp']
+    except AttributeError:
+        print('error: one or more of the nodes has no timestamp attribute')
+        return None
+    t1 = datetime.strptime(timestamp1, "%Y-%m-%d-%H.%M.%S")
+    t2 = datetime.strptime(timestamp2, "%Y-%m-%d-%H.%M.%S")
+    return t1 <= t2
 
 def nearest_common_ancestor(node_a, node_b, node_dict):
     ancestry_a = node_ancestry(node_a, node_dict)

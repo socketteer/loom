@@ -2,6 +2,7 @@ import functools
 import os
 import threading
 import time
+import math
 import uuid
 from asyncio import Queue
 from pprint import pprint
@@ -14,8 +15,8 @@ import codecs
 from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
-    subtree_list
-from util.gpt_util import conditional_logprob, tokenize_ada
+    subtree_list, created_before
+from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 
 
 # Calls any callbacks associated with the wrapped function
@@ -214,9 +215,8 @@ class TreeModel:
         node = node if node else self.selected_node
         return node_ancestry(node, self.tree_node_dict)
 
-
     # returns node ancestry starting from root
-    def ancestry_since(self, root, node=None):
+    def ancestry_in_range(self, root, node=None):
         node = node if node else self.selected_node
         ancestry = self.ancestry(node)
         i = 0
@@ -386,6 +386,12 @@ class TreeModel:
                 "text": text,
                 "children": []}
         return node
+
+    def node_creation_metadata(self, node, source='prompt'):
+        if 'meta' not in node:
+            node["meta"] = {}
+        node["meta"]["creation_timestamp"] = timestamp()
+        node["meta"]["source"] = source
 
     def create_child(self, parent=None, update_selection=True, expand=True, tree_updated=True):
         parent = parent if parent else self.selected_node
@@ -558,19 +564,20 @@ class TreeModel:
             elif node['meta']['source'] == 'AI':
                 node['meta']['source'] = 'mixed'
             if log_diff:
-                old_tokens = None
-                if 'diffs' not in node['meta']:
-                    node['meta']['diffs'] = []
-                else:
-                    old_tokens = node['meta']['diffs'][-1]['diff']['new']
-                if not old_tokens:
-                    if 'meta' in node and 'generation' in node['meta']:
-                        old_tokens = node['meta']['generation']["logprobs"]["tokens"], \
-                                     node['meta']['generation']["logprobs"]["text_offset"]
+                if old_text:
+                    old_tokens = None
+                    if 'diffs' not in node['meta']:
+                        node['meta']['diffs'] = []
                     else:
-                        old_tokens = tokenize_ada(old_text)
-                node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
-                                              'revision timestamp': timestamp()})
+                        old_tokens = node['meta']['diffs'][-1]['diff']['new']
+                    if not old_tokens:
+                        if 'meta' in node and 'generation' in node['meta']:
+                            old_tokens = node['meta']['generation']["logprobs"]["tokens"], \
+                                         node['meta']['generation']["logprobs"]["text_offset"]
+                        else:
+                            old_tokens = tokenize_ada(old_text)
+                    node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
+                                                  'revision timestamp': timestamp()})
             self.tree_updated(edit=[node['id']])
 
 
@@ -1038,12 +1045,14 @@ class TreeModel:
             # created
             node["meta"]["modified"] = False
             node["meta"]["origin"] = "generated"
-            node["meta"]["source"] = "AI"
-
+            #node["meta"]["source"] = "AI"
+            self.node_creation_metadata(node, source='AI')
             # remove offset of prompt
             # TODO fix old nodes
+            # TODO save a list of tokens in completion
             corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
             node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
+            node['meta']['generation']['logprobs']['echo_text_offset'] = node['meta']['generation']["logprobs"]["text_offset"]
 
     def delete_failed_nodes(self, nodes, error):
         print("ERROR. Deleting failures")
@@ -1053,10 +1062,10 @@ class TreeModel:
             parent = self.parent(node)
             parent["children"].remove(node)
 
-    def build_prompt(self, node=None, prompt_length=None, memory=True, quiet=True):
-        if not node:
-            node = self.selected_node
-        if self.preferences['gpt_mode'] == 'antisummary':
+    def build_prompt(self, node=None, prompt_length=None, memory=True, quiet=True, mode=None):
+        node = node if node else self.selected_node
+        mode = mode if mode else self.preferences['gpt_mode']
+        if mode == 'antisummary':
             prompt = ''
             ancestry = self.ancestry(node)
             ancestor_ids = [ancestor['id'] for ancestor in ancestry]
@@ -1188,14 +1197,13 @@ class TreeModel:
             text = ''
         else:
             # default
-            if text and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] and text[0] != ' ':
+            if text and self.selected_node['text'] and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] and text[0] != ' ':
                 text = ' ' + text
             else:
                 text = text
         return text
 
-
-    #TODO token index
+    # TODO token index ???
     def score_counterfactual(self, node=None, target=None, context_breaker='', engine='curie'):
         if not target:
             return
@@ -1203,3 +1211,155 @@ class TreeModel:
             node = self.selected_node
         story = self.build_prompt(node=node, memory=False)
         return conditional_logprob(prompt=story+context_breaker, target=target, engine=engine)
+
+    def measure_path_optimization(self, root=None, node=None):
+        node = node if node else self.selected_node
+        root = root if root else self.tree_raw_data["root"]
+        nodes_list = self.ancestry_in_range(root, node)
+
+        selection_bits = 0
+        intervention_bits = 0
+        total_tokens = 0
+        for n in nodes_list:
+            optimization_info = self.measure_node_optimization(n, quiet=True, final_node=node)
+            intervention_bits += optimization_info['intervention_bits']
+            selection_bits += optimization_info['selection_bits']
+            total_tokens += optimization_info['num_tokens']
+
+        print('intervention bits:', intervention_bits)
+        print('selection bits:', selection_bits)
+        total_bits = intervention_bits + selection_bits
+        print('total bits:', total_bits)
+        print(f'bits per token: {total_bits}/{total_tokens} =', total_bits / total_tokens)
+
+    def measure_node_optimization(self, node=None, quiet=False, final_node=None):
+        node = node if node else self.selected_node
+        if 'meta' not in node:
+            print('error: no meta attribute')
+            return
+        has_intervention_optimization = False
+        has_selection_optimization = False
+        if node["meta"]["source"] == "AI":
+            # selection optimization
+            has_selection_optimization = True
+        elif node["meta"]["source"] == "mixed":
+            # selection and intervention optimization
+            has_selection_optimization = True
+            has_intervention_optimization = True
+        else:
+            # human-written node, intervention optimization only
+            has_intervention_optimization = True
+
+        node_tokens = None
+
+        if has_intervention_optimization:
+            tokens_logprobs, node_tokens = self.changed_tokens_logprobs(node)
+            if not quiet:
+                print('\nOPTIMIZATION FROM TOKENS INJECTED')
+                for token in tokens_logprobs:
+                    print(f"'{token['token']}'")
+                    print('logprob:', token['logprob'])
+                    prob = logprobs_to_probs(token['logprob'])
+                    print('prob:', prob)
+                    optimization_power = 1 / prob
+                    print('optimization power:', optimization_power)
+
+            intervention_logprob = sum(token['logprob'] for token in tokens_logprobs)
+            intervention_prob = logprobs_to_probs(intervention_logprob)
+            intervention_optimization_power = 1 / intervention_prob
+            intervention_bits = math.log2(intervention_optimization_power)
+
+            if not quiet:
+                print('\ntotal intervention logprob:', intervention_logprob)
+                print('total intervention optimization power:', intervention_optimization_power)
+                print(f'bits of intervention optimization: (log_2({intervention_optimization_power})) =', intervention_bits)
+                print(f'intervention bits per token: {intervention_bits}/{len(node_tokens)} =', intervention_bits / len(node_tokens))
+        else:
+            intervention_optimization_power = 1
+            intervention_bits = 0
+
+        if has_selection_optimization:
+            selection_optimization_power, selection_bits, node_tokens = self.selection_optimization(node=node, final_node=final_node)
+            if not quiet:
+                print('\ntotal selection optimization power:', selection_optimization_power)
+                print(f'bits of selection optimization: (log_2({selection_optimization_power})) =',
+                      selection_bits)
+                print(f'selection bits per token: {selection_bits}/{len(node_tokens)} =',
+                      selection_bits / len(node_tokens))
+
+        else:
+            selection_optimization_power = 1
+            selection_bits = 0
+
+        if not node_tokens:
+            print('error, no node tokens')
+            return
+
+        optimization_info = {'intervention_power': intervention_optimization_power,
+                             'intervention_bits': intervention_bits,
+                             'selection_power': selection_optimization_power,
+                             'selection_bits': selection_bits,
+                             'num_tokens': len(node_tokens)}
+
+        return optimization_info
+
+        # TODO selection optimization
+
+    # TODO removed tokens
+    def changed_tokens_logprobs(self, node=None):
+        node = node if node else self.selected_node
+        if 'meta' in node and 'source' in node['meta']:
+            if node["meta"]["source"] == "AI":
+                return []
+            if node["meta"]["source"] == "mixed":
+                original_tokens = node['meta']['diffs'][0]['diff']['old']
+                current_tokens = node['meta']['diffs'][-1]['diff']['new']
+                total_diff = diff(original_tokens, current_tokens)
+                # uses original prompt
+                prompt = node["meta"]["generation"]["prompt"] + node['text']
+                engine = node["meta"]["generation"]["model"].split(':')[0]
+                logprobs, tokens, positions = prompt_probs(prompt, engine)
+                corrected_positions = [p - len(node["meta"]["generation"]["prompt"]) for p in positions]
+                start = positions.index(len(node["meta"]["generation"]["prompt"]))
+                changed_indices = []
+                for word in total_diff['added']:
+                    start_index = word['indices'][0]
+                    token_index = corrected_positions.index(start_index)
+                    token_logprob = logprobs[token_index]
+                    token = tokens[token_index]
+                    changed_indices.append({'token': token, 'logprob': token_logprob, 'indices': word['indices']})
+                return changed_indices, tokens[start:]
+            elif node["meta"]["source"] == "prompt":
+                prompt = self.build_prompt(node=node, quiet=True, mode='default')
+                engine = self.generation_settings['model']
+                logprobs, tokens, positions = prompt_probs(prompt, engine)
+                start_index = positions.index(len(prompt) - len(node['text']))
+                index = start_index
+                changed_indices = []
+                for logprob in logprobs[start_index:]:
+                    changed_indices.append({'token': tokens[index], 'logprob': logprob})
+                    index += 1
+                return changed_indices, tokens[start_index:]
+
+    # TODO count all AI siblings of current node regardless of order?
+    def selection_optimization(self, node, final_node=None):
+        final_node = final_node if final_node else self.selected_node
+        siblings = self.parent(node)["children"]
+        competing_siblings = 0
+        # this should include the node itself
+        for sibling in siblings:
+            if 'meta' in sibling and 'source' in sibling['meta'] and sibling['meta']['source'] != 'prompt':
+                if created_before(sibling, final_node):
+                    competing_siblings += 1
+
+        selection_optimization_power = competing_siblings
+        selection_bits = math.log2(selection_optimization_power)
+
+        if node["meta"]["source"] == 'AI':
+            tokens = node["meta"]["generation"]["logprobs"]["tokens"]
+        else:
+            tokens = node['meta']['diffs'][-1]['diff']['new'][0]
+
+        return selection_optimization_power, selection_bits, tokens
+
+

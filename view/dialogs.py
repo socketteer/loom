@@ -54,6 +54,10 @@ class NodeInfoDialog(Dialog):
             else:
                 create_label(master, "unknown", row=master.grid_size()[1] - 1, col=1, padx=15)
 
+            if "creation_timestamp" in meta:
+                create_side_label(master, "created at")
+                create_label(master, meta["creation_timestamp"], row=master.grid_size()[1] - 1, col=1, padx=15)
+
             if "generation" in meta:
                 create_side_label(master, "prompt")
                 prompt_text = tk.Text(master, height=15)
@@ -599,7 +603,7 @@ class CreateSummary(SummaryDialog):
         self.add_child_button = None
         self.add_all_button = None
         self.init_text = ''
-        self.descendents = self.state.ancestry_since(root=self.root, node=self.state.selected_node)
+        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_node)
         Dialog.__init__(self, parent)
 
     def apply(self):
@@ -619,13 +623,13 @@ class EditSummary(SummaryDialog):
         self.summary_textbox = None
         self.referent_textbox = None
         end_node = self.state.tree_node_dict[summary['end_id']]
-        self.included_nodes = self.state.ancestry_since(root=self.root, node=end_node)
+        self.included_nodes = self.state.ancestry_in_range(root=self.root, node=end_node)
         self.remove_all_button = None
         self.remove_child_button = None
         self.add_child_button = None
         self.add_all_button = None
         self.init_text = self.summary['text']
-        self.descendents = self.state.ancestry_since(root=self.root, node=self.state.selected_node)
+        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_node)
         Dialog.__init__(self, parent)
 
     def body(self, master):

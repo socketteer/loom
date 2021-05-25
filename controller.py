@@ -355,6 +355,7 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         child = self.state.create_child(parent=node, update_selection=update_selection)
+        self.state.node_creation_metadata(child, source='prompt')
         if self.display.mode == "Read" and toggle_edit:
             self.toggle_edit_mode()
         return child
@@ -363,7 +364,8 @@ class Controller:
     def create_sibling(self, node=None):
         if node is None:
             node = self.state.selected_node
-        self.state.create_sibling(node=node)
+        sibling = self.state.create_sibling(node=node)
+        self.state.node_creation_metadata(sibling, source='prompt')
         if self.display.mode == "Read":
             self.toggle_edit_mode()
 
@@ -371,7 +373,9 @@ class Controller:
     def create_parent(self, node=None):
         if node is None:
             node = self.state.selected_node
-        return self.state.create_parent(node=node)
+        parent = self.state.create_parent(node=node)
+        self.state.node_creation_metadata(parent, source='prompt')
+        return parent
 
     @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None, click_mode=False)
     def change_parent(self, node=None, click_mode=False):
@@ -1007,8 +1011,8 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
-        print(self.state.selected_node['meta']['source'])
-        print(self.state.selected_node['meta']['diffs'])
+        #print(self.state.selected_node['meta'])
+        self.state.measure_path_optimization(root=self.state.ancestry()[1], node=self.state.selected_node)
         # dialog = CreateSummary(parent=self.display.frame, root_node=self.state.ancestry()[1], state=self.state)
 
 

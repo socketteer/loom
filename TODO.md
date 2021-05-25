@@ -32,6 +32,10 @@ ask before quitting if unsaved changes
     - manual editing
     - autocomplete
 
+- diff
+    - splitting / merging
+    - display in node info or diff dialog
+
 - memory system
     - enable/disable memory entries
     - goto root 

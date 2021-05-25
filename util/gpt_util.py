@@ -38,6 +38,20 @@ def tokenize_ada(prompt):
     return tokens, positions
 
 
+def prompt_probs(prompt, engine='ada'):
+    response = openai.Completion.create(
+        engine=engine,
+        prompt=prompt,
+        max_tokens=0,
+        echo=True,
+        n=1,
+        logprobs=0
+    )
+    positions = response.choices[0]["logprobs"]["text_offset"]
+    tokens = response.choices[0]["logprobs"]["tokens"]
+    logprobs = response.choices[0]["logprobs"]["token_logprobs"]
+    return logprobs, tokens, positions
+
 # evaluates logL(prompt+target | prompt)
 def conditional_logprob(prompt, target, engine='ada'):
     combined = prompt + target
@@ -54,8 +68,6 @@ def conditional_logprob(prompt, target, engine='ada'):
     word_index = positions.index(len(prompt))
     total_conditional_logprob = sum(logprobs[word_index:])
     return total_conditional_logprob
-
-
 
 
 
