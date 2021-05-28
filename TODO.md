@@ -60,7 +60,7 @@ ask before quitting if unsaved changes
 * various bugs splitting, merging (seems to have been caused by partial nav updating?)
 * memory causes freeze?
 * mark as prompt doesn't always work? or display doesnt update
-
+* generating when trying to calculate optimization bits??
 
 ### Tree vis
 * first time switching to vis mode centering bug

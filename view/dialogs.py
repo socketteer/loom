@@ -236,8 +236,9 @@ class SearchDialog(Dialog):
             if counter >= limit:
                 break
             node = self.state.tree_node_dict[match['node_id']]
+            chapter = self.state.chapter(node)['title'] if self.state.chapter(node) else ''
             self.labels.append(create_side_label(self.master,
-                                                 f"chapter: {self.state.chapter(node)['title']}"))
+                                                 f"chapter: {chapter}"))
             #side_label.config(fg="blue")
             self.results.append(TextAware(self.master, height=2))
             #readable_font = Font(family="Georgia", size=12)

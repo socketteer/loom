@@ -531,6 +531,8 @@ class TreeModel:
                 self.select_node(siblings[old_index % len(siblings)]["id"])
         self.tree_updated(delete=[node['id']])
 
+
+    # TODO add creation date if it doesn't exist
     def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False):
         assert node["id"] in self.tree_node_dict, text
 
@@ -1004,7 +1006,7 @@ class TreeModel:
                                               num_continuations=len(nodes),
                                               temperature=self.generation_settings['temperature'],
                                               top_p=self.generation_settings['top_p'],
-                                              logprobs=30,
+                                              logprobs=0,
                                               engine=self.generation_settings['model'],
                                               stop=stop
                                               )
@@ -1226,11 +1228,11 @@ class TreeModel:
             selection_bits += optimization_info['selection_bits']
             total_tokens += optimization_info['num_tokens']
 
-        print('intervention bits:', intervention_bits)
-        print('selection bits:', selection_bits)
+        print('intervention bits: {:.2f}'.format(intervention_bits))
+        print('selection bits: {:.2f}'.format(selection_bits))
         total_bits = intervention_bits + selection_bits
-        print('total bits:', total_bits)
-        print(f'bits per token: {total_bits}/{total_tokens} =', total_bits / total_tokens)
+        print('total bits: {:.2f}'.format(total_bits))
+        print(f'bits per token: {total_bits:.2f}/{total_tokens} =',  '{:.2f}'.format(total_bits / total_tokens))
 
     def measure_node_optimization(self, node=None, quiet=False, final_node=None):
         node = node if node else self.selected_node
@@ -1253,8 +1255,6 @@ class TreeModel:
 
         node_tokens = None
 
-        print(node['text'])
-        print(node["meta"]["source"])
         if has_intervention_optimization:
             tokens_logprobs, node_tokens = self.changed_tokens_logprobs(node)
             if not quiet:
@@ -1287,7 +1287,7 @@ class TreeModel:
                 print('\ntotal selection optimization power:', selection_optimization_power)
                 print(f'bits of selection optimization: (log_2({selection_optimization_power})) =',
                       selection_bits)
-                print(f'selection bits per token: {selection_bits}/{len(node_tokens)} =',
+                print(f'selection bits per token: {selection_bits:.2f}/{len(node_tokens)} =',
                       selection_bits / len(node_tokens))
 
         else:
@@ -1313,7 +1313,7 @@ class TreeModel:
         node = node if node else self.selected_node
         if 'meta' in node and 'source' in node['meta']:
             if node["meta"]["source"] == "AI":
-                return []
+                return [], None
             if node["meta"]["source"] == "mixed":
                 try:
                     original_tokens = node['meta']['diffs'][0]['diff']['old']
@@ -1354,9 +1354,11 @@ class TreeModel:
         competing_siblings = 0
         # this should include the node itself
         for sibling in siblings:
-            if 'meta' in sibling and 'source' in sibling['meta'] and sibling['meta']['source'] != 'prompt':
-                if created_before(sibling, final_node):
-                    competing_siblings += 1
+            if not ('meta' in sibling and 'source' in sibling['meta'] and sibling['meta']['source'] == 'prompt'):
+                competing_siblings += 1
+            # if 'meta' in sibling and 'source' in sibling['meta'] and sibling['meta']['source'] != 'prompt':
+            #     if created_before(sibling, final_node):
+            #         competing_siblings += 1
 
         selection_optimization_power = competing_siblings
         selection_bits = math.log2(selection_optimization_power)
