@@ -15,6 +15,23 @@ def depth(d, node_dict):
     return 0 if "parent_id" not in d else (1 + depth(node_dict[d["parent_id"]], node_dict))
 
 
+# given a root node and include condition, returns a new tree which contains only nodes who satisfy
+# the condition and whose ancestors also all satisfy the condition
+# nodes in the new tree contain only their ids and a childlist
+def tree_subset(root, new_root=None, include_condition=None):
+    if not include_condition:
+        return {}
+    if not new_root:
+        new_root = {'id': root['id'], 'children': []}
+    if 'children' in root:
+        for child in root['children']:
+            if include_condition(child):
+                new_child = {'id': child['id'], 'children': []}
+                new_root['children'].append(new_child)
+                tree_subset(child, new_child, include_condition)
+    return new_root
+
+
 # Returns a list of ancestor nodes beginning with the progenitor
 def node_ancestry(node, node_dict):
     ancestry = [node]

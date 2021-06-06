@@ -281,6 +281,21 @@ class SearchDialog(Dialog):
         self.goto(node_id=id)
 
 
+class GotoNode(Dialog):
+    def __init__(self, parent, goto):
+        self.goto = goto
+        Dialog.__init__(self, parent, title="Goto")
+
+    def body(self, master):
+        self.id_entry = Entry(master, master.grid_size()[1], "Goto id", "", None, width=20)
+        self.id_entry.controls.focus_set()
+
+    def apply(self):
+        entry_text = self.id_entry.tk_variables.get()
+        self.goto(entry_text)
+
+
+
 class ChaptersInfoDialog(Dialog):
     def __init__(self, parent, data_dict):
         self.data_dict = data_dict
@@ -694,6 +709,7 @@ class PreferencesDialog(Dialog):
     def __init__(self, parent, orig_params):
         self.orig_params = orig_params
         self.vars = {
+            "hide_archived": tk.BooleanVar,
             "canonical_only": tk.BooleanVar,
             "side_pane": tk.BooleanVar,
             "bold_prompt": tk.BooleanVar,
@@ -713,13 +729,17 @@ class PreferencesDialog(Dialog):
     def body(self, master):
         #print(self.orig_params)
         row = master.grid_size()[1]
+        create_side_label(master, "Hide archived", row)
+        check = ttk.Checkbutton(master, variable=self.vars["hide_archived"])
+        check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
         create_side_label(master, "Canonical only", row)
         check = ttk.Checkbutton(master, variable=self.vars["canonical_only"])
         check.grid(row=row, column=1, pady=3)
-        row = master.grid_size()[1]
-        create_side_label(master, "Show side pane", row)
-        check = ttk.Checkbutton(master, variable=self.vars["side_pane"])
-        check.grid(row=row, column=1, pady=3)
+        # row = master.grid_size()[1]
+        # create_side_label(master, "Show side pane", row)
+        # check = ttk.Checkbutton(master, variable=self.vars["side_pane"])
+        # check.grid(row=row, column=1, pady=3)
         row = master.grid_size()[1]
         create_side_label(master, "Bold prompt", row)
         check = ttk.Checkbutton(master, variable=self.vars["bold_prompt"])
@@ -749,6 +769,7 @@ class PreferencesDialog(Dialog):
     def apply(self):
         for key, var in self.vars.items():
             self.orig_params[key] = var.get()
+
 
 class GenerationSettingsDialog(Dialog):
     def __init__(self, parent, orig_params):

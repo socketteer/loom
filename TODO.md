@@ -2,6 +2,25 @@
 
 ask before quitting if unsaved changes
 
+jump to unvisited nodes
+
+archived
+    - navigation which navigates only any (conditional?) subset of tree
+    - when in hide archived mode, navigation should only go to unarchived nodes
+    - what happens when you navigate to a hidden node anyway (for example using goto)?
+
+session files
+    - visited
+    - active node
+    - expanded state
+    - settings... 
+
+separate session from underlying tree?
+
+open subtrees only...?
+
+archiving
+    - shortcut to archive nodes
 
 - autocomplete mode
     - edit mode and vis

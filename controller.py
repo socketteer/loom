@@ -18,7 +18,7 @@ import traceback
 from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
-    NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, \
+    NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
     PreferencesDialog, AIMemory, CreateMemory, NodeMemory, ChatSettingsDialog, CreateSummary, Summaries
 from model import TreeModel
 from util.util import clip_num, metadata, diff
@@ -163,6 +163,7 @@ class Controller:
                 ("Stochastic walk", "W", None, no_junk_args(self.walk)),
                 ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
                 ("Search", "Ctrl+F", None, no_junk_args(self.search)),
+                ("Goto node by id", "Ctrl+Shift+G", None, no_junk_args(self.goto_node_dialog)),
 
             ],
             "Generation": [
@@ -299,6 +300,24 @@ class Controller:
             node = self.state.selected_node
         self.state.toggle_canonical(node=node)
         self.state.tree_updated(edit=[n['id'] for n in node_ancestry(node, self.state.tree_node_dict)])
+
+    @metadata(name="Toggle archived", keys=["<ampersand>"], display_key="")
+    def toggle_archived(self, node=None):
+        if node is None:
+            node = self.state.selected_node
+        if 'archived' in node:
+            node['archived'] = not node['archived']
+        else:
+            node['archived'] = True
+        if node['archived']:
+            if self.state.preferences['hide_archived']:
+                self.select_node(self.state.parent(node))
+                self.state.tree_updated(delete=[node['id']])
+        else:
+            if self.state.preferences['hide_archived']:
+                self.state.tree_updated(add=[node['id']])
+
+
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
@@ -965,6 +984,7 @@ class Controller:
         self.refresh_textbox()
         self.refresh_display()
         self.update_dropdown()
+        self.state.tree_updated(rebuild=True)
 
     # @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
     # def ancestry_semantic_search(self, node=None):
@@ -1012,7 +1032,9 @@ class Controller:
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def debug(self):
         #print(self.state.selected_node['meta'])
-        self.state.measure_path_optimization(root=self.state.ancestry()[1], node=self.state.selected_node)
+        #self.state.generate_tree_init(max_depth=3, branching_factor=3, engine='davinci')
+        #self.state.measure_path_optimization(root=self.state.ancestry()[1], node=self.state.selected_node)
+        print(self.state.generate_canonical_tree())
         # dialog = CreateSummary(parent=self.display.frame, root_node=self.state.ancestry()[1], state=self.state)
 
 
@@ -1025,6 +1047,10 @@ class Controller:
 
     def view_summaries(self):
         dialog = Summaries(parent=self.display.frame, node=self.state.selected_node, state=self.state)
+
+    @metadata(name="Goto node id", keys=["<Control-Shift-KeyPress-G>"], display_key="")
+    def goto_node_dialog(self):
+        dialog = GotoNode(parent=self.display.frame, goto=lambda node_id: self.select_node(self.state.tree_node_dict[node_id]))
 
     def test_counterfactual(self):
         threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
@@ -1318,9 +1344,15 @@ class Controller:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
 
-    def build_nav_tree(self):
+    def build_nav_tree(self, flat_tree=None):
+        if not flat_tree:
+            if self.state.preferences['hide_archived']:
+                flat_tree = self.state.generate_visible_tree()
+            else:
+                flat_tree = self.state.tree_node_dict
+        #print(flat_tree)
         self.display.nav_tree.delete(*self.display.nav_tree.get_children())
-        for id in self.state.tree_node_dict:
+        for id in flat_tree:
             node = self.state.tree_node_dict[id]
             if id == self.state.checkpoint:
                 image = self.display.marker_icon
@@ -1493,11 +1525,18 @@ class Controller:
 
     def set_nav_scrollbars(self):
         # Taking model as source of truth!!
-        def collect_visible(node):
+        def collect_visible(node, conditions=None):
+            if not conditions:
+                conditions = []
             li = [node]
             if self.display.nav_tree.item(node["id"], "open"):
                 for c in node["children"]:
-                    li += collect_visible(c)
+                    admissible = True
+                    for condition in conditions:
+                        if not condition(c):
+                            admissible = False
+                    if admissible:
+                        li += collect_visible(c, conditions)
             return li
 
 
@@ -1506,7 +1545,9 @@ class Controller:
         #     d["children"] for iid, d in self.state.tree_node_dict.items()
         #     if self.display.nav_tree.item(iid, "open") or "parent_id" not in d
         # ])
-        visible_nodes = collect_visible(self.state.tree_raw_data["root"])
+        visible_conditions = [lambda _node: not _node.get('archived', False)] \
+            if self.state.preferences['hide_archived'] else []
+        visible_nodes = collect_visible(self.state.tree_raw_data["root"], visible_conditions)
         visible_ids = {d["id"] for d in visible_nodes}
         # Ordered by tree order
         visible_ids = [iid for iid in self.state.tree_node_dict.keys() if iid in visible_ids]

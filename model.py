@@ -15,7 +15,7 @@ import codecs
 from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
-    subtree_list, created_before
+    subtree_list, created_before, tree_subset
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 
 
@@ -43,6 +43,7 @@ def event(func):
 
 
 DEFAULT_PREFERENCES = {
+    'hide_archived': True,
     'highlight_canonical': True,
     'canonical_only': False,
     'walk': 'descendents', #'leaves', 'uniform'
@@ -336,6 +337,26 @@ class TreeModel:
             id = self.next_id(-i)
             i += 1
         return self.select_node(node_id=id)
+
+    def node_is_canonical(self, node=None):
+        node = node if node else self.selected_node
+        return node['id'] in self.calc_canonical_set()
+
+    def node_is_visible(self, node=None):
+        node = node if node else self.selected_node
+        return not(node.get('archived', False))
+
+    def generate_canonical_tree(self, root=None):
+        root = root if root else self.tree_raw_data["root"]
+        return {d["id"]: d for d in flatten_tree(tree_subset(root=root,
+                                                             new_root=None,
+                                                             include_condition=self.node_is_canonical))}
+
+    def generate_visible_tree(self, root=None):
+        root = root if root else self.tree_raw_data["root"]
+        return {d["id"]: d for d in flatten_tree(tree_subset(root=root,
+                                                             new_root=None,
+                                                             include_condition=self.node_is_visible))}
 
 
     def select_parent(self, node=None):
@@ -753,7 +774,7 @@ class TreeModel:
         return summaries
 
 
-    #returns first node that is fully in the context window
+    #returns first node that is fully contained in the context window
     def context_window_index(self):
         _, indices = self.node_ancestry_text()
         first_in_context_index = indices[-1] - self.generation_settings['prompt_length']
@@ -1037,6 +1058,7 @@ class TreeModel:
         # DO NOT CALL FROM THREAD: self.tree_updated()
         self.app.event_generate("<<NewNodes>>", when="tail")
 
+    # TODO save mode
     def generated_nodes_metadata(self, nodes, results, prompt, prepend_text='', append_text=''):
         for index, node in enumerate(nodes):
             node["text"] = prepend_text + results.choices[index]["text"] + append_text
@@ -1133,7 +1155,7 @@ class TreeModel:
 
         self.new_nodes.append(new_nodes)
         self.tree_updated(add=new_nodes)
-        prompt = self.build_prompt(quiet=False)
+        prompt = self.build_prompt(quiet=False, node=node)
 
         if 'summary' in kwargs:
             threading.Thread(target=self.antisummary_generate, args=(prompt, children, kwargs['summary'])).start()
@@ -1153,6 +1175,53 @@ class TreeModel:
         if update_selection:
             self.select_node(children[0]["id"])
 
+    def generate_tree_init(self, node=None, max_depth=2, branching_factor=2, interval=50, stop_condition=None,
+                           temperature=1, engine='ada'):
+        node = node if node else self.selected_node
+        self.generate_tree(node, max_depth, branching_factor, interval, stop_condition, temperature, engine)
+        new_nodes = []
+        # while len(self.new_nodes) > 0:
+        #     print(self.new_nodes)
+        #     self.tree_updated(add=self.new_nodes[0])
+        #     #new_nodes += self.new_nodes[0]
+        #     del self.new_nodes[0]
+        # #self.tree_updated(add=new_nodes)
+
+    def generate_tree(self, node=None, max_depth=3, branching_factor=2, interval=50, stop_condition=None,
+                      temperature=1, engine='ada'):
+        node = node if node else self.selected_node
+        print('generating children for node', node['id'])
+        if max_depth == 0 or (stop_condition and stop_condition(node)):
+            return
+        prompt = self.build_prompt(quiet=False, node=node)
+        results, error = api_generate(prompt=prompt,
+                                      length=interval,
+                                      num_continuations=branching_factor,
+                                      temperature=temperature,
+                                      logprobs=0,
+                                      top_p=self.generation_settings['top_p'],
+                                      engine=engine
+                                      )
+        # create child nodes
+        children = []
+        for i in range(branching_factor):
+            child = self.create_child(node, update_selection=False, expand=True, tree_updated=False)
+            children.append(child)
+        # set child nodes
+        self.generated_nodes_metadata(children, results, prompt)
+        self.tree_updated(add=[child['id'] for child in children])
+        # for each child node, branch again
+        for child in children:
+            #self.new_nodes.append(child['id'])
+            self.generate_tree(node=child, max_depth=max_depth-1, branching_factor=branching_factor, interval=interval,
+                               stop_condition=stop_condition, temperature=temperature, engine=engine)
+
+        # TODO multi threading
+
+
+    def generate_adaptive_tree(self, node=None, max_depth=3, branching_factor=2, max_interval=100, algorithm='min',
+                               min_interval=None, stop_condition=None):
+        pass
 
         # TODO range
     def semantic_search_memory(self, node, document_limit=100, max_length=1000):

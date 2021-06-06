@@ -61,7 +61,7 @@ Save: `s`, `Control-s`
 
 ### Dialogues
 
-Chapter settings: `Control-y`
+Change chapter: `Control-y`
 
 Generation Settings: `Control-p`
 
