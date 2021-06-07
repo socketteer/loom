@@ -1,21 +1,24 @@
 # priority 
 
+add global memory option
+
 ask before quitting if unsaved changes
 
 jump to unvisited nodes
 
 archived
     - navigation which navigates only any (conditional?) subset of tree
+        - implemented for node offset (next)
+        - nav to child
+        - nav to sibling
     - when in hide archived mode, navigation should only go to unarchived nodes
-    - what happens when you navigate to a hidden node anyway (for example using goto)?
+        - deal with case when you navigate to a hidden node anyway (for example using goto)?
 
-session files
+session files: separate session from underlying tree?
     - visited
     - active node
     - expanded state
     - settings... 
-
-separate session from underlying tree?
 
 open subtrees only...?
 
@@ -31,9 +34,7 @@ archiving
 - generation 
     - logit bias
     - multiverse generation options (depth, branching factor, branching interval/conditions)
- 
-- display gpt prompt mode
- 
+  
 - gpt modes     
     - account for additional prompt length (abstract)
     - save generation mode metadata

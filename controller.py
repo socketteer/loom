@@ -191,6 +191,8 @@ class Controller:
                 ("Mark subtree as AI completion", None, None, lambda: self.set_subtree_source('AI')),
                 ("Mark all as prompt", None, None, lambda: self.set_all_source('prompt')),
                 ("Mark all as AI completion", None, None, lambda: self.set_all_source('AI')),
+                ("Archive", None, None, no_junk_args(self.archive)),
+                ("Unarchive", None, None, no_junk_args(self.unarchive)),
 
             ],
             "Info": [
@@ -215,7 +217,7 @@ class Controller:
             self.state.next_canonical()
         else:
             #self.state.traverse_tree(1)
-            self.select_node(node=self.state.next(1))
+            self.select_node(node=self.state.tree_node_dict[self.state.next_id(1)])
     # next.meta = dict(name="Next", keys=["<period>", "<Return>"], display_key=">")
     # .meta = dict(name=, keys=, display_key=)
 
@@ -225,7 +227,7 @@ class Controller:
             self.state.prev_canonical()
         else:
             #self.state.traverse_tree(-1)
-            self.select_node(node=self.state.next(-1))
+            self.select_node(node=self.state.tree_node_dict[self.state.next_id(-1)])
 
     @metadata(name="Go to parent", keys=["<Left>", "<Control-Left>"], display_key="←")
     def parent(self):
@@ -301,23 +303,31 @@ class Controller:
         self.state.toggle_canonical(node=node)
         self.state.tree_updated(edit=[n['id'] for n in node_ancestry(node, self.state.tree_node_dict)])
 
-    @metadata(name="Toggle archived", keys=["<ampersand>"], display_key="")
+    @metadata(name="Toggle archived", keys=["<exclam>"], display_key="")
     def toggle_archived(self, node=None):
-        if node is None:
-            node = self.state.selected_node
-        if 'archived' in node:
-            node['archived'] = not node['archived']
+        node = node if node else self.state.selected_node
+        if 'archived' in node and node['archived']:
+            self.unarchive(node)
         else:
-            node['archived'] = True
-        if node['archived']:
-            if self.state.preferences['hide_archived']:
-                self.select_node(self.state.parent(node))
-                self.state.tree_updated(delete=[node['id']])
-        else:
-            if self.state.preferences['hide_archived']:
-                self.state.tree_updated(add=[node['id']])
+            self.archive(node)
 
+    @metadata(name="Toggle prompt", keys=["<asterisk>"], display_key="")
+    def toggle_prompt(self, node=None):
+        self.state.preferences['show_prompt'] = not self.state.preferences['show_prompt']
+        self.refresh_textbox()
 
+    def archive(self, node=None):
+        node = node if node else self.state.selected_node
+        node['archived'] = True
+        if self.state.preferences['hide_archived']:
+            self.select_node(self.state.parent(node))
+            self.state.tree_updated(delete=[node['id']])
+
+    def unarchive(self, node=None):
+        node = node if node else self.state.selected_node
+        node['archived'] = False
+        if self.state.preferences['hide_archived']:
+            self.state.tree_updated(add=[node['id']])
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
@@ -1184,47 +1194,50 @@ class Controller:
             self.display.textbox.configure(state="normal")
             self.display.textbox.delete("1.0", "end")
 
-            if self.state.preferences['coloring'] == 'edit':
-                self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
-                self.display.textbox.tag_config('history', foreground=history_color())
+            if self.state.preferences.get('show_prompt', False):
+                self.display.textbox.insert("end-1c", self.state.build_prompt(quiet=True))
             else:
-                self.display.textbox.tag_config('ooc_history', foreground=text_color())
-                self.display.textbox.tag_config('history', foreground=text_color())
+                if self.state.preferences['coloring'] == 'edit':
+                    self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
+                    self.display.textbox.tag_config('history', foreground=history_color())
+                else:
+                    self.display.textbox.tag_config('ooc_history', foreground=text_color())
+                    self.display.textbox.tag_config('history', foreground=text_color())
 
-            # TODO bad color for lightmode
-            self.display.textbox.tag_config("selected", background="black", foreground=text_color())
-            self.display.textbox.tag_config("modified", background="blue", foreground=text_color())
-            ancestry, indices = self.state.node_ancestry_text()
-            self.ancestor_end_indices = indices
-            history = ''
-            for node_text in ancestry[:-1]:
-                # "end" includes the automatically inserted new line
-                history += node_text
-                #self.display.textbox.insert("end-1c", node_text, "history")
-            selected_text = self.state.selected_node["text"]
-            prompt_length = self.state.generation_settings['prompt_length'] - len(selected_text)
+                # TODO bad color for lightmode
+                self.display.textbox.tag_config("selected", background="black", foreground=text_color())
+                self.display.textbox.tag_config("modified", background="blue", foreground=text_color())
+                ancestry, indices = self.state.node_ancestry_text()
+                self.ancestor_end_indices = indices
+                history = ''
+                for node_text in ancestry[:-1]:
+                    # "end" includes the automatically inserted new line
+                    history += node_text
+                    #self.display.textbox.insert("end-1c", node_text, "history")
+                selected_text = self.state.selected_node["text"]
+                prompt_length = self.state.generation_settings['prompt_length'] - len(selected_text)
 
-            in_context = history[-prompt_length:]
-            if prompt_length < len(history):
-                out_context = history[:len(history)-prompt_length]
-                self.display.textbox.insert("end-1c", out_context, "ooc_history")
-            self.display.textbox.insert("end-1c", in_context, "history")
+                in_context = history[-prompt_length:]
+                if prompt_length < len(history):
+                    out_context = history[:len(history)-prompt_length]
+                    self.display.textbox.insert("end-1c", out_context, "ooc_history")
+                self.display.textbox.insert("end-1c", in_context, "history")
 
-            end = self.display.textbox.index(tk.END)
-            #self.display.textbox.see(tk.END)
+                end = self.display.textbox.index(tk.END)
+                #self.display.textbox.see(tk.END)
 
-            self.display.textbox.insert("end-1c", selected_text)
-            #self.display.textbox.see(end)
-            self.display.textbox.insert("end-1c", self.state.selected_node.get("active_text", ""))
+                self.display.textbox.insert("end-1c", selected_text)
+                #self.display.textbox.see(end)
+                self.display.textbox.insert("end-1c", self.state.selected_node.get("active_text", ""))
 
-            # TODO Not quite right. We may need to compare the actual text content? Hmm...
-            # num_lines = int(self.display.textbox.index('end-1c').split('.')[0])
-            # while num_lines < self.refresh_textbox.meta["last_num_lines"]:
-            #     self.display.textbox.insert("end-1c", "\n")
-            #     num_lines = int(self.display.textbox.index('end-1c').split('.')[0])
-            # self.refresh_textbox.meta["last_num_lines"] = num_lines
+                # TODO Not quite right. We may need to compare the actual text content? Hmm...
+                # num_lines = int(self.display.textbox.index('end-1c').split('.')[0])
+                # while num_lines < self.refresh_textbox.meta["last_num_lines"]:
+                #     self.display.textbox.insert("end-1c", "\n")
+                #     num_lines = int(self.display.textbox.index('end-1c').split('.')[0])
+                # self.refresh_textbox.meta["last_num_lines"] = num_lines
 
-            self.tag_prompts()
+                self.tag_prompts()
             self.display.textbox.configure(state="disabled")
 
             # makes text copyable

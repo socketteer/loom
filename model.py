@@ -56,6 +56,7 @@ DEFAULT_PREFERENCES = {
     'line_spacing': 8,
     'paragraph_spacing': 10,
     'gpt_mode': 'default', #'chat', 'dialogue', 'antisummary'
+    'show_prompt': False,
     # display children preview
     # darkmode
 }
@@ -253,9 +254,20 @@ class TreeModel:
     def nodes(self):
         return list(self.tree_node_dict.values()) if self.tree_node_dict else None
 
+    def nodes_list(self, flat_tree=None):
+        flat_tree = flat_tree if flat_tree else self.tree_node_dict
+        return list(flat_tree.values()) if flat_tree else None
+
     @property
     def tree_traversal_idx(self):
         return self.nodes.index(self.selected_node)
+
+    def tree_traversal_idx_gen(self, flat_tree=None):
+        flat_tree = flat_tree if flat_tree else self.tree_node_dict
+        nodes = self.nodes_list(flat_tree)
+        for i, node in enumerate(nodes):
+            if node['id'] == self.selected_node_id:
+                return i
 
     # Returns [{chapter: {}, id, children: []}, ...]
     def _build_chapter_trees(self, node):
@@ -312,12 +324,18 @@ class TreeModel:
             new_node_id = self.next_id(offset)
             return self.select_node(new_node_id)
 
-    def next_id(self, offset):
-        return self.next(offset)["id"]
+    def next_id(self, offset, flat_tree=None):
+        flat_tree = flat_tree if flat_tree else self.generate_visible_tree() \
+            if self.preferences['hide_archived'] else self.tree_node_dict
+        new_idx = clip_num(self.tree_traversal_idx_gen(flat_tree) + offset, 0, len(flat_tree) - 1)
+        return self.nodes_list(flat_tree=flat_tree)[new_idx]['id']
 
-    def next(self, offset):
-        new_idx = clip_num(self.tree_traversal_idx + offset, 0, len(self.tree_node_dict) - 1)
-        return self.nodes[new_idx]
+    # def next_id(self, offset):
+    #     return self.next(offset)["id"]
+
+    # def next(self, offset):
+    #     new_idx = clip_num(self.tree_traversal_idx + offset, 0, len(self.tree_node_dict) - 1)
+    #     return self.nodes[new_idx]
 
     # TODO this is bad
     def next_canonical(self):
@@ -967,7 +985,7 @@ class TreeModel:
         self.app.event_generate("<<NewNodes>>", when="tail")
 
     def antisummary_generate(self, prompt, nodes, summary):
-        start_text = f'\n\n[{summary}]\n'
+        start_text = f'\n{self.antisummary_embedding(summary)}'
         prompt = prompt + start_text
         print('antisummary prompt:\n', prompt)
         try:
@@ -1086,6 +1104,9 @@ class TreeModel:
             parent = self.parent(node)
             parent["children"].remove(node)
 
+    def antisummary_embedding(self, summary):
+        return f'\n[Next section summary: {summary}]\n'
+
     def build_prompt(self, node=None, prompt_length=None, memory=True, quiet=True, mode=None):
         node = node if node else self.selected_node
         mode = mode if mode else self.preferences['gpt_mode']
@@ -1098,7 +1119,8 @@ class TreeModel:
                     for summary_id in ancestor['summaries']:
                         summary = self.summaries[summary_id]
                         if summary['end_id'] in ancestor_ids:
-                            prompt += f'\n[{summary["text"]}]\n'
+                            prompt += self.antisummary_embedding(summary['text'])
+                            #prompt += f'\n[{summary["text"]}]\n'
                 prompt += ancestor['text']
         else:
             prompt = "".join(self.node_ancestry_text(node)[0])

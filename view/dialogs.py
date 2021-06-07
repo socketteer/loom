@@ -715,6 +715,7 @@ class PreferencesDialog(Dialog):
             "bold_prompt": tk.BooleanVar,
             "input_box": tk.BooleanVar,
             "auto_response": tk.BooleanVar,
+            "show_prompt": tk.BooleanVar,
             "coloring": tk.StringVar,
             "gpt_mode": tk.StringVar,
             "font_size": tk.IntVar,
@@ -753,6 +754,10 @@ class PreferencesDialog(Dialog):
         check = ttk.Checkbutton(master, variable=self.vars["auto_response"])
         check.grid(row=row, column=1, pady=3)
         row = master.grid_size()[1]
+        row = master.grid_size()[1]
+        create_side_label(master, "Display prompt in textbox", row)
+        check = ttk.Checkbutton(master, variable=self.vars["show_prompt"])
+        check.grid(row=row, column=1, pady=3)
         create_side_label(master, "Text coloring", row)
         options = ['edit', 'read', 'none']
         dropdown = tk.OptionMenu(master, self.vars["coloring"], *options)
