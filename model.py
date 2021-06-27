@@ -57,6 +57,7 @@ DEFAULT_PREFERENCES = {
     'paragraph_spacing': 10,
     'gpt_mode': 'default', #'chat', 'dialogue', 'antisummary'
     'show_prompt': False,
+    'log_diff': False,
     # display children preview
     # darkmode
 }

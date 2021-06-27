@@ -1159,7 +1159,7 @@ class Controller:
         if self.display.mode == "Edit":
             new_text = self.display.textbox.get("1.0", 'end-1c')
             new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
-            self.state.update_text(self.state.selected_node, new_text, new_active_text, log_diff=True)
+            self.state.update_text(self.state.selected_node, new_text, new_active_text, log_diff=self.state.preferences['log_diff'])
 
         elif self.display.mode == "Multi Edit":
             nodes = [self.state.selected_node, *self.state.selected_node["children"]]
