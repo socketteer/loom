@@ -1,12 +1,18 @@
 # priority 
 
+enable / disable diff tracking
+
+log gpt-3 output files
+
+enable autosave
+
 add global memory option
 
 ask before quitting if unsaved changes
 
 jump to unvisited nodes
 
-archived
+- archived
     - navigation which navigates only any (conditional?) subset of tree
         - implemented for node offset (next)
         - nav to child
@@ -14,7 +20,7 @@ archived
     - when in hide archived mode, navigation should only go to unarchived nodes
         - deal with case when you navigate to a hidden node anyway (for example using goto)?
 
-session files: separate session from underlying tree?
+- session files: separate session from underlying tree?
     - visited
     - active node
     - expanded state
@@ -30,6 +36,7 @@ archiving
     - longer range suggestions mode?
     - more than one token for first (worth latency)?
     - save counterfactuals?
+    - filter by character input
 
 - generation 
     - logit bias

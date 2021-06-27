@@ -605,7 +605,7 @@ class TreeModel:
             elif node['meta']['source'] == 'AI':
                 node['meta']['source'] = 'mixed'
             if log_diff:
-                if old_text:
+                if old_text and len(node['text']) < 2000:
                     old_tokens = None
                     if 'diffs' not in node['meta']:
                         node['meta']['diffs'] = []
@@ -1141,8 +1141,10 @@ class TreeModel:
 
     def autocomplete_generate(self, appended_text, engine='curie'):
         # TODO memory and chat prepending - abstract this
-        appended_text = self.submit_modifications(appended_text)
-        prompt = self.build_prompt(prompt_length=2000) + appended_text
+        # TODO different behavior if not in submit box
+        appended_text = self.pre_modifications(appended_text)
+        prompt = self.build_prompt(prompt_length=4000) + appended_text
+        # print('prompt: ', prompt)
         results, error = api_generate(prompt=prompt,
                                       length=1,  # TODO 3 or so
                                       num_continuations=1,
@@ -1274,26 +1276,35 @@ class TreeModel:
 
 
     # modifications made to text submitted using input box
+    # TODO split into pre and post user input modifications
     def submit_modifications(self, text):
+        return self.post_modifications(self.pre_modifications(text))
+
+    # submit modifications prepended to user input
+    def pre_modifications(self, text):
         if self.preferences['gpt_mode'] == 'chat':
             if text and text[0] != ' ':
                 text = '\n' + self.chat_preferences['player_name'] + ': ' + text
             else:
                 text = '\n' + self.chat_preferences['player_name'] + ':' + text
         elif self.preferences['gpt_mode'] == 'dialogue':
-            # add punctuation if there isn't any
-            if text[-1] not in [',', '.', '!', '?', '-']:
-                # TODO figure out most appropriate puntuation
-                text = text + '.'
-            text = '\n"' + text + '"'
-        elif self.preferences['gpt_mode'] == 'antisummary':
-            text = ''
+            text = '\n"' + text
         else:
             # default
             if text and self.selected_node['text'] and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] and text[0] != ' ':
                 text = ' ' + text
             else:
                 text = text
+        return text
+
+    #submit modifications appended to user input
+    def post_modifications(self, text):
+        if self.preferences['gpt_mode'] == 'dialogue':
+            # add punctuation if there isn't any
+            if len(text) > 0 and text[-1] not in [',', '.', '!', '?', '-']:
+                # TODO figure out most appropriate punctuation using gpt
+                text = text + '.'
+            text = text + '"'
         return text
 
     # TODO token index ???

@@ -1124,6 +1124,12 @@ class Controller:
     @metadata(name="Key Pressed", keys=[], display_key="")
     def key_pressed(self, char):
         if char and self.autocomplete.meta["in_autocomplete"]:
+            # if char is esc or \n or space, exit autocomplete
+            # else, change possible tokens to filtered list from original possible tokens (including when letters deleted)
+            # and set index to 0
+            # and set highlight range to only suggested characters
+            # if empty list, substitute nothing, but don't exit autocomplete
+            print('char pressed: ', char)
             self.display.input_box.delete(*self.autocomplete.meta["autocomplete_range"])
             self.exit_autocomplete()
 

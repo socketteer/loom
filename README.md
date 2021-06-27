@@ -59,7 +59,7 @@ Import JSON as subtree: `Control-Shift-O`
 Save: `s`, `Control-s`
 
 
-### Dialogues
+### Dialogs
 
 Change chapter: `Control-y`
 
@@ -67,7 +67,7 @@ Generation Settings: `Control-p`
 
 Visualization Settings: `Control-u`
 
-Multimedia dialogue: `u`
+Multimedia dialog: `u`
 
 Tree Info: `i`, `Control-i`
 

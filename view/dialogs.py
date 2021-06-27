@@ -754,10 +754,10 @@ class PreferencesDialog(Dialog):
         check = ttk.Checkbutton(master, variable=self.vars["auto_response"])
         check.grid(row=row, column=1, pady=3)
         row = master.grid_size()[1]
-        row = master.grid_size()[1]
         create_side_label(master, "Display prompt in textbox", row)
         check = ttk.Checkbutton(master, variable=self.vars["show_prompt"])
         check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
         create_side_label(master, "Text coloring", row)
         options = ['edit', 'read', 'none']
         dropdown = tk.OptionMenu(master, self.vars["coloring"], *options)
@@ -864,7 +864,7 @@ class ChatSettingsDialog(Dialog):
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
 
-        Dialog.__init__(self, parent, title="Preferences")
+        Dialog.__init__(self, parent, title="Chat settings")
 
     def body(self, master):
         # print(self.orig_params)
