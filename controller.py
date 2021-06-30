@@ -8,6 +8,7 @@ from pprint import pprint
 from tkinter import filedialog, ttk
 from tkinter import messagebox
 from tkinter.font import Font
+import re
 
 import PIL
 import pyperclip
@@ -1078,14 +1079,16 @@ class Controller:
               self.state.score_counterfactual(context_breaker=context_breaker, target=target, engine='davinci'))
 
     @metadata(name="Autocomplete", keys=["<Alt_L>"], display_key="", in_autocomplete=False, autocomplete_range=None,
-              possible_tokens=None, token_index=None)
+              input_range=None, possible_tokens=None, matched_tokens=None, token_index=None, filter_chars='', leading_space=False)
     def autocomplete(self):
 
         # TODO determine whether in edit mode, input box, or vis textbox
+
         if self.has_focus(self.display.input_box):
             self.display.input_box.tag_config('autocomplete', background="blue")
             if not self.autocomplete.meta["in_autocomplete"]:
-                self.autocomplete.meta["possible_tokens"] = self.state.autocomplete_generate(self.display.input_box.get("1.0", "end-1c"), engine='curie')
+                self.autocomplete.meta["possible_tokens"] = self.state.autocomplete_generate(self.display.input_box.get("1.0", tk.INSERT), engine='curie')
+                self.autocomplete.meta["matched_tokens"] = self.autocomplete.meta["possible_tokens"]
                 self.autocomplete.meta["token_index"] = 0
                 self.autocomplete.meta["in_autocomplete"] = True
                 self.insert_autocomplete()
@@ -1093,20 +1096,45 @@ class Controller:
                 self.scroll_autocomplete(1)
 
 
-    def insert_autocomplete(self):
+    # autocomplete_range is full range of suggested token regardless of user input
+    def insert_autocomplete(self, offset=0):
+        # todo remove leading space
+
         insert = self.display.input_box.index(tk.INSERT)
-        suggested_token = self.autocomplete.meta["possible_tokens"][self.autocomplete.meta["token_index"]][0]
-        self.autocomplete.meta["autocomplete_range"] = (insert, f'insert + {str(len(suggested_token))} chars')
-        self.display.input_box.insert(tk.INSERT, suggested_token, "autocomplete")
-        self.display.input_box.mark_set(tk.INSERT, insert)
+        print(f'text box contents: [{self.display.input_box.get("1.0", "end-1c")}]')
+
+        start_position = self.autocomplete.meta["autocomplete_range"][0] if self.autocomplete.meta["autocomplete_range"] else insert
+        # TODO if run out of suggested tokens
+        suggested_token = self.autocomplete.meta["matched_tokens"][self.autocomplete.meta["token_index"]][0]
+        # if self.autocomplete.meta['leading_space'] and offset == 0 and not disable_effects and suggested_token[0] == ' ':
+        #     print('drop leading space')
+        #     suggested_token = suggested_token[1:]
+        #     self.autocomplete.meta['leading_space'] = False
+        self.autocomplete.meta["autocomplete_range"] = (start_position, f'{start_position} + {str(len(suggested_token))} chars') #(start_position, f'{insert} + {str(len(suggested_token) - offset)} chars') #
+
+        #self.display.input_box.insert(start_position, suggested_token[:offset])
+        #self.display.input_box.insert(f'{start_position} + {offset} chars', suggested_token[offset:], "autocomplete")
+        self.display.input_box.insert(insert, suggested_token[offset:], "autocomplete")
+        if suggested_token[0] == ' ' and offset == 1:
+            self.display.input_box.delete(start_position, f'{start_position} + 1 char')
+            self.display.input_box.insert(start_position, ' ')
+            self.display.input_box.mark_set(tk.INSERT, f'{start_position} + 1 char')
+            self.autocomplete.meta["filter_chars"] = ' ' + self.autocomplete.meta["filter_chars"]
+        else:
+            self.display.input_box.mark_set(tk.INSERT, insert)
 
     # TODO <Right> doesn't work
+    # TODO test
     @metadata(name="Apply Autocomplete", keys=["<Alt_R>", "<Right>"], display_key="")
-    def apply_autocomplete(self):
+    def apply_autocomplete(self, auto=True):
         if self.has_focus(self.display.input_box) and self.autocomplete.meta["in_autocomplete"]:
+            self.delete_autocomplete()
+            self.insert_autocomplete()
             self.display.input_box.tag_delete("autocomplete")
-            self.display.input_box.mark_set(tk.INSERT, self.autocomplete.meta["autocomplete_range"][1])
+            self.display.input_box.mark_set(tk.INSERT, f'{self.autocomplete.meta["autocomplete_range"][1]} + 1 chars')
             self.exit_autocomplete()
+            if auto:
+                self.autocomplete()
 
     @metadata(name="Rewind Autocomplete", keys=["<Control_L>"], display_key="")
     def rewind_autocomplete(self):
@@ -1117,27 +1145,65 @@ class Controller:
         new_index = self.autocomplete.meta["token_index"] + step
         if 0 <= new_index < 100:
             self.autocomplete.meta["token_index"] = new_index
-            self.display.input_box.delete(*self.autocomplete.meta["autocomplete_range"])
+            self.display.input_box.delete(*self.autocomplete.meta[
+                "autocomplete_range"])
             self.insert_autocomplete()
 
 
     @metadata(name="Key Pressed", keys=[], display_key="")
     def key_pressed(self, char):
         if char and self.autocomplete.meta["in_autocomplete"]:
-            # if char is esc or \n or space, exit autocomplete
-            # else, change possible tokens to filtered list from original possible tokens (including when letters deleted)
-            # and set index to 0
-            # and set highlight range to only suggested characters
-            # if empty list, substitute nothing, but don't exit autocomplete
-            print('char pressed: ', char)
-            self.display.input_box.delete(*self.autocomplete.meta["autocomplete_range"])
+            if char.isalnum() or char in ['\'', '-', '_', ' ']:
+                self.filter_autocomplete_suggestions(char)
+            elif char == ']':
+                # accept suggestion
+                pass
+            else:
+                self.delete_autocomplete()
+                self.exit_autocomplete()
+
+    def delete_autocomplete(self, offset=0):
+        #print(self.autocomplete.meta['autocomplete_range'])
+        #print('text box contents: ', self.display.input_box.get("1.0", 'end-1c'))
+
+        # delete_range = self.autocomplete.meta['autocomplete_range']
+        delete_range = (f'{self.autocomplete.meta["autocomplete_range"][0]} + {offset} chars',
+                                        f'{self.autocomplete.meta["autocomplete_range"][1]}')
+        #print(self.display.input_box.get(*delete_range))
+        self.display.input_box.delete(*delete_range)
+        #print('text box contents: ', self.display.input_box.get("1.0", 'end-1c'))
+
+    def filter_autocomplete_suggestions(self, char):
+        # TODO deleting tokens
+        # TODO infer instead of record offset?
+        # TODO space usually accepts
+        if char == ' ':
+            self.autocomplete.meta['leading_space'] = True
+            self.apply_autocomplete()
+            return
+        self.delete_autocomplete(offset=len(self.autocomplete.meta["filter_chars"]))
+
+        self.autocomplete.meta["filter_chars"] += char
+        print(self.autocomplete.meta["filter_chars"])
+
+        match_beginning = re.compile(rf'^\s*{self.autocomplete.meta["filter_chars"]}.*', re.IGNORECASE)
+        self.autocomplete.meta["matched_tokens"] = [token for token in self.autocomplete.meta['possible_tokens']
+                                                    if match_beginning.match(token[0])]
+        print(self.autocomplete.meta["matched_tokens"])
+        if len(self.autocomplete.meta["matched_tokens"]) < 1:
+            # TODO if empty list, substitute nothing, but don't exit autocomplete
             self.exit_autocomplete()
+        else:
+            self.autocomplete.meta["token_index"] = 0
+            self.insert_autocomplete(offset=len(self.autocomplete.meta["filter_chars"]))
 
     def exit_autocomplete(self):
         self.autocomplete.meta["autocomplete_range"] = None
         self.autocomplete.meta["in_autocomplete"] = False
         self.autocomplete.meta["token_index"] = None
         self.autocomplete.meta["possible_tokens"] = None
+        self.autocomplete.meta["matched_tokens"] = None
+        self.autocomplete.meta["filter_chars"] = ''
 
     @metadata(name="Chat settings", keys=[], display_key="")
     def chat_settings(self):
