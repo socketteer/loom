@@ -1101,7 +1101,7 @@ class Controller:
         # todo remove leading space
 
         insert = self.display.input_box.index(tk.INSERT)
-        print(f'text box contents: [{self.display.input_box.get("1.0", "end-1c")}]')
+        #print(f'text box contents: [{self.display.input_box.get("1.0", "end-1c")}]')
 
         start_position = self.autocomplete.meta["autocomplete_range"][0] if self.autocomplete.meta["autocomplete_range"] else insert
         # TODO if run out of suggested tokens

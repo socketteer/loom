@@ -1046,7 +1046,7 @@ class TreeModel:
                                               num_continuations=len(nodes),
                                               temperature=self.generation_settings['temperature'],
                                               top_p=self.generation_settings['top_p'],
-                                              logprobs=0,
+                                              logprobs=10,
                                               engine=self.generation_settings['model'],
                                               stop=stop
                                               )

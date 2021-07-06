@@ -1,6 +1,12 @@
 # priority 
 
+autocomplete bug - sometimes freezes
+
+stop at newline mode
+
 enable / disable diff tracking
+
+nav tree - goto selected node
 
 log gpt-3 output files
 
