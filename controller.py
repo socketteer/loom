@@ -168,7 +168,7 @@ class Controller:
 
             ],
             "Generation": [
-                ('Generation settings', 'Ctrl+P', None, no_junk_args(self.generation_settings_dialog)),
+                ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
                 ('Chat settings', None, None, no_junk_args(self.chat_settings)),
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
                 ('View summaries', '', None, no_junk_args(self.view_summaries)),
@@ -196,11 +196,16 @@ class Controller:
                 ("Unarchive", None, None, no_junk_args(self.unarchive)),
 
             ],
+            "Settings": [
+                ('Chat settings', None, None, no_junk_args(self.chat_settings)),
+                ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
+                ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences))
+            ],
             "Info": [
                 ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
                 ('Multimedia', 'U', None, no_junk_args(self.multimedia_dialog)),
                 ('Node metadata', 'Ctrl+Shift+N', None, no_junk_args(self.node_info_dialogue)),
-                ('Preferences', '', None, no_junk_args(self.preferences))
+                ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences))
             ],
         }
         return menu_list

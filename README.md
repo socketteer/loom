@@ -63,7 +63,9 @@ Save: `s`, `Control-s`
 
 Change chapter: `Control-y`
 
-Generation Settings: `Control-p`
+Preferences: `Control-p`
+
+Generation Settings: `Control-Shift-P`
 
 Visualization Settings: `Control-u`
 
@@ -119,6 +121,8 @@ Toggle bookmark: `b`, `Control-b`
 Search: `Control-f`
 
 Click to split node: `Control-alt-click`
+
+Goto node by id: `Control-shift-g`
 
 
 
