@@ -83,7 +83,7 @@ class Controller:
         self.state.register_callback(self.state.tree_updated, self.refresh_visualization)
         self.state.register_callback(self.state.tree_updated, self.refresh_display)
         # TODO autosaving takes too long for a big tree
-        #self.state.register_callback(self.state.tree_updated, lambda: self.save_tree(popup=False))
+        self.state.register_callback(self.state.tree_updated, lambda **kwargs: self.save_tree(popup=False, autosave=True))
 
         # Before the selection is updated, save edits
         self.state.register_callback(self.state.pre_selection_updated, self.save_edits)
@@ -369,8 +369,6 @@ class Controller:
                                          "1.0",
                                          f"1.0 + {nca_end_index} chars")
             self.display.textbox.tag_config("old", foreground=history_color())
-            #traceback.print_stack()
-            print('done')
         else:
             self.state.select_node(node['id'])
 
@@ -537,7 +535,10 @@ class Controller:
                 start_position = token_offsets[token_index]
                 token = selected_node['meta']['generation']["logprobs"]["tokens"][token_index]
 
+                #print(selected_node['meta']['generation']["logprobs"]["top_logprobs"])
+                #print(token_index)
                 counterfactuals = selected_node['meta']['generation']["logprobs"]["top_logprobs"][token_index]
+                self.print_to_debug(counterfactuals)
                 sorted_counterfactuals = dict(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
 
 
@@ -846,9 +847,12 @@ class Controller:
         self.state.import_tree(filename)
 
     @metadata(name="Save", keys=["<s>", "<Control-s>"], display_key="s")
-    def save_tree(self, popup=True):
+    def save_tree(self, popup=True, autosave=False):
+        if autosave and not self.state.preferences['autosave']:
+            return
         try:
-            self.state.delete_counterfactuals()
+            if not autosave and not self.state.preferences['save_counterfactuals']:
+                self.state.delete_counterfactuals()
             self.save_edits()
             self.state.save_tree(backup=popup)
             if popup:
@@ -908,8 +912,6 @@ class Controller:
     def generation_settings_dialog(self):
         dialog = GenerationSettingsDialog(self.display.frame, self.state.generation_settings)
         if dialog.result:
-            print("Settings saved")
-            pprint(self.state.generation_settings)
             #self.save_tree(popup=False)
             self.refresh_textbox()
 
@@ -918,8 +920,8 @@ class Controller:
     def visualization_settings_dialog(self):
         dialog = VisualizationSettingsDialog(self.display.frame, self.state.visualization_settings)
         if dialog.result:
-            print("Settings saved")
-            pprint(self.state.visualization_settings)
+            #print("Settings saved")
+            #pprint(self.state.visualization_settings)
             self.refresh_visualization()
             # self.save_tree(popup=False)
 
@@ -1007,9 +1009,11 @@ class Controller:
     #         print(entry['score'])
 
     @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
-    def toggle_input_box(self):
+    def toggle_input_box(self, toggle='either'):
         if self.display.mode == "Read":
-            if not self.state.preferences['input_box']:
+            if toggle == 'on' or (toggle=='either' and not self.state.preferences['input_box']):
+                if self.state.preferences['debug_box']:
+                    self.toggle_debug_box(toggle='off')
                 self.display.build_input_box()
                 self.state.preferences['input_box'] = True
                 self.update_dropdown()
@@ -1021,6 +1025,27 @@ class Controller:
     def update_dropdown(self):
         if self.display.mode_var:
             self.display.mode_var.set(self.state.preferences['gpt_mode'])
+
+
+    @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
+    def toggle_debug_box(self, toggle='either'):
+        if self.display.mode == "Read":
+            if toggle == 'on' or (toggle == 'either' and not self.state.preferences['debug_box']):
+                if self.state.preferences['input_box']:
+                    self.toggle_input_box(toggle='off')
+                self.display.build_debug_box()
+                self.state.preferences['debug_box'] = True
+            else:
+                self.display.destroy_debug_box()
+                self.state.preferences['debug_box'] = False
+
+    def print_to_debug(self, message):
+        # TODO print to debug stream even if debug box is not active
+        if self.display.debug_box:
+            self.display.debug_box.configure(state="normal")
+            self.display.debug_box.insert("end-1c", '\n')
+            self.display.debug_box.insert("end-1c", message)
+            self.display.debug_box.configure(state="disabled")
 
     @metadata(name="Update mode", keys=[], display_key="")
     def update_mode(self, *args):
@@ -1040,12 +1065,13 @@ class Controller:
         elif self.state.preferences['auto_response']:
             self.generate()
 
-    @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
+    @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
+        self.print_to_debug("test debug message")
         #print(self.state.selected_node['meta'])
         #self.state.generate_tree_init(max_depth=3, branching_factor=3, engine='davinci')
         #self.state.measure_path_optimization(root=self.state.ancestry()[1], node=self.state.selected_node)
-        print(self.state.generate_canonical_tree())
+        #print(self.state.generate_canonical_tree())
         # dialog = CreateSummary(parent=self.display.frame, root_node=self.state.ancestry()[1], state=self.state)
 
 
@@ -1155,9 +1181,10 @@ class Controller:
         if char and self.autocomplete.meta["in_autocomplete"]:
             if char.isalnum() or char in ['\'', '-', '_', ' ']:
                 self.filter_autocomplete_suggestions(char)
-            elif char == ']':
-                # accept suggestion
-                pass
+            elif char == 'Tab':
+                # FIXME this doesn't work - why?
+                print('tab')
+                self.apply_autocomplete()
             else:
                 self.delete_autocomplete()
                 self.exit_autocomplete()
@@ -1250,6 +1277,10 @@ class Controller:
             self.display.build_input_box()
         elif not self.state.preferences['input_box'] and self.display.input_box:
             self.display.destroy_input_box()
+        if self.state.preferences['debug_box'] and not self.display.debug_box:
+            self.display.build_debug_box()
+        elif not self.state.preferences['debug_box'] and self.display.debug_box:
+            self.display.destroy_debug_box()
 
     HISTORY_COLOR = history_color()
     # @metadata(last_text="", last_scroll_height=0, last_num_lines=0)

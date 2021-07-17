@@ -6,7 +6,7 @@ from tkinter.scrolledtext import ScrolledText
 
 from gpt import POSSIBLE_MODELS
 from util.custom_tks import Dialog, TextAware
-from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box
+from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
 from util.util_tree import search, node_ancestry
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 import math
@@ -716,6 +716,9 @@ class PreferencesDialog(Dialog):
             "input_box": tk.BooleanVar,
             "auto_response": tk.BooleanVar,
             "show_prompt": tk.BooleanVar,
+            "log_diff": tk.BooleanVar,
+            "autosave": tk.BooleanVar,
+            "save_counterfactuals": tk.BooleanVar,
             "coloring": tk.StringVar,
             "gpt_mode": tk.StringVar,
             "font_size": tk.IntVar,
@@ -729,34 +732,21 @@ class PreferencesDialog(Dialog):
 
     def body(self, master):
         #print(self.orig_params)
-        row = master.grid_size()[1]
-        create_side_label(master, "Hide archived", row)
-        check = ttk.Checkbutton(master, variable=self.vars["hide_archived"])
-        check.grid(row=row, column=1, pady=3)
-        row = master.grid_size()[1]
-        create_side_label(master, "Canonical only", row)
-        check = ttk.Checkbutton(master, variable=self.vars["canonical_only"])
-        check.grid(row=row, column=1, pady=3)
+        create_checkbutton(master, "Hide archived", "hide_archived", self.vars)
+        create_checkbutton(master, "Canonical only", "canonical_only", self.vars)
+        create_checkbutton(master, "Bold prompt", "bold_prompt", self.vars)
+        create_checkbutton(master, "Show input box", "input_box", self.vars)
+        create_checkbutton(master, "AI responses on submit", "auto_response", self.vars)
+        create_checkbutton(master, "Show literal prompt", "show_prompt", self.vars)
+        create_checkbutton(master, "Log diffs", "log_diff", self.vars)
+        create_checkbutton(master, "Autosave", "autosave", self.vars)
+        create_checkbutton(master, "Save counterfactuals", "save_counterfactuals", self.vars)
+
         # row = master.grid_size()[1]
         # create_side_label(master, "Show side pane", row)
         # check = ttk.Checkbutton(master, variable=self.vars["side_pane"])
         # check.grid(row=row, column=1, pady=3)
-        row = master.grid_size()[1]
-        create_side_label(master, "Bold prompt", row)
-        check = ttk.Checkbutton(master, variable=self.vars["bold_prompt"])
-        check.grid(row=row, column=1, pady=3)
-        row = master.grid_size()[1]
-        create_side_label(master, "Show input box", row)
-        check = ttk.Checkbutton(master, variable=self.vars["input_box"])
-        check.grid(row=row, column=1, pady=3)
-        row = master.grid_size()[1]
-        create_side_label(master, "AI responses on submit", row)
-        check = ttk.Checkbutton(master, variable=self.vars["auto_response"])
-        check.grid(row=row, column=1, pady=3)
-        row = master.grid_size()[1]
-        create_side_label(master, "Display prompt in textbox", row)
-        check = ttk.Checkbutton(master, variable=self.vars["show_prompt"])
-        check.grid(row=row, column=1, pady=3)
+
         row = master.grid_size()[1]
         create_side_label(master, "Text coloring", row)
         options = ['edit', 'read', 'none']
@@ -770,6 +760,7 @@ class PreferencesDialog(Dialog):
         create_slider(master, "Font size", self.vars["font_size"], (5, 20))
         create_slider(master, "Line spacing", self.vars["line_spacing"], (0, 20))
         create_slider(master, "Paragraph spacing", self.vars["paragraph_spacing"], (0, 40))
+
 
     def apply(self):
         for key, var in self.vars.items():
@@ -785,6 +776,7 @@ class GenerationSettingsDialog(Dialog):
             'top_p': tk.DoubleVar,
             'response_length': tk.IntVar,
             'prompt_length': tk.IntVar,
+            'logprobs': tk.IntVar,
             "janus": tk.BooleanVar,
             "adaptive": tk.BooleanVar,
             "model": tk.StringVar,
@@ -804,6 +796,7 @@ class GenerationSettingsDialog(Dialog):
             'top_p': (0., 1.),
             'response_length': (1, 1000),
             'prompt_length': (100, 10000),
+            'logprobs': (0, 100),
         }
         for name, value_range in sliders.items():
             create_slider(master, name, self.vars[name], value_range)

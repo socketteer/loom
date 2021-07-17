@@ -63,6 +63,7 @@ class Display:
         self.mode_select = None
         self.submit_button = None
         self.mode_var = None
+        self.debug_box = None
 
         self.multi_edit_frame = None
         self.multi_textboxes = None
@@ -169,6 +170,7 @@ class Display:
         # Button bar        self.input_frame.pack(side="bottom", fill="x")
         self.build_main_buttons(self.bottom_frame)
         self.button_bar.pack(side="top", fill="both")
+        self.build_debug_box()
 
         # if self.state.preferences['input_box']:
         #     self.build_input_box(self.bottom_frame)
@@ -179,15 +181,36 @@ class Display:
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
-    def build_input_box(self):
+    def build_debug_box(self):
+        self.destroy_input_box()
         self.bottom_frame.pack_forget()
         self.bottom_input_frame.pack_forget()
         self.bottom_input_frame.pack(side="bottom", fill="both")
         self.bottom_frame.pack(side="bottom", fill="both")
+        self.debug_box = TextAware(self.bottom_input_frame, bd=3, height=12)
+        self.debug_box.pack(expand=True, fill='x')
+        self.debug_box.configure(
+            foreground='white',
+            background='black',
+            wrap="word",
+        )
+        self.debug_box.configure(state="disabled")
 
+    def destroy_debug_box(self):
+        if self.debug_box is not None:
+            self.debug_box.pack_forget()
+            self.debug_box.destroy()
+            self.debug_box = None
+            self.bottom_input_frame.pack_forget()
 
+    def build_input_box(self):
+        self.destroy_debug_box()
+        self.bottom_frame.pack_forget()
+        self.bottom_input_frame.pack_forget()
+        self.bottom_input_frame.pack(side="bottom", fill="both")
+        self.bottom_frame.pack(side="bottom", fill="both")
         self.input_frame = ttk.Frame(self.bottom_input_frame, width=500, height=20)
-        self.input_box = TextAware(self.input_frame, bd=3, height=2, undo=True)
+        self.input_box = TextAware(self.input_frame, bd=3, height=3, undo=True)
         readable_font = Font(family="Georgia", size=12)
         self.input_box.pack(expand=True, fill='x')
         self.input_box.configure(
@@ -201,9 +224,7 @@ class Display:
             spacing3=5,
             wrap="word",
         )
-
         self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
-
         self.mode_var = tk.StringVar()
         choices = ('default', 'chat', 'dialogue', 'antisummary')
         self.mode_select = tk.OptionMenu(self.input_frame, self.mode_var, *choices)
@@ -212,7 +233,6 @@ class Display:
         tk.Label(self.input_frame, text="Mode", bg=bg_color(), fg=text_color()).pack(side='left')
         self.mode_select.pack(side='left')
 
-
         self.submit_button = ttk.Button(self.input_frame, text="Submit",
                                         command=self.callbacks["Submit"]["callback"], width=10)
         self.submit_button.pack(side='right')
@@ -220,7 +240,11 @@ class Display:
 
 
     def key_pressed(self, event=None):
+        if event.keysym in ('Tab'):
+            self.callbacks["Key Pressed"]["callback"](char=event.keysym)
+            return 'break'
         self.callbacks["Key Pressed"]["callback"](char=event.char)
+
 
     def destroy_input_box(self):
         if self.input_frame is not None:

@@ -1,22 +1,22 @@
 # priority 
 
+debug terminal
+
 autocomplete bug - sometimes freezes
 
-stop at newline mode
-
-enable / disable diff tracking
+stop at newline generation mode
 
 nav tree - goto selected node
 
 log gpt-3 output files
-
-enable autosave
 
 add global memory option
 
 ask before quitting if unsaved changes
 
 jump to unvisited nodes
+
+toggle save counterfactuals
 
 - archived
     - navigation which navigates only any (conditional?) subset of tree

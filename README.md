@@ -84,6 +84,7 @@ Child edit: `c`
 
 Toggle input box: `Tab`
 
+Toggle debug box: `Control+Shift+D`
 
 ### Navigate
 

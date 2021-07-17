@@ -51,6 +51,7 @@ DEFAULT_PREFERENCES = {
     'bold_prompt': True,
     'side_pane': False,
     'input_box': False,
+    'debug_box': False,
     'auto_response': True,
     'font_size': 12,
     'line_spacing': 8,
@@ -58,6 +59,8 @@ DEFAULT_PREFERENCES = {
     'gpt_mode': 'default', #'chat', 'dialogue', 'antisummary'
     'show_prompt': False,
     'log_diff': False,
+    'autosave': True,
+    'save_counterfactuals': False,
     # display children preview
     # darkmode
 }
@@ -82,6 +85,7 @@ DEFAULT_GENERATION_SETTINGS = {
     'top_p': 1,
     'response_length': 100,
     'prompt_length': 6000,
+    'logprobs': 10,
     "janus": False,
     "adaptive": False,
     "model": "davinci",
@@ -941,6 +945,7 @@ class TreeModel:
                                           length=self.generation_settings['response_length'],
                                           num_continuations=len(nodes),
                                           temperature=self.generation_settings['temperature'],
+                                          logprobs=self.generation_settings['logprobs'],
                                           top_p=self.generation_settings['top_p'],
                                           engine=self.generation_settings['model'],
                                           stop=["\n", self.chat_preferences['player_name'] + ':'],
@@ -967,6 +972,7 @@ class TreeModel:
                                           length=self.generation_settings['response_length'],
                                           num_continuations=len(nodes),
                                           temperature=self.generation_settings['temperature'],
+                                          logprobs=self.generation_settings['logprobs'],
                                           top_p=self.generation_settings['top_p'],
                                           engine=self.generation_settings['model'],
                                           stop=['\n'],
@@ -1001,6 +1007,7 @@ class TreeModel:
                                           num_continuations=len(nodes),
                                           temperature=self.generation_settings['temperature'],
                                           top_p=self.generation_settings['top_p'],
+                                          logprobs=self.generation_settings['logprobs'],
                                           engine=self.generation_settings['model'],
                                           stop=stop,
                                           )
@@ -1046,7 +1053,7 @@ class TreeModel:
                                               num_continuations=len(nodes),
                                               temperature=self.generation_settings['temperature'],
                                               top_p=self.generation_settings['top_p'],
-                                              logprobs=10,
+                                              logprobs=self.generation_settings['logprobs'],
                                               engine=self.generation_settings['model'],
                                               stop=stop
                                               )
@@ -1262,7 +1269,6 @@ class TreeModel:
         #documents.reverse()
         query = node['text']
         return search(query, documents)
-
 
     def delete_counterfactuals(self, root=None):
         if not root:

@@ -65,8 +65,8 @@ def api_generate(prompt, length=150, num_continuations=1, logprobs=10, temperatu
         stop=stop,
         **kwargs
     )
-    for choice in response.choices:
-        print(choice['logprobs'])
+    # for choice in response.choices:
+    #     print(choice['logprobs'])
     return response, None
 
 
