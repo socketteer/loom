@@ -1,7 +1,5 @@
 # priority 
 
-debug terminal
-
 autocomplete bug - sometimes freezes
 
 stop at newline generation mode
@@ -15,8 +13,6 @@ add global memory option
 ask before quitting if unsaved changes
 
 jump to unvisited nodes
-
-toggle save counterfactuals
 
 - archived
     - navigation which navigates only any (conditional?) subset of tree

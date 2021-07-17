@@ -61,6 +61,7 @@ DEFAULT_PREFERENCES = {
     'log_diff': False,
     'autosave': True,
     'save_counterfactuals': False,
+    'prob': True,
     # display children preview
     # darkmode
 }

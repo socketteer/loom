@@ -719,6 +719,7 @@ class PreferencesDialog(Dialog):
             "log_diff": tk.BooleanVar,
             "autosave": tk.BooleanVar,
             "save_counterfactuals": tk.BooleanVar,
+            "prob": tk.BooleanVar,
             "coloring": tk.StringVar,
             "gpt_mode": tk.StringVar,
             "font_size": tk.IntVar,
@@ -741,6 +742,7 @@ class PreferencesDialog(Dialog):
         create_checkbutton(master, "Log diffs", "log_diff", self.vars)
         create_checkbutton(master, "Autosave", "autosave", self.vars)
         create_checkbutton(master, "Save counterfactuals", "save_counterfactuals", self.vars)
+        create_checkbutton(master, "Show logprobs as probs", "prob", self.vars)
 
         # row = master.grid_size()[1]
         # create_side_label(master, "Show side pane", row)

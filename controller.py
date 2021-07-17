@@ -25,6 +25,7 @@ from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
     nearest_common_ancestor
+from util.gpt_util import logprobs_to_probs
 
 
 def gated_call(f, condition):
@@ -543,10 +544,12 @@ class Controller:
                 #print(selected_node['meta']['generation']["logprobs"]["top_logprobs"])
                 #print(token_index)
                 counterfactuals = selected_node['meta']['generation']["logprobs"]["top_logprobs"][token_index]
+
+                if self.state.preferences['prob']:
+                    counterfactuals = {k: logprobs_to_probs(v) for k, v in sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True)}
+
+
                 self.print_to_debug(counterfactuals)
-                sorted_counterfactuals = dict(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
-
-
 
                 #print('start position: ', self.ancestor_end_indices[ancestor_index - 1] + start_position)
                 self.display.textbox.tag_add("selected", f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + start_position} chars",
