@@ -1,5 +1,7 @@
 # priority 
 
+block multiverse svg
+
 autocomplete bug - sometimes freezes
 
 stop at newline generation mode
@@ -90,6 +92,23 @@ archiving
 * memory causes freeze?
 * mark as prompt doesn't always work? or display doesnt update
 * generating when trying to calculate optimization bits??
+
+
+### Block multiverse
+
+* button to toggle block multiverse mode
+* zooming
+* panning
+    * track x/y movements
+* Fix text zoom / hide too small and recalculate font sizes after zooming
+* color by differences betweent two multiverses
+* top k and top p 
+* draw existing loom trajectories as ground truth paths
+* save computed multiverses
+* remove invisible widgets (may be necessary if multiverses get too big?)
+* generate multiverse from current node
+* generatinng multiverse also adds branches to loom tree (but labeled different so they don't clutter everything up?)
+
 
 ### Tree vis
 * first time switching to vis mode centering bug

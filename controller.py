@@ -451,14 +451,18 @@ class Controller:
 
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
     def generate(self, node=None, **kwargs):
-        if node is None:
-            node = self.state.selected_node
-        try:
-            node["open"] = True
-            self.display.nav_tree.item(node, open=True)
-        except Exception as e:
-            print(str(e))
-        self.state.generate_continuation(node=node, **kwargs)
+        if self.display.mode == "Multiverse":
+            multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, unnormalized_threshold=0.001, engine='ada')
+            self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth)
+        else:
+            if node is None:
+                node = self.state.selected_node
+            try:
+                node["open"] = True
+                self.display.nav_tree.item(node, open=True)
+            except Exception as e:
+                print(str(e))
+            self.state.generate_continuation(node=node, **kwargs)
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
     def delete_node(self, node=None, reassign_children=False):
@@ -675,11 +679,20 @@ class Controller:
 
     @metadata(name="Visualize", keys=["<Key-j>", "<Control-j>"], display_key="j")
     def toggle_visualization_mode(self):
-        self.save_edits()
+        if self.state.preferences['autosave']:
+            self.save_edits()
         self.display.set_mode("Visualize" if self.display.mode != "Visualize" else "Read")
         self.refresh_visualization()
         self.refresh_textbox()
 
+
+    @metadata(name="Multiverse", keys=[])
+    def toggle_multiverse_mode(self):
+        if self.state.preferences['autosave']:
+            self.save_edits()
+        self.display.set_mode("Multiverse" if self.display.mode != "Multiverse" else "Read")
+        self.refresh_visualization()
+        self.refresh_textbox()
 
     #################################
     #   Edit
@@ -1037,15 +1050,14 @@ class Controller:
 
     @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def toggle_debug_box(self, toggle='either'):
-        if self.display.mode == "Read":
-            if toggle == 'on' or (toggle == 'either' and not self.state.preferences['debug_box']):
-                if self.state.preferences['input_box']:
-                    self.toggle_input_box(toggle='off')
-                self.display.build_debug_box()
-                self.state.preferences['debug_box'] = True
-            else:
-                self.display.destroy_debug_box()
-                self.state.preferences['debug_box'] = False
+        if toggle == 'on' or (toggle == 'either' and not self.state.preferences['debug_box']):
+            if self.state.preferences['input_box']:
+                self.toggle_input_box(toggle='off')
+            self.display.build_debug_box()
+            self.state.preferences['debug_box'] = True
+        else:
+            self.display.destroy_debug_box()
+            self.state.preferences['debug_box'] = False
 
     def print_to_debug(self, message):
         # TODO print to debug stream even if debug box is not active
@@ -1075,7 +1087,13 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
-        self.print_to_debug("test debug message")
+        pass
+        # self.display.set_mode("Multiverse")
+        # self.refresh_textbox()
+        # multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, unnormalized_threshold=0.001)
+        # self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth)
+
+        #self.print_to_debug("test debug message")
         #print(self.state.selected_node['meta'])
         #self.state.generate_tree_init(max_depth=3, branching_factor=3, engine='davinci')
         #self.state.measure_path_optimization(root=self.state.ancestry()[1], node=self.state.selected_node)
@@ -1427,7 +1445,10 @@ class Controller:
 
     @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
     def reset_zoom(self):
-        self.display.vis.reset_zoom()
+        if self.display.mode == 'Visualize':
+            self.display.vis.reset_zoom()
+        elif self.display.mode == 'Multiverse':
+            self.display.multiverse.reset_view()
 
 
     def refresh_notes(self):

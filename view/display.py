@@ -5,6 +5,7 @@ from tkinter.font import Font
 import PIL
 
 from view.tree_vis import TreeVis
+from view.block_multiverse import BlockMultiverse
 from util.custom_tks import TextAware, ScrollableFrame
 from view.colors import bg_color, text_color, edit_color
 from util.util import metadata
@@ -19,7 +20,7 @@ class Display:
         self.state = state
         self.controller = controller
 
-        self.modes = {"Read", "Edit", "Multi Edit", "Visualize"}
+        self.modes = {"Read", "Edit", "Multi Edit", "Visualize", "Multiverse"}
         self.mode = "Read"
 
         self.frame = ttk.Frame(self.root)
@@ -46,6 +47,9 @@ class Display:
         self.secondary_textbox = None
         self.vis_frame = None
         self.vis = None
+
+        self.multiverse_frame = None
+        self.multiverse = None
 
         self.notes_frame = None
         self.notes_textbox_frame = None
@@ -161,6 +165,8 @@ class Display:
 
         self.vis = TreeVis(self.story_frame,
                            self.state, self.controller)
+
+        self.multiverse = BlockMultiverse(self.story_frame)
 
         self.bottom_input_frame = ttk.Frame(self.main_frame)
         self.bottom_input_frame.pack(side="bottom", fill="both")
@@ -314,6 +320,7 @@ class Display:
         self.edit_button = self.build_button(frame, "Edit", dict(width=12))
         #self.build_button(frame, "Child Edit")
         self.build_button(frame, "Visualize")
+        self.build_button(frame, "Multiverse")
 
         # Button name, button params, pack params
         buttons = [
@@ -503,6 +510,9 @@ class Display:
         elif self.mode == "Visualize":
             self.vis.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
+        elif self.mode == "Multiverse":
+            self.multiverse.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+
         else:
             raise NotImplementedError(self.mode, type(self.mode))
 
@@ -512,6 +522,7 @@ class Display:
         self.textbox_frame.pack_forget()
         self.secondary_textbox_frame.pack_forget()
         self.vis.frame.pack_forget()
+        self.multiverse.frame.pack_forget()
 
 
     def start_multi_edit(self, num_textboxes=5):

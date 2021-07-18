@@ -17,6 +17,7 @@ from util.util import json_create, timestamp, json_open, clip_num, index_clip, d
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, created_before, tree_subset
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
+from util.multiverse_util import greedy_word_multiverse
 
 
 # Calls any callbacks associated with the wrapped function
@@ -1479,5 +1480,14 @@ class TreeModel:
             tokens = node['meta']['diffs'][-1]['diff']['new'][0]
 
         return selection_optimization_power, selection_bits, tokens
+
+    def generate_greedy_multiverse(self, node=None, max_depth=3, unnormalized_amplitude=1, unnormalized_threshold=0.1, engine='ada'):
+        node = node if node else self.selected_node
+        prompt = self.build_prompt(quiet=False, node=node)
+        multiverse, ground_truth = greedy_word_multiverse(prompt=prompt, max_depth=max_depth,
+                                                          unnormalized_amplitude=unnormalized_amplitude,
+                                                          unnormalized_threshold=unnormalized_threshold,
+                                                          engine=engine)
+        return multiverse, ground_truth
 
 
