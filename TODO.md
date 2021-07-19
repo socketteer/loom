@@ -96,7 +96,6 @@ archiving
 
 ### Block multiverse
 
-* button to toggle block multiverse mode
 * zooming
 * panning
     * track x/y movements
