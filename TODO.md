@@ -96,7 +96,6 @@ archiving
 
 ### Block multiverse
 
-* zooming
 * panning
     * track x/y movements
 * Fix text zoom / hide too small and recalculate font sizes after zooming
@@ -105,8 +104,11 @@ archiving
 * draw existing loom trajectories as ground truth paths
 * save computed multiverses
 * remove invisible widgets (may be necessary if multiverses get too big?)
-* generate multiverse from current node
+* generate multiverse from current multiverse node
 * generatinng multiverse also adds branches to loom tree (but labeled different so they don't clutter everything up?)
+* choose continuation by autocomplete
+* commands to go to parent, go to sibling, walk
+
 
 
 ### Tree vis

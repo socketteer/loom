@@ -17,15 +17,15 @@ class BlockMultiverse:
         self.parent_frame = parent_frame
         self.frame = None
         self.canvas = None
-        self.window_height = 1500
-
-        self.build_canvas()
-        self.scroll_ratio = 1
-        self.bind_mouse_controls()
-        self.window_offset = (0, 0)
+        self.wavefunction = None
+        self.selected_id = None
+        self.window_height = 650
         self.node_info = {}
-        #self.draw_rectangle()
-        #self.set_window(0, 0, 102, 202)
+        self.build_canvas()
+        self.window_offset = (0, 0)
+        self.y_scale = 1
+        self.x_scale = 1
+        self.bind_mouse_controls()
 
     def build_canvas(self):
         self.frame = ttk.Frame(self.parent_frame)
@@ -78,15 +78,17 @@ class BlockMultiverse:
 
         # # linux zoom
         def zoom_in(event):
-            self.scroll_ratio *= 1.1
-            self.canvas.scale("all", self.window_offset[0], self.window_offset[1], 1, 1.1)
+            self.y_scale *= 1.1
+            self.x_scale *= 1.1
+            self.canvas.scale("all", event.x, event.y, 1, 1.1)
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             self.fix_text_zoom()
             #self.fix_image_zoom()
 
         def zoom_out(event):
-            self.scroll_ratio *= 0.9
-            self.canvas.scale("all", self.window_offset[0], self.window_offset[1], 1, 0.9)
+            self.y_scale *= 0.9
+            self.x_scale *= 0.9
+            self.canvas.scale("all", event.x, event.y, 1, 0.9)
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             # self.showtext = event.text > 0.8
             self.fix_text_zoom()
@@ -98,7 +100,7 @@ class BlockMultiverse:
         self.canvas.bind("<Button-5>", zoom_out)
 
     def get_text_size(self, original_size=10):
-        text_size = max(1, math.floor(original_size * self.scroll_ratio))
+        text_size = max(1, math.floor(original_size * self.y_scale))
         return min(text_size, 12)
 
     def fix_text_zoom(self):
@@ -113,21 +115,45 @@ class BlockMultiverse:
         self.reset_view()
         self.window_offset = (x0, y0)
         self.canvas.move("all", -x0, -y0)
-        self.scroll_ratio = self.window_height / height
-        self.canvas.scale("all", 0, 0, 1, self.scroll_ratio)
+        self.y_scale = self.window_height / height
+        self.canvas.scale("all", 0, 0, 1, self.y_scale)
         self.fix_text_zoom()
 
     def reset_view(self):
-        self.canvas.scale("all", 0, 0, 1, 1 / self.scroll_ratio)
-        self.scroll_ratio = 1
+        self.canvas.scale("all", 0, 0, 1, 1 / self.y_scale)
+        self.y_scale = 1
         self.canvas.move("all", self.window_offset[0], self.window_offset[1])
         self.window_offset = (0, 0)
         self.fix_text_zoom()
 
-    def node_clicked(self, x0, y0, height, token):
+
+    def active_wavefunction(self):
+        return self.wavefunction and self.selected_id
+
+    def active_prefix(self):
+        if self.selected_id:
+            return self.node_info[self.selected_id]['prefix']
+        else:
+            return ''
+
+    def node_clicked(self, x0, y0, height, node_id):
+        self.selected_id = node_id
         self.set_y_window(x0, y0, height)
 
-    def draw_multiverse(self, multiverse, ground_truth='', y_offset=0, depth=0,
+    def draw_multiverse(self, multiverse, ground_truth='', y_offset=0, depth=1,
+                        block_width=150, color_index=0, prefix='', show_text=True, show_probabilities=False):
+        if not self.wavefunction:
+            self.wavefunction = multiverse
+        else:
+            if self.selected_id:
+                self.node_info[self.selected_id]['node']['children'] = multiverse
+                prefix = self.node_info[self.selected_id]['prefix']
+            else:
+                return
+        self.propagate(multiverse, ground_truth, y_offset, depth, block_width, color_index,
+                       prefix, show_text, show_probabilities)
+
+    def propagate(self, multiverse, ground_truth='', y_offset=0, depth=1,
                         block_width=150, color_index=0, prefix='', show_text=True, show_probabilities=False):
         if not multiverse:
             return
@@ -143,31 +169,43 @@ class BlockMultiverse:
             self.canvas.create_rectangle((x, y, x + block_width, y + height),
                                          fill=color, activefill='white', outline=color, tags=[identifier])
 
-            self.canvas.tag_bind(f'{identifier}', "<Button-1>", lambda event, _token=token, _x=x, _y=y, _height=height: self.node_clicked(_x, _y, _height, _token))
+            self.canvas.tag_bind(f'{identifier}', "<Button-1>",
+                                 lambda event, _id=identifier, _x=x, _y=y, _height=height: self.node_clicked(_x, _y,
+                                                                                                             _height,
+                                                                                                             _id))
 
             self.node_info[identifier] = {
-                'prefix': prefix,
-                'token': token
+                'id': identifier,
+                'prefix': prefix + token,
+                'token': token,
+                'node': node,
             }
 
             if show_text:
-                text_color = 'white' #if is_ground_truth else 'black'
-                font_size = min(12, int(math.ceil(height/2)))
+                text_color = 'white'  # if is_ground_truth else 'black'
+                font_size = min(12, int(math.ceil(height / 2)))
                 text = token
                 self.node_info[identifier]['font_size'] = font_size
 
                 if show_probabilities:
                     text += f' ({node["normalized_prob"]}, {node["unnormalized_prob"]})'
-                self.node_info[identifier]['text_widget'] = self.canvas.create_text(x + block_width/2, y + height/2,
+                self.node_info[identifier]['text_widget'] = self.canvas.create_text(x + block_width / 2, y + height / 2,
                                                                                     text=text,
                                                                                     font=('Arial', font_size),
                                                                                     tags=['text'], fill=text_color)
 
-
-            self.draw_multiverse(node['children'], ground_truth=ground_truth[1:] if is_ground_truth else None, y_offset=y,
+            self.propagate(node['children'], ground_truth=ground_truth[1:] if is_ground_truth else None,
+                                 y_offset=y,
                                  depth=depth + 1, block_width=block_width,
-                                 color_index=rainbow_index, prefix=prefix+token)
+                                 color_index=rainbow_index, prefix=prefix + token)
             y += height
             rainbow_index = (rainbow_index + 1) % len(rainbow_colors)
 
 
+
+    # draw a rectangle with size and coordinates regardless of current zoom / pan state
+    def draw_rectangle_absolute(self):
+        pass
+
+    def draw_text_absolute(self):
+        pass

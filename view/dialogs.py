@@ -197,7 +197,7 @@ class SearchDialog(Dialog):
             depth_limit = None
         else:
             depth_limit = int(depth_limit)
-        root = self.state.selected_node if self.subtree.get() else self.state.tree_raw_data["root"]
+        root = self.state.selected_id if self.subtree.get() else self.state.tree_raw_data["root"]
         print('case sensitive: ', self.case_sensitive.get())
         matches = search(root=root,
                          pattern=search_term,
@@ -619,7 +619,7 @@ class CreateSummary(SummaryDialog):
         self.add_child_button = None
         self.add_all_button = None
         self.init_text = ''
-        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_node)
+        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_id)
         Dialog.__init__(self, parent)
 
     def apply(self):
@@ -645,7 +645,7 @@ class EditSummary(SummaryDialog):
         self.add_child_button = None
         self.add_all_button = None
         self.init_text = self.summary['text']
-        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_node)
+        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_id)
         Dialog.__init__(self, parent)
 
     def body(self, master):

@@ -452,12 +452,19 @@ class Controller:
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
     def generate(self, node=None, **kwargs):
         if self.display.mode == "Multiverse":
-            # multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=3, unnormalized_threshold=0.01,
-            #                                                                  engine='ada')
-            multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=10,
-                                                                             ground_truth=" territory whose shreds are slowly rotting across the map.",
-                                                                             unnormalized_threshold=0.03,
-                                                                             engine='davinci')
+            if self.display.multiverse.active_wavefunction():
+                prefix = self.display.multiverse.active_prefix()
+                print('prefix: ', prefix)
+                multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=3, prompt=prefix, ground_truth="",
+                                                                                 unnormalized_threshold=0.1,
+                                                                                 engine='ada')
+            else:
+                multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=3, ground_truth="", unnormalized_threshold=0.01,
+                                                                             engine='ada')
+            # multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=10,
+            #                                                                  ground_truth=" territory whose shreds are slowly rotting across the map.",
+            #                                                                  unnormalized_threshold=0.03,
+            #                                                                  engine='davinci')
             self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth)
         else:
             if node is None:
