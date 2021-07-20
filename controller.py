@@ -452,20 +452,7 @@ class Controller:
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
     def generate(self, node=None, **kwargs):
         if self.display.mode == "Multiverse":
-            if self.display.multiverse.active_wavefunction():
-                prefix = self.display.multiverse.active_prefix()
-                print('prefix: ', prefix)
-                multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=3, prompt=prefix, ground_truth="",
-                                                                                 unnormalized_threshold=0.1,
-                                                                                 engine='ada')
-            else:
-                multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=3, ground_truth="", unnormalized_threshold=0.01,
-                                                                             engine='ada')
-            # multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=10,
-            #                                                                  ground_truth=" territory whose shreds are slowly rotting across the map.",
-            #                                                                  unnormalized_threshold=0.03,
-            #                                                                  engine='davinci')
-            self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth)
+            self.propagate_wavefunction()
         else:
             if node is None:
                 node = self.state.selected_node
@@ -475,6 +462,32 @@ class Controller:
             except Exception as e:
                 print(str(e))
             self.state.generate_continuation(node=node, **kwargs)
+
+    def propagate_wavefunction(self):
+        if self.display.mode == "Multiverse":
+            if self.display.multiverse.active_wavefunction():
+                active_node = self.display.multiverse.active_info()
+                start_position = (active_node['x'], active_node['y'])
+                multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, prompt=active_node['prefix'],
+                                                                                 unnormalized_amplitude=active_node['amplitude'],
+                                                                                 ground_truth="",
+                                                                                 threshold=0.04,
+                                                                                 engine='babbage')
+            else:
+                start_position = (0, 0)
+                multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, ground_truth="",
+                                                                                 threshold=0.04,
+                                                                                 engine='babbage')
+            self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth,
+                                                    start_position=start_position)
+
+    # def propagage_wavefunction_realtime(self):
+    #     if self.display.mode == "Multiverse":
+    #         self.display.multiverse.propagate_realtime(prompt=self.state.build_prompt(quiet=True),
+    #                                                    max_depth=3,
+    #                                                    threshold=0.01,
+    #                                                    engine='ada')
+
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
     def delete_node(self, node=None, reassign_children=False):

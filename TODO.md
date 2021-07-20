@@ -96,15 +96,18 @@ archiving
 
 ### Block multiverse
 
+* draw with absolute coordinates
+* generate multiverse from current multiverse node
+* render multiverse in real time (draw after API calls)
+* display prefix in text box
 * panning
     * track x/y movements
-* Fix text zoom / hide too small and recalculate font sizes after zooming
+* Fix text zoom / hide too small
 * color by differences betweent two multiverses
 * top k and top p 
 * draw existing loom trajectories as ground truth paths
 * save computed multiverses
 * remove invisible widgets (may be necessary if multiverses get too big?)
-* generate multiverse from current multiverse node
 * generatinng multiverse also adds branches to loom tree (but labeled different so they don't clutter everything up?)
 * choose continuation by autocomplete
 * commands to go to parent, go to sibling, walk

@@ -1,6 +1,6 @@
 import openai
 import numpy as np
-from util.tokenizer import tokenize, detokenize, token_to_word
+from util.tokenizer import tokenize, token_to_word
 from util.gpt_util import logprobs_to_probs
 
 
@@ -46,3 +46,5 @@ def greedy_word_multiverse(prompt, ground_truth='', max_depth=3,  unnormalized_a
                                                                                    unnormalized_amplitude=multiverse[ground_truth_token]['unnormalized_prob'],
                                                                                    engine=engine)
     return multiverse, ground_truth
+
+

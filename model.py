@@ -1481,14 +1481,15 @@ class TreeModel:
 
         return selection_optimization_power, selection_bits, tokens
 
-    def generate_greedy_multiverse(self, prompt=None, node=None, ground_truth=None, max_depth=3, unnormalized_amplitude=1, unnormalized_threshold=0.1, engine='ada'):
+    def generate_greedy_multiverse(self, prompt=None, node=None, ground_truth=None, max_depth=3,
+                                   unnormalized_amplitude=1, threshold=0.1, engine='ada'):
+        threshold = threshold * unnormalized_amplitude
         prompt = prompt if prompt else ''
         node = node if node else self.selected_node
         prompt = self.build_prompt(quiet=False, node=node) + prompt
         multiverse, ground_truth = greedy_word_multiverse(prompt=prompt, ground_truth=ground_truth, max_depth=max_depth,
                                                           unnormalized_amplitude=unnormalized_amplitude,
-                                                          unnormalized_threshold=unnormalized_threshold,
+                                                          unnormalized_threshold=threshold,
                                                           engine=engine)
         return multiverse, ground_truth
-
 
