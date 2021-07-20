@@ -718,6 +718,7 @@ class Controller:
         self.display.set_mode("Multiverse" if self.display.mode != "Multiverse" else "Read")
         self.refresh_visualization()
         self.refresh_textbox()
+        self.refresh_display()
 
     #################################
     #   Edit
@@ -1057,32 +1058,44 @@ class Controller:
     @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
     def toggle_input_box(self, toggle='either'):
         if self.display.mode == "Read":
-            if toggle == 'on' or (toggle=='either' and not self.state.preferences['input_box']):
-                if self.state.preferences['debug_box']:
-                    self.toggle_debug_box(toggle='off')
-                self.display.build_input_box()
-                self.state.preferences['input_box'] = True
-                self.update_dropdown()
-                self.display.input_box.focus()
+            if toggle == 'on' or (toggle == 'either' and not self.state.preferences['input_box']):
+                self.open_bottom_frame('input_box')
             else:
-                self.display.destroy_input_box()
-                self.state.preferences['input_box'] = False
-
-    def update_dropdown(self):
-        if self.display.mode_var:
-            self.display.mode_var.set(self.state.preferences['gpt_mode'])
-
+                self.close_bottom_frame()
+        elif self.display.mode == "Multiverse":
+            if toggle == 'on' or (toggle == 'either' and not self.state.preferences['past_box']):
+                self.open_bottom_frame('past_box')
+            else:
+                self.close_bottom_frame()
 
     @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def toggle_debug_box(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.preferences['debug_box']):
-            if self.state.preferences['input_box']:
-                self.toggle_input_box(toggle='off')
-            self.display.build_debug_box()
-            self.state.preferences['debug_box'] = True
+            self.open_bottom_frame('debug_box')
         else:
-            self.display.destroy_debug_box()
-            self.state.preferences['debug_box'] = False
+            self.close_bottom_frame()
+
+    def open_bottom_frame(self, box_name):
+        self.close_bottom_frame()
+        self.state.preferences[box_name] = True
+        if box_name == 'input_box':
+            self.display.build_input_box()
+            self.update_dropdown()
+            self.display.input_box.focus()
+        elif box_name == 'debug_box':
+            self.display.build_debug_box()
+        elif box_name == 'past_box':
+            self.display.build_past_box()
+
+    def close_bottom_frame(self):
+        self.display.destroy_bottom_frame()
+        self.state.preferences['debug_box'] = False
+        self.state.preferences['input_box'] = False
+        self.state.preferences['past_box'] = False
+
+    def update_dropdown(self):
+        if self.display.mode_var:
+            self.display.mode_var.set(self.state.preferences['gpt_mode'])
 
     def print_to_debug(self, message):
         # TODO print to debug stream even if debug box is not active
@@ -1091,6 +1104,7 @@ class Controller:
             self.display.debug_box.insert("end-1c", '\n')
             self.display.debug_box.insert("end-1c", message)
             self.display.debug_box.configure(state="disabled")
+
 
     @metadata(name="Update mode", keys=[], display_key="")
     def update_mode(self, *args):
@@ -1324,14 +1338,22 @@ class Controller:
             return
 
     def refresh_display(self, **kwargs):
-        if self.state.preferences['input_box'] and not self.display.input_box:
-            self.display.build_input_box()
-        elif not self.state.preferences['input_box'] and self.display.input_box:
-            self.display.destroy_input_box()
-        if self.state.preferences['debug_box'] and not self.display.debug_box:
-            self.display.build_debug_box()
-        elif not self.state.preferences['debug_box'] and self.display.debug_box:
-            self.display.destroy_debug_box()
+        if self.display.mode == 'Read':
+            if not self.state.preferences['input_box'] and self.display.input_box:
+                self.display.destroy_bottom_frame()
+            if not self.state.preferences['debug_box'] and self.display.debug_box:
+                self.display.destroy_bottom_frame()
+            if self.state.preferences['input_box'] and not self.display.input_box:
+                self.display.build_input_box()
+            if self.state.preferences['debug_box'] and not self.display.debug_box:
+                self.display.build_debug_box()
+        elif self.display.mode == 'Multiverse':
+            if self.state.preferences['past_box'] and not self.display.past_box:
+                self.display.build_past_box()
+            elif not self.state.preferences['past_box'] and self.display.past_box:
+                self.display.destroy_bottom_frame()
+
+
 
     HISTORY_COLOR = history_color()
     # @metadata(last_text="", last_scroll_height=0, last_num_lines=0)

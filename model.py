@@ -53,6 +53,7 @@ DEFAULT_PREFERENCES = {
     'side_pane': False,
     'input_box': False,
     'debug_box': False,
+    'past_box': True,
     'auto_response': True,
     'font_size': 12,
     'line_spacing': 8,

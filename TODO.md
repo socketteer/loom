@@ -96,10 +96,11 @@ archiving
 
 ### Block multiverse
 
+* close past box when exiting multiverse mode
+* show more of prompt in past box
+* clear multiverse
 * draw with absolute coordinates
-* generate multiverse from current multiverse node
-* render multiverse in real time (draw after API calls)
-* display prefix in text box
+* render multiverse in real time (draw after API calls) (IMPOSSIBLE)
 * panning
     * track x/y movements
 * Fix text zoom / hide too small

@@ -68,6 +68,7 @@ class Display:
         self.submit_button = None
         self.mode_var = None
         self.debug_box = None
+        self.past_box = None
 
         self.multi_edit_frame = None
         self.multi_textboxes = None
@@ -166,7 +167,7 @@ class Display:
         self.vis = TreeVis(self.story_frame,
                            self.state, self.controller)
 
-        self.multiverse = BlockMultiverse(self.story_frame)
+        self.multiverse = BlockMultiverse(self.story_frame, self.set_pastbox_text)
 
         self.bottom_input_frame = ttk.Frame(self.main_frame)
         self.bottom_input_frame.pack(side="bottom", fill="both")
@@ -176,7 +177,7 @@ class Display:
         # Button bar        self.input_frame.pack(side="bottom", fill="x")
         self.build_main_buttons(self.bottom_frame)
         self.button_bar.pack(side="top", fill="both")
-        self.build_debug_box()
+        #self.build_debug_box()
 
         # if self.state.preferences['input_box']:
         #     self.build_input_box(self.bottom_frame)
@@ -187,12 +188,28 @@ class Display:
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
+    def build_past_box(self):
+        self.rebuild_bottom_frame()
+        self.past_box = TextAware(self.bottom_input_frame, bd=3, height=3)
+        self.past_box.pack(expand=True, fill='x')
+        self.past_box.configure(
+            foreground='white',
+            background='black',
+            wrap="word",
+        )
+        self.past_box.configure(state="disabled")
+
+    def set_pastbox_text(self, text):
+        print(self.past_box)
+        if self.past_box:
+            print('writing:', text)
+            self.past_box.configure(state="normal")
+            self.past_box.delete("1.0", "end")
+            self.past_box.insert("end-1c", text)
+            self.past_box.configure(state="disabled")
+
     def build_debug_box(self):
-        self.destroy_input_box()
-        self.bottom_frame.pack_forget()
-        self.bottom_input_frame.pack_forget()
-        self.bottom_input_frame.pack(side="bottom", fill="both")
-        self.bottom_frame.pack(side="bottom", fill="both")
+        self.rebuild_bottom_frame()
         self.debug_box = TextAware(self.bottom_input_frame, bd=3, height=12)
         self.debug_box.pack(expand=True, fill='x')
         self.debug_box.configure(
@@ -202,15 +219,8 @@ class Display:
         )
         self.debug_box.configure(state="disabled")
 
-    def destroy_debug_box(self):
-        if self.debug_box is not None:
-            self.debug_box.pack_forget()
-            self.debug_box.destroy()
-            self.debug_box = None
-            self.bottom_input_frame.pack_forget()
-
     def build_input_box(self):
-        self.destroy_debug_box()
+        self.rebuild_bottom_frame()
         self.bottom_frame.pack_forget()
         self.bottom_input_frame.pack_forget()
         self.bottom_input_frame.pack(side="bottom", fill="both")
@@ -244,6 +254,29 @@ class Display:
         self.submit_button.pack(side='right')
         self.input_frame.pack(side="bottom", expand=True, fill="both")
 
+    def rebuild_bottom_frame(self):
+        self.destroy_bottom_frame()
+        self.bottom_frame.pack_forget()
+        self.bottom_input_frame.pack(side="bottom", fill="both")
+        self.bottom_frame.pack(side="bottom", fill="both")
+
+
+    def destroy_bottom_frame(self):
+        if self.debug_box is not None:
+            self.debug_box.pack_forget()
+            self.debug_box.destroy()
+        if self.input_frame is not None:
+            self.input_frame.pack_forget()
+            self.input_frame.destroy()
+        if self.past_box is not None:
+            self.past_box.pack_forget()
+            self.past_box.destroy()
+        self.debug_box = None
+        self.input_box = None
+        self.past_box = None
+        self.submit_button = None
+        self.bottom_input_frame.pack_forget()
+
 
     def key_pressed(self, event=None):
         if event.keysym in ('Tab'):
@@ -252,14 +285,7 @@ class Display:
         self.callbacks["Key Pressed"]["callback"](char=event.char)
 
 
-    def destroy_input_box(self):
-        if self.input_frame is not None:
-            self.input_frame.pack_forget()
-            self.input_frame.destroy()
-            self.input_box = None
-            self.submit_button = None
-            self.bottom_input_frame.pack_forget()
-            # self.bottom_frame.pack(side="bottom", fill="both")
+
 
     # Text area and scroll bar  TODO Make a scrollable textbox tkutil
     def _build_textbox(self, frame, frame_attr, textbox_attr, height=1):

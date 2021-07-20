@@ -3,6 +3,7 @@ import tkinter
 import uuid
 import openai
 from tkinter import ttk
+from decimal import *
 
 from util.gpt_util import logprobs_to_probs
 from util.tokenizer import tokenize, token_to_word
@@ -10,24 +11,27 @@ from util.tokenizer import tokenize, token_to_word
 
 rainbow_colors = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000']
 
+default_y_scale = 1
+
 class BlockMultiverse:
-    def __init__(self, parent_frame):
+    def __init__(self, parent_frame, set_past_box):
         self.parent_frame = parent_frame
         self.frame = None
         self.canvas = None
         self.wavefunction = None
         self.selected_id = None
+        self.set_past_box = set_past_box
         self.window_height = 1000
         self.node_info = {}
         self.build_canvas()
         self.window_offset = (0, 0)
-        self.y_scale = 1
+        self.y_scale = default_y_scale
         self.x_scale = 1
         self.bind_mouse_controls()
 
     def build_canvas(self):
         self.frame = ttk.Frame(self.parent_frame)
-        self.canvas = tkinter.Canvas(self.frame, bg="#808080", width=1500, height=self.window_height)
+        self.canvas = tkinter.Canvas(self.frame, bg="#808080")
 
         hbar = tkinter.Scrollbar(self.frame, orient=tkinter.HORIZONTAL)
         hbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
@@ -118,8 +122,8 @@ class BlockMultiverse:
         self.fix_text_zoom()
 
     def reset_view(self):
-        self.canvas.scale("all", 0, 0, 1, 1 / self.y_scale)
-        self.y_scale = 1
+        self.canvas.scale("all", 0, 0, 1, default_y_scale / self.y_scale)
+        self.y_scale = default_y_scale
         self.canvas.move("all", self.window_offset[0], self.window_offset[1])
         self.window_offset = (0, 0)
         self.fix_text_zoom()
@@ -133,6 +137,8 @@ class BlockMultiverse:
     def node_clicked(self, x0, y0, height, node_id):
         self.selected_id = node_id
         self.set_y_window(x0, y0, height)
+        prefix_text = self.node_info[node_id]['prefix']
+        self.set_past_box(prefix_text)
 
     def draw_multiverse(self, multiverse, ground_truth='', block_width=150, start_position=(0, 0), color_index=0,
                         prefix='', show_text=True, show_probabilities=False):
@@ -155,7 +161,7 @@ class BlockMultiverse:
         rainbow_index = color_index % len(rainbow_colors)
         for token, node in multiverse.items():
             y = start_position[1] + y_offset
-            height = self.window_height * node['unnormalized_prob']
+            height = Decimal(self.window_height) * Decimal(node['unnormalized_prob'])
             is_ground_truth = (token == ground_truth[0]) if ground_truth else False
 
             self.draw_block(x, y, token, prefix, node['unnormalized_prob'], height, block_width, is_ground_truth,
@@ -195,10 +201,10 @@ class BlockMultiverse:
         }
 
         if show_text:
-            text_color = 'white'  # if is_ground_truth else 'black'
+            text_color = 'blue' if color == '#FFFF00' else 'white'  # if is_ground_truth else 'black'
             font_size = min(12, int(math.ceil(height * self.y_scale / 2)))
             text = token
-            self.node_info[identifier]['font_size'] = font_size
+            self.node_info[identifier]['font_size'] = Decimal(font_size) / Decimal(self.y_scale)
             self.node_info[identifier]['text_widget'] = self.draw_text_absolute(x + block_width / 2, y + height / 2,
                                                                                 text=text,
                                                                                 font=('Arial', font_size),
@@ -206,48 +212,48 @@ class BlockMultiverse:
                                                                                 fill=text_color)
         return identifier
 
-    def propagate_realtime(self, prompt, ground_truth='', block_width=150, parent_position=(0,0), max_depth=3,
-                           unnormalized_amplitude=1, threshold=0.01, rainbow_index=0, engine='ada'):
-        if ground_truth and isinstance(ground_truth, str):
-            ground_truth = tokenize(ground_truth)
-            ground_truth = [token_to_word(token).replace('Ġ', ' ') for token in ground_truth]
-        self.propagate_and_draw(prompt, ground_truth, block_width, parent_position, max_depth, unnormalized_amplitude,
-                                threshold, rainbow_index, engine)
-
-    def propagate_and_draw(self, prompt, ground_truth, block_width, parent_position, max_depth,
-                           unnormalized_amplitude, threshold, rainbow_index, engine):
-        if max_depth == 0:
-            return
-        response = openai.Completion.create(prompt=prompt,
-                                            max_tokens=1,
-                                            n=1,
-                                            temperature=0,
-                                            logprobs=100,
-                                            engine=engine)
-        logprobs = response.choices[0]["logprobs"]["top_logprobs"][0]
-        probs = {k: logprobs_to_probs(v) * unnormalized_amplitude for k, v in sorted(logprobs.items(),
-                                                                                     key=lambda item: item[1],
-                                                                                     reverse=True)}
-
-        ground_truth_token = ground_truth[0] if ground_truth else 'NO GROUND TRUTH'
-        x = parent_position[0] + block_width
-        y_offset = 0
-        for token, probability in probs.items():
-            y = parent_position[1] + y_offset
-            height = self.window_height * probability
-            is_ground_truth = (token == ground_truth_token) if ground_truth else False
-            self.draw_block(x, y, token, prompt, probability, height, block_width, is_ground_truth, True, rainbow_index)
-
-            if token == ground_truth_token:
-                self.propagate_and_draw(prompt + token, ground_truth[1:], block_width, (x, y), max_depth-1, probability,
-                                        threshold, rainbow_index, engine)
-            elif probability > threshold:
-                self.propagate_and_draw(prompt + token, '', block_width, (x, y), max_depth - 1,
-                                        probability, threshold, rainbow_index, engine)
-            else:
-                break
-            y_offset += height
-            rainbow_index = (rainbow_index + 1) % len(rainbow_colors)
+    # def propagate_realtime(self, prompt, ground_truth='', block_width=150, parent_position=(0,0), max_depth=3,
+    #                        unnormalized_amplitude=1, threshold=0.01, rainbow_index=0, engine='ada'):
+    #     if ground_truth and isinstance(ground_truth, str):
+    #         ground_truth = tokenize(ground_truth)
+    #         ground_truth = [token_to_word(token).replace('Ġ', ' ') for token in ground_truth]
+    #     self.propagate_and_draw(prompt, ground_truth, block_width, parent_position, max_depth, unnormalized_amplitude,
+    #                             threshold, rainbow_index, engine)
+    #
+    # def propagate_and_draw(self, prompt, ground_truth, block_width, parent_position, max_depth,
+    #                        unnormalized_amplitude, threshold, rainbow_index, engine):
+    #     if max_depth == 0:
+    #         return
+    #     response = openai.Completion.create(prompt=prompt,
+    #                                         max_tokens=1,
+    #                                         n=1,
+    #                                         temperature=0,
+    #                                         logprobs=100,
+    #                                         engine=engine)
+    #     logprobs = response.choices[0]["logprobs"]["top_logprobs"][0]
+    #     probs = {k: logprobs_to_probs(v) * unnormalized_amplitude for k, v in sorted(logprobs.items(),
+    #                                                                                  key=lambda item: item[1],
+    #                                                                                  reverse=True)}
+    #
+    #     ground_truth_token = ground_truth[0] if ground_truth else 'NO GROUND TRUTH'
+    #     x = parent_position[0] + block_width
+    #     y_offset = 0
+    #     for token, probability in probs.items():
+    #         y = parent_position[1] + y_offset
+    #         height = self.window_height * probability
+    #         is_ground_truth = (token == ground_truth_token) if ground_truth else False
+    #         self.draw_block(x, y, token, prompt, probability, height, block_width, is_ground_truth, True, rainbow_index)
+    #
+    #         if token == ground_truth_token:
+    #             self.propagate_and_draw(prompt + token, ground_truth[1:], block_width, (x, y), max_depth-1, probability,
+    #                                     threshold, rainbow_index, engine)
+    #         elif probability > threshold:
+    #             self.propagate_and_draw(prompt + token, '', block_width, (x, y), max_depth - 1,
+    #                                     probability, threshold, rainbow_index, engine)
+    #         else:
+    #             break
+    #         y_offset += height
+    #         rainbow_index = (rainbow_index + 1) % len(rainbow_colors)
 
 
     def map_to_scaled_coordinates(self, x, y):
@@ -259,7 +265,7 @@ class BlockMultiverse:
     def map_to_absolute_coordinates(self, x, y):
         x = x + self.window_offset[0]
         y = y + self.window_offset[1]
-        y = y / self.y_scale
+        y = Decimal(y) / Decimal(self.y_scale)
         return x, y
 
     # draw a rectangle with size and coordinates regardless of current zoom / pan state
@@ -273,3 +279,4 @@ class BlockMultiverse:
         #rel_x = int(round(rel_x))
         #rel_y = int(round(rel_y))
         return self.canvas.create_text(rel_x, rel_y, **kwargs)
+
