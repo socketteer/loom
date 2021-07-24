@@ -54,6 +54,7 @@ DEFAULT_PREFERENCES = {
     'input_box': False,
     'debug_box': False,
     'past_box': True,
+    'show_children': False,
     'auto_response': True,
     'font_size': 12,
     'line_spacing': 8,

@@ -1,12 +1,13 @@
 # priority 
 
+replace sentence/highlighted section functionality
+    - generates sentence by sentence / line by line
+
 block multiverse svg
 
 autocomplete bug - sometimes freezes
 
 stop at newline generation mode
-
-nav tree - goto selected node
 
 log gpt-3 output files
 
@@ -15,6 +16,10 @@ add global memory option
 ask before quitting if unsaved changes
 
 jump to unvisited nodes
+
+hide display text by default (but button to show?)
+
+minibuffer for commands
 
 - archived
     - navigation which navigates only any (conditional?) subset of tree
@@ -30,9 +35,9 @@ jump to unvisited nodes
     - expanded state
     - settings... 
 
-open subtrees only...?
+- open subtrees only...?
 
-archiving
+- archiving
     - shortcut to archive nodes
 
 - autocomplete mode
@@ -71,11 +76,6 @@ archiving
     - enable/disable memory entries
     - goto root 
  
-- remake child edit mode
-    - button(?) to goto
-    - button(?) to delete
-    - button(?) to hide / show hidden
-    - show # descendants and ask before deleting subtree
  
 # bugs
 
@@ -94,12 +94,30 @@ archiving
 * generating when trying to calculate optimization bits??
 
 
+### Nav tree
+
+- goto selected node button/command
+- hide siblings option
+- remove clear chapters button
+
+### Multi mode
+
+- fix story textbox scroll 
+- update when tree updated
+    - remove any children that have been deleted
+- change frame height when editing or adding  
+- archive node
+- remove child edit mode code
+- hide button in visualize and wavefunction modes
+- don't show archived nodes (if show_archived disabled)
+- test
+- enable undo
+
 ### Block multiverse
 
-* close past box when exiting multiverse mode
 * show more of prompt in past box
 * clear multiverse
-* draw with absolute coordinates
+    * automatically clear multiverse if different root node
 * render multiverse in real time (draw after API calls) (IMPOSSIBLE)
 * panning
     * track x/y movements
@@ -107,10 +125,11 @@ archiving
 * color by differences betweent two multiverses
 * top k and top p 
 * draw existing loom trajectories as ground truth paths
-* save computed multiverses
+* cache computed multiverses
+* command/button to add wavefunction path to loom tree
 * remove invisible widgets (may be necessary if multiverses get too big?)
 * generatinng multiverse also adds branches to loom tree (but labeled different so they don't clutter everything up?)
-* choose continuation by autocomplete
+* choose continuation by autocomplete / hotkeys
 * commands to go to parent, go to sibling, walk
 
 

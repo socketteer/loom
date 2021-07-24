@@ -79,7 +79,9 @@ class Controller:
         self.state.register_callback(self.state.tree_updated, self.update_nav_tree_selected)
         self.state.register_callback(self.state.tree_updated, self.update_chapter_nav_tree)
         self.state.register_callback(self.state.tree_updated, self.update_chapter_nav_tree_selected)
+        # TODO save_edits causes tree_updated...
         self.state.register_callback(self.state.tree_updated, self.save_edits)
+        self.state.register_callback(self.state.tree_updated, self.update_children)
         self.state.register_callback(self.state.tree_updated, self.refresh_textbox)
         self.state.register_callback(self.state.tree_updated, self.refresh_visualization)
         self.state.register_callback(self.state.tree_updated, self.refresh_display)
@@ -97,6 +99,8 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.refresh_notes)
         self.state.register_callback(self.state.selection_updated, self.refresh_counterfactual_meta)
         self.state.register_callback(self.state.selection_updated, self.refresh_display)
+        self.state.register_callback(self.state.selection_updated, self.save_multi_edits)
+        self.state.register_callback(self.state.selection_updated, self.show_children)
         self.state.register_callback(self.state.io_update, self.update_dropdown)
 
 
@@ -107,7 +111,7 @@ class Controller:
         def in_edit():
             return self.display.mode in ["Edit", "Child Edit"] \
                    or (self.display.mode == "Visualize" and self.display.vis.textbox) \
-                   or self.has_focus(self.display.input_box)
+                   or self.has_focus(self.display.input_box) or self.multi_text_has_focus()
 
         valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete"]
         for f in funcs_with_keys:
@@ -129,6 +133,7 @@ class Controller:
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
         menu_list = {
             "View": [
+                ('Toggle children', 'C', None, no_junk_args(self.toggle_show_children)),
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
                 ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
@@ -472,12 +477,12 @@ class Controller:
                                                                                  unnormalized_amplitude=active_node['amplitude'],
                                                                                  ground_truth="",
                                                                                  threshold=0.04,
-                                                                                 engine='babbage')
+                                                                                 engine='ada')
             else:
                 start_position = (0, 0)
                 multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, ground_truth="",
                                                                                  threshold=0.04,
-                                                                                 engine='babbage')
+                                                                                 engine='ada')
             self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth,
                                                     start_position=start_position)
 
@@ -490,15 +495,17 @@ class Controller:
 
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
-    def delete_node(self, node=None, reassign_children=False):
+    def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node?"):
         if node is None:
             node = self.state.selected_node
         if not node or "parent_id" not in node:
             return
-        result = messagebox.askquestion("Delete", "Delete Node?", icon='warning')
-        if result != 'yes':
-            return
+        if ask:
+            result = messagebox.askquestion("Delete", ask_text, icon='warning')
+            if result != 'yes':
+                return False
         self.state.delete_node(node=node, reassign_children=reassign_children)
+        return True
 
     @metadata(name="Delete and reassign children")
     def delete_node_reassign_children(self, node=None):
@@ -694,7 +701,7 @@ class Controller:
                 self.display.vis.delete_textbox()
 
 
-    @metadata(name="Child Edit", keys=[], display_key="c")
+    @metadata(name="Show children", keys=[], display_key="c")
     def toggle_child_edit_mode(self, to_edit_mode=None):
         self.save_edits()
         to_edit_mode = to_edit_mode if to_edit_mode is not None else not self.display.mode == "Multi Edit"
@@ -711,7 +718,7 @@ class Controller:
         self.refresh_textbox()
 
 
-    @metadata(name="Multiverse", keys=[])
+    @metadata(name="Wavefunction", keys=[])
     def toggle_multiverse_mode(self):
         if self.state.preferences['autosave']:
             self.save_edits()
@@ -1075,6 +1082,34 @@ class Controller:
         else:
             self.close_bottom_frame()
 
+    @metadata(name="Children", keys=["<Key-c>"], display_key="c")
+    def toggle_show_children(self, toggle='either'):
+        if toggle == 'on' or (toggle == 'either' and not self.state.preferences['show_children']):
+            self.state.preferences['show_children'] = True
+            self.show_children()
+        else:
+            self.state.preferences['show_children'] = False
+            self.hide_children()
+
+    def show_children(self):
+        if self.state.preferences['show_children'] and self.state.selected_node:
+            children = self.state.selected_node["children"]
+            self.display.build_multi_frame(len(children))
+            self.display.populate_textboxes(children)
+            # TODO this doesn't scroll all the way to the end
+            self.display.textbox.see('end')
+
+    def update_children(self, **kwargs):
+        if self.state.preferences['show_children']:
+            if 'add' in kwargs:
+                self.display.update_children(self.state.tree_node_dict[node_id] for node_id in kwargs['add'])
+            if 'edit' in kwargs:
+                self.display.update_text()
+
+
+    def hide_children(self):
+        self.display.destroy_multi_frame()
+
     def open_bottom_frame(self, box_name):
         self.close_bottom_frame()
         self.state.preferences[box_name] = True
@@ -1126,7 +1161,7 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
-        pass
+        self.toggle_show_children()
         # self.display.set_mode("Multiverse")
         # self.refresh_textbox()
         # multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, unnormalized_threshold=0.001)
@@ -1305,6 +1340,13 @@ class Controller:
     def has_focus(self, widget):
         return self.display.textbox.focus_displayof() == widget
 
+    def multi_text_has_focus(self):
+        if self.display.multi_textboxes:
+            for id, textbox in self.display.multi_textboxes.items():
+                if self.display.textbox.focus_displayof() == textbox['textbox']:
+                    return True
+        return False
+
     #################################
     #   Story frame TODO call set text, do this in display?
     #################################
@@ -1319,15 +1361,18 @@ class Controller:
             new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
             self.state.update_text(self.state.selected_node, new_text, new_active_text, log_diff=self.state.preferences['log_diff'])
 
-        elif self.display.mode == "Multi Edit":
-            nodes = [self.state.selected_node, *self.state.selected_node["children"]]
-            new_texts = [textbox.get("1.0", 'end-1c') for textbox in self.display.multi_textboxes]
-            # This needs to be idempotent because it risks calling itself recursively
-            if any([node["text"] != new_text for node, new_text in zip(nodes, new_texts)]):
-                for node, new_text in zip(nodes, new_texts):
-                    node["text"] = new_text
-                # TODO modified set
-                self.state.tree_updated()
+        # if self.display.mode in ("Read", "Edit") and self.state.preferences['show_children']:
+        #     self.display.save_all()
+
+        # elif self.display.mode == "Multi Edit":
+        #     nodes = [self.state.selected_node, *self.state.selected_node["children"]]
+        #     new_texts = [textbox.get("1.0", 'end-1c') for textbox in self.display.multi_textboxes]
+        #     # This needs to be idempotent because it risks calling itself recursively
+        #     if any([node["text"] != new_text for node, new_text in zip(nodes, new_texts)]):
+        #         for node, new_text in zip(nodes, new_texts):
+        #             node["text"] = new_text
+        #         # TODO modified set
+        #         self.state.tree_updated()
 
         elif self.display.mode == "Visualize":
             if self.display.vis.textbox:
@@ -1337,17 +1382,33 @@ class Controller:
         else:
             return
 
+    def save_multi_edits(self):
+        if self.display.mode in ("Read", "Edit") and self.state.preferences['show_children']:
+            self.display.save_all()
+
     def refresh_display(self, **kwargs):
         if self.display.mode == 'Read':
+            if self.display.past_box:
+                self.display.destroy_bottom_frame()
+
             if not self.state.preferences['input_box'] and self.display.input_box:
                 self.display.destroy_bottom_frame()
             if not self.state.preferences['debug_box'] and self.display.debug_box:
                 self.display.destroy_bottom_frame()
+            if not self.state.preferences['show_children'] and self.display.multi_scroll_frame:
+                self.display.destroy_multi_frame()
+
             if self.state.preferences['input_box'] and not self.display.input_box:
                 self.display.build_input_box()
             if self.state.preferences['debug_box'] and not self.display.debug_box:
                 self.display.build_debug_box()
-        elif self.display.mode == 'Multiverse':
+            if self.state.preferences['show_children'] and not self.display.multi_scroll_frame:
+                self.show_children()
+        else:
+            self.display.destroy_bottom_frame()
+            if not self.display.mode == 'Edit':
+                self.display.destroy_multi_frame()
+        if self.display.mode == 'Multiverse':
             if self.state.preferences['past_box'] and not self.display.past_box:
                 self.display.build_past_box()
             elif not self.state.preferences['past_box'] and self.display.past_box:
@@ -1434,18 +1495,9 @@ class Controller:
             self.display.textbox.focus()
 
 
-        elif self.display.mode == "Multi Edit":
-            children = self.state.selected_node["children"]
-            self.display.start_multi_edit(len(children) + 1)
-            for node, textbox in zip([self.state.selected_node, *children], self.display.multi_textboxes):
-                textbox.configure(state="normal")
-                textbox.delete("1.0", "end")
-                textbox.insert("1.0", node["text"])
-                num_lines = max(node["text"].count("\n"), int(textbox.index('end').split('.')[0]))
-                textbox.configure(height=max(3, num_lines+2))
-
-            # Make the first text box history colors
-            self.display.multi_textboxes[0].configure(foreground=self.HISTORY_COLOR)
+    def refresh_children(self):
+        if self.state.preferences['show_children']:
+            self.display.rebuild_multi_frame()
 
     # TODO nodes with mixed prompt/continuation
     def tag_prompts(self):

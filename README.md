@@ -82,11 +82,12 @@ Toggle edit / save edits: `e`, `Control-e`
 
 Toggle visualize: `j`, `Control-j`
 
-Child edit: `c`
-
 Toggle input box: `Tab`
 
 Toggle debug box: `Control+Shift+D`
+
+Toggle show children: `c`
+
 
 ### Navigate
 
@@ -116,13 +117,18 @@ Go to next bookmark: `d`, `Control-d`
 
 Go to prev bookmark: `a`, `Control-a`
 
-Toggle bookmark: `b`, `Control-b`
-
 Search: `Control-f`
 
 Click to split node: `Control-alt-click`
 
 Goto node by id: `Control-shift-g`
+
+
+### Organization 
+
+Toggle bookmark: `b`, `Control-b`
+
+Toggle archive node: `!`
 
 
 

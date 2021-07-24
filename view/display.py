@@ -9,7 +9,10 @@ from view.block_multiverse import BlockMultiverse
 from util.custom_tks import TextAware, ScrollableFrame
 from view.colors import bg_color, text_color, edit_color
 from util.util import metadata
-
+from util.util_tree import num_descendents
+#from PIL import ImageTk, Image
+import uuid
+import time
 
 class Display:
 
@@ -70,14 +73,26 @@ class Display:
         self.debug_box = None
         self.past_box = None
 
-        self.multi_edit_frame = None
+        self.multi_scroll_frame = None
         self.multi_textboxes = None
+        self.multi_font = Font(family="Georgia", size=12)
+        self.multi_pady = 3
+        self.multi_padx = 2
+        self.multi_default_height = 4
+
+        self.delete_buttons = None
+        self.archive_buttons = None
+        self.edit_buttons = None
+        self.descendents_labels = None
 
         self.button_bar = None
         self.edit_button = None
 
+        self.icons = {}
+
         # Build it!
         self.build_static()
+        self.init_icons()
         self.build_display(self.frame)
         self.set_mode(self.mode)
 
@@ -120,12 +135,25 @@ class Display:
             button.pack(**{**dict(side="left", fill="y"), **(pack_params if pack_params else {})})
         return button
 
-
+    def init_icon(self, icon_name, filename, size=18):
+        self.icons[icon_name] = {}
+        self.icons[icon_name]["size"] = size
+        self.icons[icon_name]["img"] = (PIL.Image.open(f"./static/icons/{filename}"))
+        self.icons[icon_name]["icon"] = PIL.ImageTk.PhotoImage(self.icons[icon_name]["img"].resize((self.icons[icon_name]['size'],
+                                                                                                self.icons[icon_name]['size'])))
 
     #################################
     #   Display
     #################################
 
+    def init_icons(self):
+        self.init_icon("edit", "edit-blue-48.png", 16)
+        self.init_icon("delete", "delete-red-48.png", 16)
+        self.init_icon("close", "close-window-48.png", 16)
+        self.init_icon("archive", "archive-2-48.png", 16)
+        self.init_icon("go", "arrow-green.png", 16)
+
+    # TODO init with init_icons
     def build_static(self):
         self.bookmark_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/star_small.png"))
         self.marker_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/marker.png"))
@@ -188,104 +216,12 @@ class Display:
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
-    def build_past_box(self):
-        self.rebuild_bottom_frame()
-        self.past_box = TextAware(self.bottom_input_frame, bd=3, height=3)
-        self.past_box.pack(expand=True, fill='x')
-        self.past_box.configure(
-            foreground='white',
-            background='black',
-            wrap="word",
-        )
-        self.past_box.configure(state="disabled")
-
-    def set_pastbox_text(self, text):
-        print(self.past_box)
-        if self.past_box:
-            print('writing:', text)
-            self.past_box.configure(state="normal")
-            self.past_box.delete("1.0", "end")
-            self.past_box.insert("end-1c", text)
-            self.past_box.configure(state="disabled")
-
-    def build_debug_box(self):
-        self.rebuild_bottom_frame()
-        self.debug_box = TextAware(self.bottom_input_frame, bd=3, height=12)
-        self.debug_box.pack(expand=True, fill='x')
-        self.debug_box.configure(
-            foreground='white',
-            background='black',
-            wrap="word",
-        )
-        self.debug_box.configure(state="disabled")
-
-    def build_input_box(self):
-        self.rebuild_bottom_frame()
-        self.bottom_frame.pack_forget()
-        self.bottom_input_frame.pack_forget()
-        self.bottom_input_frame.pack(side="bottom", fill="both")
-        self.bottom_frame.pack(side="bottom", fill="both")
-        self.input_frame = ttk.Frame(self.bottom_input_frame, width=500, height=20)
-        self.input_box = TextAware(self.input_frame, bd=3, height=3, undo=True)
-        readable_font = Font(family="Georgia", size=12)
-        self.input_box.pack(expand=True, fill='x')
-        self.input_box.configure(
-            font=readable_font,
-            spacing1=10,  # spacing between paragraphs
-            foreground=text_color(),
-            background=bg_color(),
-            padx=2,
-            pady=5,
-            spacing2=8,  # Spacing between lines
-            spacing3=5,
-            wrap="word",
-        )
-        self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
-        self.mode_var = tk.StringVar()
-        choices = ('default', 'chat', 'dialogue', 'antisummary')
-        self.mode_select = tk.OptionMenu(self.input_frame, self.mode_var, *choices)
-        self.mode_var.trace('w', self.callbacks["Update mode"]["callback"])
-
-        tk.Label(self.input_frame, text="Mode", bg=bg_color(), fg=text_color()).pack(side='left')
-        self.mode_select.pack(side='left')
-
-        self.submit_button = ttk.Button(self.input_frame, text="Submit",
-                                        command=self.callbacks["Submit"]["callback"], width=10)
-        self.submit_button.pack(side='right')
-        self.input_frame.pack(side="bottom", expand=True, fill="both")
-
-    def rebuild_bottom_frame(self):
-        self.destroy_bottom_frame()
-        self.bottom_frame.pack_forget()
-        self.bottom_input_frame.pack(side="bottom", fill="both")
-        self.bottom_frame.pack(side="bottom", fill="both")
-
-
-    def destroy_bottom_frame(self):
-        if self.debug_box is not None:
-            self.debug_box.pack_forget()
-            self.debug_box.destroy()
-        if self.input_frame is not None:
-            self.input_frame.pack_forget()
-            self.input_frame.destroy()
-        if self.past_box is not None:
-            self.past_box.pack_forget()
-            self.past_box.destroy()
-        self.debug_box = None
-        self.input_box = None
-        self.past_box = None
-        self.submit_button = None
-        self.bottom_input_frame.pack_forget()
-
 
     def key_pressed(self, event=None):
         if event.keysym in ('Tab'):
             self.callbacks["Key Pressed"]["callback"](char=event.keysym)
             return 'break'
         self.callbacks["Key Pressed"]["callback"](char=event.char)
-
-
-
 
     # Text area and scroll bar  TODO Make a scrollable textbox tkutil
     def _build_textbox(self, frame, frame_attr, textbox_attr, height=1):
@@ -344,9 +280,9 @@ class Display:
 
         # First a large edit button
         self.edit_button = self.build_button(frame, "Edit", dict(width=12))
-        #self.build_button(frame, "Child Edit")
+        self.build_button(frame, "Children")
         self.build_button(frame, "Visualize")
-        self.build_button(frame, "Multiverse")
+        self.build_button(frame, "Wavefunction")
 
         # Button name, button params, pack params
         buttons = [
@@ -503,6 +439,307 @@ class Display:
             self.chapter_nav_scrollbarx = None
 
     #################################
+    #   Bottom frame
+    #################################
+
+    def rebuild_bottom_frame(self):
+        self.destroy_bottom_frame()
+        self.bottom_frame.pack_forget()
+        self.bottom_input_frame.pack(side="bottom", fill="both")
+        self.bottom_frame.pack(side="bottom", fill="both")
+
+    def destroy_bottom_frame(self):
+        if self.debug_box is not None:
+            self.debug_box.pack_forget()
+            self.debug_box.destroy()
+        if self.input_frame is not None:
+            self.input_frame.pack_forget()
+            self.input_frame.destroy()
+        if self.past_box is not None:
+            self.past_box.pack_forget()
+            self.past_box.destroy()
+        self.debug_box = None
+        self.input_box = None
+        self.past_box = None
+        self.submit_button = None
+        self.bottom_input_frame.pack_forget()
+
+    def build_past_box(self):
+        self.rebuild_bottom_frame()
+        self.past_box = TextAware(self.bottom_input_frame, bd=3, height=3)
+        self.past_box.pack(expand=True, fill='x')
+        self.past_box.configure(
+            foreground='white',
+            background='black',
+            wrap="word",
+        )
+        self.past_box.configure(state="disabled")
+
+    def set_pastbox_text(self, text):
+        print(self.past_box)
+        if self.past_box:
+            print('writing:', text)
+            self.past_box.configure(state="normal")
+            self.past_box.delete("1.0", "end")
+            self.past_box.insert("end-1c", text)
+            self.past_box.configure(state="disabled")
+
+    def build_debug_box(self):
+        self.rebuild_bottom_frame()
+        self.debug_box = TextAware(self.bottom_input_frame, bd=3, height=12)
+        self.debug_box.pack(expand=True, fill='x')
+        self.debug_box.configure(
+            foreground='white',
+            background='black',
+            wrap="word",
+        )
+        self.debug_box.configure(state="disabled")
+
+    def build_input_box(self):
+        self.rebuild_bottom_frame()
+        self.bottom_frame.pack_forget()
+        self.bottom_input_frame.pack_forget()
+        self.bottom_input_frame.pack(side="bottom", fill="both")
+        self.bottom_frame.pack(side="bottom", fill="both")
+        self.input_frame = ttk.Frame(self.bottom_input_frame, width=500, height=20)
+        self.input_box = TextAware(self.input_frame, bd=3, height=3, undo=True)
+        readable_font = Font(family="Georgia", size=12)
+        self.input_box.pack(expand=True, fill='x')
+        self.input_box.configure(
+            font=readable_font,
+            spacing1=10,  # spacing between paragraphs
+            foreground=text_color(),
+            background=bg_color(),
+            padx=2,
+            pady=5,
+            spacing2=8,  # Spacing between lines
+            spacing3=5,
+            wrap="word",
+        )
+        self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
+        self.mode_var = tk.StringVar()
+        choices = ('default', 'chat', 'dialogue', 'antisummary')
+        self.mode_select = tk.OptionMenu(self.input_frame, self.mode_var, *choices)
+        self.mode_var.trace('w', self.callbacks["Update mode"]["callback"])
+
+        tk.Label(self.input_frame, text="Mode", bg=bg_color(), fg=text_color()).pack(side='left')
+        self.mode_select.pack(side='left')
+
+        self.submit_button = ttk.Button(self.input_frame, text="Submit",
+                                        command=self.callbacks["Submit"]["callback"], width=10)
+        self.submit_button.pack(side='right')
+        self.input_frame.pack(side="bottom", expand=True, fill="both")
+
+    #################################
+    #   Show children
+    #################################
+
+    def build_multi_frame(self, num_textboxes=3):
+        self.destroy_multi_frame()
+        self.init_multi_frame(num_textboxes)
+        self.multi_textboxes = {str(uuid.uuid1()): {'textbox': TextAware(self.multi_scroll_frame.scrollable_frame,
+                                                                         height=self.multi_default_height, bd=3,
+                                                                         relief=tk.RAISED)} for i in range(num_textboxes)}
+        self.place_textboxes()
+
+    def init_multi_frame(self, num_textboxes):
+
+        font_height = tk.font.Font(font=self.multi_font).metrics('linespace')
+        # TODO max height
+        textbox_height = self.multi_default_height * (font_height + 4)
+        height = min(num_textboxes * textbox_height, 5 * textbox_height)
+
+        self.multi_scroll_frame = ScrollableFrame(self.story_frame, height=height)
+        self.multi_scroll_frame.pack(expand=False, fill="both", side=tk.BOTTOM)
+
+    def place_textboxes(self):
+        row = 0
+        tk.Grid.columnconfigure(self.multi_scroll_frame.scrollable_frame, 1, weight=1)
+        for textbox_id, tb_item in self.multi_textboxes.items():
+            tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row, weight=1)
+            tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row+1, weight=1)
+
+            tb = tb_item['textbox']
+            tb.grid(row=row, column=1, rowspan=2, sticky=tk.N + tk.S + tk.E + tk.W)
+            tb.configure(
+                font=self.multi_font,
+                foreground=text_color(),  # Darkmode
+                background=bg_color(),
+                padx=self.multi_padx,
+                pady=self.multi_pady,
+                wrap="word",
+            )
+            #tb.configure(state='disabled')
+            row += 2
+
+    # rebuilds multi frame from multi_textboxes dictionary
+    # remakes all widgets
+    # TODO different height if textbox in edit mode
+    def rebuild_multi_frame(self):
+        self.clear_multi_frame()
+        self.multi_scroll_frame = None
+        self.init_multi_frame(num_textboxes=len(self.multi_textboxes.items()))
+
+        for tb_id, tb_item in self.multi_textboxes.items():
+            state = 'disabled'
+            height = self.multi_default_height
+            # if tb_item['textbox']:
+            #     if tb_item['textbox'].cget('state') == 'normal':
+            #         height = min(6, tb_item['num_lines'] + 2)
+            #         state = 'normal'
+            tb_item['textbox'] = TextAware(self.multi_scroll_frame.scrollable_frame, height=height,
+                                           bd=3, relief=tk.RAISED)
+            tb_item['textbox'].configure(state=state)
+
+        self.place_textboxes()
+        active_children = [tb_item[1]['node'] for tb_item in self.multi_textboxes.items()]
+        self.populate_textboxes(active_children)
+
+
+    # add more children to multi_textboxes and rebuild
+    # TODO also for delete, modified?
+    # TODO add to the top of the list?
+    # or add to the bottom but scroll?
+    def update_children(self, new_children):
+        for child in new_children:
+            self.multi_textboxes[str(uuid.uuid1())] = {'node': child}
+        self.rebuild_multi_frame()
+        # TODO scroll to bottom
+
+    def update_text(self):
+        for tb_id, tb_item in self.multi_textboxes.items():
+            tb = tb_item['textbox']
+            node = tb_item['node']
+            tb.configure(state='normal')
+            tb.delete("1.0", "end")
+            tb.insert("1.0", node["text"])
+            tb.configure(state='disabled')
+
+    # clears tkinter widgets but doesn't clear multi_textboxes info
+    def clear_multi_frame(self):
+        if self.multi_textboxes:
+            for tb_item in self.multi_textboxes.values():
+                if 'textbox' in tb_item:
+                    tb_item['textbox'].grid_forget()
+                if 'close' in tb_item:
+                    tb_item['close'].grid_forget()
+                if 'go' in tb_item:
+                    tb_item['go'].grid_forget()
+                if 'archive' in tb_item:
+                    tb_item['archive'].grid_forget()
+                if 'edit' in tb_item:
+                    tb_item['edit'].grid_forget()
+                if 'delete' in tb_item:
+                    tb_item['delete'].grid_forget()
+                if 'descendents_label' in tb_item:
+                    tb_item['descendents_label'].grid_forget()
+        if self.multi_scroll_frame:
+            self.multi_scroll_frame.pack_forget()
+
+    def destroy_multi_frame(self):
+        self.clear_multi_frame()
+        self.multi_scroll_frame = None
+        self.multi_textboxes = None
+
+    # adds text of children into textboxes
+    # creates icons/labels and binds functions
+    def populate_textboxes(self, children):
+        for i, (tb_id, tb_item) in enumerate(self.multi_textboxes.items()):
+            child = children[i]
+            tb = tb_item['textbox']
+            tb.configure(state='normal')
+            tb.delete("1.0", "end")
+            tb.insert("1.0", child["text"])
+            tb.configure(state='disabled')
+            tb_item['node'] = child
+            tb_item['num_lines'] = max(child["text"].count("\n"), int(tb.index('end').split('.')[0]))
+
+            tb.bind("<Button-1>", lambda event, _textbox_id=tb_id: self.textbox_clicked(_textbox_id))
+
+            self.make_button('go', self.goto_child, i, 2, tb_id, tb_item)
+            self.make_button('close', self.dismiss_textbox, i, 3, tb_id, tb_item)
+            self.make_button('edit', self.toggle_editable, i, 4, tb_id, tb_item)
+            self.make_button('archive', self.archive_child, i, 5, tb_id, tb_item)
+            self.make_button('delete', self.delete_child, i, 6, tb_id, tb_item)
+
+            # TODO only create label if node has descendents
+            descendents = num_descendents(child) - 1
+            if descendents != 0:
+                var = tk.StringVar()
+                label = tk.Label(self.multi_scroll_frame.scrollable_frame, textvariable=var, relief=tk.FLAT, bg=bg_color())
+                if descendents == 1:
+                    var.set(f"{1} descendent")
+                else:
+                    var.set(f"{descendents} descendents")
+                label.grid(row=i * 2 + 1, column=2, columnspan=5)
+                tb_item['descendents_label'] = label
+
+    def make_button(self, name, function, row, column, tb_id, tb_item):
+        button = tk.Label(self.multi_scroll_frame.scrollable_frame, image=self.icons[name]['icon'], bg=bg_color())
+        button.image = self.icons['archive']
+        button.grid(row=row * 2, column=column, padx=5)
+        button.bind("<Button-1>", lambda event, _textbox_id=tb_id: function(_textbox_id))
+        tb_item[name] = button
+
+    def dismiss_textbox(self, textbox_id):
+        # self.clear_multi_frame()
+        self.multi_textboxes.pop(textbox_id)
+        #self.refresh_multi_frame()
+        self.rebuild_multi_frame()
+
+    # when editing is enabled, textbox height expands to show all text
+    # when editing is disabled, height defaults to self.multi_default_height
+    def toggle_editable(self, textbox_id):
+        if self.multi_textboxes[textbox_id]['textbox'].cget('state') == 'disabled':
+            edit_height = min(6, self.multi_textboxes[textbox_id]['num_lines'] + 2)
+            self.multi_textboxes[textbox_id]['textbox'].configure(state='normal', background=edit_color(),
+                                                                  relief=tk.SUNKEN,
+                                                                  height=edit_height)
+        else:
+            self.multi_textboxes[textbox_id]['textbox'].configure(state='disabled', background=bg_color(),
+                                                                  relief=tk.RAISED, height=self.multi_default_height)
+            self.save_edits(textbox_id)
+        #self.rebuild_multi_frame()
+
+    # regrid textboxes without remaking widgets
+    def regrid_textboxes(self):
+        pass
+
+    def textbox_clicked(self, textbox_id):
+        #TODO will this recalculate at runtime?
+        if self.multi_textboxes[textbox_id]['textbox'].cget('state') == 'disabled':
+            self.goto_child(textbox_id)
+
+    # when textbox is not editable, clicking on it will goto child
+    # if textbox is active, need to click on icon and it will save edits
+    def goto_child(self, textbox_id):
+        self.callbacks["Select node"]["callback"](node=self.multi_textboxes[textbox_id]["node"])
+
+    def delete_child(self, textbox_id):
+        ask = True if 'descendents_label' in self.multi_textboxes[textbox_id] else False
+        deleted = self.callbacks["Delete"]["callback"](node=self.multi_textboxes[textbox_id]["node"], ask=ask,
+                                                       ask_text="Delete subtree?")
+        if deleted:
+            self.dismiss_textbox(textbox_id)
+
+    def archive_child(self, textbox_id):
+        pass
+
+    # called when:
+    # edit mode toggled
+    # navigate away from node in any way
+    def save_edits(self, textbox_id):
+        node = self.multi_textboxes[textbox_id]['node']
+        if node['id'] in self.state.tree_node_dict:
+            new_text = self.multi_textboxes[textbox_id]['textbox'].get("1.0", 'end-1c')
+            self.state.update_text(node=node, text=new_text)
+
+    def save_all(self):
+        if self.multi_textboxes:
+            for tb_id, tb_item in self.multi_textboxes.items():
+                self.save_edits(tb_id)
+
+    #################################
     #   Edit mode
     #################################
 
@@ -529,9 +766,7 @@ class Display:
             self.textbox.config(foreground=text_color(), background=edit_color())
             self.secondary_textbox.config(foreground=text_color(), background=edit_color())
 
-        # Caller needs to use start_multi_edit
-        elif self.mode == "Multi Edit":
-            pass
+
 
         elif self.mode == "Visualize":
             self.vis.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
@@ -544,49 +779,49 @@ class Display:
 
 
     def clear_story_frame(self):
-        self.destroy_multi_edit()
+        #self.destroy_multi_edit()
         self.textbox_frame.pack_forget()
         self.secondary_textbox_frame.pack_forget()
         self.vis.frame.pack_forget()
         self.multiverse.frame.pack_forget()
 
 
-    def start_multi_edit(self, num_textboxes=5):
-        assert self.mode == "Multi Edit"
-        self.clear_story_frame()
-
-        self.multi_edit_frame = ScrollableFrame(self.story_frame)
-        self.multi_edit_frame.pack(expand=True, fill="both")
-
-        self.multi_textboxes = [TextAware(self.multi_edit_frame.scrollable_frame, height=5) for i in range(num_textboxes)]
-        for tb in self.multi_textboxes:
-            tb.pack(expand=True, fill="both")
-            readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
-            tb.configure(
-                font=readable_font,
-                spacing1=10,
-                foreground=text_color(),  # Darkmode
-                background=bg_color(),
-                padx=2,
-                pady=2,
-                # spacing2=3,  # Spacing between lines4
-                # spacing3=3,
-                wrap="word",
-            )
-
-
-    def destroy_multi_edit(self):
-        # Caused crashes. Oh well, memory leaks are fine.
-        # if self.multi_textboxes is not None:
-        #     for tb in self.multi_textboxes:
-        #         tb.pack_forget()
-        #         tb.destroy()
-        #         self.multi_textboxes = None
-        if self.multi_edit_frame is not None:
-            self.multi_edit_frame.pack_forget()
-            self.multi_edit_frame.destroy()
-            self.multi_edit_frame = None
-            self.multi_textboxes = []
+    # def start_multi_edit(self, num_textboxes=5):
+    #     assert self.mode == "Multi Edit"
+    #     self.clear_story_frame()
+    #
+    #     self.multi_edit_frame = ScrollableFrame(self.story_frame)
+    #     self.multi_edit_frame.pack(expand=True, fill="both")
+    #
+    #     self.multi_textboxes = [TextAware(self.multi_edit_frame.scrollable_frame, height=5) for i in range(num_textboxes)]
+    #     for tb in self.multi_textboxes:
+    #         tb.pack(expand=True, fill="both")
+    #         readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
+    #         tb.configure(
+    #             font=readable_font,
+    #             spacing1=10,
+    #             foreground=text_color(),  # Darkmode
+    #             background=bg_color(),
+    #             padx=2,
+    #             pady=2,
+    #             # spacing2=3,  # Spacing between lines4
+    #             # spacing3=3,
+    #             wrap="word",
+    #         )
+    #
+    #
+    # def destroy_multi_edit(self):
+    #     # Caused crashes. Oh well, memory leaks are fine.
+    #     # if self.multi_textboxes is not None:
+    #     #     for tb in self.multi_textboxes:
+    #     #         tb.pack_forget()
+    #     #         tb.destroy()
+    #     #         self.multi_textboxes = None
+    #     if self.multi_edit_frame is not None:
+    #         self.multi_edit_frame.pack_forget()
+    #         self.multi_edit_frame.destroy()
+    #         self.multi_edit_frame = None
+    #         self.multi_textboxes = []
 
 
 

@@ -239,7 +239,7 @@ class TextAware(tk.Text):
 class ScrollableFrame(ttk.Frame):
     def __init__(self, container, *args, **kwargs):
         super().__init__(container, *args, **kwargs)
-        canvas = tk.Canvas(self, bg=scroll_bg_color())
+        canvas = tk.Canvas(self, bg=scroll_bg_color(), **kwargs)
         scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
 
         # Create the scrollable frame and change the canvas scroll region as it resizes
