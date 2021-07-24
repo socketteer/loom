@@ -96,22 +96,20 @@ minibuffer for commands
 
 ### Nav tree
 
-- goto selected node button/command
 - hide siblings option
-- remove clear chapters button
 
 ### Multi mode
 
-- fix story textbox scroll 
 - update when tree updated
     - remove any children that have been deleted
-- change frame height when editing or adding  
+- frame height when nodes are unevenly sized
 - archive node
 - remove child edit mode code
 - hide button in visualize and wavefunction modes
 - don't show archived nodes (if show_archived disabled)
 - test
 - enable undo
+- show canonical first
 
 ### Block multiverse
 

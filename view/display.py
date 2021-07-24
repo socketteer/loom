@@ -113,7 +113,7 @@ class Display:
         # TODO make a decorator which automatically caches default=CACHE args. None should be a cacheable value
     # Caches param arguments so repeated calls will use the same args unless overridden
     @metadata(first_call=True, args={})
-    def build_button(self, frame, name, button_params=None, pack_params=None, pack=True):
+    def build_button(self, frame, name, button_params=None, pack_params=None, pack=True, side="left"):
         if not self.build_button.meta["first_call"]:
             if button_params is None:
                 button_params = self.build_button.meta["args"]["button_params"]
@@ -132,7 +132,7 @@ class Display:
         button = ttk.Button(frame, **button_params)
 
         if pack:
-            button.pack(**{**dict(side="left", fill="y"), **(pack_params if pack_params else {})})
+            button.pack(**{**dict(side=side, fill="y"), **(pack_params if pack_params else {})})
         return button
 
     def init_icon(self, icon_name, filename, size=18):
@@ -231,6 +231,7 @@ class Display:
         scrollbar = ttk.Scrollbar(textbox_frame, command=lambda *args: self.__getattribute__(textbox_attr).yview(*args))
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         textbox = TextAware(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
+        self.__setattr__(textbox_attr+"_scrollbar", scrollbar)
         self.__setattr__(textbox_attr, textbox)
         # TODO move this out
         textbox.bind("<Control-Button-1>", lambda event: self.edit_history(txt=textbox))
@@ -332,12 +333,21 @@ class Display:
 
         # File controls
         buttons = [
-            ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
+            #["Clear chapters", dict(width=30), dict(fill="x", side="top")],
             ["Save", dict(width=15), dict(fill="x")],#, dict(side="bottom", fill="x")],
             ["Open", dict(width=15), dict(fill="x")],#, dict(side="bottom", fill="x")],
         ]
         for btn in buttons:
             self.build_button(self.nav_frame, *btn)
+
+        # Nav controls
+        buttons = [
+            # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
+            ["Scroll to selected", dict(width=15), dict(fill="x")],  # , dict(side="bottom", fill="x")],
+        ]
+        for btn in buttons:
+            self.build_button(self.nav_tree, *btn, side="top")
+
 
     def build_chapter_nav(self):
         self._build_treeview(self.nav_frame, "chapter_nav_tree")
@@ -604,7 +614,8 @@ class Display:
         for child in new_children:
             self.multi_textboxes[str(uuid.uuid1())] = {'node': child}
         self.rebuild_multi_frame()
-        # TODO scroll to bottom
+        self.multi_scroll_frame.canvas.update_idletasks()
+        self.multi_scroll_frame.canvas.yview_moveto(1)
 
     def update_text(self):
         for tb_id, tb_item in self.multi_textboxes.items():
@@ -653,6 +664,7 @@ class Display:
             tb.configure(state='disabled')
             tb_item['node'] = child
             tb_item['num_lines'] = max(child["text"].count("\n"), int(tb.index('end').split('.')[0]))
+            tb.configure(height=min(tb_item['num_lines'], self.multi_default_height))
 
             tb.bind("<Button-1>", lambda event, _textbox_id=tb_id: self.textbox_clicked(_textbox_id))
 
@@ -696,8 +708,9 @@ class Display:
                                                                   relief=tk.SUNKEN,
                                                                   height=edit_height)
         else:
+            height = min(self.multi_textboxes[textbox_id]['num_lines'], self.multi_default_height)
             self.multi_textboxes[textbox_id]['textbox'].configure(state='disabled', background=bg_color(),
-                                                                  relief=tk.RAISED, height=self.multi_default_height)
+                                                                  relief=tk.RAISED, height=height)
             self.save_edits(textbox_id)
         #self.rebuild_multi_frame()
 

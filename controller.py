@@ -3,6 +3,7 @@ import os
 import tkinter as tk
 import threading
 from collections import defaultdict, ChainMap
+import time
 from functools import reduce
 from pprint import pprint
 from tkinter import filedialog, ttk
@@ -714,6 +715,8 @@ class Controller:
         if self.state.preferences['autosave']:
             self.save_edits()
         self.display.set_mode("Visualize" if self.display.mode != "Visualize" else "Read")
+        self.refresh_display()
+
         self.refresh_visualization()
         self.refresh_textbox()
 
@@ -1097,10 +1100,12 @@ class Controller:
             self.display.build_multi_frame(len(children))
             self.display.populate_textboxes(children)
             # TODO this doesn't scroll all the way to the end
-            self.display.textbox.see('end')
+            self.display.textbox.update_idletasks()
+            self.display.textbox.see(tk.END)
+
 
     def update_children(self, **kwargs):
-        if self.state.preferences['show_children']:
+        if self.state.preferences['show_children'] and self.display.mode in ("Read", "Edit"):
             if 'add' in kwargs:
                 self.display.update_children(self.state.tree_node_dict[node_id] for node_id in kwargs['add'])
             if 'edit' in kwargs:
@@ -1161,7 +1166,7 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
-        self.toggle_show_children()
+        self.scroll_to_selected()
         # self.display.set_mode("Multiverse")
         # self.refresh_textbox()
         # multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, unnormalized_threshold=0.001)
@@ -1745,9 +1750,12 @@ class Controller:
         )
 
         # Scroll to node, open it's parent nodes
+        self.scroll_to_selected()
+
+    @metadata(name="Scroll to selected", keys=[], display_key="")
+    def scroll_to_selected(self):
         self.display.nav_tree.see(self.state.selected_node_id)
         self.set_nav_scrollbars()
-
 
     def update_chapter_nav_tree_selected(self, **kwargs):
         if self.state.selected_node is None:

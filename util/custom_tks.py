@@ -239,18 +239,18 @@ class TextAware(tk.Text):
 class ScrollableFrame(ttk.Frame):
     def __init__(self, container, *args, **kwargs):
         super().__init__(container, *args, **kwargs)
-        canvas = tk.Canvas(self, bg=scroll_bg_color(), **kwargs)
-        scrollbar = ttk.Scrollbar(self, orient="vertical", command=canvas.yview)
+        self.canvas = tk.Canvas(self, bg=scroll_bg_color(), **kwargs)
+        scrollbar = ttk.Scrollbar(self, orient="vertical", command=self.canvas.yview)
 
         # Create the scrollable frame and change the canvas scroll region as it resizes
-        self.scrollable_frame = ttk.Frame(canvas)
-        self.scrollable_frame.bind("<Configure>", lambda e: canvas.configure(scrollregion=canvas.bbox("all")))
+        self.scrollable_frame = ttk.Frame(self.canvas)
+        self.scrollable_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
 
         # Put the scrollable frame inside the canvas and resize its window as the canvas resizes
         # https://stackoverflow.com/questions/29319445/tkinter-how-to-get-frame-in-canvas-window-to-expand-to-the-size-of-the-canvas
-        window_frame = canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        canvas.bind("<Configure>", lambda e: canvas.itemconfig(window_frame, width=e.width))#, height=e.height))
+        window_frame = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
+        self.canvas.bind("<Configure>", lambda e: self.canvas.itemconfig(window_frame, width=e.width))#, height=e.height))
 
-        canvas.configure(yscrollcommand=scrollbar.set)
-        canvas.pack(side="left", fill="both", expand=True)
+        self.canvas.configure(yscrollcommand=scrollbar.set)
+        self.canvas.pack(side="left", fill="both", expand=True)
         scrollbar.pack(side="right", fill="y")
