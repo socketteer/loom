@@ -1,4 +1,3 @@
-
 change gpt2 tokenizer import so loom doesn't require internet connection to run
 
 open new tab/window on same working copy of tree
@@ -86,11 +85,13 @@ when node is split, chapter goes to parent
 * save counterfactuals?
 
 ### Hoist
-* hoist stack
 * history parent should be immutable
 * navigating to history parent should (expose option to) unhoist
 * handle navigating to node outside subtree (expand to common ancestor of current and new node?)
 * option to automatically hoist when new chapter
+* pack hoist/unhoist/unhoist all buttons more compactly
+* gray out buttons when appropriate
+* recenter view if in vis
 
 
 ### Edit mode

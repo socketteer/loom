@@ -142,10 +142,13 @@ class TreeModel:
         self.summaries = None
         self.checkpoint = None
         self.canonical = None
-        self.hoisted_root_id = None
-        self.hoisted_parent_id = None
-        self.parent_tree = None
-        self.parent_filename = None
+
+        self.hoist_stack = []
+
+        # self.hoisted_root_id = None
+        # self.hoisted_parent_id = None
+        # self.parent_tree = None
+        # self.parent_filename = None
 
         self.selected_node_id = None
 
@@ -345,38 +348,6 @@ class TreeModel:
         new_idx = clip_num(self.tree_traversal_idx_gen(flat_tree) + offset, 0, len(flat_tree) - 1)
         return self.nodes_list(flat_tree=flat_tree)[new_idx]['id']
 
-    def node_is_canonical(self, node=None):
-        node = node if node else self.selected_node
-        return node['id'] in self.calc_canonical_set()
-
-    def node_is_visible(self, node=None):
-        node = node if node else self.selected_node
-        return not(node.get('archived', False))
-
-    def generate_canonical_tree(self, root=None):
-        root = root if root else self.tree_raw_data["root"]
-        return generate_conditional_tree(root, self.node_is_canonical)
-
-    def generate_visible_tree(self, root=None):
-        root = root if root else self.tree_raw_data["root"]
-        return generate_conditional_tree(root, self.node_is_visible)
-
-    def generate_filtered_tree(self, root=None):
-        root = root if root else self.tree_raw_data["root"]
-        conditions = self.generate_conditions()
-        if not conditions:
-            return self.tree_node_dict
-        else:
-            return generate_conditional_tree(root, conditions)
-
-    def generate_conditions(self):
-        conditions = []
-        if self.preferences['canonical_only']:
-            conditions.append(self.node_is_canonical)
-        if self.preferences['hide_archived']:
-            conditions.append(self.node_is_visible)
-        return conditions
-
     def select_parent(self, node=None):
         node = node if node else self.selected_node
         if node and "parent_id" in node:
@@ -414,6 +385,43 @@ class TreeModel:
         if node and "parent_id" in node:
             siblings = conditional_children(self.parent(node), self.generate_conditions())
             return siblings[(siblings.index(node) + offset) % len(siblings)]
+
+    #################################
+    #   Conditionals
+    #################################
+
+    def node_is_canonical(self, node=None):
+        node = node if node else self.selected_node
+        return node['id'] in self.calc_canonical_set()
+
+    def node_is_visible(self, node=None):
+        node = node if node else self.selected_node
+        return not(node.get('archived', False))
+
+    def generate_canonical_tree(self, root=None):
+        root = root if root else self.tree_raw_data["root"]
+        return generate_conditional_tree(root, self.node_is_canonical)
+
+    def generate_visible_tree(self, root=None):
+        root = root if root else self.tree_raw_data["root"]
+        return generate_conditional_tree(root, self.node_is_visible)
+
+    def generate_filtered_tree(self, root=None):
+        root = root if root else self.tree_raw_data["root"]
+        conditions = self.generate_conditions()
+        if not conditions:
+            return self.tree_node_dict
+        else:
+            return generate_conditional_tree(root, conditions)
+
+    def generate_conditions(self):
+        conditions = []
+        if self.preferences['canonical_only']:
+            conditions.append(self.node_is_canonical)
+        if self.preferences['hide_archived']:
+            conditions.append(self.node_is_visible)
+        return conditions
+
 
     #################################
     #   Updates
@@ -919,35 +927,31 @@ class TreeModel:
     # TODO return if tries to hoist root
     def hoist(self, node=None):
         node = self.selected_node if not node else node
-        self.hoisted_root_id = node['id']
-        self.hoisted_parent_id = node['parent_id']
-        self.parent_tree = self.tree_raw_data
-        self.parent_filename = self.tree_filename
+        hoist_info = {'root_id': node['id'],
+                      'parent_id': node['parent_id'],
+                      'parent_tree': self.tree_raw_data}
+        self.hoist_stack.append(hoist_info)
+
         history_text = "".join(self.node_ancestry_text(node)[0][:-1])
         history_parent = self.new_node(text=history_text)
         history_parent['children'] = [node]
         node['parent_id'] = history_parent['id']
         self.open_node_as_root(history_parent, save=False)
-        self.select_node(self.hoisted_root_id)
+        self.select_node(hoist_info['root_id'])
 
-
-    # integrates hoisted subtree with original parent}
-    # reloads parent
-    def unhoist(self):
-        if not self.hoisted_root_id or not self.hoisted_parent_id \
-                or not self.parent_tree or not self.parent_filename:
-            print('missing hoist data')
+    def unhoist(self, index=-1):
+        if not self.hoist_stack:
+            print('nothing in hoist stack')
             return
-        child_tree = self.tree_node_dict[self.hoisted_root_id]
-        child_tree['parent_id'] = self.hoisted_parent_id
-        self.tree_filename = self.parent_filename
-        self.load_tree_data(self.parent_tree)
-        self.hoisted_root_id = None
-        self.hoisted_parent_id = None
-        self.parent_tree = None
-        self.parent_filename = None
-        #self.io_update()
+        hoist_data = self.hoist_stack[index]
+        del self.hoist_stack[index:]
 
+        child_tree = self.tree_node_dict[hoist_data['root_id']]
+        child_tree['parent_id'] = hoist_data['parent_id']
+        self.load_tree_data(hoist_data['parent_tree'])
+
+    def unhoist_all(self):
+        self.unhoist(index=0)
 
     # Tree flat data is just a different view to tree raw data!
     # We edit tree flat data with tkinter and save raw data which is still in json form
@@ -967,8 +971,8 @@ class TreeModel:
             os.rename(self.tree_filename, os.path.join(backup_dir, f"{filename}-{timestamp()}.json"))
 
         # Save tree
-        # TODO hoist stack
-        master_dict = self.parent_tree if self.parent_tree else self.tree_raw_data
+        # Save tree dict from bottom of hoist stack
+        master_dict = self.hoist_stack[0]['parent_tree'] if self.hoist_stack else self.tree_raw_data
         json_create(self.tree_filename, master_dict)
         self.io_update()
         return True

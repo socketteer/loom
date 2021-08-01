@@ -136,6 +136,8 @@ class Controller:
             "View": [
                 ('Toggle children', 'C', None, no_junk_args(self.toggle_show_children)),
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
+                ('Hoist subtree', 'Alt-H', None, no_junk_args(self.hoist)),
+                ('Unhoist subtree', 'Alt-Shift-H', None, no_junk_args(self.unhoist)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
                 ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
                 ('Collapse subtree', 'Ctrl-minus', None, no_junk_args(self.collapse_subtree)),
@@ -671,7 +673,6 @@ class Controller:
         self.change_token.meta['prev_token'] = None
         self.change_token.meta['temp_token_offsets'] = None
 
-
     #################################
     #   State
     #################################
@@ -905,11 +906,11 @@ class Controller:
     def new_from_node(self):
         self.state.open_node_as_root()
 
-    @metadata(name="Hoist", keys=[], display_key="")
+    @metadata(name="Hoist", keys=["<Alt-h>"], display_key="")
     def hoist(self):
         self.state.hoist()
 
-    @metadata(name="Unhoist", keys=[], display_key="")
+    @metadata(name="Unhoist", keys=["<Alt-Shift-KeyPress-H>"], display_key="")
     def unhoist(self):
         self.state.unhoist()
 

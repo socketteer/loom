@@ -88,6 +88,10 @@ Toggle debug box: `Control+Shift+D`
 
 Toggle show children: `c`
 
+Hoist: `Alt-h`
+
+Unhoist: `Alt-Shift-h`
+
 
 ### Navigate
 
