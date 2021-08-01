@@ -715,6 +715,8 @@ class Controller:
 
         self.refresh_visualization()
         self.refresh_textbox()
+        self.display.textbox.update_idletasks()
+        self.center_view()
 
 
     @metadata(name="Wavefunction", keys=[])
@@ -1122,7 +1124,8 @@ class Controller:
             self.hide_children()
 
     def show_children(self):
-        if self.state.preferences['show_children'] and self.state.selected_node:
+        if self.state.preferences['show_children'] and self.state.selected_node \
+                and self.display.mode in ("Read", "Edit"):
             children = self.state.selected_node["children"]
             self.display.build_multi_frame(len(children))
             self.display.populate_textboxes(children)

@@ -9,8 +9,6 @@ ask before quitting if unsaved changes
 
 jump to unvisited nodes
 
-hide display text by default (but button to show?)
-
 minibuffer for commands
 
 when node is split, chapter goes to parent
@@ -137,7 +135,6 @@ when node is split, chapter goes to parent
 
 
 ### Tree vis
-* first time switching to vis mode centering bug
 * tree vis settings won't change on newly opened file
 * tree vis duplication when zooming
 * collapse all sometimes causes duplication?
@@ -146,7 +143,7 @@ when node is split, chapter goes to parent
 * fix vertical mode
 * icons sometimes do not zoom
 * different icon colors for light mode
-* vis expanded state out of synch with nav tree expanded state
+* vis expanded state out of sync with nav tree expanded state
 
 # Tree visualization
 
@@ -297,7 +294,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 ### chapter
 
 - chapter hierarchy
-- function to collapse all but chapter subtree
+- collapse all but chapter subtree
 
 ### floating notes
 
