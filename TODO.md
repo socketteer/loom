@@ -15,27 +15,19 @@ minibuffer for commands
 
 when node is split, chapter goes to parent
 
-filter by arbitrary attributes (canonical, created_after, etc)
+- filter by arbitrary attributes (canonical, created_after, etc)
+    - handle navigating to a hidden node
 
 ### archived
-    - navigation which navigates only any (conditional?) subset of tree
-        - implemented for node offset (next)
-        - nav to child
-        - nav to sibling
-    - when in hide archived mode, navigation should only go to unarchived nodes
-        - deal with case when you navigate to a hidden node anyway (for example using goto)?
+    - visually indicate archived nodes in nav tree when hide_archived=False
+    - shortcut to hide/show archived
+     
 
 ### session files: separate session from underlying tree?
     - visited
     - active node
     - expanded state
     - settings... 
-
-- open subtrees only...?
-
-- archiving
-    - shortcut to archive nodes
-    - visually indicate archived nodes in nav tree when hide_archived=False
 
 
 - generation 
@@ -71,7 +63,6 @@ filter by arbitrary attributes (canonical, created_after, etc)
     - add global memory option
 
  
- 
 # misc bugs
 
 * key bindings only work in most recent tab
@@ -104,9 +95,9 @@ filter by arbitrary attributes (canonical, created_after, etc)
 * option to automatically hoist when new chapter
 
 
-### Nav tree
-
-- hide siblings option
+### Edit mode
+- display text box hidden by default
+- preview text for read multi mode
 
 ### Multi mode
 
@@ -120,6 +111,8 @@ filter by arbitrary attributes (canonical, created_after, etc)
 - enable undo
 - show canonical first
 - test
+    - test for bugs switching to vis mode etc
+- "Read" multi mode with option to override preview text
 
 
 ### Block multiverse
@@ -300,10 +293,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
     * mode which doesn't count visited nodes
     * depth limit
     * display probabilities
-* option to display clickable preview text for children
-    * preview text can be overridden
-    * children can be flagged as hidden
-    
+
 ### chapter
 
 - chapter hierarchy
