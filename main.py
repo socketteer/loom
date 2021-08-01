@@ -75,6 +75,9 @@ class Application:
 
 
     def update_app_data(self):
+        #print('updating app data')
+        # for t in self.tabs:
+        #     print('filename:', t.state.tree_filename)
         self.set_tab_names()
         self.app_data = {
             "tabs": [
@@ -138,6 +141,8 @@ class Application:
                 ('Import subtree', 'Ctrl+Shift+O', None, lambda event=None: self.forward_command(Controller.import_tree)),
                 ('Save', 'S', None, lambda event=None: self.forward_command(Controller.save_tree)),
                 ('Save As...', 'Ctrl+S', '<Control-s>', lambda event=None: self.forward_command(Controller.save_tree_as)),
+                ('New tree from node...', None, None,
+                 lambda event=None: self.forward_command(Controller.new_from_node)),
                 ('Export text', 'Ctrl+Shift+X', '<Control-Shift-KeyPress-X>',
                  lambda event=None: self.forward_command(Controller.export_text)),
                 ('Close Tab', None, None, self.close_tab),

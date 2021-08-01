@@ -15,20 +15,55 @@ def depth(d, node_dict):
     return 0 if "parent_id" not in d else (1 + depth(node_dict[d["parent_id"]], node_dict))
 
 
+def generate_conditional_tree(root, conditions=None):
+    return {d["id"]: d for d in flatten_tree(tree_subset(root=root,
+                                                         new_root=None,
+                                                         include_condition=conditions))}
+
+
+# generates flat list of nodes in a tree that satisfy condition
+def collect_conditional(node, conditions=None):
+    if not conditions:
+        return flatten_tree(node)
+    if isinstance(conditions, list):
+        condition_func = lambda child: all(cond(child) for cond in conditions)
+    else:
+        condition_func = conditions
+    li = [node]
+    for c in node["children"]:
+        if condition_func(c):
+            li += collect_conditional(c, condition_func)
+    return li
+
+
+def conditional_children(node, conditions=None):
+    if isinstance(conditions, list):
+        condition_func = lambda child: all(cond(child) for cond in conditions)
+    else:
+        condition_func = conditions
+    if condition_func:
+        return [child for child in node['children'] if condition_func(child)]
+    else:
+        return node['children']
+
+
 # given a root node and include condition, returns a new tree which contains only nodes who satisfy
 # the condition and whose ancestors also all satisfy the condition
 # nodes in the new tree contain only their ids and a childlist
+# this generates a copy
+# TODO copy contains no data except id(same as old tree) and children - will cause problems?
+# TODO modify this function or make new function that copies all of tree?
+# TODO existing python function to filter/copy dictionary?
 def tree_subset(root, new_root=None, include_condition=None):
     if not include_condition:
-        return {}
+        return root
     if not new_root:
         new_root = {'id': root['id'], 'children': []}
     if 'children' in root:
-        for child in root['children']:
-            if include_condition(child):
-                new_child = {'id': child['id'], 'children': []}
-                new_root['children'].append(new_child)
-                tree_subset(child, new_child, include_condition)
+        for child in conditional_children(root, include_condition):
+            new_child = {'id': child['id'], 'children': []}
+            new_root['children'].append(new_child)
+            tree_subset(child, new_child, include_condition)
     return new_root
 
 

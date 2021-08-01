@@ -1,17 +1,9 @@
-# priority 
 
-replace sentence/highlighted section functionality
-    - generates sentence by sentence / line by line
+change gpt2 tokenizer import so loom doesn't require internet connection to run
 
-block multiverse svg
-
-autocomplete bug - sometimes freezes
-
-stop at newline generation mode
+open new tab/window on same working copy of tree
 
 log gpt-3 output files
-
-add global memory option
 
 ask before quitting if unsaved changes
 
@@ -21,7 +13,11 @@ hide display text by default (but button to show?)
 
 minibuffer for commands
 
-- archived
+when node is split, chapter goes to parent
+
+filter by arbitrary attributes (canonical, created_after, etc)
+
+### archived
     - navigation which navigates only any (conditional?) subset of tree
         - implemented for node offset (next)
         - nav to child
@@ -29,7 +25,7 @@ minibuffer for commands
     - when in hide archived mode, navigation should only go to unarchived nodes
         - deal with case when you navigate to a hidden node anyway (for example using goto)?
 
-- session files: separate session from underlying tree?
+### session files: separate session from underlying tree?
     - visited
     - active node
     - expanded state
@@ -39,13 +35,8 @@ minibuffer for commands
 
 - archiving
     - shortcut to archive nodes
+    - visually indicate archived nodes in nav tree when hide_archived=False
 
-- autocomplete mode
-    - edit mode and vis
-    - longer range suggestions mode?
-    - more than one token for first (worth latency)?
-    - save counterfactuals?
-    - filter by character input
 
 - generation 
     - logit bias
@@ -54,6 +45,8 @@ minibuffer for commands
 - gpt modes     
     - account for additional prompt length (abstract)
     - save generation mode metadata
+    - stop at newline generation mode
+
  
 - dialogue
     - optimize prompt / multiple modes 
@@ -72,18 +65,19 @@ minibuffer for commands
     - splitting / merging
     - display in node info or diff dialog
 
-- memory system
+- memory
     - enable/disable memory entries
     - goto root 
+    - add global memory option
+
  
  
-# bugs
+# misc bugs
 
 * key bindings only work in most recent tab
 * num leaves calculated incorrectly
 * ctrl+space sometimes clicks button
 * ctrl+y hotkey (chapter dialog) sometimes doesn't work
-* importing tree causes file to be renamed to name of imported file
 * clicking textbox sometimes causes index error
 * display history bug - seen with astronomer -> spirals (try disabling context window highlighting)
 * saving is slow for massive trees
@@ -92,6 +86,22 @@ minibuffer for commands
 * memory causes freeze?
 * mark as prompt doesn't always work? or display doesnt update
 * generating when trying to calculate optimization bits??
+
+
+### Autocomplete
+* sometimes freezes
+* replace sentence/highlighted section functionality
+    * generates sentence by sentence / line by line
+* edit mode and vis
+* longer range suggestions mode?
+* save counterfactuals?
+
+### Hoist
+* hoist stack
+* history parent should be immutable
+* navigating to history parent should (expose option to) unhoist
+* handle navigating to node outside subtree (expand to common ancestor of current and new node?)
+* option to automatically hoist when new chapter
 
 
 ### Nav tree
@@ -103,13 +113,14 @@ minibuffer for commands
 - update when tree updated
     - remove any children that have been deleted
 - frame height when nodes are unevenly sized
-- archive node
 - remove child edit mode code
 - hide button in visualize and wavefunction modes
-- don't show archived nodes (if show_archived disabled)
-- test
+- don't show archived nodes (if show_archived disabled?)
+    - button to show archived / hidden options (indicate #)
 - enable undo
 - show canonical first
+- test
+
 
 ### Block multiverse
 
@@ -126,7 +137,7 @@ minibuffer for commands
 * cache computed multiverses
 * command/button to add wavefunction path to loom tree
 * remove invisible widgets (may be necessary if multiverses get too big?)
-* generatinng multiverse also adds branches to loom tree (but labeled different so they don't clutter everything up?)
+* generating multiverse also adds branches to loom tree (but labeled different so they don't clutter everything up?)
 * choose continuation by autocomplete / hotkeys
 * commands to go to parent, go to sibling, walk
 
@@ -170,7 +181,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 # Windows
 
-* debugger
 * gpt3 stuff
 * minimap
 * floating notes
@@ -227,9 +237,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * save open status (not visible status) in tree dict 
 * named bookmarks
 * bookmarks (unique) vs tags (category) 
-* make arbitrary node act as root node
-    * deal with navigating to node outside subtree (expand to common 
-    ancestor of current and new node?)
 * developer console
 * visited sessions
 * preferences dialog

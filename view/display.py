@@ -311,6 +311,16 @@ class Display:
 
     def build_nav(self, frame):
         self.nav_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
+        # Nav controls
+        buttons = [
+            # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
+            ["Hoist", dict(width=15), dict(fill="x")],
+            ["Unhoist", dict(width=15), dict(fill="x")],
+            ["Scroll to selected", dict(width=15), dict(fill="x")],  # , dict(side="bottom", fill="x")],
+        ]
+        for btn in buttons:
+            self.build_button(self.nav_frame, *btn, side="top")
+
         self.nav_pane = ttk.PanedWindow(self.nav_frame, height=500, width=300)
         self.nav_pane.pack(expand=True, fill='both')
 
@@ -340,13 +350,7 @@ class Display:
         for btn in buttons:
             self.build_button(self.nav_frame, *btn)
 
-        # Nav controls
-        buttons = [
-            # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
-            ["Scroll to selected", dict(width=15), dict(fill="x")],  # , dict(side="bottom", fill="x")],
-        ]
-        for btn in buttons:
-            self.build_button(self.nav_tree, *btn, side="top")
+
 
 
     def build_chapter_nav(self):
@@ -678,7 +682,8 @@ class Display:
             descendents = num_descendents(child) - 1
             if descendents != 0:
                 var = tk.StringVar()
-                label = tk.Label(self.multi_scroll_frame.scrollable_frame, textvariable=var, relief=tk.FLAT, bg=bg_color())
+                label = tk.Label(self.multi_scroll_frame.scrollable_frame, textvariable=var, relief=tk.FLAT,
+                                 fg=text_color(), bg=bg_color())
                 if descendents == 1:
                     var.set(f"{1} descendent")
                 else:
@@ -736,7 +741,11 @@ class Display:
             self.dismiss_textbox(textbox_id)
 
     def archive_child(self, textbox_id):
-        pass
+        # TODO this causes an error
+        self.callbacks["Archive"]["callback"](node=self.multi_textboxes[textbox_id]["node"])
+        # if self.state.preferences['hide_archived']:
+        #     self.dismiss_textbox(textbox_id)
+
 
     # called when:
     # edit mode toggled

@@ -25,7 +25,7 @@ from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSett
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
-    nearest_common_ancestor
+    nearest_common_ancestor, collect_conditional
 from util.gpt_util import logprobs_to_probs
 
 
@@ -144,6 +144,8 @@ class Controller:
                 ('Expand subtree', 'Ctrl-+', None, no_junk_args(self.expand_subtree)),
                 ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
                 ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
+                ('Toggle hide archived', None, None, no_junk_args(self.toggle_hide_archived)),
+                ('Toggle canonical only', None, None, no_junk_args(self.toggle_canonical_only)),
             ],
             "Edit": [
                 ('Edit mode', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
@@ -193,6 +195,9 @@ class Controller:
                 ("Mark subtree unvisited", None, None, lambda: self.set_subtree_visited(False)),
                 ("Mark all visited", None, None, lambda: self.set_all_visited(True)),
                 ("Mark all unvisited", None, None, lambda: self.set_all_visited(False)),
+                ("Toggle canonical", "Ctrl+Shift+C", None, no_junk_args(self.toggle_canonical)),
+                ("Toggle archive", "!", None, no_junk_args(self.toggle_archived)),
+                ("Bookmark", "B", None, no_junk_args(self.bookmark)),
                 ("Mark node as prompt", None, None, lambda: self.set_source('prompt')),
                 ("Mark node as AI completion", None, None, lambda: self.set_source('AI')),
                 ("Mark subtree as prompt", None, None, lambda: self.set_subtree_source('prompt')),
@@ -226,21 +231,11 @@ class Controller:
     # @metadata(name=, keys=, display_key=)
     @metadata(name="Next", keys=["<period>", "<Return>", "<Control-period>"], display_key=">")
     def next(self):
-        if self.state.preferences["canonical_only"]:
-            self.state.next_canonical()
-        else:
-            #self.state.traverse_tree(1)
-            self.select_node(node=self.state.tree_node_dict[self.state.next_id(1)])
-    # next.meta = dict(name="Next", keys=["<period>", "<Return>"], display_key=">")
-    # .meta = dict(name=, keys=, display_key=)
+        self.select_node(node=self.state.tree_node_dict[self.state.next_id(1)])
 
     @metadata(name="Prev", keys=["<comma>", "<Control-comma>"], display_key="<",)
     def prev(self):
-        if self.state.preferences["canonical_only"]:
-            self.state.prev_canonical()
-        else:
-            #self.state.traverse_tree(-1)
-            self.select_node(node=self.state.tree_node_dict[self.state.next_id(-1)])
+        self.select_node(node=self.state.tree_node_dict[self.state.next_id(-1)])
 
     @metadata(name="Go to parent", keys=["<Left>", "<Control-Left>"], display_key="←")
     def parent(self):
@@ -329,6 +324,7 @@ class Controller:
         self.state.preferences['show_prompt'] = not self.state.preferences['show_prompt']
         self.refresh_textbox()
 
+    @metadata(name="Archive")
     def archive(self, node=None):
         node = node if node else self.state.selected_node
         node['archived'] = True
@@ -903,6 +899,18 @@ class Controller:
             return
         self.state.import_tree(filename)
 
+    @metadata(name="New tree from node", keys=[], display_key="")
+    def new_from_node(self):
+        self.state.open_node_as_root()
+
+    @metadata(name="Hoist", keys=[], display_key="")
+    def hoist(self):
+        self.state.hoist()
+
+    @metadata(name="Unhoist", keys=[], display_key="")
+    def unhoist(self):
+        self.state.unhoist()
+
     @metadata(name="Save", keys=["<s>", "<Control-s>"], display_key="s")
     def save_tree(self, popup=True, autosave=False):
         if autosave and not self.state.preferences['autosave']:
@@ -1054,6 +1062,25 @@ class Controller:
         self.refresh_textbox()
         self.refresh_display()
         self.update_dropdown()
+        self.state.tree_updated(rebuild=True)
+
+    @metadata(name="Toggle hide archived", keys=[], display_key="")
+    def toggle_hide_archived(self, toggle=None):
+        toggle = not self.state.preferences['hide_archived'] if not toggle else toggle
+        self.state.preferences['hide_archived'] = toggle
+        if toggle:
+            if self.state.selected_node.get('archived', False):
+                self.state.select_node(self.state.selected_node['parent_id'])
+        self.refresh_textbox()
+        self.refresh_display()
+        self.state.tree_updated(rebuild=True)
+
+    @metadata(name="Toggle canonical only", keys=[], display_key="")
+    def toggle_canonical_only(self, toggle=None):
+        toggle = not self.state.preferences['canonical_only'] if not toggle else toggle
+        self.state.preferences['canonical_only'] = toggle
+        self.refresh_textbox()
+        self.refresh_display()
         self.state.tree_updated(rebuild=True)
 
     # @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
@@ -1369,15 +1396,6 @@ class Controller:
         # if self.display.mode in ("Read", "Edit") and self.state.preferences['show_children']:
         #     self.display.save_all()
 
-        # elif self.display.mode == "Multi Edit":
-        #     nodes = [self.state.selected_node, *self.state.selected_node["children"]]
-        #     new_texts = [textbox.get("1.0", 'end-1c') for textbox in self.display.multi_textboxes]
-        #     # This needs to be idempotent because it risks calling itself recursively
-        #     if any([node["text"] != new_text for node, new_text in zip(nodes, new_texts)]):
-        #         for node, new_text in zip(nodes, new_texts):
-        #             node["text"] = new_text
-        #         # TODO modified set
-        #         self.state.tree_updated()
 
         elif self.display.mode == "Visualize":
             if self.display.vis.textbox:
@@ -1595,10 +1613,11 @@ class Controller:
 
     def build_nav_tree(self, flat_tree=None):
         if not flat_tree:
-            if self.state.preferences['hide_archived']:
-                flat_tree = self.state.generate_visible_tree()
-            else:
-                flat_tree = self.state.tree_node_dict
+            flat_tree = self.state.generate_filtered_tree()
+            # if self.state.preferences['hide_archived']:
+            #     flat_tree = self.state.generate_visible_tree()
+            # else:
+            #     flat_tree = self.state.tree_node_dict
         #print(flat_tree)
         self.display.nav_tree.delete(*self.display.nav_tree.get_children())
         for id in flat_tree:
@@ -1774,22 +1793,24 @@ class Controller:
         self.display.chapter_nav_tree.see(selected_chapter_root_id)
         self.set_chapter_scrollbars()
 
+    def node_open(self, node):
+        return self.display.nav_tree.item(node['id'], "open")
 
     def set_nav_scrollbars(self):
         # Taking model as source of truth!!
-        def collect_visible(node, conditions=None):
-            if not conditions:
-                conditions = []
-            li = [node]
-            if self.display.nav_tree.item(node["id"], "open"):
-                for c in node["children"]:
-                    admissible = True
-                    for condition in conditions:
-                        if not condition(c):
-                            admissible = False
-                    if admissible:
-                        li += collect_visible(c, conditions)
-            return li
+        # def collect_visible(node, conditions=None):
+        #     if not conditions:
+        #         conditions = []
+        #     li = [node]
+        #     if self.display.nav_tree.item(node["id"], "open"):
+        #         for c in node["children"]:
+        #             admissible = True
+        #             for condition in conditions:
+        #                 if not condition(c):
+        #                     admissible = False
+        #             if admissible:
+        #                 li += collect_visible(c, conditions)
+        #     return li
 
 
         # Visible if their parents are open or they are root
@@ -1799,7 +1820,12 @@ class Controller:
         # ])
         visible_conditions = [lambda _node: not _node.get('archived', False)] \
             if self.state.preferences['hide_archived'] else []
-        visible_nodes = collect_visible(self.state.tree_raw_data["root"], visible_conditions)
+        #visible_nodes = collect_visible(self.state.tree_raw_data["root"], visible_conditions)
+        tree_conditions = self.state.generate_conditions()
+        tree_conditions.append(self.node_open)
+        visible_nodes = collect_conditional(self.state.tree_raw_data["root"], tree_conditions)
+        #print(visible_nodes)
+        #visible_nodes = self.state.generate_filtered_tree()
         visible_ids = {d["id"] for d in visible_nodes}
         # Ordered by tree order
         visible_ids = [iid for iid in self.state.tree_node_dict.keys() if iid in visible_ids]

@@ -11,11 +11,12 @@ import numpy as np
 from collections import defaultdict, ChainMap
 from multiprocessing.pool import ThreadPool
 import codecs
+import json
 
 from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
-    subtree_list, created_before, tree_subset
+    subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 from util.multiverse_util import greedy_word_multiverse
 
@@ -141,6 +142,10 @@ class TreeModel:
         self.summaries = None
         self.checkpoint = None
         self.canonical = None
+        self.hoisted_root_id = None
+        self.hoisted_parent_id = None
+        self.parent_tree = None
+        self.parent_filename = None
 
         self.selected_node_id = None
 
@@ -334,36 +339,11 @@ class TreeModel:
             return self.select_node(new_node_id)
 
     def next_id(self, offset, flat_tree=None):
-        flat_tree = flat_tree if flat_tree else self.generate_visible_tree() \
-            if self.preferences['hide_archived'] else self.tree_node_dict
+        flat_tree = flat_tree if flat_tree else self.generate_filtered_tree()
+        # flat_tree = flat_tree if flat_tree else self.generate_visible_tree() \
+        #     if self.preferences['hide_archived'] else self.tree_node_dict
         new_idx = clip_num(self.tree_traversal_idx_gen(flat_tree) + offset, 0, len(flat_tree) - 1)
         return self.nodes_list(flat_tree=flat_tree)[new_idx]['id']
-
-    # def next_id(self, offset):
-    #     return self.next(offset)["id"]
-
-    # def next(self, offset):
-    #     new_idx = clip_num(self.tree_traversal_idx + offset, 0, len(self.tree_node_dict) - 1)
-    #     return self.nodes[new_idx]
-
-    # TODO this is bad
-    def next_canonical(self):
-        id = ''
-        canonical_set = self.calc_canonical_set()
-        i = 1
-        while id not in canonical_set:
-            id = self.next_id(i)
-            i += 1
-        return self.select_node(node_id=id)
-
-    def prev_canonical(self):
-        id = ''
-        canonical_set = self.calc_canonical_set()
-        i = 1
-        while id not in canonical_set:
-            id = self.next_id(-i)
-            i += 1
-        return self.select_node(node_id=id)
 
     def node_is_canonical(self, node=None):
         node = node if node else self.selected_node
@@ -375,16 +355,27 @@ class TreeModel:
 
     def generate_canonical_tree(self, root=None):
         root = root if root else self.tree_raw_data["root"]
-        return {d["id"]: d for d in flatten_tree(tree_subset(root=root,
-                                                             new_root=None,
-                                                             include_condition=self.node_is_canonical))}
+        return generate_conditional_tree(root, self.node_is_canonical)
 
     def generate_visible_tree(self, root=None):
         root = root if root else self.tree_raw_data["root"]
-        return {d["id"]: d for d in flatten_tree(tree_subset(root=root,
-                                                             new_root=None,
-                                                             include_condition=self.node_is_visible))}
+        return generate_conditional_tree(root, self.node_is_visible)
 
+    def generate_filtered_tree(self, root=None):
+        root = root if root else self.tree_raw_data["root"]
+        conditions = self.generate_conditions()
+        if not conditions:
+            return self.tree_node_dict
+        else:
+            return generate_conditional_tree(root, conditions)
+
+    def generate_conditions(self):
+        conditions = []
+        if self.preferences['canonical_only']:
+            conditions.append(self.node_is_canonical)
+        if self.preferences['hide_archived']:
+            conditions.append(self.node_is_visible)
+        return conditions
 
     def select_parent(self, node=None):
         node = node if node else self.selected_node
@@ -413,14 +404,15 @@ class TreeModel:
     # return child
     def child(self, child_num, node=None):
         node = node if node else self.selected_node
-        if node and len(node["children"]) > 0:
-            return index_clip(node["children"], child_num)["id"]
+        children = conditional_children(node, self.generate_conditions())
+        if node and len(children) > 0:
+            return index_clip(children, child_num)["id"]
 
     # return sibling
     def sibling(self, offset, node=None):
         node = node if node else self.selected_node
         if node and "parent_id" in node:
-            siblings = self.parent(node)["children"]
+            siblings = conditional_children(self.parent(node), self.generate_conditions())
             return siblings[(siblings.index(node) + offset) % len(siblings)]
 
     #################################
@@ -573,10 +565,11 @@ class TreeModel:
 
         # Select parent or the next sibling if possible and not keeping the children
         if node == self.selected_node:
-            if reassign_children or len(siblings) == 0:
-                self.select_node(parent["id"])
-            else:
-                self.select_node(siblings[old_index % len(siblings)]["id"])
+            self.select_node(parent["id"])
+            # if reassign_children or len(siblings) == 0:
+            #     self.select_node(parent["id"])
+            # else:
+            #     self.select_node(siblings[old_index % len(siblings)]["id"])
         self.tree_updated(delete=[node['id']])
 
 
@@ -862,7 +855,6 @@ class TreeModel:
         #     if key not in DEFAULT_VISUALIZATION_SETTINGS:
         #         self.tree_raw_data["visualization_settings"].pop(key, None)
 
-
     def load_tree_data(self, data):
         self.tree_raw_data = data
 
@@ -879,8 +871,8 @@ class TreeModel:
 
         self._init_global_objects()
         self.tree_updated(rebuild=True)
-        self.select_node(self.tree_raw_data.get("selected_node_id", self.nodes[0]["id"]))
 
+        self.select_node(self.tree_raw_data.get("selected_node_id", self.nodes[0]["id"]))
 
     # Open a new tree json
     def open_tree(self, filename):
@@ -889,19 +881,72 @@ class TreeModel:
         self.io_update()
 
     # Open a new tree json
+    # TODO if you try to import things that already exist in tree this causes problems
+    # because of duplicate IDs
+    # TODO does metadata of subtree overwrite parent tree?
     def import_tree(self, filename):
-        self.tree_filename = os.path.abspath(filename)
-        tree_json = json_open(self.tree_filename)
+        tree_json = json_open(filename)
         if 'root' in tree_json:
             new_subtree_root = tree_json['root']
             self.selected_node['children'].append(new_subtree_root)
             new_subtree_root['parent_id'] = self.selected_node_id
             if 'chapters' in tree_json:
                 self.import_chapters(new_subtree_root, tree_json['chapters'])
+            self.load_tree_data(self.tree_raw_data)
             self.tree_updated()
+            self.io_update()
         else:
             print('improperly formatted tree')
 
+    # open new tree with node as root
+    def open_node_as_root(self, node=None, new_filename=None, save=True):
+        if save:
+            self.save_tree()
+        node = self.selected_node if not node else node
+        if new_filename:
+          self.tree_filename = os.path.join(os.getcwd() + '/data', f'{new_filename}.json')
+        #new_root = node
+        if 'parent_id' in node:
+            node.pop('parent_id')
+        self.load_tree_data(node)
+
+    # current node acts like root from now on
+    #
+    # creates parent node with ancestry text
+    # TODO history parent should be immutable and portal to parent tree (unhoist)
+    #
+    # TODO hoist stack for multiple hoists / unhoists
+    # TODO return if tries to hoist root
+    def hoist(self, node=None):
+        node = self.selected_node if not node else node
+        self.hoisted_root_id = node['id']
+        self.hoisted_parent_id = node['parent_id']
+        self.parent_tree = self.tree_raw_data
+        self.parent_filename = self.tree_filename
+        history_text = "".join(self.node_ancestry_text(node)[0][:-1])
+        history_parent = self.new_node(text=history_text)
+        history_parent['children'] = [node]
+        node['parent_id'] = history_parent['id']
+        self.open_node_as_root(history_parent, save=False)
+        self.select_node(self.hoisted_root_id)
+
+
+    # integrates hoisted subtree with original parent}
+    # reloads parent
+    def unhoist(self):
+        if not self.hoisted_root_id or not self.hoisted_parent_id \
+                or not self.parent_tree or not self.parent_filename:
+            print('missing hoist data')
+            return
+        child_tree = self.tree_node_dict[self.hoisted_root_id]
+        child_tree['parent_id'] = self.hoisted_parent_id
+        self.tree_filename = self.parent_filename
+        self.load_tree_data(self.parent_tree)
+        self.hoisted_root_id = None
+        self.hoisted_parent_id = None
+        self.parent_tree = None
+        self.parent_filename = None
+        #self.io_update()
 
 
     # Tree flat data is just a different view to tree raw data!
@@ -922,7 +967,9 @@ class TreeModel:
             os.rename(self.tree_filename, os.path.join(backup_dir, f"{filename}-{timestamp()}.json"))
 
         # Save tree
-        json_create(self.tree_filename, self.tree_raw_data)
+        # TODO hoist stack
+        master_dict = self.parent_tree if self.parent_tree else self.tree_raw_data
+        json_create(self.tree_filename, master_dict)
         self.io_update()
         return True
 
