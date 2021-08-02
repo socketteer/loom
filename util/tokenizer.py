@@ -1,7 +1,6 @@
 from transformers import GPT2Tokenizer
 
-
-tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+#tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
 
 def tokenize(input):
     return tokenizer(input)['input_ids']

@@ -197,7 +197,7 @@ class SearchDialog(Dialog):
             depth_limit = None
         else:
             depth_limit = int(depth_limit)
-        root = self.state.selected_id if self.subtree.get() else self.state.tree_raw_data["root"]
+        root = self.state.selected_node if self.subtree.get() else self.state.tree_raw_data["root"]
         print('case sensitive: ', self.case_sensitive.get())
         matches = search(root=root,
                          pattern=search_term,
@@ -750,7 +750,7 @@ class PreferencesDialog(Dialog):
         # check.grid(row=row, column=1, pady=3)
 
         row = master.grid_size()[1]
-        create_side_label(master, "Text coloring", row)
+        create_side_label(master, "Display mode", row)
         options = ['edit', 'read', 'none']
         dropdown = tk.OptionMenu(master, self.vars["coloring"], *options)
         dropdown.grid(row=row, column=1, pady=3)

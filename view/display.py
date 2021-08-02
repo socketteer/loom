@@ -76,9 +76,10 @@ class Display:
         self.multi_scroll_frame = None
         self.multi_textboxes = None
         self.multi_font = Font(family="Georgia", size=12)
-        self.multi_pady = 3
+        self.multi_pady = 8
         self.multi_padx = 2
-        self.multi_default_height = 4
+        self.multi_default_height = 3
+        self.default_num_textbox = 4
 
         self.delete_buttons = None
         self.archive_buttons = None
@@ -560,8 +561,8 @@ class Display:
 
         font_height = tk.font.Font(font=self.multi_font).metrics('linespace')
         # TODO max height
-        textbox_height = self.multi_default_height * (font_height + 4)
-        height = min(num_textboxes * textbox_height, 5 * textbox_height)
+        textbox_height = self.multi_default_height * (font_height + 4) + 12
+        height = min(num_textboxes * textbox_height, self.default_num_textbox * textbox_height)
 
         self.multi_scroll_frame = ScrollableFrame(self.story_frame, height=height)
         self.multi_scroll_frame.pack(expand=False, fill="both", side=tk.BOTTOM)
@@ -672,24 +673,24 @@ class Display:
 
             tb.bind("<Button-1>", lambda event, _textbox_id=tb_id: self.textbox_clicked(_textbox_id))
 
-            self.make_button('go', self.goto_child, i, 2, tb_id, tb_item)
-            self.make_button('close', self.dismiss_textbox, i, 3, tb_id, tb_item)
-            self.make_button('edit', self.toggle_editable, i, 4, tb_id, tb_item)
-            self.make_button('archive', self.archive_child, i, 5, tb_id, tb_item)
-            self.make_button('delete', self.delete_child, i, 6, tb_id, tb_item)
-
-            # TODO only create label if node has descendents
-            descendents = num_descendents(child) - 1
-            if descendents != 0:
-                var = tk.StringVar()
-                label = tk.Label(self.multi_scroll_frame.scrollable_frame, textvariable=var, relief=tk.FLAT,
-                                 fg=text_color(), bg=bg_color())
-                if descendents == 1:
-                    var.set(f"{1} descendent")
-                else:
-                    var.set(f"{descendents} descendents")
-                label.grid(row=i * 2 + 1, column=2, columnspan=5)
-                tb_item['descendents_label'] = label
+            if self.state.preferences['coloring'] != 'read':
+                self.make_button('go', self.goto_child, i, 2, tb_id, tb_item)
+                self.make_button('close', self.dismiss_textbox, i, 3, tb_id, tb_item)
+                self.make_button('edit', self.toggle_editable, i, 4, tb_id, tb_item)
+                self.make_button('archive', self.archive_child, i, 5, tb_id, tb_item)
+                self.make_button('delete', self.delete_child, i, 6, tb_id, tb_item)
+                # TODO only create label if node has descendents
+                descendents = num_descendents(child) - 1
+                if descendents != 0:
+                    var = tk.StringVar()
+                    label = tk.Label(self.multi_scroll_frame.scrollable_frame, textvariable=var, relief=tk.FLAT,
+                                     fg=text_color(), bg=bg_color())
+                    if descendents == 1:
+                        var.set(f"{1} descendent")
+                    else:
+                        var.set(f"{descendents} descendents")
+                    label.grid(row=i * 2 + 1, column=2, columnspan=5)
+                    tb_item['descendents_label'] = label
 
     def make_button(self, name, function, row, column, tb_id, tb_item):
         button = tk.Label(self.multi_scroll_frame.scrollable_frame, image=self.icons[name]['icon'], bg=bg_color())
@@ -741,10 +742,8 @@ class Display:
             self.dismiss_textbox(textbox_id)
 
     def archive_child(self, textbox_id):
-        # TODO this causes an error
         self.callbacks["Archive"]["callback"](node=self.multi_textboxes[textbox_id]["node"])
-        # if self.state.preferences['hide_archived']:
-        #     self.dismiss_textbox(textbox_id)
+        self.dismiss_textbox(textbox_id)
 
 
     # called when:

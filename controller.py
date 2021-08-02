@@ -25,7 +25,7 @@ from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSett
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
-    nearest_common_ancestor, collect_conditional
+    nearest_common_ancestor, collect_conditional, conditional_children
 from util.gpt_util import logprobs_to_probs
 
 
@@ -101,6 +101,7 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.refresh_counterfactual_meta)
         self.state.register_callback(self.state.selection_updated, self.refresh_display)
         self.state.register_callback(self.state.selection_updated, self.save_multi_edits)
+        self.state.register_callback(self.state.selection_updated, self.read_mode_refresh)
         self.state.register_callback(self.state.selection_updated, self.show_children)
         self.state.register_callback(self.state.io_update, self.update_dropdown)
 
@@ -1060,12 +1061,10 @@ class Controller:
 
     @metadata(name="Preferences", keys=[], display_key="")
     def preferences(self):
-        print(self.state.preferences)
+        #print(self.state.preferences)
         dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
-        self.refresh_textbox()
-        self.refresh_display()
-        self.update_dropdown()
         self.state.tree_updated(rebuild=True)
+        self.state.selection_updated()
 
     @metadata(name="Toggle hide archived", keys=[], display_key="")
     def toggle_hide_archived(self, toggle=None):
@@ -1127,13 +1126,15 @@ class Controller:
     def show_children(self):
         if self.state.preferences['show_children'] and self.state.selected_node \
                 and self.display.mode in ("Read", "Edit"):
-            children = self.state.selected_node["children"]
+            children = conditional_children(self.state.selected_node, self.state.generate_conditions())
             self.display.build_multi_frame(len(children))
             self.display.populate_textboxes(children)
-            # TODO this doesn't scroll all the way to the end
             self.display.textbox.update_idletasks()
             self.display.textbox.see(tk.END)
 
+    def read_mode_refresh(self):
+        if self.state.preferences['coloring'] == 'read':
+            self.toggle_show_children(toggle=False)
 
     def update_children(self, **kwargs):
         if self.state.preferences['show_children'] and self.display.mode in ("Read", "Edit"):
@@ -1487,7 +1488,7 @@ class Controller:
                     self.display.textbox.insert("end-1c", out_context, "ooc_history")
                 self.display.textbox.insert("end-1c", in_context, "history")
 
-                end = self.display.textbox.index(tk.END)
+                history_end = self.display.textbox.index(tk.END)
                 #self.display.textbox.see(tk.END)
 
                 self.display.textbox.insert("end-1c", selected_text)
@@ -1506,7 +1507,8 @@ class Controller:
 
             # makes text copyable
             self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
-            self.display.textbox.see(tk.END)
+            self.display.textbox.update_idletasks()
+            self.display.textbox.see(history_end)
 
 
 

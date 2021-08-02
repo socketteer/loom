@@ -158,27 +158,30 @@ class TreeModel:
 
     @property
     def visualization_settings(self):
-        return self.tree_raw_data.get("visualization_settings") \
-            if self.tree_raw_data and "visualization_settings" in self.tree_raw_data \
+        return self.master_tree().get("visualization_settings") \
+            if self.master_tree() and "visualization_settings" in self.master_tree() \
             else DEFAULT_VISUALIZATION_SETTINGS
 
     @property
     def generation_settings(self):
-        return self.tree_raw_data.get("generation_settings") \
-            if self.tree_raw_data and "generation_settings" in self.tree_raw_data \
+        return self.master_tree().get("generation_settings") \
+            if self.master_tree() and "generation_settings" in self.master_tree() \
             else DEFAULT_GENERATION_SETTINGS
 
     @property
     def preferences(self):
-        return self.tree_raw_data.get("preferences") \
-            if self.tree_raw_data and "preferences" in self.tree_raw_data \
+        return self.master_tree().get("preferences") \
+            if self.master_tree() and "preferences" in self.master_tree() \
             else DEFAULT_PREFERENCES
 
     @property
     def chat_preferences(self):
-        return self.tree_raw_data.get("chat_preferences") \
-            if self.tree_raw_data and "chat_preferences" in self.tree_raw_data \
+        return self.master_tree().get("chat_preferences") \
+            if self.master_tree() and "chat_preferences" in self.master_tree() \
             else DEFAULT_CHAT_PREFERENCES
+
+    def master_tree(self):
+        return self.hoist_stack[0]['parent_tree'] if self.hoist_stack else self.tree_raw_data
 
     #################################
     #   Hooks
@@ -356,14 +359,16 @@ class TreeModel:
     # Clips index
     def select_child(self, child_num, node=None):
         node = node if node else self.selected_node
-        if node and len(node["children"]) > 0:
-            return self.select_node(index_clip(node["children"], child_num)["id"])
+        children = conditional_children(node, self.generate_conditions())
+        if node and len(children) > 0:
+            return self.select_node(index_clip(children, child_num)["id"])
 
     # Repeats siblings
     def select_sibling(self, offset, node=None):
         node = node if node else self.selected_node
         if node and "parent_id" in node:
-            siblings = self.parent(node)["children"]
+            #siblings = self.parent(node)["children"]
+            siblings = conditional_children(self.parent(node), self.generate_conditions())
             sibling = siblings[(siblings.index(node) + offset) % len(siblings)]
             return self.select_node(sibling["id"])
 
@@ -682,6 +687,7 @@ class TreeModel:
             self.import_chapters(child, chapters)
 
     def chapter_title(self, node):
+        #print(self.chapters)
         return self.chapters[node['chapter_id']]['title'] if "chapter_id" in node else ""
 
     def create_new_chapter(self, node, title):
@@ -726,8 +732,9 @@ class TreeModel:
     def calc_canonical_set(self):
         canonical_set = set()
         for node_id in self.canonical:
-            for node in node_ancestry(self.tree_node_dict[node_id], self.tree_node_dict):
-                canonical_set.add(node["id"])
+            if node_id in self.tree_node_dict:
+                for node in node_ancestry(self.tree_node_dict[node_id], self.tree_node_dict):
+                    canonical_set.add(node["id"])
         return canonical_set
 
     #################################
@@ -863,7 +870,7 @@ class TreeModel:
         #     if key not in DEFAULT_VISUALIZATION_SETTINGS:
         #         self.tree_raw_data["visualization_settings"].pop(key, None)
 
-    def load_tree_data(self, data):
+    def load_tree_data(self, data, init_global=True):
         self.tree_raw_data = data
 
         if "root" not in self.tree_raw_data:
@@ -877,7 +884,8 @@ class TreeModel:
         for node in self.tree_node_dict.values():
             node["open"] = node.get("open", False)
 
-        self._init_global_objects()
+        if init_global:
+            self._init_global_objects()
         self.tree_updated(rebuild=True)
 
         self.select_node(self.tree_raw_data.get("selected_node_id", self.nodes[0]["id"]))
@@ -907,16 +915,16 @@ class TreeModel:
             print('improperly formatted tree')
 
     # open new tree with node as root
-    def open_node_as_root(self, node=None, new_filename=None, save=True):
+    def open_node_as_root(self, node=None, new_filename=None, save=True, rebuild_global=False):
         if save:
             self.save_tree()
         node = self.selected_node if not node else node
         if new_filename:
-          self.tree_filename = os.path.join(os.getcwd() + '/data', f'{new_filename}.json')
+            self.tree_filename = os.path.join(os.getcwd() + '/data', f'{new_filename}.json')
         #new_root = node
         if 'parent_id' in node:
             node.pop('parent_id')
-        self.load_tree_data(node)
+        self.load_tree_data(node, init_global=rebuild_global)
 
     # current node acts like root from now on
     #
@@ -936,7 +944,7 @@ class TreeModel:
         history_parent = self.new_node(text=history_text)
         history_parent['children'] = [node]
         node['parent_id'] = history_parent['id']
-        self.open_node_as_root(history_parent, save=False)
+        self.open_node_as_root(history_parent, save=False, rebuild_global=False)
         self.select_node(hoist_info['root_id'])
 
     def unhoist(self, index=-1):
@@ -948,7 +956,7 @@ class TreeModel:
 
         child_tree = self.tree_node_dict[hoist_data['root_id']]
         child_tree['parent_id'] = hoist_data['parent_id']
-        self.load_tree_data(hoist_data['parent_tree'])
+        self.load_tree_data(hoist_data['parent_tree'], init_global=False)
 
     def unhoist_all(self):
         self.unhoist(index=0)
@@ -958,6 +966,7 @@ class TreeModel:
     def save_tree(self, backup=True):
         if not self.tree_filename:
             return False
+        print('saving tree')
 
         # Fancy platform independent os.path
         filename = os.path.splitext(os.path.basename(self.tree_filename))[0]
@@ -972,8 +981,7 @@ class TreeModel:
 
         # Save tree
         # Save tree dict from bottom of hoist stack
-        master_dict = self.hoist_stack[0]['parent_tree'] if self.hoist_stack else self.tree_raw_data
-        json_create(self.tree_filename, master_dict)
+        json_create(self.tree_filename, self.master_tree())
         self.io_update()
         return True
 

@@ -1,4 +1,8 @@
+global "read" mode (separate from coloring)
+
 change gpt2 tokenizer import so loom doesn't require internet connection to run
+    - use ada to tokenize instead? will this cause lag?
+    - GPT2 tokenizer local files?
 
 open new tab/window on same working copy of tree
 
@@ -11,6 +15,7 @@ jump to unvisited nodes
 minibuffer for commands
 
 when node is split, chapter goes to parent
+    - move chapter function?
 
 - filter by arbitrary attributes (canonical, created_after, etc)
     - handle navigating to a hidden node
@@ -91,7 +96,7 @@ when node is split, chapter goes to parent
 * option to automatically hoist when new chapter
 * pack hoist/unhoist/unhoist all buttons more compactly
 * gray out buttons when appropriate
-* recenter view if in vis
+* re-center view if in vis
 
 
 ### Edit mode
@@ -100,18 +105,22 @@ when node is split, chapter goes to parent
 
 ### Multi mode
 
+- resize text boxes when done generating
 - update when tree updated
     - remove any children that have been deleted
 - frame height when nodes are unevenly sized
 - remove child edit mode code
 - hide button in visualize and wavefunction modes
-- don't show archived nodes (if show_archived disabled?)
-    - button to show archived / hidden options (indicate #)
+- button to show archived / hidden options (indicate #)
 - enable undo
 - show canonical first
 - test
     - test for bugs switching to vis mode etc
-- "Read" multi mode with option to override preview text
+- "Read" multi mode 
+    - option to override preview text
+- move multi display code to new object
+- change order of children in multi mode
+
 
 
 ### Block multiverse
@@ -136,6 +145,8 @@ when node is split, chapter goes to parent
 
 
 ### Tree vis
+
+#### Bugs
 * tree vis settings won't change on newly opened file
 * tree vis duplication when zooming
 * collapse all sometimes causes duplication?
@@ -146,7 +157,7 @@ when node is split, chapter goes to parent
 * different icon colors for light mode
 * vis expanded state out of sync with nav tree expanded state
 
-# Tree visualization
+#### Features
 
 * mark as visited in tree mode
 * save vis settings
