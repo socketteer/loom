@@ -25,7 +25,7 @@ from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSett
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
-    nearest_common_ancestor, collect_conditional, conditional_children
+    nearest_common_ancestor, collect_conditional
 from util.gpt_util import logprobs_to_probs
 
 
@@ -334,12 +334,16 @@ class Controller:
         if self.state.preferences['hide_archived']:
             self.select_node(self.state.parent(node))
             self.state.tree_updated(delete=[node['id']])
+        else:
+            self.state.tree_updated(edit=[node['id']])
 
     def unarchive(self, node=None):
         node = node if node else self.state.selected_node
         node['archived'] = False
         if self.state.preferences['hide_archived']:
             self.state.tree_updated(add=[node['id']])
+        else:
+            self.state.tree_updated(edit=[node['id']])
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
@@ -678,26 +682,35 @@ class Controller:
     #   State
     #################################
 
+    # TODO fix metadata references?
+    @metadata(name="Edit", keys=[], display_key="e")
+    def edit_button_pressed(self):
+        self.toggle_edit_mode(override_focus=True)
 
     # Enters edit mode or exits either edit mode
-    @metadata(name="Edit", keys=["<e>", "<Control-e>"], display_key="e")
-    def toggle_edit_mode(self, to_edit_mode=None):
+    @metadata(name="Edit Toggle", keys=["<e>", "<Control-e>"], display_key="e")
+    def toggle_edit_mode(self, to_edit_mode=None, override_focus=False):
         if self.display.mode != "Visualize":
-            self.save_edits()
-            to_edit_mode = to_edit_mode if to_edit_mode is not None else not self.display.in_edit_mode
-            if to_edit_mode:
-                self.display.set_mode("Edit")
+            if self.has_focus(self.display.textbox) or override_focus:
+                self.save_edits()
+                to_edit_mode = to_edit_mode if to_edit_mode is not None else not self.display.in_edit_mode
+                if to_edit_mode:
+                    self.display.set_mode("Edit")
+                else:
+                    if self.edit_history.meta["persistent_id"] is not None:
+                        self.state.select_node(self.edit_history.meta["persistent_id"])
+                        self.edit_history.meta["persistent_id"] = None
+                    self.display.set_mode("Read")
+                self.refresh_textbox()
             else:
-                if self.edit_history.meta["persistent_id"] is not None:
-                    self.state.select_node(self.edit_history.meta["persistent_id"])
-                    self.edit_history.meta["persistent_id"] = None
-                self.display.set_mode("Read")
-            self.refresh_textbox()
+                self.display.all_edit_off()
+
         else:
             if self.display.vis.textbox is None:
                 self.display.vis.textbox_events[self.state.selected_node['id']]()
             else:
                 self.display.vis.delete_textbox()
+
 
 
     @metadata(name="Show children", keys=[], display_key="c")
@@ -740,6 +753,7 @@ class Controller:
         self.state.merge_with_parent()
 
 
+    # TODO broken?
     @metadata(name="Merge with children")
     def merge_with_children(self):
         self.state.merge_with_children()
@@ -1126,7 +1140,7 @@ class Controller:
     def show_children(self):
         if self.state.preferences['show_children'] and self.state.selected_node \
                 and self.display.mode in ("Read", "Edit"):
-            children = conditional_children(self.state.selected_node, self.state.generate_conditions())
+            children = self.state.visible_children()
             self.display.build_multi_frame(len(children))
             self.display.populate_textboxes(children)
             self.display.textbox.update_idletasks()
@@ -1198,7 +1212,8 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
-        self.scroll_to_selected()
+        self.display.close_secondary_textbox()
+        #self.scroll_to_selected()
         # self.display.set_mode("Multiverse")
         # self.refresh_textbox()
         # multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, unnormalized_threshold=0.001)
@@ -1613,6 +1628,7 @@ class Controller:
         text = node['text'].strip()[:20].replace('\n', ' ')
         text = text if text else "EMPTY"
         text = text + "..." if len(node['text']) > 20 else text
+        text = '~' + text if node.get('archived', False) else text
         if 'chapter_id' in node:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
@@ -1803,29 +1819,8 @@ class Controller:
         return self.display.nav_tree.item(node['id'], "open")
 
     def set_nav_scrollbars(self):
-        # Taking model as source of truth!!
-        # def collect_visible(node, conditions=None):
-        #     if not conditions:
-        #         conditions = []
-        #     li = [node]
-        #     if self.display.nav_tree.item(node["id"], "open"):
-        #         for c in node["children"]:
-        #             admissible = True
-        #             for condition in conditions:
-        #                 if not condition(c):
-        #                     admissible = False
-        #             if admissible:
-        #                 li += collect_visible(c, conditions)
-        #     return li
-
-
-        # Visible if their parents are open or they are root
-        # visible_nodes = reduce(list.__add__, [
-        #     d["children"] for iid, d in self.state.tree_node_dict.items()
-        #     if self.display.nav_tree.item(iid, "open") or "parent_id" not in d
-        # ])
-        visible_conditions = [lambda _node: not _node.get('archived', False)] \
-            if self.state.preferences['hide_archived'] else []
+        # visible_conditions = [lambda _node: not _node.get('archived', False)] \
+        #     if self.state.preferences['hide_archived'] else []
         #visible_nodes = collect_visible(self.state.tree_raw_data["root"], visible_conditions)
         tree_conditions = self.state.generate_conditions()
         tree_conditions.append(self.node_open)
@@ -1835,51 +1830,6 @@ class Controller:
         visible_ids = {d["id"] for d in visible_nodes}
         # Ordered by tree order
         visible_ids = [iid for iid in self.state.tree_node_dict.keys() if iid in visible_ids]
-
-        ############
-        # Vertical  # FIXME. Breaks click to navigate. Probably a race condition with the node_selected callback
-        ############
-        # Set the top of the vertical scroll to the index of the element in the list of visible nodes
-
-        # self.display.nav_tree.see(self.state.selected_node_id)
-        # self.set_scrollbars.meta["i"] += 1
-        # if self.set_scrollbars.meta["i"] % 2 == 0:
-        # vis_start, vis_end = self.display.nav_tree.yview()
-        # self.display.nav_tree.yview_moveto(vis_start)  # This does work at least...
-        # self.display.nav_tree.yview_moveto(vis_start + (vis_end - vis_start)/8)
-        # print("t")
-
-
-        # visible_index = visible_ids.index(self.state.selected_node_id) \
-        #     if self.state.selected_node_id in visible_ids else 0
-        # self.display.nav_tree.yview_scroll(4, "units")
-
-        # self.display.nav_tree.see(self.state.selected_node_id)
-        # visible_index = visible_ids.index(self.state.selected_node_id) \
-        #     if self.state.selected_node_id in visible_ids else 0
-        # self.display.nav_tree.yview(max(0, visible_index - 7))
-
-
-        # Dicts are ordered
-        # visible_index = visible_ids.index(self.state.selected_node_id) \
-        #     if self.state.selected_node_id in visible_ids else 0
-        # self.display.nav_tree.yview(max(0, visible_index - 7))
-
-        # Other attempts...
-        # total_visible = len(visible_ids)
-        # print(visible_index, total_visible, visible_index/total_visible)
-        # self.display.nav_tree.yview_moveto(max(0, visible_index) / total_visible)
-        # print(self.display.nav_tree.item(self.state.selected_node_id, "id"))
-        # self.display.nav_tree.yview(self.display.nav_tree.item(self.state.selected_node_id, "id"))
-        # self.display.nav_tree.yview_moveto(0)
-        # self.display.nav_tree.yview_scroll(int(visible_index), what="units")
-
-        ############
-        ## Horizontal
-        ############
-        # First update the horizontal scroll width based on total depth
-        # Set the horizontal scroll as a fraction based on node's depth relative to the total depth
-        # Special numbers are needed to account for the width of each level of recursion
 
         # Magic numbers
         WIDTH_PER_INDENT = 20  # Derived...

@@ -1,3 +1,9 @@
+if node has only one (visible) child, display as a single node
+    - enabled by default in read mode
+
+split node and merge second part with children 
+    - hotkey
+
 global "read" mode (separate from coloring)
 
 change gpt2 tokenizer import so loom doesn't require internet connection to run
@@ -21,7 +27,7 @@ when node is split, chapter goes to parent
     - handle navigating to a hidden node
 
 ### archived
-    - visually indicate archived nodes in nav tree when hide_archived=False
+    - visually indicate archived nodes in nav tree when hide_archived=False (~)
     - shortcut to hide/show archived
      
 
@@ -67,6 +73,7 @@ when node is split, chapter goes to parent
  
 # misc bugs
 
+* crashes with this error sometimes: `_tkinter.TclError: bad text index "tk::anchor1"`
 * key bindings only work in most recent tab
 * num leaves calculated incorrectly
 * ctrl+space sometimes clicks button
@@ -79,6 +86,7 @@ when node is split, chapter goes to parent
 * memory causes freeze?
 * mark as prompt doesn't always work? or display doesnt update
 * generating when trying to calculate optimization bits??
+* merge with children is broken?
 
 
 ### Autocomplete
@@ -103,12 +111,13 @@ when node is split, chapter goes to parent
 - display text box hidden by default
 - preview text for read multi mode
 
-### Multi mode
 
-- resize text boxes when done generating
+### Multi mode
+- build and populate in single function (allows custom height)
 - update when tree updated
     - remove any children that have been deleted
 - frame height when nodes are unevenly sized
+- adjustable frame height
 - remove child edit mode code
 - hide button in visualize and wavefunction modes
 - button to show archived / hidden options (indicate #)
@@ -310,6 +319,9 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 ### floating notes
 
+- floating trees
+    - access scopes. single note, subtree, global, subtree and ancestry
+- attach and detach subtree
 - title and tags
 - global or subtree access like memory, except by default the object is edited and a new instance isn't created (maybe memory should be this way too)
     - default deleting only removes pointers

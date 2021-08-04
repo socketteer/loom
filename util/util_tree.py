@@ -37,14 +37,23 @@ def collect_conditional(node, conditions=None):
 
 
 def conditional_children(node, conditions=None):
-    if isinstance(conditions, list):
-        condition_func = lambda child: all(cond(child) for cond in conditions)
-    else:
-        condition_func = conditions
+    condition_func = conditions_to_lambda(conditions)
     if condition_func:
         return [child for child in node['children'] if condition_func(child)]
     else:
         return node['children']
+
+
+def conditions_to_lambda(conditions):
+    if isinstance(conditions, list):
+        condition_func = lambda child: all(cond(child) for cond in conditions)
+    else:
+        condition_func = conditions
+    return condition_func
+
+
+def anti_conditions_lambda(conditions):
+    return lambda child: not conditions_to_lambda(conditions)(child)
 
 
 # given a root node and include condition, returns a new tree which contains only nodes who satisfy

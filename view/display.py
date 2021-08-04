@@ -7,12 +7,13 @@ import PIL
 from view.tree_vis import TreeVis
 from view.block_multiverse import BlockMultiverse
 from util.custom_tks import TextAware, ScrollableFrame
-from view.colors import bg_color, text_color, edit_color
+from view.colors import bg_color, text_color, edit_color, GREEN, BLUE
 from util.util import metadata
 from util.util_tree import num_descendents
-#from PIL import ImageTk, Image
+# from PIL import ImageTk, Image
 import uuid
 import time
+
 
 class Display:
 
@@ -80,7 +81,9 @@ class Display:
         self.multi_padx = 2
         self.multi_default_height = 3
         self.default_num_textbox = 4
-
+        self.button_height = 30
+        self.add_child_button = None
+        self.hidden_nodes_button = None
         self.delete_buttons = None
         self.archive_buttons = None
         self.edit_buttons = None
@@ -97,7 +100,6 @@ class Display:
         self.build_display(self.frame)
         self.set_mode(self.mode)
 
-
     #################################
     #   Util
     #################################
@@ -110,8 +112,8 @@ class Display:
     def change_cursor(self, cursor_type):
         self.root.config(cursor=cursor_type)
 
-
         # TODO make a decorator which automatically caches default=CACHE args. None should be a cacheable value
+
     # Caches param arguments so repeated calls will use the same args unless overridden
     @metadata(first_call=True, args={})
     def build_button(self, frame, name, button_params=None, pack_params=None, pack=True, side="left"):
@@ -140,8 +142,9 @@ class Display:
         self.icons[icon_name] = {}
         self.icons[icon_name]["size"] = size
         self.icons[icon_name]["img"] = (PIL.Image.open(f"./static/icons/{filename}"))
-        self.icons[icon_name]["icon"] = PIL.ImageTk.PhotoImage(self.icons[icon_name]["img"].resize((self.icons[icon_name]['size'],
-                                                                                                self.icons[icon_name]['size'])))
+        self.icons[icon_name]["icon"] = PIL.ImageTk.PhotoImage(
+            self.icons[icon_name]["img"].resize((self.icons[icon_name]['size'],
+                                                 self.icons[icon_name]['size'])))
 
     #################################
     #   Display
@@ -161,7 +164,6 @@ class Display:
         self.media_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/media.png"))
         self.empty_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/empty.png"))
 
-
     def build_display(self, frame):
         self.pane = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)
         self.pane.pack(expand=True, fill="both")
@@ -172,16 +174,15 @@ class Display:
         self.build_main_frame(self.pane)
         self.pane.add(self.main_frame, weight=6)
 
-        #self.open_side()
+        # self.open_side()
         if self.state.preferences["side_pane"]:
             self.open_side()
 
-        #self.destroy_chapter_nav()
+        # self.destroy_chapter_nav()
 
     #################################
     #   Main frame
     #################################
-
 
     def build_main_frame(self, frame):
         self.main_frame = ttk.Frame(frame, width=500, height=500)
@@ -201,22 +202,21 @@ class Display:
         self.bottom_input_frame = ttk.Frame(self.main_frame)
         self.bottom_input_frame.pack(side="bottom", fill="both")
 
-        self.bottom_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)#ttk.Frame(self.main_frame)
+        self.bottom_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)  # ttk.Frame(self.main_frame)
         self.bottom_frame.pack(side="bottom", fill="both")
         # Button bar        self.input_frame.pack(side="bottom", fill="x")
         self.build_main_buttons(self.bottom_frame)
         self.button_bar.pack(side="top", fill="both")
-        #self.build_debug_box()
+        # self.build_debug_box()
 
         # if self.state.preferences['input_box']:
         #     self.build_input_box(self.bottom_frame)
 
-        #self.destroy_input_box()
+        # self.destroy_input_box()
 
     def build_textboxes(self, frame):
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
-
 
     def key_pressed(self, event=None):
         if event.keysym in ('Tab'):
@@ -232,7 +232,7 @@ class Display:
         scrollbar = ttk.Scrollbar(textbox_frame, command=lambda *args: self.__getattribute__(textbox_attr).yview(*args))
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
         textbox = TextAware(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
-        self.__setattr__(textbox_attr+"_scrollbar", scrollbar)
+        self.__setattr__(textbox_attr + "_scrollbar", scrollbar)
         self.__setattr__(textbox_attr, textbox)
         # TODO move this out
         textbox.bind("<Control-Button-1>", lambda event: self.edit_history(txt=textbox))
@@ -245,7 +245,7 @@ class Display:
         readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
         textbox.configure(
             font=readable_font,
-            spacing1=10, # spacing between paragraphs
+            spacing1=10,  # spacing between paragraphs
             foreground=text_color(),
             background=bg_color(),
             padx=2,
@@ -254,7 +254,6 @@ class Display:
             spacing3=5,
             wrap="word",
         )
-
 
     def edit_history(self, txt, event=None):
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
@@ -273,7 +272,7 @@ class Display:
         self.callbacks["Select token"]["callback"](index=char_index)
 
     def add_summary(self, txt, event=None):
-        #print('clicked')
+        # print('clicked')
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
         self.callbacks["Insert summary"]["callback"](index=char_index)
 
@@ -304,7 +303,6 @@ class Display:
 
         for btn in buttons:
             self.build_button(frame, *btn)
-
 
     #################################
     #   Nav Panel
@@ -344,15 +342,12 @@ class Display:
 
         # File controls
         buttons = [
-            #["Clear chapters", dict(width=30), dict(fill="x", side="top")],
-            ["Save", dict(width=15), dict(fill="x")],#, dict(side="bottom", fill="x")],
-            ["Open", dict(width=15), dict(fill="x")],#, dict(side="bottom", fill="x")],
+            # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
+            ["Save", dict(width=15), dict(fill="x")],  # , dict(side="bottom", fill="x")],
+            ["Open", dict(width=15), dict(fill="x")],  # , dict(side="bottom", fill="x")],
         ]
         for btn in buttons:
             self.build_button(self.nav_frame, *btn)
-
-
-
 
     def build_chapter_nav(self):
         self._build_treeview(self.nav_frame, "chapter_nav_tree")
@@ -378,7 +373,6 @@ class Display:
         if scrollbarx_attr is not None:
             self.__setattr__(scrollbarx_attr, scrollbarx)
 
-
     #################################
     #   Side panel
     #################################
@@ -395,7 +389,7 @@ class Display:
         v.set(placeholder_options[0])
 
         self.notes_select = tk.OptionMenu(self.notes_options_frame, v, *placeholder_options)
-        #self.notes_select['menu'].config(relief='raised')
+        # self.notes_select['menu'].config(relief='raised')
         self.notes_select.grid(column=1, row=0)
 
         tk.Label(self.notes_options_frame,
@@ -554,14 +548,15 @@ class Display:
         self.init_multi_frame(num_textboxes)
         self.multi_textboxes = {str(uuid.uuid1()): {'textbox': TextAware(self.multi_scroll_frame.scrollable_frame,
                                                                          height=self.multi_default_height, bd=3,
-                                                                         relief=tk.RAISED)} for i in range(num_textboxes)}
+                                                                         relief=tk.RAISED)} for i in
+                                range(num_textboxes)}
         self.place_textboxes()
 
     def init_multi_frame(self, num_textboxes):
 
         font_height = tk.font.Font(font=self.multi_font).metrics('linespace')
         # TODO max height
-        textbox_height = self.multi_default_height * (font_height + 4) + 12
+        textbox_height = self.multi_default_height * (font_height + 4) + self.button_height
         height = min(num_textboxes * textbox_height, self.default_num_textbox * textbox_height)
 
         self.multi_scroll_frame = ScrollableFrame(self.story_frame, height=height)
@@ -572,7 +567,7 @@ class Display:
         tk.Grid.columnconfigure(self.multi_scroll_frame.scrollable_frame, 1, weight=1)
         for textbox_id, tb_item in self.multi_textboxes.items():
             tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row, weight=1)
-            tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row+1, weight=1)
+            tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row + 1, weight=1)
 
             tb = tb_item['textbox']
             tb.grid(row=row, column=1, rowspan=2, sticky=tk.N + tk.S + tk.E + tk.W)
@@ -584,7 +579,7 @@ class Display:
                 pady=self.multi_pady,
                 wrap="word",
             )
-            #tb.configure(state='disabled')
+            # tb.configure(state='disabled')
             row += 2
 
     # rebuilds multi frame from multi_textboxes dictionary
@@ -610,7 +605,6 @@ class Display:
         active_children = [tb_item[1]['node'] for tb_item in self.multi_textboxes.items()]
         self.populate_textboxes(active_children)
 
-
     # add more children to multi_textboxes and rebuild
     # TODO also for delete, modified?
     # TODO add to the top of the list?
@@ -630,6 +624,8 @@ class Display:
             tb.delete("1.0", "end")
             tb.insert("1.0", node["text"])
             tb.configure(state='disabled')
+            tb_item['num_lines'] = max(node["text"].count("\n"), int(tb.index('end').split('.')[0]))
+            tb.configure(height=min(tb_item['num_lines'], self.multi_default_height))
 
     # clears tkinter widgets but doesn't clear multi_textboxes info
     def clear_multi_frame(self):
@@ -669,7 +665,8 @@ class Display:
             tb.configure(state='disabled')
             tb_item['node'] = child
             tb_item['num_lines'] = max(child["text"].count("\n"), int(tb.index('end').split('.')[0]))
-            tb.configure(height=min(tb_item['num_lines'], self.multi_default_height))
+            height = self.textbox_height(tb_id)
+            tb.configure(height=height)
 
             tb.bind("<Button-1>", lambda event, _textbox_id=tb_id: self.textbox_clicked(_textbox_id))
 
@@ -692,6 +689,20 @@ class Display:
                     label.grid(row=i * 2 + 1, column=2, columnspan=5)
                     tb_item['descendents_label'] = label
 
+        if self.state.preferences['coloring'] != 'read':
+            num_hidden = 5
+            # self.hidden_nodes_button = tk.Button(self.multi_scroll_frame.scrollable_frame,
+            #                                      text=f"Show {num_hidden} hidden children",
+            #                                      command=lambda event: self.show_hidden, width=20, background=BLUE,
+            #                                      foreground=text_color())
+            # self.hidden_nodes_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=1)
+
+            self.add_child_button = tk.Button(self.multi_scroll_frame.scrollable_frame, text="New child",
+                                              command=self.add_child, width=10, background=GREEN,
+                                              foreground=text_color())
+            self.add_child_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=2,
+                                       columnspan=4)
+
     def make_button(self, name, function, row, column, tb_id, tb_item):
         button = tk.Label(self.multi_scroll_frame.scrollable_frame, image=self.icons[name]['icon'], bg=bg_color())
         button.image = self.icons['archive']
@@ -699,40 +710,71 @@ class Display:
         button.bind("<Button-1>", lambda event, _textbox_id=tb_id: function(_textbox_id))
         tb_item[name] = button
 
+    def textbox_height(self, tb_id):
+        adaptive_height = False
+        return min(self.multi_textboxes[tb_id]['num_lines'],
+                   self.multi_default_height) if adaptive_height else self.multi_default_height
+
     def dismiss_textbox(self, textbox_id):
         # self.clear_multi_frame()
         self.multi_textboxes.pop(textbox_id)
-        #self.refresh_multi_frame()
+        # self.refresh_multi_frame()
         self.rebuild_multi_frame()
 
     # when editing is enabled, textbox height expands to show all text
     # when editing is disabled, height defaults to self.multi_default_height
     def toggle_editable(self, textbox_id):
         if self.multi_textboxes[textbox_id]['textbox'].cget('state') == 'disabled':
-            edit_height = min(6, self.multi_textboxes[textbox_id]['num_lines'] + 2)
-            self.multi_textboxes[textbox_id]['textbox'].configure(state='normal', background=edit_color(),
-                                                                  relief=tk.SUNKEN,
-                                                                  height=edit_height)
+            self.edit_on(textbox_id)
         else:
-            height = min(self.multi_textboxes[textbox_id]['num_lines'], self.multi_default_height)
-            self.multi_textboxes[textbox_id]['textbox'].configure(state='disabled', background=bg_color(),
-                                                                  relief=tk.RAISED, height=height)
-            self.save_edits(textbox_id)
-        #self.rebuild_multi_frame()
+            self.edit_off(textbox_id)
+        # self.rebuild_multi_frame()
+
+    def edit_on(self, textbox_id):
+        edit_height = min(self.multi_default_height, self.multi_textboxes[textbox_id]['num_lines'] + 2)
+        self.multi_textboxes[textbox_id]['textbox'].configure(state='normal', background=edit_color(),
+                                                              relief=tk.SUNKEN,
+                                                              height=edit_height)
+        self.multi_textboxes[textbox_id]['textbox'].focus()
+
+    def edit_off(self, textbox_id):
+        height = self.textbox_height(textbox_id)
+        self.multi_textboxes[textbox_id]['textbox'].configure(state='disabled', background=bg_color(),
+                                                              relief=tk.RAISED, height=height)
+        self.save_edits(textbox_id)
+        self.textbox.focus()
+
+    def all_edit_off(self):
+        for tb_id in self.multi_textboxes:
+            self.edit_off(tb_id)
 
     # regrid textboxes without remaking widgets
     def regrid_textboxes(self):
         pass
 
     def textbox_clicked(self, textbox_id):
-        #TODO will this recalculate at runtime?
+        # TODO will this recalculate at runtime?
         if self.multi_textboxes[textbox_id]['textbox'].cget('state') == 'disabled':
             self.goto_child(textbox_id)
+
+    def tb_id_from_node(self, node):
+        for tb_id, item in self.multi_textboxes.items():
+            if item['node'] == node:
+                return tb_id
+        return None
 
     # when textbox is not editable, clicking on it will goto child
     # if textbox is active, need to click on icon and it will save edits
     def goto_child(self, textbox_id):
         self.callbacks["Select node"]["callback"](node=self.multi_textboxes[textbox_id]["node"])
+
+    def add_child(self):
+        new_child = self.callbacks["New Child"]["callback"](node=self.state.selected_node, update_selection=False,
+                                                            toggle_edit=False)
+        self.edit_on(self.tb_id_from_node(new_child))
+
+    def show_hidden(self):
+        pass
 
     def delete_child(self, textbox_id):
         ask = True if 'descendents_label' in self.multi_textboxes[textbox_id] else False
@@ -744,7 +786,6 @@ class Display:
     def archive_child(self, textbox_id):
         self.callbacks["Archive"]["callback"](node=self.multi_textboxes[textbox_id]["node"])
         self.dismiss_textbox(textbox_id)
-
 
     # called when:
     # edit mode toggled
@@ -764,10 +805,10 @@ class Display:
     #   Edit mode
     #################################
 
+    # TODO does this need to return true if focus is in multi edit sometimes?
     @property
     def in_edit_mode(self):
         return self.mode in {"Edit", "Multi Edit"}
-
 
     def set_mode(self, new_state):
         assert new_state in self.modes
@@ -783,8 +824,8 @@ class Display:
 
         elif self.mode == "Edit":
             self.textbox_frame.pack(expand=True, side="top", fill='both')
-            self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
             self.textbox.config(foreground=text_color(), background=edit_color())
+            self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
             self.secondary_textbox.config(foreground=text_color(), background=edit_color())
 
 
@@ -798,14 +839,15 @@ class Display:
         else:
             raise NotImplementedError(self.mode, type(self.mode))
 
-
     def clear_story_frame(self):
-        #self.destroy_multi_edit()
+        # self.destroy_multi_edit()
         self.textbox_frame.pack_forget()
         self.secondary_textbox_frame.pack_forget()
         self.vis.frame.pack_forget()
         self.multiverse.frame.pack_forget()
 
+    def close_secondary_textbox(self):
+        self.secondary_textbox_frame.pack_forget()
 
     # def start_multi_edit(self, num_textboxes=5):
     #     assert self.mode == "Multi Edit"
@@ -843,8 +885,6 @@ class Display:
     #         self.multi_edit_frame.destroy()
     #         self.multi_edit_frame = None
     #         self.multi_textboxes = []
-
-
 
 # #################################
 # #   Events generated by the UI

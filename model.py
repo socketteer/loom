@@ -16,7 +16,7 @@ import json
 from gpt import api_generate, janus_generate, search
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
-    subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children
+    subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children, anti_conditions_lambda
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 from util.multiverse_util import greedy_word_multiverse
 
@@ -426,6 +426,14 @@ class TreeModel:
         if self.preferences['hide_archived']:
             conditions.append(self.node_is_visible)
         return conditions
+
+    def visible_children(self, node=None):
+        node = node if node else self.selected_node
+        return conditional_children(node, self.generate_conditions())
+
+    def hidden_children(self, node=None):
+        node = node if node else self.selected_node
+        return conditional_children(node, anti_conditions_lambda(self.generate_conditions()))
 
 
     #################################
