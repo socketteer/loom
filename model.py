@@ -647,20 +647,22 @@ class TreeModel:
             elif node['meta']['source'] == 'AI':
                 node['meta']['source'] = 'mixed'
             if log_diff:
+                # TODO deprecated
                 if old_text and len(node['text']) < 2000:
-                    old_tokens = None
-                    if 'diffs' not in node['meta']:
-                        node['meta']['diffs'] = []
-                    else:
-                        old_tokens = node['meta']['diffs'][-1]['diff']['new']
-                    if not old_tokens:
-                        if 'meta' in node and 'generation' in node['meta']:
-                            old_tokens = node['meta']['generation']["logprobs"]["tokens"], \
-                                         node['meta']['generation']["logprobs"]["text_offset"]
-                        else:
-                            old_tokens = tokenize_ada(old_text)
-                    node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
-                                                  'revision timestamp': timestamp()})
+                    pass
+                    # old_tokens = None
+                    # if 'diffs' not in node['meta']:
+                    #     node['meta']['diffs'] = []
+                    # else:
+                    #     old_tokens = node['meta']['diffs'][-1]['diff']['new']
+                    # if not old_tokens:
+                    #     if 'meta' in node and 'generation' in node['meta']:
+                    #         old_tokens = node['meta']['generation']["logprobs"]["tokens"], \
+                    #                      node['meta']['generation']["logprobs"]["text_offset"]
+                    #     else:
+                    #         old_tokens = tokenize_ada(old_text)
+                    # node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
+                    #                               'revision timestamp': timestamp()})
             self.tree_updated(edit=[node['id']])
 
     def update_note(self, node, text, index=0):
@@ -1354,6 +1356,7 @@ class TreeModel:
         query = node['text']
         return search(query, documents)
 
+    # TODO deprecated
     def delete_counterfactuals(self, root=None):
         if not root:
             root = self.tree_raw_data["root"]
@@ -1518,6 +1521,7 @@ class TreeModel:
         # TODO selection optimization
 
     # TODO removed tokens
+    # TODO deprecated
     def changed_tokens_logprobs(self, node=None):
         node = node if node else self.selected_node
         if 'meta' in node and 'source' in node['meta']:
@@ -1590,3 +1594,10 @@ class TreeModel:
                                                           unnormalized_threshold=threshold,
                                                           engine=engine)
         return multiverse, ground_truth
+
+
+    def get_request_info(self, node):
+        model_response = self.model_responses[node['generation']['id']]
+        prompt = model_response['prompt']['text']
+        completion = model_response['completions'][node['generation']['index']]
+        return model_response, prompt, completion

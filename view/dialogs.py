@@ -59,10 +59,7 @@ class NodeInfoDialog(Dialog):
                 create_label(master, meta["creation_timestamp"], row=master.grid_size()[1] - 1, col=1, padx=15)
 
         if "generation" in self.node:
-            model_response = self.state.model_responses[self.node['generation']['id']]
-            prompt = model_response['prompt']['text']
-            completion = model_response['completions'][self.node['generation']['index']]
-
+            model_response, prompt, completion = self.state.get_request_info(self.node)
             create_side_label(master, "prompt")
             prompt_text = tk.Text(master, height=15)
             prompt_text.grid(row=master.grid_size()[1] - 1, column=1)

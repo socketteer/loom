@@ -1,11 +1,9 @@
 ## Priority
 
-- requests object
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
-    - dif logging
-    - search meta ['generation']
+    - diff / optimization logging
 - test click goto commands
 - vis expanded state out of sync with nav tree expanded state
 - tutorial
@@ -13,7 +11,6 @@
 - masks
 - floating nodes/subtrees
 - fix old tree function
-- generation datatype refactor
 
 ## Other TODO
 
@@ -36,6 +33,7 @@
 * merge with children is broken?
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * even in hide canonical mode, often noncanonical nodes show up after changes to the tree
+* after the first counterfactual subtitution via select node, other selections will be misaligned
 
 ### problems
 * saving is slow for massive trees

@@ -175,7 +175,6 @@ def format_ai21_token_data(token):
 
 
 def format_ai21_completion(completion):
-    print(completion)
     completion_dict = {'text': completion['data']['text'],
                        'tokens': [format_ai21_token_data(token) for token in completion['data']['tokens']],
                        'finishReason': completion['finishReason']['reason']}

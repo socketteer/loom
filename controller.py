@@ -581,32 +581,25 @@ class Controller:
             offset = len(selected_node['text']) - negative_offset
 
             # TODO new token offsets if changed
-            if "meta" in selected_node and "generation" in selected_node["meta"] and not selected_node['meta']['modified']:
+            if 'generation' in selected_node:
                 self.change_token.meta["counterfactual_index"] = 0
                 self.change_token.meta["prev_token"] = None
-                #token_offsets = [n - len(selected_node['meta']['generation']['prompt'])
-                 #                for n in selected_node['meta']['generation']["logprobs"]["text_offset"]]
-                token_offsets = selected_node['meta']['generation']["logprobs"]["text_offset"]
-
+                model_response, prompt, completion = self.state.get_request_info(selected_node)
+                token_offsets = [token_data['position']['start'] for token_data in completion['tokens']]
                 token_index = bisect.bisect_left(token_offsets, offset) - 1
-                start_position = token_offsets[token_index]
-                token = selected_node['meta']['generation']["logprobs"]["tokens"][token_index]
-
-                #print(selected_node['meta']['generation']["logprobs"]["top_logprobs"])
-                #print(token_index)
-                counterfactuals = selected_node['meta']['generation']["logprobs"]["top_logprobs"][token_index]
-
+                token_data = completion['tokens'][token_index]
+                counterfactuals = token_data['counterfactuals']
+                start = token_data['position']['start']
+                end = token_data['position']['end']
                 if self.state.preferences['prob']:
-                    counterfactuals = {k: logprobs_to_probs(v) for k, v in sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True)}
-
+                    counterfactuals = {k: logprobs_to_probs(v) for k, v in
+                                       sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True)}
 
                 self.print_to_debug(counterfactuals)
+                self.display.textbox.tag_add("selected",
+                                             f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + start} chars",
+                                             f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + end} chars")
 
-                #print('start position: ', self.ancestor_end_indices[ancestor_index - 1] + start_position)
-                self.display.textbox.tag_add("selected", f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + start_position} chars",
-                                             f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + start_position + len(token)} chars")
-
-                #self.change_token(selected_node, token_index)
                 self.select_token.meta["selected_node"] = selected_node
                 self.select_token.meta["token_index"] = token_index
 
@@ -618,24 +611,26 @@ class Controller:
             node = self.select_token.meta["selected_node"]
             token_index = self.select_token.meta["token_index"]
 
+        model_response, prompt, completion = self.state.get_request_info(node)
+        token_data = completion['tokens'][token_index]
+
         if not self.change_token.meta['temp_token_offsets']:
-            #token_offsets = [n - len(node['meta']['generation']['prompt'])
-            #                 for n in node['meta']['generation']["logprobs"]["text_offset"]]
-            token_offsets = node['meta']['generation']["logprobs"]["text_offset"]
+            token_offsets = [token_data['position']['start'] for token_data in completion['tokens']]
             self.change_token.meta['temp_token_offsets'] = token_offsets
         else:
             token_offsets = self.change_token.meta['temp_token_offsets']
 
         start_position = token_offsets[token_index]
-        token = node['meta']['generation']["logprobs"]["tokens"][token_index]
-        counterfactuals = node['meta']['generation']["logprobs"]["top_logprobs"][token_index].copy()
+        token = token_data['generatedToken']['token']
+        counterfactuals = token_data['counterfactuals'].copy()
         original_token = (token, counterfactuals.pop(token, None))
         index = node_index(node, self.state.tree_node_dict)
         sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
         sorted_counterfactuals.insert(0, original_token)
 
         self.change_token.meta["counterfactual_index"] += traverse
-        if self.change_token.meta["counterfactual_index"] < 0 or self.change_token.meta["counterfactual_index"] > len(sorted_counterfactuals) - 1:
+        if self.change_token.meta["counterfactual_index"] < 0 \
+                or self.change_token.meta["counterfactual_index"] > len(sorted_counterfactuals) - 1:
             self.change_token.meta["counterfactual_index"] -= traverse
             return
 
@@ -656,7 +651,7 @@ class Controller:
                                      f"1.0 + {token_start + len(new_token)} chars")
 
 
-        #update temp token offsets
+        # update temp token offsets
         diff = len(new_token) - len(self.change_token.meta['prev_token'])
         for index, offset in enumerate(self.change_token.meta['temp_token_offsets'][token_index + 1:]):
             self.change_token.meta['temp_token_offsets'][index + token_index + 1] += diff
@@ -679,8 +674,12 @@ class Controller:
         self.state.update_text(node=self.state.selected_node, text=new_text, modified_flag=False)
         self.display.textbox.tag_remove("modified", "1.0", 'end-1c')
 
-        # TODO don't do this if no meta
-        self.state.selected_node['meta']['generation']["logprobs"]["text_offset"] = self.change_token.meta['temp_token_offsets']
+        # TODO what to do about this now that request information is not saved in individual node?
+        # TODO calculate diffs?
+        # TODO or save temp offsets only in a single session?
+        if 'generation' in self.state.selected_node:
+            pass
+            #self.state.selected_node['meta']['generation']["logprobs"]["text_offset"] = self.change_token.meta['temp_token_offsets']
         self.refresh_counterfactual_meta()
 
 
