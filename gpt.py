@@ -106,7 +106,8 @@ def format_openAI_completion(completion, prompt):
                        'finishReason': completion['finish_reason'],
                        'tokens': []}
     for i, token in enumerate(completion['logprobs']['tokens']):
-        token_dict = {'generatedToken': token,
+        token_dict = {'generatedToken': {'token': token,
+                                         'logprob': completion['logprobs']['token_logprobs'][i]},
                       'position': openAI_token_position(token, completion['logprobs']['text_offset'][i], prompt)}
         if completion['logprobs']['top_logprobs']:
             token_dict['counterfactuals'] = completion['logprobs']['top_logprobs'][i]

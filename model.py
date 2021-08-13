@@ -447,6 +447,8 @@ class TreeModel:
             node["meta"] = {}
         node["meta"]["creation_timestamp"] = timestamp()
         node["meta"]["source"] = source
+        # TODO replace with history
+        node["meta"]["modified"] = False
 
     def create_child(self, parent=None, update_selection=True, expand=True, tree_updated=True):
         parent = parent if parent else self.selected_node

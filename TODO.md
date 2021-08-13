@@ -3,7 +3,6 @@
 - requests object
 - fix everything that uses old data format
     - wavefunction
-    - highlighting
     - autocomplete
     - dif logging
     - search meta ['generation']
