@@ -27,9 +27,15 @@
 * merge with children is broken?
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * even in hide canonical mode, often noncanonical nodes show up after changes to the tree
+* deleting failed generated nodes doesn't work
 
 ### problems
 * saving is slow for massive trees
+
+
+### Deprecated
+- child edit mode
+- node-specific meta.generation dictionary
 
 
 ### Tokenization

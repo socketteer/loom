@@ -855,7 +855,6 @@ class TreeModel:
     # Inits empty chapters, memory, and notes if not already in tree
     def _init_global_objects(self):
         # Chapters
-        self.tree_raw_data
         if 'chapters' not in self.tree_raw_data:
             print('no chapters')
             self.tree_raw_data['chapters'] = {}
