@@ -372,18 +372,29 @@ class Controller:
         #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
         self.display.vis.center_view_on_node(self.state.selected_node)
 
+    def update_read_color(self, old_node, node):
+        nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
+        nca_end_index = self.ancestor_end_indices[index]
+        self.display.textbox.tag_delete("old")
+        self.display.textbox.tag_add("old",
+                                     "1.0",
+                                     f"1.0 + {nca_end_index} chars")
+        self.display.textbox.tag_config("old", foreground=history_color())
+
     @metadata(name="Select node")
-    def select_node(self, node):
+    def select_node(self, node, noscroll=False):
         if self.state.preferences['coloring'] == 'read':
+            # if only one visible child, go straight to child
             old_node = self.state.selected_node
-            self.state.select_node(node['id'])
-            nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
-            nca_end_index = self.ancestor_end_indices[index]
-            self.display.textbox.tag_delete("old")
-            self.display.textbox.tag_add("old",
-                                         "1.0",
-                                         f"1.0 + {nca_end_index} chars")
-            self.display.textbox.tag_config("old", foreground=history_color())
+            # TODO this doesn't work
+            # visible_children = self.state.visible_children(node)
+            # if len(visible_children) == 1:
+            #     self.select_node(visible_children[0], noscroll=True)
+            #     if not noscroll:
+            #         self.update_read_color(old_node, node)
+            self.state.select_node(node['id'], noscroll=noscroll)
+            self.update_read_color(old_node, node)
+
         else:
             self.state.select_node(node['id'])
 
@@ -674,7 +685,7 @@ class Controller:
 
 
     @metadata(name="Refresh counterfactual")
-    def refresh_counterfactual_meta(self):
+    def refresh_counterfactual_meta(self, **kwargs):
         self.change_token.meta['prev_token'] = None
         self.change_token.meta['temp_token_offsets'] = None
 
@@ -930,14 +941,14 @@ class Controller:
         self.state.unhoist()
 
     @metadata(name="Save", keys=["<s>", "<Control-s>"], display_key="s")
-    def save_tree(self, popup=True, autosave=False):
+    def save_tree(self, popup=True, autosave=False, filename=None, subtree=None):
         if autosave and not self.state.preferences['autosave']:
             return
         try:
             if not autosave and not self.state.preferences['save_counterfactuals']:
                 self.state.delete_counterfactuals()
             self.save_edits()
-            self.state.save_tree(backup=popup)
+            self.state.save_tree(backup=popup, save_filename=filename, subtree=subtree)
             if popup:
                 messagebox.showinfo(title=None, message="Saved!")
         except Exception as e:
@@ -953,6 +964,27 @@ class Controller:
             sibling = self.state.create_sibling()
             self.nav_select(node_id=sibling['id'])
             self.state.update_text(sibling, new_text, new_active_text)
+
+    # Exports subtree as a loom json
+    @metadata(name="Export subtree", keys=["<Control-Alt-KeyPress-X>"], display_key="Ctrl-Alt-X")
+    def export_subtree(self, node=None):
+        node = node if node else self.state.selected_node
+        filename = self.state.tree_filename if self.state.tree_filename \
+            else os.path.join(os.getcwd() + '/data', "new_tree.json")
+        # TODO default name shouldn't be parent tree name
+        filename = filedialog.asksaveasfilename(
+            initialfile=os.path.splitext(os.path.basename(filename))[0],
+            initialdir=os.path.dirname(filename),
+            defaultextension='.json')
+        if filename:
+            #self.state.tree_filename = filename
+            new_tree = node.copy()
+            new_tree.pop('parent_id')
+            new_tree = {'root': new_tree}
+            new_tree = self.state.copy_global_objects(new_tree)
+            print(new_tree)
+            self.save_tree(subtree=new_tree, filename=filename)
+            return
 
 
     @metadata(name="Export to text", keys=["<Control-Shift-KeyPress-X>"], display_key="Ctrl-Shift-X")
@@ -991,7 +1023,7 @@ class Controller:
             return
 
 
-    @metadata(name="Generation Settings", keys=["<Control-p>"], display_key="ctrl-p")
+    @metadata(name="Generation Settings", keys=["<Control-Shift-KeyPress-P>"], display_key="ctrl-p")
     def generation_settings_dialog(self):
         dialog = GenerationSettingsDialog(self.display.frame, self.state.generation_settings)
         if dialog.result:
@@ -1073,7 +1105,7 @@ class Controller:
         dialog = SearchDialog(parent=self.display.frame, state=self.state, goto=self.nav_select)
         self.refresh_textbox()
 
-    @metadata(name="Preferences", keys=[], display_key="")
+    @metadata(name="Preferences", keys=["<Control-p>"], display_key="")
     def preferences(self):
         #print(self.state.preferences)
         dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
@@ -1137,7 +1169,7 @@ class Controller:
             self.state.preferences['show_children'] = False
             self.hide_children()
 
-    def show_children(self):
+    def show_children(self, **kwargs):
         if self.state.preferences['show_children'] and self.state.selected_node \
                 and self.display.mode in ("Read", "Edit"):
             children = self.state.visible_children()
@@ -1146,14 +1178,15 @@ class Controller:
             self.display.textbox.update_idletasks()
             self.display.textbox.see(tk.END)
 
-    def read_mode_refresh(self):
+    def read_mode_refresh(self, **kwargs):
         if self.state.preferences['coloring'] == 'read':
             self.toggle_show_children(toggle=False)
 
     def update_children(self, **kwargs):
         if self.state.preferences['show_children'] and self.display.mode in ("Read", "Edit"):
             if 'add' in kwargs:
-                self.display.update_children(self.state.tree_node_dict[node_id] for node_id in kwargs['add'])
+                self.display.update_children([self.state.tree_node_dict[node_id] for node_id in kwargs['add']
+                                             if self.state.tree_node_dict[node_id]['parent_id'] == self.state.selected_node_id])
             if 'edit' in kwargs:
                 self.display.update_text()
 
@@ -1212,7 +1245,12 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
-        self.display.close_secondary_textbox()
+        #pass
+        self.state.strip_metadata()
+        #self.state.tree_updated()
+        # self.state.merge_temp(self.state.tree_node_dict[self.state.selected_node['parent_id']],
+        #                       self.state.selected_node)
+        #self.display.open_preview_textbox()
         #self.scroll_to_selected()
         # self.display.set_mode("Multiverse")
         # self.refresh_textbox()
@@ -1425,7 +1463,7 @@ class Controller:
         else:
             return
 
-    def save_multi_edits(self):
+    def save_multi_edits(self, **kwargs):
         if self.display.mode in ("Read", "Edit") and self.state.preferences['show_children']:
             self.display.save_all()
 
@@ -1522,8 +1560,9 @@ class Controller:
 
             # makes text copyable
             self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
-            self.display.textbox.update_idletasks()
-            self.display.textbox.see(history_end)
+            if not kwargs.get('noscroll', False):
+                self.display.textbox.update_idletasks()
+                self.display.textbox.see(history_end)
 
 
 
@@ -1578,7 +1617,7 @@ class Controller:
             self.display.vis.center_view_on_node(self.state.selected_node)
 
 
-    def refresh_vis_selection(self):
+    def refresh_vis_selection(self, **kwargs):
         if self.display.mode != "Visualize":
             return
         self.display.vis.refresh_selection(self.state.tree_raw_data["root"], self.state.selected_node)
@@ -1594,7 +1633,7 @@ class Controller:
             self.display.multiverse.reset_view()
 
 
-    def refresh_notes(self):
+    def refresh_notes(self, **kwargs):
         if not self.state.tree_raw_data or not self.state.selected_node or not self.state.preferences['side_pane']:
             return
 
@@ -1769,7 +1808,10 @@ class Controller:
         navbar_selected_id = self.display.nav_tree.selection()[0] if self.display.nav_tree.selection() else None
 
         if navbar_selected_id != state_selected_id:
-            self.display.nav_tree.selection_set(state_selected_id)  # Will cause a recursive call
+            try:
+                self.display.nav_tree.selection_set(state_selected_id)  # Will cause a recursive call
+            except tk.TclError:
+                print('selection set error')
 
         # Update the open state of all nodes based on the navbar
         # TODO

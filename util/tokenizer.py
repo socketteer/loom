@@ -1,19 +1,19 @@
 from transformers import GPT2Tokenizer
 
-
+tok = None
 
 def tokenize(input):
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+    tokenizer = tok if tok else GPT2Tokenizer.from_pretrained("gpt2")
     return tokenizer(input)['input_ids']
 
 
 def detokenize(tokens):
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+    tokenizer = tok if tok else GPT2Tokenizer.from_pretrained("gpt2")
     return tokenizer.convert_tokens_to_string(tokens)
 
 
 def token_to_word(token):
-    tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+    tokenizer = tok if tok else GPT2Tokenizer.from_pretrained("gpt2")
     return tokenizer.convert_ids_to_tokens([token])[0]
 
 

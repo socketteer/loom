@@ -13,10 +13,11 @@ from multiprocessing.pool import ThreadPool
 import codecs
 import json
 
-from gpt import api_generate, janus_generate, search
+from gpt import openAI_generate, janus_generate, search, generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
-    subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children, anti_conditions_lambda
+    subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children, anti_conditions_lambda, \
+    new_node, compound_node
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 from util.multiverse_util import greedy_word_multiverse
 
@@ -208,7 +209,7 @@ class TreeModel:
         pass
 
     @event
-    def selection_updated(self):
+    def selection_updated(self, **kwargs):
         pass
 
     @event
@@ -320,7 +321,7 @@ class TreeModel:
     #################################
 
     # Update the selected node, the nav tree selection, and possibly the position in the tree traversal
-    def select_node(self, node_id, fire_callbacks=True):
+    def select_node(self, node_id, fire_callbacks=True, **kwargs):
         if self.selected_node_id != node_id and self.tree_node_dict and node_id in self.tree_node_dict:
             self.pre_selection_updated()
 
@@ -336,7 +337,7 @@ class TreeModel:
             self.tree_raw_data["root"]["open"] = True
 
             if fire_callbacks:
-                self.selection_updated()
+                self.selection_updated(**kwargs)
             return self.selected_node
 
     def traverse_tree(self, offset):
@@ -429,6 +430,8 @@ class TreeModel:
 
     def visible_children(self, node=None):
         node = node if node else self.selected_node
+        if node.get('temp_children', None):
+            return node['temp_children']
         return conditional_children(node, self.generate_conditions())
 
     def hidden_children(self, node=None):
@@ -439,14 +442,6 @@ class TreeModel:
     #################################
     #   Updates
     #################################
-
-    def new_node(self, node_id=None, text=''):
-        if not node_id:
-            node_id = str(uuid.uuid1())
-        node = {"id": node_id,
-                "text": text,
-                "children": []}
-        return node
 
     def node_creation_metadata(self, node, source='prompt'):
         if 'meta' not in node:
@@ -459,7 +454,7 @@ class TreeModel:
         if not parent:
             return
 
-        new_child = self.new_node()
+        new_child = new_node()
         parent["children"].append(new_child)
 
         if tree_updated:
@@ -529,6 +524,31 @@ class TreeModel:
         for child in children:
             child["text"] = node["text"] + child["text"]
         self.delete_node(node, reassign_children=True)
+
+    # TODO maybe not the right approach
+    # TODO construct new tree?
+    # TODO inherit attributes?
+    def merge_temp(self, parent, child):
+        compound = compound_node(parent, child)
+        # TODO is this necessary?
+        # if 'parent_id' in parent:
+        #     compound['parent_id'] = parent['parent_id']
+        self.tree_node_dict[compound['id']] = compound
+        if 'parent_id' in parent:
+            grandparent = self.tree_node_dict[parent['parent_id']]
+            temp_children = [child for child in grandparent['children'] if child != parent]
+            temp_children.append(compound)
+            grandparent['temp_children'] = temp_children
+        elif self.tree_raw_data['root'] == parent:
+            # TODO
+            pass
+        else:
+            print('error!')
+            exit(0)
+        self.select_node(self.tree_raw_data['root']['id'], fire_callbacks=False)
+        self.tree_updated(add=[compound['id']], delete=[parent['parent_id']])
+        # what if root?
+
 
     # TODO indicate that change parent has been toggled
     def change_parent(self, node=None, new_parent_id=None):
@@ -696,6 +716,7 @@ class TreeModel:
 
     def chapter_title(self, node):
         #print(self.chapters)
+        #print(self.chapters)
         return self.chapters[node['chapter_id']]['title'] if "chapter_id" in node else ""
 
     def create_new_chapter(self, node, title):
@@ -834,7 +855,9 @@ class TreeModel:
     # Inits empty chapters, memory, and notes if not already in tree
     def _init_global_objects(self):
         # Chapters
+        self.tree_raw_data
         if 'chapters' not in self.tree_raw_data:
+            print('no chapters')
             self.tree_raw_data['chapters'] = {}
         self.chapters = self.tree_raw_data["chapters"]
 
@@ -877,6 +900,42 @@ class TreeModel:
         # for key in DEFAULT_GENERATION_SETTINGS.keys():
         #     if key not in DEFAULT_VISUALIZATION_SETTINGS:
         #         self.tree_raw_data["visualization_settings"].pop(key, None)
+
+    def copy_global_objects(self, new_tree):
+        if 'chapters' not in new_tree:
+            new_tree['chapters'] = self.chapters
+
+        if 'canonical' not in new_tree:
+            new_tree['canonical'] = self.canonical
+
+        if 'memories' not in new_tree:
+            new_tree['memories'] = self.memories
+
+        if 'summaries' not in new_tree:
+            new_tree['summaries'] = self.summaries
+
+        # Generation settings
+        new_tree["generation_settings"] = {
+            **DEFAULT_GENERATION_SETTINGS.copy(),
+            **self.tree_raw_data.get("generation_settings", {})
+        }
+
+        # View settings # TODO If there are more of these, reduce duplication
+        new_tree["visualization_settings"] = {
+            **DEFAULT_VISUALIZATION_SETTINGS.copy(),
+            **self.tree_raw_data.get("visualization_settings", {})
+        }
+
+        new_tree["preferences"] = {
+            **DEFAULT_PREFERENCES.copy(),
+            **self.tree_raw_data.get("preferences", {})
+        }
+
+        new_tree["chat_preferences"] = {
+            **DEFAULT_CHAT_PREFERENCES.copy(),
+            **self.tree_raw_data.get("chat_preferences", {})
+        }
+        return new_tree
 
     def load_tree_data(self, data, init_global=True):
         self.tree_raw_data = data
@@ -949,7 +1008,7 @@ class TreeModel:
         self.hoist_stack.append(hoist_info)
 
         history_text = "".join(self.node_ancestry_text(node)[0][:-1])
-        history_parent = self.new_node(text=history_text)
+        history_parent = new_node(text=history_text)
         history_parent['children'] = [node]
         node['parent_id'] = history_parent['id']
         self.open_node_as_root(history_parent, save=False, rebuild_global=False)
@@ -971,25 +1030,28 @@ class TreeModel:
 
     # Tree flat data is just a different view to tree raw data!
     # We edit tree flat data with tkinter and save raw data which is still in json form
-    def save_tree(self, backup=True):
-        if not self.tree_filename:
+    def save_tree(self, backup=True, save_filename=None, subtree=None):
+        save_filename = save_filename if save_filename else self.tree_filename
+        subtree = subtree if subtree else self.master_tree()
+        if not save_filename:
             return False
         print('saving tree')
 
         # Fancy platform independent os.path
-        filename = os.path.splitext(os.path.basename(self.tree_filename))[0]
+        filename = os.path.splitext(os.path.basename(save_filename))[0]
         save_dir = os.path.dirname(self.tree_filename)
         backup_dir = os.path.join(save_dir, "backups")
 
         # Make backup before overwriting tree
-        if backup and os.path.isfile(self.tree_filename):
+        if backup and os.path.isfile(save_filename):
             if not os.path.exists(backup_dir):
                 os.mkdir(backup_dir)
-            os.rename(self.tree_filename, os.path.join(backup_dir, f"{filename}-{timestamp()}.json"))
+            os.rename(save_filename, os.path.join(backup_dir, f"{filename}-{timestamp()}.json"))
 
+        #print('chapters:', subtree['chapters'])
         # Save tree
         # Save tree dict from bottom of hoist stack
-        json_create(self.tree_filename, self.master_tree())
+        json_create(save_filename, subtree)
         self.io_update()
         return True
 
@@ -1012,15 +1074,15 @@ class TreeModel:
             start_text += '\n' + self.chat_preferences['AI_name'] + ':'
         prompt = self.chat_preferences['context'] + '\n' + prompt + start_text
         try:
-            results, error = api_generate(prompt=prompt,
-                                          length=self.generation_settings['response_length'],
-                                          num_continuations=len(nodes),
-                                          temperature=self.generation_settings['temperature'],
-                                          logprobs=self.generation_settings['logprobs'],
-                                          top_p=self.generation_settings['top_p'],
-                                          engine=self.generation_settings['model'],
-                                          stop=["\n", self.chat_preferences['player_name'] + ':'],
-                                          )
+            results, error = openAI_generate(prompt=prompt,
+                                             length=self.generation_settings['response_length'],
+                                             num_continuations=len(nodes),
+                                             temperature=self.generation_settings['temperature'],
+                                             logprobs=self.generation_settings['logprobs'],
+                                             top_p=self.generation_settings['top_p'],
+                                             engine=self.generation_settings['model'],
+                                             stop=["\n", self.chat_preferences['player_name'] + ':'],
+                                             )
         except TypeError as e:
             error = "Typeerror"
 
@@ -1039,15 +1101,15 @@ class TreeModel:
         start_text = '\n"'
         prompt = prompt + start_text
         try:
-            results, error = api_generate(prompt=prompt,
-                                          length=self.generation_settings['response_length'],
-                                          num_continuations=len(nodes),
-                                          temperature=self.generation_settings['temperature'],
-                                          logprobs=self.generation_settings['logprobs'],
-                                          top_p=self.generation_settings['top_p'],
-                                          engine=self.generation_settings['model'],
-                                          stop=['\n'],
-                                          )
+            results, error = openAI_generate(prompt=prompt,
+                                             length=self.generation_settings['response_length'],
+                                             num_continuations=len(nodes),
+                                             temperature=self.generation_settings['temperature'],
+                                             logprobs=self.generation_settings['logprobs'],
+                                             top_p=self.generation_settings['top_p'],
+                                             engine=self.generation_settings['model'],
+                                             stop=['\n'],
+                                             )
         except TypeError as e:
             error = "Typeerror"
 
@@ -1073,15 +1135,15 @@ class TreeModel:
                 stop = []
             stop.append('[')
             stop.append('\n\n')
-            results, error = api_generate(prompt=prompt,
-                                          length=self.generation_settings['response_length'],
-                                          num_continuations=len(nodes),
-                                          temperature=self.generation_settings['temperature'],
-                                          top_p=self.generation_settings['top_p'],
-                                          logprobs=self.generation_settings['logprobs'],
-                                          engine=self.generation_settings['model'],
-                                          stop=stop,
-                                          )
+            results, error = openAI_generate(prompt=prompt,
+                                             length=self.generation_settings['response_length'],
+                                             num_continuations=len(nodes),
+                                             temperature=self.generation_settings['temperature'],
+                                             top_p=self.generation_settings['top_p'],
+                                             logprobs=self.generation_settings['logprobs'],
+                                             engine=self.generation_settings['model'],
+                                             stop=stop,
+                                             )
         except TypeError as e:
             error = "Typeerror"
 
@@ -1119,44 +1181,52 @@ class TreeModel:
                         stop = []
                     stop.append('[')
                     stop.append('\n\n')
-                results, error = api_generate(prompt=prompt,
-                                              length=self.generation_settings['response_length'],
-                                              num_continuations=len(nodes),
-                                              temperature=self.generation_settings['temperature'],
-                                              top_p=self.generation_settings['top_p'],
-                                              logprobs=self.generation_settings['logprobs'],
-                                              engine=self.generation_settings['model'],
-                                              stop=stop
-                                              )
+                results, error = generate(prompt=prompt,
+                                          length=self.generation_settings['response_length'],
+                                          num_continuations=len(nodes),
+                                          temperature=self.generation_settings['temperature'],
+                                          top_p=self.generation_settings['top_p'],
+                                          logprobs=self.generation_settings['logprobs'],
+                                          model=self.generation_settings['model'],
+                                          stop=stop
+                                          )
             except TypeError as e:
                 error = "Typeerror"
         if not error:
             #pprint(self.generation_settings)
-            if self.generation_settings['adaptive']:
-                for i, result in enumerate(results.choices):
-                    min_logprob = np.argmin(result["logprobs"]["token_logprobs"])
-                    split_position = result["logprobs"]["text_offset"][min_logprob] - len(prompt)
-                    childtext = result["text"][:split_position]
-                    grandchild_text = result["text"][split_position:]
-                    nodes[i]["text"] = childtext
-                    grandchildren[i]["text"] = grandchild_text
-                    # TODO metadata
-
-            else:
-                self.generated_nodes_metadata(nodes, results, prompt)
+            # if self.generation_settings['adaptive']:
+            #     for i, result in enumerate(results.choices):
+            #         min_logprob = np.argmin(result["logprobs"]["token_logprobs"])
+            #         split_position = result["logprobs"]["text_offset"][min_logprob] - len(prompt)
+            #         childtext = result["text"][:split_position]
+            #         grandchild_text = result["text"][split_position:]
+            #         nodes[i]["text"] = childtext
+            #         grandchildren[i]["text"] = grandchild_text
+            #         # TODO metadata
+            #
+            # else:
+            #     self.generated_nodes_metadata(nodes, results, prompt)
+            self.set_generated_nodes(nodes, results)
 
         else:
             self.delete_failed_nodes(nodes, error)
             return
 
-        for result in results.choices:
+        for result in results['completions']:
             print("Generated continuation:\n", result['text'], "\nerror", error)
 
         # DO NOT CALL FROM THREAD: self.tree_updated()
         self.app.event_generate("<<NewNodes>>", when="tail")
 
+    def set_generated_nodes(self, nodes, results, prepend_text='', append_text=''):
+        for i, node in enumerate(nodes):
+            node['text'] = prepend_text + results['completions'][i]['text'] + append_text
+            self.node_creation_metadata(node, source='AI')
+            # TODO save generation metadata and history
+
     # TODO save mode
     def generated_nodes_metadata(self, nodes, results, prompt, prepend_text='', append_text=''):
+        # TODO "history"
         for index, node in enumerate(nodes):
             node["text"] = prepend_text + results.choices[index]["text"] + append_text
             node["meta"] = {}
@@ -1217,22 +1287,21 @@ class TreeModel:
             #print("Prompt:\n", prompt)
         return memory + prompt
 
-
     def autocomplete_generate(self, appended_text, engine='curie'):
         # TODO memory and chat prepending - abstract this
         # TODO different behavior if not in submit box
         appended_text = self.pre_modifications(appended_text)
         prompt = self.build_prompt(prompt_length=4000) + appended_text
         # print('prompt: ', prompt)
-        results, error = api_generate(prompt=prompt,
-                                      length=1,  # TODO 3 or so
-                                      num_continuations=1,
-                                      temperature=0,
-                                      logprobs=100,
-                                      top_p=self.generation_settings['top_p'],
-                                      engine=engine
-                                      # TODO stop
-                                      )
+        results, error = openAI_generate(prompt=prompt,
+                                         length=1,  # TODO 3 or so
+                                         num_continuations=1,
+                                         temperature=0,
+                                         logprobs=100,
+                                         top_p=self.generation_settings['top_p'],
+                                         engine=engine
+                                         # TODO stop
+                                         )
 
         counterfactuals = results.choices[0]['logprobs']['top_logprobs'][0]
         sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
@@ -1297,14 +1366,14 @@ class TreeModel:
         if max_depth == 0 or (stop_condition and stop_condition(node)):
             return
         prompt = self.build_prompt(quiet=False, node=node)
-        results, error = api_generate(prompt=prompt,
-                                      length=interval,
-                                      num_continuations=branching_factor,
-                                      temperature=temperature,
-                                      logprobs=0,
-                                      top_p=self.generation_settings['top_p'],
-                                      engine=engine
-                                      )
+        results, error = openAI_generate(prompt=prompt,
+                                         length=interval,
+                                         num_continuations=branching_factor,
+                                         temperature=temperature,
+                                         logprobs=0,
+                                         top_p=self.generation_settings['top_p'],
+                                         engine=engine
+                                         )
         # create child nodes
         children = []
         for i in range(branching_factor):
@@ -1352,6 +1421,18 @@ class TreeModel:
         for child in root['children']:
             self.delete_counterfactuals(root=child)
 
+    # TODO only strip generation metadata
+    def strip_metadata(self, root=None, delete_chapters=False):
+        root = root if root else self.tree_raw_data['root']
+        if root == self.tree_raw_data['root'] and delete_chapters:
+            self.remove_all_chapters(root)
+            self.tree_raw_data['chapters'] = {}
+        if 'meta' in root:
+            root.pop('meta')
+        # if delete_chapters and 'chapter_id' in root:
+        #     root.pop('chapter_id')
+        for child in root['children']:
+            self.strip_metadata(root=child)
 
     # modifications made to text submitted using input box
     # TODO split into pre and post user input modifications

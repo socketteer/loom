@@ -1,34 +1,116 @@
-if node has only one (visible) child, display as a single node
-    - enabled by default in read mode
+## Priority
 
-split node and merge second part with children 
-    - hotkey
+- test click goto commands
+- vis expanded state out of sync with nav tree expanded state
+- tutorial
+- substitute node
+- masks
+- floating nodes/subtrees
+- fix old tree function
 
-global "read" mode (separate from coloring)
+## Other TODO
 
-change gpt2 tokenizer import so loom doesn't require internet connection to run
+### bugs
+
+* crashes with this error sometimes: `_tkinter.TclError: bad text index "tk::anchor1"`
+* key bindings only work in most recent tab
+* num leaves calculated incorrectly
+* ctrl+space sometimes clicks button
+* ctrl+y hotkey (chapter dialog) sometimes doesn't work
+* clicking textbox sometimes causes index error
+* display history bug - seen with astronomer -> spirals (try disabling context window highlighting)
+* reinserting into nav tree causes change in node ordering
+* various bugs splitting, merging (seems to have been caused by partial nav updating?)
+* memory (what?) causes freeze?
+* mark as prompt doesn't always work? or display doesnt update
+* generating when trying to calculate optimization bits??
+* merge with children is broken?
+* change chapter dialog doesn't show up when hotkey pressed depending on focus
+* even in hide canonical mode, often noncanonical nodes show up after changes to the tree
+
+### problems
+* saving is slow for massive trees
+
+
+### Tokenization
+
+- change gpt2 tokenizer import so loom doesn't require internet connection to run
     - use ada to tokenize instead? will this cause lag?
     - GPT2 tokenizer local files?
 
-open new tab/window on same working copy of tree
 
-log gpt-3 output files
+### Models 
+- model-agnostic interface
+- integrate other models
+    - jurassic-1
+    - GPT-J 
 
-ask before quitting if unsaved changes
 
-jump to unvisited nodes
+### Usability 
+- all hotkeys dialog
 
-minibuffer for commands
-
-when node is split, chapter goes to parent
+### Tree manipulation
+- swap node function
+- split node and merge second part with children 
+    - hotkey
+- when node is split, chapter goes to parent
     - move chapter function?
 
+
+### Display
+- global "read" mode (separate from coloring)
+- show multimedia inline
+- if node has only one (visible) child, display as a single node
+    - enabled by default in read mode
+
+
+### Files
+- export as plain JSON
+- 
+
+
+### "Floating" nodes
+- floating subtree associated with root node and accessible in subtree(or path, node)
+
+
+
+### Navigation
+- multiple checkpoints - hotkey returns to nearest checkpoint in ancestry
+- return to chapter root hotkey (r) (shift-r goes to root)
+    - if no chapter, return to root
+- jump to unvisited nodes
+
+
+
+### Interface
+- open new tab/window on same working copy of tree
+- minibuffer for commands
+
+
+### Preventing data loss
+- log gpt-3 output files
+- ask before quitting if unsaved changes
+
+
+### Masks
+- A mask is a node which "masks" other node(s), and preserves all information needed to "unmask"
+- turn mask into base node
+
+
+
+### Attributes and filtering
+
 - filter by arbitrary attributes (canonical, created_after, etc)
-    - handle navigating to a hidden node
+    - create an attribute
+        - scope types: node (bookmark, archived), node+ancestry (canonical), node+subtree (chapter), node+ancestry+subtree
+            - let's call it path and subtree
+    - has_attribute() function
+    - handle navigating to / creating a hidden node
+    - hide chapters without root (?) or nodes
+    
 
 ### archived
-    - visually indicate archived nodes in nav tree when hide_archived=False (~)
-    - shortcut to hide/show archived
+    - visually indicate archived nodes in nav tree when hide_archived=False (~ or different color?)
      
 
 ### session files: separate session from underlying tree?
@@ -37,7 +119,7 @@ when node is split, chapter goes to parent
     - expanded state
     - settings... 
 
-
+### Generation
 - generation 
     - logit bias
     - multiverse generation options (depth, branching factor, branching interval/conditions)
@@ -56,37 +138,28 @@ when node is split, chapter goes to parent
     - toggle whether context appears in textbox
     - toggle whether context remains in prompt
 
+
+
+
+### Metadata
+- diff
+    - splitting / merging
+    - display in node info or diff dialog
+    
 - optimization logging
     - selection
     - manual editing
     - autocomplete
 
-- diff
-    - splitting / merging
-    - display in node info or diff dialog
 
+### Memory
 - memory
     - enable/disable memory entries
     - goto root 
     - add global memory option
 
- 
-# misc bugs
+  
 
-* crashes with this error sometimes: `_tkinter.TclError: bad text index "tk::anchor1"`
-* key bindings only work in most recent tab
-* num leaves calculated incorrectly
-* ctrl+space sometimes clicks button
-* ctrl+y hotkey (chapter dialog) sometimes doesn't work
-* clicking textbox sometimes causes index error
-* display history bug - seen with astronomer -> spirals (try disabling context window highlighting)
-* saving is slow for massive trees
-* reinserting into nav tree causes change in node ordering
-* various bugs splitting, merging (seems to have been caused by partial nav updating?)
-* memory causes freeze?
-* mark as prompt doesn't always work? or display doesnt update
-* generating when trying to calculate optimization bits??
-* merge with children is broken?
 
 
 ### Autocomplete
@@ -108,8 +181,10 @@ when node is split, chapter goes to parent
 
 
 ### Edit mode
-- display text box hidden by default
-- preview text for read multi mode
+- preview text
+    - show in read multi mode in space of node text
+- preview and active textboxes hidden by default unless there is preview / active text
+    - buttons(?) to show textboxes
 
 
 ### Multi mode
@@ -129,6 +204,7 @@ when node is split, chapter goes to parent
     - option to override preview text
 - move multi display code to new object
 - change order of children in multi mode
+- remove new child button - make normal new child button behave different if children shown?
 
 
 

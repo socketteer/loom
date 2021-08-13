@@ -49,6 +49,8 @@ class Display:
         self.textbox = None
         self.secondary_textbox_frame = None
         self.secondary_textbox = None
+        self.preview_textbox_frame = None
+        self.preview_textbox = None
         self.vis_frame = None
         self.vis = None
 
@@ -215,6 +217,7 @@ class Display:
         # self.destroy_input_box()
 
     def build_textboxes(self, frame):
+        self._build_textbox(frame, "preview_textbox_frame", "preview_textbox", height=3)
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
@@ -645,6 +648,12 @@ class Display:
                     tb_item['delete'].grid_forget()
                 if 'descendents_label' in tb_item:
                     tb_item['descendents_label'].grid_forget()
+            if self.add_child_button:
+                self.add_child_button.grid_forget()
+                self.add_child_button = None
+            if self.hidden_nodes_button:
+                self.hidden_nodes_button.grid_forget()
+                self.hidden_hodes_button = None
         if self.multi_scroll_frame:
             self.multi_scroll_frame.pack_forget()
 
@@ -689,19 +698,19 @@ class Display:
                     label.grid(row=i * 2 + 1, column=2, columnspan=5)
                     tb_item['descendents_label'] = label
 
-        if self.state.preferences['coloring'] != 'read':
-            num_hidden = 5
-            # self.hidden_nodes_button = tk.Button(self.multi_scroll_frame.scrollable_frame,
-            #                                      text=f"Show {num_hidden} hidden children",
-            #                                      command=lambda event: self.show_hidden, width=20, background=BLUE,
-            #                                      foreground=text_color())
-            # self.hidden_nodes_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=1)
-
-            self.add_child_button = tk.Button(self.multi_scroll_frame.scrollable_frame, text="New child",
-                                              command=self.add_child, width=10, background=GREEN,
-                                              foreground=text_color())
-            self.add_child_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=2,
-                                       columnspan=4)
+        # if self.state.preferences['coloring'] != 'read':
+        #     num_hidden = 5
+        #     # self.hidden_nodes_button = tk.Button(self.multi_scroll_frame.scrollable_frame,
+        #     #                                      text=f"Show {num_hidden} hidden children",
+        #     #                                      command=lambda event: self.show_hidden, width=20, background=BLUE,
+        #     #                                      foreground=text_color())
+        #     # self.hidden_nodes_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=1)
+        #
+        #     self.add_child_button = tk.Button(self.multi_scroll_frame.scrollable_frame, text="New child",
+        #                                       command=self.add_child, width=10, background=GREEN,
+        #                                       foreground=text_color())
+        #     self.add_child_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=2,
+        #                                columnspan=4)
 
     def make_button(self, name, function, row, column, tb_id, tb_item):
         button = tk.Label(self.multi_scroll_frame.scrollable_frame, image=self.icons[name]['icon'], bg=bg_color())
@@ -825,8 +834,9 @@ class Display:
         elif self.mode == "Edit":
             self.textbox_frame.pack(expand=True, side="top", fill='both')
             self.textbox.config(foreground=text_color(), background=edit_color())
-            self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
+            #self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
             self.secondary_textbox.config(foreground=text_color(), background=edit_color())
+            self.preview_textbox.config(foreground=text_color(), background=edit_color())
 
 
 
@@ -848,6 +858,15 @@ class Display:
 
     def close_secondary_textbox(self):
         self.secondary_textbox_frame.pack_forget()
+
+    def open_secondary_textbox(self):
+        self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
+
+    def close_preview_textbox(self):
+        self.preview_textbox_frame.pack_forget()
+
+    def open_preview_textbox(self):
+        self.preview_textbox_frame.pack(expand=False, side="top", fill='both')
 
     # def start_multi_edit(self, num_textboxes=5):
     #     assert self.mode == "Multi Edit"
