@@ -35,6 +35,7 @@ def event(func):
 
     return wrapper
 
+
 # The old way.
 # # Run callbacks for the method that calls this
 # # This is VERY slow because of inspect.stack()
@@ -49,8 +50,8 @@ DEFAULT_PREFERENCES = {
     'hide_archived': True,
     'highlight_canonical': True,
     'canonical_only': False,
-    'walk': 'descendents', #'leaves', 'uniform'
-    'coloring': 'edit', #'read', 'none'
+    'walk': 'descendents',  # 'leaves', 'uniform'
+    'coloring': 'edit',  # 'read', 'none'
     'bold_prompt': True,
     'side_pane': False,
     'input_box': False,
@@ -61,7 +62,7 @@ DEFAULT_PREFERENCES = {
     'font_size': 12,
     'line_spacing': 8,
     'paragraph_spacing': 10,
-    'gpt_mode': 'default', #'chat', 'dialogue', 'antisummary'
+    'gpt_mode': 'default',  # 'chat', 'dialogue', 'antisummary'
     'show_prompt': False,
     'log_diff': False,
     'autosave': True,
@@ -84,7 +85,6 @@ DEFAULT_CHAT_PREFERENCES = {
                'permitted to interface with it.\n-BEGIN TRANSCRIPT-',
 }
 
-
 DEFAULT_GENERATION_SETTINGS = {
     'num_continuations': 4,
     'temperature': 0.9,
@@ -95,7 +95,7 @@ DEFAULT_GENERATION_SETTINGS = {
     "janus": False,
     "adaptive": False,
     "model": "davinci",
-    "stop": '',# separated by '|'
+    "stop": '',  # separated by '|'
     "start_text": None,
     "restart_text": None
 }
@@ -123,13 +123,13 @@ EMPTY_TREE = {
     "chapters": {}
 }
 
+
 class TreeModel:
 
     def __init__(self, root):
         self.app = root
         self.app.bind("<<TreeUpdated>>", lambda _: self.tree_updated())
         self.app.bind("<<NewNodes>>", lambda _: self.edit_new_nodes())
-
 
         # All variables initialized below
         self.tree_filename = None
@@ -143,6 +143,7 @@ class TreeModel:
         self.summaries = None
         self.checkpoint = None
         self.canonical = None
+        self.model_responses = None
 
         self.hoist_stack = []
 
@@ -155,7 +156,6 @@ class TreeModel:
 
         self.callbacks = defaultdict(list)
         self.new_nodes = []
-
 
     @property
     def visualization_settings(self):
@@ -257,7 +257,7 @@ class TreeModel:
             index += len(node["text"])
             end_indices.append(index)
         return text, end_indices
-        #return [node["text"] for node in node_ancestry(node, self.tree_node_dict)]
+        # return [node["text"] for node in node_ancestry(node, self.tree_node_dict)]
 
     @property
     def selected_node(self):
@@ -368,7 +368,7 @@ class TreeModel:
     def select_sibling(self, offset, node=None):
         node = node if node else self.selected_node
         if node and "parent_id" in node:
-            #siblings = self.parent(node)["children"]
+            # siblings = self.parent(node)["children"]
             siblings = conditional_children(self.parent(node), self.generate_conditions())
             sibling = siblings[(siblings.index(node) + offset) % len(siblings)]
             return self.select_node(sibling["id"])
@@ -402,7 +402,7 @@ class TreeModel:
 
     def node_is_visible(self, node=None):
         node = node if node else self.selected_node
-        return not(node.get('archived', False))
+        return not (node.get('archived', False))
 
     def generate_canonical_tree(self, root=None):
         root = root if root else self.tree_raw_data["root"]
@@ -437,7 +437,6 @@ class TreeModel:
     def hidden_children(self, node=None):
         node = node if node else self.selected_node
         return conditional_children(node, anti_conditions_lambda(self.generate_conditions()))
-
 
     #################################
     #   Updates
@@ -549,7 +548,6 @@ class TreeModel:
         self.tree_updated(add=[compound['id']], delete=[parent['parent_id']])
         # what if root?
 
-
     # TODO indicate that change parent has been toggled
     def change_parent(self, node=None, new_parent_id=None):
         node = node if node else self.selected_node
@@ -613,7 +611,6 @@ class TreeModel:
             #     self.select_node(siblings[old_index % len(siblings)]["id"])
         self.tree_updated(delete=[node['id']])
 
-
     # TODO add creation date if it doesn't exist
     def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False):
         assert node["id"] in self.tree_node_dict, text
@@ -663,7 +660,6 @@ class TreeModel:
                     node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
                                                   'revision timestamp': timestamp()})
             self.tree_updated(edit=[node['id']])
-
 
     def update_note(self, node, text, index=0):
         assert node["id"] in self.tree_node_dict, text
@@ -715,8 +711,8 @@ class TreeModel:
             self.import_chapters(child, chapters)
 
     def chapter_title(self, node):
-        #print(self.chapters)
-        #print(self.chapters)
+        # print(self.chapters)
+        # print(self.chapters)
         return self.chapters[node['chapter_id']]['title'] if "chapter_id" in node else ""
 
     def create_new_chapter(self, node, title):
@@ -781,7 +777,7 @@ class TreeModel:
         self.memories[new_memory['id']] = new_memory
 
         if 'memories' not in node:
-           node['memories'] = []
+            node['memories'] = []
 
         node['memories'].append(new_memory['id'])
 
@@ -837,8 +833,7 @@ class TreeModel:
                         summaries.append(summary)
         return summaries
 
-
-    #returns first node that is fully contained in the context window
+    # returns first node that is fully contained in the context window
     def context_window_index(self):
         _, indices = self.node_ancestry_text()
         first_in_context_index = indices[-1] - self.generation_settings['prompt_length']
@@ -846,7 +841,6 @@ class TreeModel:
             return 0
         context_node_index = bisect.bisect_left(indices, first_in_context_index) + 1
         return context_node_index
-
 
     #################################
     #   I/O
@@ -856,7 +850,6 @@ class TreeModel:
     def _init_global_objects(self):
         # Chapters
         if 'chapters' not in self.tree_raw_data:
-            print('no chapters')
             self.tree_raw_data['chapters'] = {}
         self.chapters = self.tree_raw_data["chapters"]
 
@@ -871,6 +864,10 @@ class TreeModel:
         if 'summaries' not in self.tree_raw_data:
             self.tree_raw_data['summaries'] = {}
         self.summaries = self.tree_raw_data["summaries"]
+
+        if 'model_responses' not in self.tree_raw_data:
+            self.tree_raw_data['model_responses'] = {}
+        self.model_responses = self.tree_raw_data['model_responses']
 
         # Generation settings
         self.tree_raw_data["generation_settings"] = {
@@ -894,11 +891,6 @@ class TreeModel:
             **self.tree_raw_data.get("chat_preferences", {})
         }
 
-        # Accidentally added generation settings to this dict once. Remove them
-        # FIXME remove when this is no longer a problem
-        # for key in DEFAULT_GENERATION_SETTINGS.keys():
-        #     if key not in DEFAULT_VISUALIZATION_SETTINGS:
-        #         self.tree_raw_data["visualization_settings"].pop(key, None)
 
     def copy_global_objects(self, new_tree):
         if 'chapters' not in new_tree:
@@ -987,7 +979,7 @@ class TreeModel:
         node = self.selected_node if not node else node
         if new_filename:
             self.tree_filename = os.path.join(os.getcwd() + '/data', f'{new_filename}.json')
-        #new_root = node
+        # new_root = node
         if 'parent_id' in node:
             node.pop('parent_id')
         self.load_tree_data(node, init_global=rebuild_global)
@@ -1047,7 +1039,7 @@ class TreeModel:
                 os.mkdir(backup_dir)
             os.rename(save_filename, os.path.join(backup_dir, f"{filename}-{timestamp()}.json"))
 
-        #print('chapters:', subtree['chapters'])
+        # print('chapters:', subtree['chapters'])
         # Save tree
         # Save tree dict from bottom of hoist stack
         json_create(save_filename, subtree)
@@ -1064,149 +1056,27 @@ class TreeModel:
     #   Generation
     #################################
 
-    def chat_generate(self, prompt, nodes):
-        start_text = ''
-
-        # only inject start text if current node isn't AI
-        # TODO what if more than one node ago? Use source attribute instead?
-        if not self.selected_node['text'].startswith('\n' + self.chat_preferences['AI_name']):
-            start_text += '\n' + self.chat_preferences['AI_name'] + ':'
-        prompt = self.chat_preferences['context'] + '\n' + prompt + start_text
+    def gen(self, prompt, n, stop):
         try:
-            results, error = openAI_generate(prompt=prompt,
-                                             length=self.generation_settings['response_length'],
-                                             num_continuations=len(nodes),
-                                             temperature=self.generation_settings['temperature'],
-                                             logprobs=self.generation_settings['logprobs'],
-                                             top_p=self.generation_settings['top_p'],
-                                             engine=self.generation_settings['model'],
-                                             stop=["\n", self.chat_preferences['player_name'] + ':'],
-                                             )
+            results, error = generate(prompt=prompt,
+                                      length=self.generation_settings['response_length'],
+                                      num_continuations=n,
+                                      temperature=self.generation_settings['temperature'],
+                                      logprobs=self.generation_settings['logprobs'],
+                                      top_p=self.generation_settings['top_p'],
+                                      model=self.generation_settings['model'],
+                                      stop=stop,
+                                      )
         except TypeError as e:
+            results = None
             error = "Typeerror"
+        return results, error
 
+    def post_generation(self, error, nodes, results, prepend_text='', append_text=''):
         if not error:
-            self.generated_nodes_metadata(nodes, results, prompt, prepend_text=start_text)
-        else:
-            self.delete_failed_nodes(nodes, error)
-            return
-
-        for result in results.choices:
-            print("Generated continuation:\n", result['text'], "\nerror", error)
-
-        self.app.event_generate("<<NewNodes>>", when="tail")
-
-    def dialogue_generate(self, prompt, nodes):
-        start_text = '\n"'
-        prompt = prompt + start_text
-        try:
-            results, error = openAI_generate(prompt=prompt,
-                                             length=self.generation_settings['response_length'],
-                                             num_continuations=len(nodes),
-                                             temperature=self.generation_settings['temperature'],
-                                             logprobs=self.generation_settings['logprobs'],
-                                             top_p=self.generation_settings['top_p'],
-                                             engine=self.generation_settings['model'],
-                                             stop=['\n'],
-                                             )
-        except TypeError as e:
-            error = "Typeerror"
-
-        if not error:
-            self.generated_nodes_metadata(nodes, results, prompt, prepend_text=start_text)
-        else:
-            self.delete_failed_nodes(nodes, error)
-            return
-
-        for result in results.choices:
-            print("Generated continuation:\n", result['text'], "\nerror", error)
-
-        self.app.event_generate("<<NewNodes>>", when="tail")
-
-    def antisummary_generate(self, prompt, nodes, summary):
-        start_text = f'\n{self.antisummary_embedding(summary)}'
-        prompt = prompt + start_text
-        print('antisummary prompt:\n', prompt)
-        try:
-            if self.generation_settings["stop"]:
-                stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
-            else:
-                stop = []
-            stop.append('[')
-            stop.append('\n\n')
-            results, error = openAI_generate(prompt=prompt,
-                                             length=self.generation_settings['response_length'],
-                                             num_continuations=len(nodes),
-                                             temperature=self.generation_settings['temperature'],
-                                             top_p=self.generation_settings['top_p'],
-                                             logprobs=self.generation_settings['logprobs'],
-                                             engine=self.generation_settings['model'],
-                                             stop=stop,
-                                             )
-        except TypeError as e:
-            error = "Typeerror"
-
-        if not error:
-            for node in nodes:
-                self.create_summary(root_node=node, end_node=node, summary_text=summary)
-            self.generated_nodes_metadata(nodes, results, prompt)
-            for node in nodes:
-                if node['text'][0] != '\n':
-                    node['text'] = '\n' + node['text']
-        else:
-            self.delete_failed_nodes(nodes, error)
-            return
-
-        for result in results.choices:
-            print("Generated continuation:\n", result['text'], "\nerror", error)
-
-        self.app.event_generate("<<NewNodes>>", when="tail")
-
-    def default_generate(self, prompt, nodes, grandchildren=None):
-        if self.generation_settings['janus']:
-            pool = ThreadPool(len(nodes))
-            janus_responses = pool.map(janus_generate, [prompt] * len(nodes))
-            results, errors = zip(*janus_responses)
-            errors = [e for e in errors if e]
-            error = errors[0] if errors else None
-        else:
-            try:
-                if self.generation_settings["stop"]:
-                    stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
-                else:
-                    stop = None
-                if self.preferences['gpt_mode'] == 'antisummary':
-                    if not stop:
-                        stop = []
-                    stop.append('[')
-                    stop.append('\n\n')
-                results, error = generate(prompt=prompt,
-                                          length=self.generation_settings['response_length'],
-                                          num_continuations=len(nodes),
-                                          temperature=self.generation_settings['temperature'],
-                                          top_p=self.generation_settings['top_p'],
-                                          logprobs=self.generation_settings['logprobs'],
-                                          model=self.generation_settings['model'],
-                                          stop=stop
-                                          )
-            except TypeError as e:
-                error = "Typeerror"
-        if not error:
-            #pprint(self.generation_settings)
-            # if self.generation_settings['adaptive']:
-            #     for i, result in enumerate(results.choices):
-            #         min_logprob = np.argmin(result["logprobs"]["token_logprobs"])
-            #         split_position = result["logprobs"]["text_offset"][min_logprob] - len(prompt)
-            #         childtext = result["text"][:split_position]
-            #         grandchild_text = result["text"][split_position:]
-            #         nodes[i]["text"] = childtext
-            #         grandchildren[i]["text"] = grandchild_text
-            #         # TODO metadata
-            #
-            # else:
-            #     self.generated_nodes_metadata(nodes, results, prompt)
-            self.set_generated_nodes(nodes, results)
-
+            #TODO adaptive branching
+            self.model_responses[results['id']] = results
+            self.set_generated_nodes(nodes, results, prepend_text=prepend_text, append_text=append_text)
         else:
             self.delete_failed_nodes(nodes, error)
             return
@@ -1221,36 +1091,108 @@ class TreeModel:
         for i, node in enumerate(nodes):
             node['text'] = prepend_text + results['completions'][i]['text'] + append_text
             self.node_creation_metadata(node, source='AI')
-            # TODO save generation metadata and history
-
-    # TODO save mode
-    def generated_nodes_metadata(self, nodes, results, prompt, prepend_text='', append_text=''):
-        # TODO "history"
-        for index, node in enumerate(nodes):
-            node["text"] = prepend_text + results.choices[index]["text"] + append_text
-            node["meta"] = {}
-            node["meta"]["generation"] = results.choices[index]
-            node["meta"]["generation"]["model"] = results["model"]
-            node["meta"]["generation"]["prompt"] = prompt
-            # created
-            node["meta"]["modified"] = False
-            node["meta"]["origin"] = "generated"
-            #node["meta"]["source"] = "AI"
-            self.node_creation_metadata(node, source='AI')
-            # remove offset of prompt
-            # TODO fix old nodes
-            # TODO save a list of tokens in completion
-            corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
-            node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
-            node['meta']['generation']['logprobs']['echo_text_offset'] = node['meta']['generation']["logprobs"]["text_offset"]
+            node["generation"] = {'id': results['id'],
+                                  'index': i}
+            # TODO save history
 
     def delete_failed_nodes(self, nodes, error):
         print("ERROR. Deleting failures")
         for node in nodes:
-            node["text"] = "ERROR: " + error
-            # Just delete instead
             parent = self.parent(node)
             parent["children"].remove(node)
+        self.tree_updated(delete=[node['id'] for node in nodes])
+
+    def chat_generate(self, prompt, nodes):
+        start_text = ''
+
+        # only inject start text if current node isn't AI
+        # TODO what if more than one node ago? Use source attribute instead?
+        if not self.selected_node['text'].startswith('\n' + self.chat_preferences['AI_name']):
+            start_text += '\n' + self.chat_preferences['AI_name'] + ':'
+
+        prompt = self.chat_preferences['context'] + '\n' + prompt + start_text
+        results, error = self.gen(prompt,
+                                  len(nodes),
+                                  ["\n", self.chat_preferences['player_name'] + ':'])
+        self.post_generation(error, nodes, results, prepend_text=start_text)
+
+    def dialogue_generate(self, prompt, nodes):
+        start_text = '\n"'
+        prompt = prompt + start_text
+        results, error = self.gen(prompt, len(nodes), ['\n'])
+        self.post_generation(error, nodes, results, prepend_text=start_text)
+
+    def antisummary_generate(self, prompt, nodes, summary):
+        start_text = f'\n{self.antisummary_embedding(summary)}'
+        prompt = prompt + start_text
+        print('antisummary prompt:\n', prompt)
+        if self.generation_settings["stop"]:
+            stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
+        else:
+            stop = []
+        stop.append('[')
+        stop.append('\n\n')
+        results, error = self.gen(prompt, len(nodes), stop)
+        if not error:
+            for node in nodes:
+                self.create_summary(root_node=node, end_node=node, summary_text=summary)
+            self.set_generated_nodes(nodes, results, prompt)
+            for node in nodes:
+                if node['text'][0] != '\n':
+                    node['text'] = '\n' + node['text']
+        else:
+            self.delete_failed_nodes(nodes, error)
+            return
+
+        for result in results.choices:
+            print("Generated continuation:\n", result['text'], "\nerror", error)
+
+        self.app.event_generate("<<NewNodes>>", when="tail")
+
+    def default_generate(self, prompt, nodes, grandchildren=None):
+        if self.generation_settings["stop"]:
+            stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
+        else:
+            stop = None
+        if self.preferences['gpt_mode'] == 'antisummary':
+            if not stop:
+                stop = []
+            stop.append('[')
+            stop.append('\n\n')
+        results, error = self.gen(prompt, len(nodes), stop)
+        self.post_generation(error, nodes, results)
+
+
+    # if self.generation_settings['adaptive']:
+    #     for i, result in enumerate(results.choices):
+    #         min_logprob = np.argmin(result["logprobs"]["token_logprobs"])
+    #         split_position = result["logprobs"]["text_offset"][min_logprob] - len(prompt)
+    #         childtext = result["text"][:split_position]
+    #         grandchild_text = result["text"][split_position:]
+    #         nodes[i]["text"] = childtext
+    #         grandchildren[i]["text"] = grandchild_text
+    #         # TODO metadata
+
+    # TODO save mode
+    # def generated_nodes_metadata(self, nodes, results, prompt, prepend_text='', append_text=''):
+    #     # TODO "history"
+    #     for index, node in enumerate(nodes):
+    #         node["text"] = prepend_text + results.choices[index]["text"] + append_text
+    #         node["meta"] = {}
+    #         node["meta"]["generation"] = results.choices[index]
+    #         node["meta"]["generation"]["model"] = results["model"]
+    #         node["meta"]["generation"]["prompt"] = prompt
+    #         # created
+    #         node["meta"]["modified"] = False
+    #         node["meta"]["origin"] = "generated"
+    #         #node["meta"]["source"] = "AI"
+    #         self.node_creation_metadata(node, source='AI')
+    #         # remove offset of prompt
+    #         # TODO fix old nodes
+    #         # TODO save a list of tokens in completion
+    #         corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
+    #         node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
+    #         node['meta']['generation']['logprobs']['echo_text_offset'] = node['meta']['generation']["logprobs"]["text_offset"]
 
     def antisummary_embedding(self, summary):
         return f'\n[Next section summary: {summary}]\n'
@@ -1268,7 +1210,7 @@ class TreeModel:
                         summary = self.summaries[summary_id]
                         if summary['end_id'] in ancestor_ids:
                             prompt += self.antisummary_embedding(summary['text'])
-                            #prompt += f'\n[{summary["text"]}]\n'
+                            # prompt += f'\n[{summary["text"]}]\n'
                 prompt += ancestor['text']
         else:
             prompt = "".join(self.node_ancestry_text(node)[0])
@@ -1283,7 +1225,7 @@ class TreeModel:
         if not quiet:
             print("Memory:\n", memory)
             print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
-            #print("Prompt:\n", prompt)
+            # print("Prompt:\n", prompt)
         return memory + prompt
 
     def autocomplete_generate(self, appended_text, engine='curie'):
@@ -1314,7 +1256,7 @@ class TreeModel:
         children = []
         grandchildren = []
         new_nodes = []
-        #pprint(self.generation_settings)
+        # pprint(self.generation_settings)
         for i in range(self.generation_settings['num_continuations']):
             child = self.create_child(node, update_selection=False, expand=True, tree_updated=False)
             children.append(child)
@@ -1383,18 +1325,19 @@ class TreeModel:
         self.tree_updated(add=[child['id'] for child in children])
         # for each child node, branch again
         for child in children:
-            #self.new_nodes.append(child['id'])
-            self.generate_tree(node=child, max_depth=max_depth-1, branching_factor=branching_factor, interval=interval,
+            # self.new_nodes.append(child['id'])
+            self.generate_tree(node=child, max_depth=max_depth - 1, branching_factor=branching_factor,
+                               interval=interval,
                                stop_condition=stop_condition, temperature=temperature, engine=engine)
 
         # TODO multi threading
-
 
     def generate_adaptive_tree(self, node=None, max_depth=3, branching_factor=2, max_interval=100, algorithm='min',
                                min_interval=None, stop_condition=None):
         pass
 
         # TODO range
+
     def semantic_search_memory(self, node, document_limit=100, max_length=1000):
         documents = []
 
@@ -1405,7 +1348,7 @@ class TreeModel:
                 documents.append(text[:max_length])
                 text = text[max_length:]
             documents.append(text)
-        #documents.reverse()
+        # documents.reverse()
         query = node['text']
         return search(query, documents)
 
@@ -1416,7 +1359,7 @@ class TreeModel:
             if 'generation' in root['meta']:
                 if 'logprobs' in root['meta']['generation']:
                     root['meta']['generation']["logprobs"]["top_logprobs"] = []
-                    #print('deleted logprobs')
+                    # print('deleted logprobs')
         for child in root['children']:
             self.delete_counterfactuals(root=child)
 
@@ -1449,13 +1392,15 @@ class TreeModel:
             text = '\n"' + text
         else:
             # default
-            if text and self.selected_node['text'] and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] and text[0] != ' ':
+            if text and self.selected_node['text'] and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(',
+                                                                                              '{', '[', '*'] and text[
+                0] != ' ':
                 text = ' ' + text
             else:
                 text = text
         return text
 
-    #submit modifications appended to user input
+    # submit modifications appended to user input
     def post_modifications(self, text):
         if self.preferences['gpt_mode'] == 'dialogue':
             # add punctuation if there isn't any
@@ -1472,7 +1417,7 @@ class TreeModel:
         if not node:
             node = self.selected_node
         story = self.build_prompt(node=node, memory=False)
-        return conditional_logprob(prompt=story+context_breaker, target=target, engine=engine)
+        return conditional_logprob(prompt=story + context_breaker, target=target, engine=engine)
 
     def measure_path_optimization(self, root=None, node=None):
         node = node if node else self.selected_node
@@ -1492,7 +1437,7 @@ class TreeModel:
         print('selection bits: {:.2f}'.format(selection_bits))
         total_bits = intervention_bits + selection_bits
         print('total bits: {:.2f}'.format(total_bits))
-        print(f'bits per token: {total_bits:.2f}/{total_tokens} =',  '{:.2f}'.format(total_bits / total_tokens))
+        print(f'bits per token: {total_bits:.2f}/{total_tokens} =', '{:.2f}'.format(total_bits / total_tokens))
 
     def measure_node_optimization(self, node=None, quiet=False, final_node=None):
         node = node if node else self.selected_node
@@ -1511,7 +1456,6 @@ class TreeModel:
         else:
             # human-written node, intervention optimization only
             has_intervention_optimization = True
-
 
         node_tokens = None
 
@@ -1535,14 +1479,17 @@ class TreeModel:
             if not quiet:
                 print('\ntotal intervention logprob:', intervention_logprob)
                 print('total intervention optimization power:', intervention_optimization_power)
-                print(f'bits of intervention optimization: (log_2({intervention_optimization_power})) =', intervention_bits)
-                print(f'intervention bits per token: {intervention_bits}/{len(node_tokens)} =', intervention_bits / len(node_tokens))
+                print(f'bits of intervention optimization: (log_2({intervention_optimization_power})) =',
+                      intervention_bits)
+                print(f'intervention bits per token: {intervention_bits}/{len(node_tokens)} =',
+                      intervention_bits / len(node_tokens))
         else:
             intervention_optimization_power = 1
             intervention_bits = 0
 
         if has_selection_optimization:
-            selection_optimization_power, selection_bits, node_tokens = self.selection_optimization(node=node, final_node=final_node)
+            selection_optimization_power, selection_bits, node_tokens = self.selection_optimization(node=node,
+                                                                                                    final_node=final_node)
             if not quiet:
                 print('\ntotal selection optimization power:', selection_optimization_power)
                 print(f'bits of selection optimization: (log_2({selection_optimization_power})) =',
@@ -1641,4 +1588,3 @@ class TreeModel:
                                                           unnormalized_threshold=threshold,
                                                           engine=engine)
         return multiverse, ground_truth
-

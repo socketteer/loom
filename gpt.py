@@ -5,9 +5,35 @@ from pprint import pprint
 
 from celery import Celery
 import openai
-from util.util import retry
+from util.util import retry, timestamp
 import requests
 
+
+# token data dictionary type
+'''
+{
+    'generatedToken': {'logprob': float,
+                       'token': string}
+    'position': {'end': int, 'start': int}
+    ? 'counterfactuals': [{'token': float)}]  
+
+'''
+
+# response dictionary type
+'''
+{
+    "completions": [{'text': string
+                     'tokens': [token_data]
+                     'finishReason': string}]
+    "prompt": {
+                'text': string,
+                ? 'tokens': [token_data]
+              }
+    "id": string
+    "model": string
+    "timestamp": timestamp
+}
+'''
 
 POSSIBLE_MODELS = [
     'ada',
@@ -97,7 +123,8 @@ def format_openAI_response(response, prompt, echo):
         response_dict = {'completions': [format_openAI_completion(completion, prompt) for completion in response['choices']],
                          'prompt': {'text': prompt},
                          'id': response['id'],
-                         'model': response['model']}
+                         'model': response['model'],
+                         'timestamp': timestamp()}
     return response_dict
 
 
@@ -159,56 +186,37 @@ def format_ai21_response(response, model):
                      'prompt': {'text': response['prompt']['text'],
                                 'tokens': [format_ai21_token_data(token) for token in response['prompt']['tokens']]},
                      'id': response['id'],
-                     'model': model}
+                     'model': model,
+                     'timestamp': timestamp()}
     return response_dict
 
 
 def ai21_generate(prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
                   engine='j1-large', **kwargs):
     stop = stop if stop else []
-    response = requests.post(
-        f"https://api.ai21.com/studio/v1/{engine}/complete",
-        headers={"Authorization": f"Bearer {ai21_api_key}"},
-        json={
-            "prompt": prompt,
-            "numResults": num_continuations,
-            "maxTokens": length,
-            "stopSequences": stop,
-            "topKReturn": logprobs,
-            "temperature": temperature,
-            "topP": top_p,
-        }
-    )
+    try:
+        response = requests.post(
+            f"https://api.ai21.com/studio/v1/{engine}/complete",
+            headers={"Authorization": f"Bearer {ai21_api_key}"},
+            json={
+                "prompt": prompt,
+                "numResults": num_continuations,
+                "maxTokens": length,
+                "stopSequences": stop,
+                "topKReturn": logprobs,
+                "temperature": temperature,
+                "topP": top_p,
+            }
+        )
+    except requests.exceptions.ConnectionError:
+        return None, 'Connection error'
     error = None
     if response.status_code != 200:
         error = f'Bad status code {response.status_code}'
     return response, error
 
 
-# token data dictionary type
-'''
-{
-    'generatedToken': {'logprob': float,
-                       'token': string}
-    'position': {'end': int, 'start': int}
-    ? 'counterfactuals': [{'token': float)}]  
 
-'''
-
-# response dictionary type
-'''
-{
-    "completions": [{'text': string
-                     'tokens': [token_data]
-                     'finishReason': string}]
-    "prompt": {
-                'text': string,
-                ? 'tokens': [token_data]
-              }
-    "id": string
-    "model": string
-}
-'''
 
 
 if __name__ == "__main__":

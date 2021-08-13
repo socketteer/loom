@@ -1,5 +1,12 @@
 ## Priority
 
+- requests object
+- fix everything that uses old data format
+    - wavefunction
+    - highlighting
+    - autocomplete
+    - dif logging
+    - search meta ['generation']
 - test click goto commands
 - vis expanded state out of sync with nav tree expanded state
 - tutorial
@@ -7,11 +14,14 @@
 - masks
 - floating nodes/subtrees
 - fix old tree function
+- generation datatype refactor
 
 ## Other TODO
 
 ### bugs
 
+* "a" and "b" don't work as inputs to input box??
+    * capitals work
 * crashes with this error sometimes: `_tkinter.TclError: bad text index "tk::anchor1"`
 * key bindings only work in most recent tab
 * num leaves calculated incorrectly
@@ -27,7 +37,6 @@
 * merge with children is broken?
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * even in hide canonical mode, often noncanonical nodes show up after changes to the tree
-* deleting failed generated nodes doesn't work
 
 ### problems
 * saving is slow for massive trees
@@ -35,11 +44,15 @@
 
 ### Deprecated
 - child edit mode
+- OpenAI logprob format. Use loom-specific format now for everything
+- Janus generate
+
+#### To deprecate
 - node-specific meta.generation dictionary
+- node-specific "visited" status (move to session file)
 
 
 ### Tokenization
-
 - change gpt2 tokenizer import so loom doesn't require internet connection to run
     - use ada to tokenize instead? will this cause lag?
     - GPT2 tokenizer local files?
@@ -116,14 +129,14 @@
     
 
 ### archived
-    - visually indicate archived nodes in nav tree when hide_archived=False (~ or different color?)
+- visually indicate archived nodes in nav tree when hide_archived=False (~ or different color?)
      
 
 ### session files: separate session from underlying tree?
-    - visited
-    - active node
-    - expanded state
-    - settings... 
+- visited
+- active node
+- expanded state
+- settings... 
 
 ### Generation
 - generation 
