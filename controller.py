@@ -1168,7 +1168,6 @@ class Controller:
         self.display.textbox.tag_delete("match")
         self.display.textbox.tag_delete("active_match")
 
-
     @metadata(name="Next match")
     def next_match(self):
         if self.search_textbox.meta['matches'] is None:
@@ -1191,7 +1190,6 @@ class Controller:
         # scroll to active match
         self.display.textbox.see(f"1.0 + {active_match['span'][0]} chars")
 
-
     def in_search(self):
         return self.search_textbox.meta['matches'] is not None
 
@@ -1201,7 +1199,7 @@ class Controller:
         if toggle:
             self.display.open_search()
         else:
-            self.display.close_search()
+            self.display.exit_search()
 
     #################################
     #   Filtering

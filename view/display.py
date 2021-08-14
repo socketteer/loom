@@ -761,8 +761,9 @@ class Display:
         self.textbox.focus()
 
     def all_edit_off(self):
-        for tb_id in self.multi_textboxes:
-            self.edit_off(tb_id)
+        if self.multi_textboxes:
+            for tb_id in self.multi_textboxes:
+                self.edit_off(tb_id)
 
     # regrid textboxes without remaking widgets
     def regrid_textboxes(self):
