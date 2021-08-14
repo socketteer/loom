@@ -1580,7 +1580,7 @@ class TreeModel:
         threshold = threshold * unnormalized_amplitude
         prompt = prompt if prompt else ''
         node = node if node else self.selected_node
-        prompt = self.build_prompt(quiet=False, node=node) + prompt
+        prompt = self.build_prompt(quiet=True, node=node) + prompt
         multiverse, ground_truth = greedy_word_multiverse(prompt=prompt, ground_truth=ground_truth, max_depth=max_depth,
                                                           unnormalized_amplitude=unnormalized_amplitude,
                                                           unnormalized_threshold=threshold,

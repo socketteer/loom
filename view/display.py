@@ -207,7 +207,7 @@ class Display:
         self.vis = TreeVis(self.story_frame,
                            self.state, self.controller)
 
-        self.multiverse = BlockMultiverse(self.story_frame, self.set_pastbox_text)
+        self.multiverse = BlockMultiverse(self.story_frame, self.set_pastbox_text, self.write_to_debug)
 
         self.bottom_input_frame = ttk.Frame(self.main_frame)
         self.bottom_input_frame.pack(side="bottom", fill="both")
@@ -517,6 +517,13 @@ class Display:
             wrap="word",
         )
         self.debug_box.configure(state="disabled")
+
+    def write_to_debug(self, message):
+        if self.debug_box:
+            self.debug_box.configure(state="normal")
+            self.debug_box.insert("end-1c", '\n')
+            self.debug_box.insert("end-1c", message)
+            self.debug_box.configure(state="disabled")
 
     def build_input_box(self):
         self.rebuild_bottom_frame()

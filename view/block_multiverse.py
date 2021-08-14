@@ -14,7 +14,7 @@ rainbow_colors = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F0
 default_y_scale = 1
 
 class BlockMultiverse:
-    def __init__(self, parent_frame, set_past_box):
+    def __init__(self, parent_frame, set_past_box, write_to_debug):
         self.parent_frame = parent_frame
         self.frame = None
         self.canvas = None
@@ -29,6 +29,7 @@ class BlockMultiverse:
         self.x_scale = 1
         self.bind_mouse_controls()
         self.prompt = None
+        self.write_to_debug = write_to_debug
 
     def clear_multiverse(self):
         self.wavefunction = None
@@ -124,10 +125,18 @@ class BlockMultiverse:
             self.canvas.itemconfig(info['text_widget'], font=('Arial', size))
 
     def set_y_window(self, x0, y0, height):
+        old_y_scale = self.y_scale
         self.reset_view()
         self.window_offset = (x0, y0)
         self.canvas.move("all", -x0, -y0)
         self.y_scale = self.window_height / height
+        magnification = self.y_scale / old_y_scale
+
+        print('\nmagnification: *', "{:.2f}".format(magnification))
+        print('total magnification: ', "{:.2f}".format(self.y_scale)) 
+        print('+{:.2f} bits'.format(math.log(magnification,2)))
+        print('total bits: ', "{:.2f}".format(math.log(self.y_scale, 2)))
+
         self.canvas.scale("all", 0, 0, 1, self.y_scale)
         self.fix_text_zoom()
 
@@ -148,6 +157,7 @@ class BlockMultiverse:
 
     def node_clicked(self, x0, y0, height, node_id):
         self.selected_id = node_id
+        #print(self.node_info[node_id]['token'])
         self.set_y_window(x0, y0, height)
         prefix_text = self.node_info[node_id]['prefix']
         self.set_past_box(prompt_text=self.prompt if self.prompt else '', 

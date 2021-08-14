@@ -1335,11 +1335,7 @@ class Controller:
 
     def print_to_debug(self, message):
         # TODO print to debug stream even if debug box is not active
-        if self.display.debug_box:
-            self.display.debug_box.configure(state="normal")
-            self.display.debug_box.insert("end-1c", '\n')
-            self.display.debug_box.insert("end-1c", message)
-            self.display.debug_box.configure(state="disabled")
+        self.display.write_to_debug(message)
 
 
     @metadata(name="Update mode", keys=[], display_key="")
