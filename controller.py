@@ -1130,14 +1130,17 @@ class Controller:
     def search_ancestry(self):
         self.toggle_search()
 
-    @metadata(name="Search textbox", matches=None, match_index=None, search_term=None)
+    @metadata(name="Search textbox", matches=None, match_index=None, search_term=None, case_sensitive=None)
     def search_textbox(self, pattern, case_sensitive=False):
         if self.search_textbox.meta['matches'] is not None:
-            if self.search_textbox.meta['search_term'] == pattern:
+            if self.search_textbox.meta['search_term'] == pattern \
+                    and self.search_textbox.meta['case_sensitive'] == case_sensitive:
                 self.next_match()
                 return
             else:
                 self.clear_search()
+        self.search_textbox.meta['search_term'] = pattern
+        self.search_textbox.meta['case_sensitive'] = case_sensitive
         ancestry_text, _ = self.state.node_ancestry_text()
         ancestry_text = ''.join(ancestry_text)
         matches = []
@@ -1147,6 +1150,7 @@ class Controller:
         for match in matches_iter:
             matches.append({'span': match.span(),
                             'match': match.group()})
+        self.search_textbox.meta['matches'] = matches
         if not matches:
             self.display.update_search_results(num_matches=0)
             self.clear_search()
@@ -1156,8 +1160,6 @@ class Controller:
             self.display.textbox.tag_add("match",
                                          f"1.0 + {match['span'][0]} chars",
                                          f"1.0 + {match['span'][1]} chars")
-        self.search_textbox.meta['matches'] = matches
-        self.search_textbox.meta['search_term'] = pattern
         self.next_match()
 
     @metadata(name="Clear search")
@@ -1165,6 +1167,7 @@ class Controller:
         self.search_textbox.meta['search_term'] = None
         self.search_textbox.meta['matches'] = None
         self.search_textbox.meta['match_index'] = None
+        self.search_textbox.meta['case_sensitive'] = None
         self.display.textbox.tag_delete("match")
         self.display.textbox.tag_delete("active_match")
 

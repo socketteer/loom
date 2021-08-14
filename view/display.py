@@ -94,8 +94,10 @@ class Display:
         self.search_box = None
         self.search_frame = None
         self.search_label = None
+        self.case_sensitive_checkbox = None
         self.case_sensitive = None
         self.search_results = None
+        self.search_close_button = None
 
         self.button_bar = None
         self.edit_button = None
@@ -721,7 +723,7 @@ class Display:
 
     def make_button(self, name, function, row, column, tb_id, tb_item):
         button = tk.Label(self.multi_scroll_frame.scrollable_frame, image=self.icons[name]['icon'], bg=bg_color())
-        button.image = self.icons['archive']
+        #button.image = self.icons['archive']
         button.grid(row=row * 2, column=column, padx=5)
         button.bind("<Button-1>", lambda event, _textbox_id=tb_id: function(_textbox_id))
         tb_item[name] = button
@@ -878,7 +880,6 @@ class Display:
     #   Search
     #################################
 
-    # TODO case sensitive
     def open_search(self):
         self.close_search()
         self.search_frame.pack(side='bottom', expand=False, fill='x')
@@ -893,9 +894,17 @@ class Display:
             foreground=text_color(),
             background=bg_color(),
         )
+        if not self.case_sensitive:
+            self.case_sensitive = tk.BooleanVar(value=0)
+        self.case_sensitive_checkbox = ttk.Checkbutton(self.search_frame, text='Aa', variable=self.case_sensitive, 
+                                                       )
+        self.case_sensitive_checkbox.pack(side='left', expand=False, padx=5)
+
+        self.search_close_button = ttk.Button(self.search_frame, text='[x]', command=self.exit_search, width=2.5)
+        self.search_close_button.pack(side='left', expand=False, padx=5)
+
         self.search_box.focus()
-        # TODO don't print newline
-        #self.search_box.bind('<Return>', lambda event=None: self.search())
+
         self.search_box.bind("<Key>", lambda event: self.search_key_pressed(event))
 
     def close_search(self):
@@ -908,17 +917,19 @@ class Display:
         if self.search_results:
             self.search_results.pack_forget()
             self.search_results = None
+        if self.case_sensitive_checkbox:
+            self.case_sensitive_checkbox.pack_forget()
+            self.case_sensitive_checkbox = None
+        if self.search_close_button:
+            self.search_close_button.pack_forget()
+            self.search_close_button = None
         self.search_frame.pack_forget()
-
-    def search(self):
-        search_term = self.search_box.get("1.0", 'end-1c')
-        print(f'search {search_term}')
-        self.callbacks["Search textbox"]["callback"](pattern=search_term)
 
     def search_key_pressed(self, event=None):
         if event.keysym == 'Return':
             search_term = self.search_box.get("1.0", 'end-1c')
-            self.callbacks["Search textbox"]["callback"](pattern=search_term)
+            self.callbacks["Search textbox"]["callback"](pattern=search_term, 
+                                                         case_sensitive=self.case_sensitive.get())
             return 'break'
         elif event.keysym == 'Escape':
             self.exit_search()

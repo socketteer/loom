@@ -1,8 +1,5 @@
 ## Priority
 
-- ancestry search
-    - close button
-    - case sensitive checkbox
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
@@ -338,7 +335,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * search chapter titles
 * search tags
 * regex
-* search ancestry
 * integrated search
 * key filter -> semantic search among matches
 
