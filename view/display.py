@@ -495,16 +495,17 @@ class Display:
             background='black',
             wrap="word",
         )
+        self.past_box.tag_configure("prompt", foreground="gray")
         self.past_box.configure(state="disabled")
 
-    def set_pastbox_text(self, text):
-        print(self.past_box)
+    def set_pastbox_text(self, prompt_text='', completion_text=''):
         if self.past_box:
-            print('writing:', text)
             self.past_box.configure(state="normal")
-            self.past_box.delete("1.0", "end")
-            self.past_box.insert("end-1c", text)
+            self.past_box.delete('1.0', "end")
+            self.past_box.insert('1.0', prompt_text, "prompt")
+            self.past_box.insert("end-1c", completion_text)
             self.past_box.configure(state="disabled")
+            self.past_box.see(tk.END)
 
     def build_debug_box(self):
         self.rebuild_bottom_frame()

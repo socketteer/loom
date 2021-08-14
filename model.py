@@ -1585,7 +1585,7 @@ class TreeModel:
                                                           unnormalized_amplitude=unnormalized_amplitude,
                                                           unnormalized_threshold=threshold,
                                                           engine=engine)
-        return multiverse, ground_truth
+        return multiverse, ground_truth, prompt
 
 
     def get_request_info(self, node):

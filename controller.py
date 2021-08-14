@@ -141,7 +141,6 @@ class Controller:
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
                 ('Hoist subtree', 'Alt-H', None, no_junk_args(self.hoist)),
                 ('Unhoist subtree', 'Alt-Shift-H', None, no_junk_args(self.unhoist)),
-                ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
                 ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
                 ('Collapse subtree', 'Ctrl-minus', None, no_junk_args(self.collapse_subtree)),
                 ('Collapse all except subtree', 'Ctrl-:', None, no_junk_args(self.collapse_all_except_subtree)),
@@ -214,9 +213,12 @@ class Controller:
 
             ],
             "Settings": [
-                ('Chat settings', None, None, no_junk_args(self.chat_settings)),
+                ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences)),
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
-                ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences))
+                ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
+                ('Chat settings', None, None, no_junk_args(self.chat_settings)),
+
+
             ],
             "Info": [
                 ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
@@ -490,18 +492,18 @@ class Controller:
             if self.display.multiverse.active_wavefunction():
                 active_node = self.display.multiverse.active_info()
                 start_position = (active_node['x'], active_node['y'])
-                multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, prompt=active_node['prefix'],
+                multiverse, ground_truth, prompt = self.state.generate_greedy_multiverse(max_depth=4, prompt=active_node['prefix'],
                                                                                  unnormalized_amplitude=active_node['amplitude'],
                                                                                  ground_truth="",
                                                                                  threshold=0.04,
                                                                                  engine='ada')
             else:
                 start_position = (0, 0)
-                multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, ground_truth="",
+                multiverse, ground_truth, prompt = self.state.generate_greedy_multiverse(max_depth=4, ground_truth="",
                                                                                  threshold=0.04,
                                                                                  engine='ada')
             self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth,
-                                                    start_position=start_position)
+                                                    start_position=start_position, prompt=prompt)
 
     # def propagage_wavefunction_realtime(self):
     #     if self.display.mode == "Multiverse":
@@ -1146,7 +1148,6 @@ class Controller:
         matches = []
         matches_iter = re.finditer(pattern, ancestry_text) if case_sensitive \
             else re.finditer(pattern, ancestry_text, re.IGNORECASE)
-        # check if no matches found
         for match in matches_iter:
             matches.append({'span': match.span(),
                             'match': match.group()})
@@ -1724,6 +1725,10 @@ class Controller:
         elif self.display.mode == 'Multiverse':
             self.display.multiverse.reset_view()
 
+    @metadata(name="Clear multiverse", keys=["<Alt-0>"], display_key="Alt-0")
+    def reset_multiverse(self):
+        if self.display.mode == 'Multiverse':
+            self.display.multiverse.clear_multiverse()
 
     def refresh_notes(self, **kwargs):
         if not self.state.tree_raw_data or not self.state.selected_node or not self.state.preferences['side_pane']:

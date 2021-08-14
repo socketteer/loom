@@ -233,9 +233,7 @@
 
 ### Block multiverse
 
-* show more of prompt in past box
-* clear multiverse
-    * automatically clear multiverse if different root node
+* automatically clear multiverse if different root node
 * render multiverse in real time (draw after API calls) (IMPOSSIBLE)
 * panning
     * track x/y movements
@@ -249,6 +247,7 @@
 * generating multiverse also adds branches to loom tree (but labeled different so they don't clutter everything up?)
 * choose continuation by autocomplete / hotkeys
 * commands to go to parent, go to sibling, walk
+* fix precision errors
 
 
 

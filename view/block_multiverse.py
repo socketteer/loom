@@ -28,6 +28,16 @@ class BlockMultiverse:
         self.y_scale = default_y_scale
         self.x_scale = 1
         self.bind_mouse_controls()
+        self.prompt = None
+
+    def clear_multiverse(self):
+        self.wavefunction = None
+        self.selected_id = None
+        self.canvas.delete("all")
+        self.node_info = {}
+        self.set_past_box('', '')
+        self.prompt = None
+        self.reset_view()
 
     def build_canvas(self):
         self.frame = ttk.Frame(self.parent_frame)
@@ -127,6 +137,8 @@ class BlockMultiverse:
         self.canvas.move("all", self.window_offset[0], self.window_offset[1])
         self.window_offset = (0, 0)
         self.fix_text_zoom()
+        if self.prompt:
+            self.set_past_box(prompt_text=self.prompt)
 
     def active_wavefunction(self):
         return self.wavefunction and self.selected_id
@@ -138,10 +150,13 @@ class BlockMultiverse:
         self.selected_id = node_id
         self.set_y_window(x0, y0, height)
         prefix_text = self.node_info[node_id]['prefix']
-        self.set_past_box(prefix_text)
+        self.set_past_box(prompt_text=self.prompt if self.prompt else '', 
+                          completion_text=prefix_text)
 
     def draw_multiverse(self, multiverse, ground_truth='', block_width=150, start_position=(0, 0), color_index=0,
-                        prefix='', show_text=True, show_probabilities=False):
+                        prefix='', show_text=True, show_probabilities=False, prompt=''):
+        self.prompt = prompt
+        self.set_past_box(prompt_text=self.prompt)
         if not self.wavefunction:
             self.wavefunction = multiverse
         else:
