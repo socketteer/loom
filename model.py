@@ -20,7 +20,7 @@ from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancest
     new_node, compound_node
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 from util.multiverse_util import greedy_word_multiverse
-
+from util.node_conditions import conditions
 
 # Calls any callbacks associated with the wrapped function
 # class must have a defaultdict(list)[func_name] = [*callbacks]
@@ -34,6 +34,10 @@ def event(func):
         return output
 
     return wrapper
+
+
+
+
 
 
 # The old way.
@@ -91,7 +95,7 @@ DEFAULT_GENERATION_SETTINGS = {
     'top_p': 1,
     'response_length': 100,
     'prompt_length': 6000,
-    'logprobs': 10,
+    'logprobs': 4,
     "janus": False,
     "adaptive": False,
     "model": "davinci",
@@ -113,6 +117,10 @@ DEFAULT_VISUALIZATION_SETTINGS = {
     # show canonical only
     # highlight canonical
     # auto collapse
+}
+
+DEFAULT_STATE = {
+    'show_search': False,
 }
 
 EMPTY_TREE = {
@@ -144,6 +152,7 @@ class TreeModel:
         self.checkpoint = None
         self.canonical = None
         self.model_responses = None
+        self.state_preferences = DEFAULT_STATE
 
         self.hoist_stack = []
 
@@ -155,6 +164,7 @@ class TreeModel:
         self.selected_node_id = None
 
         self.callbacks = defaultdict(list)
+        self.conditions = defaultdict(list)
         self.new_nodes = []
 
     @property
@@ -360,7 +370,7 @@ class TreeModel:
     # Clips index
     def select_child(self, child_num, node=None):
         node = node if node else self.selected_node
-        children = conditional_children(node, self.generate_conditions())
+        children = conditional_children(node, self.generate_visible_conditions())
         if node and len(children) > 0:
             return self.select_node(index_clip(children, child_num)["id"])
 
@@ -369,7 +379,7 @@ class TreeModel:
         node = node if node else self.selected_node
         if node and "parent_id" in node:
             # siblings = self.parent(node)["children"]
-            siblings = conditional_children(self.parent(node), self.generate_conditions())
+            siblings = conditional_children(self.parent(node), self.generate_visible_conditions())
             sibling = siblings[(siblings.index(node) + offset) % len(siblings)]
             return self.select_node(sibling["id"])
 
@@ -381,7 +391,7 @@ class TreeModel:
     # return child
     def child(self, child_num, node=None):
         node = node if node else self.selected_node
-        children = conditional_children(node, self.generate_conditions())
+        children = conditional_children(node, self.generate_visible_conditions())
         if node and len(children) > 0:
             return index_clip(children, child_num)["id"]
 
@@ -389,12 +399,19 @@ class TreeModel:
     def sibling(self, offset, node=None):
         node = node if node else self.selected_node
         if node and "parent_id" in node:
-            siblings = conditional_children(self.parent(node), self.generate_conditions())
+            siblings = conditional_children(self.parent(node), self.generate_visible_conditions())
             return siblings[(siblings.index(node) + offset) % len(siblings)]
 
     #################################
     #   Conditionals
     #################################
+
+    def construct_node_condition(self, info_dict):
+        name = info_dict['name']
+        params = info_dict.get('params', {})
+        params['tree_node_dict'] = self.tree_node_dict
+        params['calc_canonical_set'] = self.calc_canonical_set
+        return lambda node: conditions[name](node=node, **params)
 
     def node_is_canonical(self, node=None):
         node = node if node else self.selected_node
@@ -414,13 +431,13 @@ class TreeModel:
 
     def generate_filtered_tree(self, root=None):
         root = root if root else self.tree_raw_data["root"]
-        conditions = self.generate_conditions()
+        conditions = self.generate_visible_conditions()
         if not conditions:
             return self.tree_node_dict
         else:
             return generate_conditional_tree(root, conditions)
 
-    def generate_conditions(self):
+    def generate_visible_conditions(self):
         conditions = []
         if self.preferences['canonical_only']:
             conditions.append(self.node_is_canonical)
@@ -432,11 +449,11 @@ class TreeModel:
         node = node if node else self.selected_node
         if node.get('temp_children', None):
             return node['temp_children']
-        return conditional_children(node, self.generate_conditions())
+        return conditional_children(node, self.generate_visible_conditions())
 
     def hidden_children(self, node=None):
         node = node if node else self.selected_node
-        return conditional_children(node, anti_conditions_lambda(self.generate_conditions()))
+        return conditional_children(node, anti_conditions_lambda(self.generate_visible_conditions()))
 
     #################################
     #   Updates
@@ -1100,7 +1117,7 @@ class TreeModel:
             # TODO save history
 
     def delete_failed_nodes(self, nodes, error):
-        print("ERROR. Deleting failures")
+        print(f"ERROR {error}. Deleting failures")
         for node in nodes:
             parent = self.parent(node)
             parent["children"].remove(node)
@@ -1356,31 +1373,6 @@ class TreeModel:
         query = node['text']
         return search(query, documents)
 
-    # TODO deprecated
-    def delete_counterfactuals(self, root=None):
-        if not root:
-            root = self.tree_raw_data["root"]
-        if 'meta' in root:
-            if 'generation' in root['meta']:
-                if 'logprobs' in root['meta']['generation']:
-                    root['meta']['generation']["logprobs"]["top_logprobs"] = []
-                    # print('deleted logprobs')
-        for child in root['children']:
-            self.delete_counterfactuals(root=child)
-
-    # TODO only strip generation metadata
-    def strip_metadata(self, root=None, delete_chapters=False):
-        root = root if root else self.tree_raw_data['root']
-        if root == self.tree_raw_data['root'] and delete_chapters:
-            self.remove_all_chapters(root)
-            self.tree_raw_data['chapters'] = {}
-        if 'meta' in root:
-            root.pop('meta')
-        # if delete_chapters and 'chapter_id' in root:
-        #     root.pop('chapter_id')
-        for child in root['children']:
-            self.strip_metadata(root=child)
-
     # modifications made to text submitted using input box
     # TODO split into pre and post user input modifications
     def submit_modifications(self, text):
@@ -1397,9 +1389,9 @@ class TreeModel:
             text = '\n"' + text
         else:
             # default
-            if text and self.selected_node['text'] and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(',
-                                                                                              '{', '[', '*'] and text[
-                0] != ' ':
+            if text and self.selected_node['text'] \
+                    and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] \
+                    and text[0] != ' ':
                 text = ' ' + text
             else:
                 text = text
@@ -1601,3 +1593,43 @@ class TreeModel:
         prompt = model_response['prompt']['text']
         completion = model_response['completions'][node['generation']['index']]
         return model_response, prompt, completion
+
+
+    #################################
+    #   Cleaning
+    #################################
+
+
+    # TODO deprecated
+    def delete_counterfactuals(self, root=None):
+        if not root:
+            root = self.tree_raw_data["root"]
+        if 'meta' in root:
+            if 'generation' in root['meta']:
+                if 'logprobs' in root['meta']['generation']:
+                    root['meta']['generation']["logprobs"]["top_logprobs"] = []
+                    # print('deleted logprobs')
+        for child in root['children']:
+            self.delete_counterfactuals(root=child)
+
+    # TODO only strip generation metadata
+    def strip_metadata(self, root=None, delete_chapters=False):
+        root = root if root else self.tree_raw_data['root']
+        if root == self.tree_raw_data['root'] and delete_chapters:
+            self.remove_all_chapters(root)
+            self.tree_raw_data['chapters'] = {}
+        if 'meta' in root:
+            root.pop('meta')
+        # if delete_chapters and 'chapter_id' in root:
+        #     root.pop('chapter_id')
+        for child in root['children']:
+            self.strip_metadata(root=child)
+
+    def clear_old_generation_metadata(self, root=None):
+        root = root if root else self.tree_raw_data['root']
+        print('...')
+        if 'meta' in root and 'generation' in root['meta']:
+            print('clearing generation data')
+            root['meta'].pop('generation')
+        for child in root['children']:
+            self.clear_old_generation_metadata(child)
