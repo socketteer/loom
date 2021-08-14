@@ -78,7 +78,7 @@ class Display:
 
         self.multi_scroll_frame = None
         self.multi_textboxes = None
-        self.multi_font = Font(family="Georgia", size=12)
+        self.font = Font(family="Georgia", size=12)
         self.multi_pady = 8
         self.multi_padx = 2
         self.multi_default_height = 3
@@ -90,6 +90,12 @@ class Display:
         self.archive_buttons = None
         self.edit_buttons = None
         self.descendents_labels = None
+
+        self.search_box = None
+        self.search_frame = None
+        self.search_label = None
+        self.case_sensitive = None
+        self.search_results = None
 
         self.button_bar = None
         self.edit_button = None
@@ -209,6 +215,8 @@ class Display:
         # Button bar        self.input_frame.pack(side="bottom", fill="x")
         self.build_main_buttons(self.bottom_frame)
         self.button_bar.pack(side="top", fill="both")
+
+        self.search_frame = ttk.Frame(self.main_frame)
         # self.build_debug_box()
 
         # if self.state.preferences['input_box']:
@@ -245,9 +253,9 @@ class Display:
         textbox.bind("<Button-3>", lambda event: self.add_summary(txt=textbox))
         textbox.pack(expand=True, fill='both')
 
-        readable_font = Font(family="Georgia", size=12)  # Other nice options: Helvetica, Arial, Georgia
+         # Other nice options: Helvetica, Arial, Georgia
         textbox.configure(
-            font=readable_font,
+            font=self.font,
             spacing1=10,  # spacing between paragraphs
             foreground=text_color(),
             background=bg_color(),
@@ -515,10 +523,9 @@ class Display:
         self.bottom_frame.pack(side="bottom", fill="both")
         self.input_frame = ttk.Frame(self.bottom_input_frame, width=500, height=20)
         self.input_box = TextAware(self.input_frame, bd=3, height=3, undo=True)
-        readable_font = Font(family="Georgia", size=12)
         self.input_box.pack(expand=True, fill='x')
         self.input_box.configure(
-            font=readable_font,
+            font=self.font,
             spacing1=10,  # spacing between paragraphs
             foreground=text_color(),
             background=bg_color(),
@@ -557,7 +564,7 @@ class Display:
 
     def init_multi_frame(self, num_textboxes):
 
-        font_height = tk.font.Font(font=self.multi_font).metrics('linespace')
+        font_height = tk.font.Font(font=self.font).metrics('linespace')
         # TODO max height
         textbox_height = self.multi_default_height * (font_height + 4) + self.button_height
         height = min(num_textboxes * textbox_height, self.default_num_textbox * textbox_height)
@@ -575,7 +582,7 @@ class Display:
             tb = tb_item['textbox']
             tb.grid(row=row, column=1, rowspan=2, sticky=tk.N + tk.S + tk.E + tk.W)
             tb.configure(
-                font=self.multi_font,
+                font=self.font,
                 foreground=text_color(),  # Darkmode
                 background=bg_color(),
                 padx=self.multi_padx,
@@ -838,8 +845,6 @@ class Display:
             self.secondary_textbox.config(foreground=text_color(), background=edit_color())
             self.preview_textbox.config(foreground=text_color(), background=edit_color())
 
-
-
         elif self.mode == "Visualize":
             self.vis.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
@@ -868,3 +873,65 @@ class Display:
     def open_preview_textbox(self):
         self.preview_textbox_frame.pack(expand=False, side="top", fill='both')
 
+    #################################
+    #   Search
+    #################################
+
+    # TODO case sensitive
+    def open_search(self):
+        self.close_search()
+        self.search_frame.pack(side='bottom', expand=False, fill='x')
+
+        self.search_label = tk.Label(self.search_frame, text='Search:', bg=bg_color(), fg=text_color())
+        self.search_label.pack(side='left', expand=False)
+
+        self.search_box = TextAware(self.search_frame, bd=2, height=1)
+        self.search_box.pack(side='left', expand=True, fill='x', padx=5)
+        self.search_box.configure(
+            font=self.font,
+            foreground=text_color(),
+            background=bg_color(),
+        )
+        self.search_box.focus()
+        # TODO don't print newline
+        #self.search_box.bind('<Return>', lambda event=None: self.search())
+        self.search_box.bind("<Key>", lambda event: self.search_key_pressed(event))
+
+    def close_search(self):
+        if self.search_box:
+            self.search_box.pack_forget()
+            self.search_box = None
+        if self.search_label:
+            self.search_label.pack_forget()
+            self.search_label = None
+        if self.search_results:
+            self.search_results.pack_forget()
+            self.search_results = None
+        self.search_frame.pack_forget()
+
+    def search(self):
+        search_term = self.search_box.get("1.0", 'end-1c')
+        print(f'search {search_term}')
+        self.callbacks["Search textbox"]["callback"](pattern=search_term)
+
+    def search_key_pressed(self, event=None):
+        if event.keysym == 'Return':
+            search_term = self.search_box.get("1.0", 'end-1c')
+            self.callbacks["Search textbox"]["callback"](pattern=search_term)
+            return 'break'
+        elif event.keysym == 'Escape':
+            self.exit_search()
+
+    def exit_search(self):
+        self.callbacks["Clear search"]["callback"]()
+        self.textbox.focus()
+        self.close_search()
+
+    def update_search_results(self, num_matches, active_index=1):
+        if not self.search_results:
+            self.search_results = tk.Label(self.search_frame, bg=bg_color(), fg=text_color())
+            self.search_results.pack(side='left', padx=5)
+        if num_matches == 0:
+            self.search_results.config(text='No matches')
+        else:
+            self.search_results.config(text=f'{active_index}/{num_matches}')

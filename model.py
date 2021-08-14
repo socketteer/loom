@@ -1633,3 +1633,5 @@ class TreeModel:
             root['meta'].pop('generation')
         for child in root['children']:
             self.clear_old_generation_metadata(child)
+
+

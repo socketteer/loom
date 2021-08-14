@@ -194,25 +194,27 @@ def format_ai21_response(response, model):
 def ai21_generate(prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
                   engine='j1-large', **kwargs):
     stop = stop if stop else []
+    request_json = {
+        "prompt": prompt,
+        "numResults": num_continuations,
+        "maxTokens": length,
+        "stopSequences": stop,
+        "topKReturn": logprobs,
+        "temperature": temperature,
+        "topP": top_p,
+    }
     try:
         response = requests.post(
             f"https://api.ai21.com/studio/v1/{engine}/complete",
             headers={"Authorization": f"Bearer {ai21_api_key}"},
-            json={
-                "prompt": prompt,
-                "numResults": num_continuations,
-                "maxTokens": length,
-                "stopSequences": stop,
-                "topKReturn": logprobs,
-                "temperature": temperature,
-                "topP": top_p,
-            }
+            json=request_json,
         )
     except requests.exceptions.ConnectionError:
         return None, 'Connection error'
     error = None
     if response.status_code != 200:
         error = f'Bad status code {response.status_code}'
+        print(request_json)
     return response, error
 
 

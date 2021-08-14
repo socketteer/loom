@@ -1,13 +1,17 @@
 ## Priority
 
+- ancestry search
+    - close button
+    - case sensitive checkbox
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
     - diff / optimization logging
 - test click goto commands
+    - alter for read mode
 - vis expanded state out of sync with nav tree expanded state
 - tutorial
-- substitute node
+- substitute (node)
 - masks
 - floating nodes/subtrees
 - fix old tree function
@@ -42,11 +46,17 @@
 ### Deprecated
 - child edit mode
 - OpenAI logprob format. Use loom-specific format now for everything
+    - node-specific meta.generation dictionary
 - Janus generate
 
 #### To deprecate
-- node-specific meta.generation dictionary
 - node-specific "visited" status (move to session file)
+
+
+### Model response data
+- option to not save model response data
+- option to clear model response data (and save backup)
+    - handle key error
 
 
 ### Tokenization
@@ -58,8 +68,8 @@
 ### Models 
 - model-agnostic interface
 - integrate other models
-    - jurassic-1
     - GPT-J 
+    - GPT-2
 
 
 ### Usability 
@@ -299,7 +309,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * highlight when mouseover history
 * implement expand/collapse functions in controller
 * right sidebar for (everything else)
-* toggle highlighting gpt-3 vs user contributions
 
 # Tree topology
 
@@ -326,9 +335,9 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 # Search
 * enter to search
-* search chapters
+* search chapter titles
+* search tags
 * regex
-* case (in)sensitive
 * search ancestry
 * integrated search
 * key filter -> semantic search among matches

@@ -10,6 +10,7 @@ from tkinter import filedialog, ttk
 from tkinter import messagebox
 from tkinter.font import Font
 import re
+import datetime
 
 import PIL
 import pyperclip
@@ -113,7 +114,8 @@ class Controller:
         def in_edit():
             return self.display.mode in ["Edit", "Child Edit"] \
                    or (self.display.mode == "Visualize" and self.display.vis.textbox) \
-                   or self.has_focus(self.display.input_box) or self.multi_text_has_focus()
+                   or self.has_focus(self.display.input_box) or self.multi_text_has_focus() \
+                   or self.has_focus(self.display.search_box)
 
         valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete"]
         for f in funcs_with_keys:
@@ -170,12 +172,11 @@ class Controller:
                 ('Return to root', 'R', None, no_junk_args(self.return_to_root)),
                 ('Save checkpoint', 'Ctrl+T', None, no_junk_args(self.save_checkpoint)),
                 ('Go to checkpoint', 'T', None, no_junk_args(self.goto_checkpoint)),
-                ("Bookmark", "B", None, no_junk_args(self.bookmark)),
                 ("Next Bookmark", "D", None, no_junk_args(self.next_bookmark)),
                 ("Prev Bookmark", "A", None, no_junk_args(self.prev_bookmark)),
                 ("Stochastic walk", "W", None, no_junk_args(self.walk)),
-                ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
-                ("Search", "Ctrl+F", None, no_junk_args(self.search)),
+                ("Search ancestry", "Ctrl+F", None, no_junk_args(self.search_ancestry)),
+                ("Search tree", "Ctrl+Shift+F", None, no_junk_args(self.search)),
                 ("Goto node by id", "Ctrl+Shift+G", None, no_junk_args(self.goto_node_dialog)),
 
             ],
@@ -201,6 +202,7 @@ class Controller:
                 ("Toggle canonical", "Ctrl+Shift+C", None, no_junk_args(self.toggle_canonical)),
                 ("Toggle archive", "!", None, no_junk_args(self.toggle_archived)),
                 ("Bookmark", "B", None, no_junk_args(self.bookmark)),
+                ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
                 ("Mark node as prompt", None, None, lambda: self.set_source('prompt')),
                 ("Mark node as AI completion", None, None, lambda: self.set_source('AI')),
                 ("Mark subtree as prompt", None, None, lambda: self.set_subtree_source('prompt')),
@@ -1022,6 +1024,17 @@ class Controller:
             return
 
 
+    #################################
+    #   Dialogs
+    #################################
+
+    @metadata(name="Preferences", keys=["<Control-p>"], display_key="")
+    def preferences(self):
+        #print(self.state.preferences)
+        dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
+        self.state.tree_updated(rebuild=True)
+        self.state.selection_updated()
+
     @metadata(name="Generation Settings", keys=["<Control-Shift-KeyPress-P>"], display_key="ctrl-p")
     def generation_settings_dialog(self):
         dialog = GenerationSettingsDialog(self.display.frame, self.state.generation_settings)
@@ -1099,17 +1112,100 @@ class Controller:
         dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state, default_inheritability='delayed')
         self.refresh_textbox()
 
-    @metadata(name="Search", keys=["<Control-f>"], display_key="ctrl-f")
+    @metadata(name="Chat settings", keys=[], display_key="")
+    def chat_settings(self):
+        dialog = ChatSettingsDialog(parent=self.display.frame, orig_params=self.state.chat_preferences)
+        #self.refresh_textbox()
+
+    #################################
+    #   Search
+    #################################
+
+    @metadata(name="Search", keys=["<Control-Shift-KeyPress-F>"], display_key="ctrl-shift-f")
     def search(self):
         dialog = SearchDialog(parent=self.display.frame, state=self.state, goto=self.nav_select)
         self.refresh_textbox()
 
-    @metadata(name="Preferences", keys=["<Control-p>"], display_key="")
-    def preferences(self):
-        #print(self.state.preferences)
-        dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
-        self.state.tree_updated(rebuild=True)
-        self.state.selection_updated()
+    @metadata(name="Search ancestry", keys=["<Control-f>"], display_key="ctrl-f")
+    def search_ancestry(self):
+        self.toggle_search()
+
+    @metadata(name="Search textbox", matches=None, match_index=None, search_term=None)
+    def search_textbox(self, pattern, case_sensitive=False):
+        if self.search_textbox.meta['matches'] is not None:
+            if self.search_textbox.meta['search_term'] == pattern:
+                self.next_match()
+                return
+            else:
+                self.clear_search()
+        ancestry_text, _ = self.state.node_ancestry_text()
+        ancestry_text = ''.join(ancestry_text)
+        matches = []
+        matches_iter = re.finditer(pattern, ancestry_text) if case_sensitive \
+            else re.finditer(pattern, ancestry_text, re.IGNORECASE)
+        # check if no matches found
+        for match in matches_iter:
+            matches.append({'span': match.span(),
+                            'match': match.group()})
+        if not matches:
+            self.display.update_search_results(num_matches=0)
+            self.clear_search()
+            return
+        self.display.textbox.tag_config('match', background='blue')
+        for match in matches:
+            self.display.textbox.tag_add("match",
+                                         f"1.0 + {match['span'][0]} chars",
+                                         f"1.0 + {match['span'][1]} chars")
+        self.search_textbox.meta['matches'] = matches
+        self.search_textbox.meta['search_term'] = pattern
+        self.next_match()
+
+    @metadata(name="Clear search")
+    def clear_search(self):
+        self.search_textbox.meta['search_term'] = None
+        self.search_textbox.meta['matches'] = None
+        self.search_textbox.meta['match_index'] = None
+        self.display.textbox.tag_delete("match")
+        self.display.textbox.tag_delete("active_match")
+
+
+    @metadata(name="Next match")
+    def next_match(self):
+        if self.search_textbox.meta['matches'] is None:
+            return
+        if self.search_textbox.meta['match_index'] is None:
+            self.search_textbox.meta['match_index'] = 0
+        else:
+            self.search_textbox.meta['match_index'] += 1
+        if self.search_textbox.meta['match_index'] >= len(self.search_textbox.meta['matches']):
+            self.search_textbox.meta['match_index'] = 0
+        active_match = self.search_textbox.meta['matches'][self.search_textbox.meta['match_index']]
+        
+        self.display.update_search_results(num_matches=len(self.search_textbox.meta['matches']), 
+                                           active_index=self.search_textbox.meta['match_index'])
+        self.display.textbox.tag_delete("active_match")
+        self.display.textbox.tag_config('active_match', background='black')
+        self.display.textbox.tag_add("active_match",
+                                     f"1.0 + {active_match['span'][0]} chars",
+                                     f"1.0 + {active_match['span'][1]} chars")
+        # scroll to active match
+        self.display.textbox.see(f"1.0 + {active_match['span'][0]} chars")
+
+
+    def in_search(self):
+        return self.search_textbox.meta['matches'] is not None
+
+    def toggle_search(self, toggle=None):
+        toggle = not self.state.state_preferences['show_search'] if not toggle else toggle
+        self.state.state_preferences['show_search'] = toggle
+        if toggle:
+            self.display.open_search()
+        else:
+            self.display.close_search()
+
+    #################################
+    #   Filtering
+    #################################
 
     @metadata(name="Toggle hide archived", keys=[], display_key="")
     def toggle_hide_archived(self, toggle=None):
@@ -1139,6 +1235,10 @@ class Controller:
     #     for entry in results['data']:
     #         print(entry['score'])
 
+    #################################
+    #   Frames
+    #################################
+
     @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
     def toggle_input_box(self, toggle='either'):
         if self.display.mode == "Read":
@@ -1151,6 +1251,20 @@ class Controller:
                 self.open_bottom_frame('past_box')
             else:
                 self.close_bottom_frame()
+
+    @metadata(name="Submit", keys=[], display_key="")
+    def submit(self):
+        input_text = self.display.input_box.get("1.0", 'end-1c')
+        if input_text and not self.state.preferences['gpt_mode'] == 'antisummary':
+            new_text = self.state.submit_modifications(input_text)
+            new_child = self.create_child(toggle_edit=False)
+            new_child['text'] = new_text
+            self.state.tree_updated(add=[new_child['id']])
+        self.display.input_box.delete("1.0", "end")
+        if input_text and self.state.preferences['gpt_mode'] == 'antisummary':
+            self.generate(summary=input_text)
+        elif self.state.preferences['auto_response']:
+            self.generate()
 
     @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def toggle_debug_box(self, toggle='either'):
@@ -1193,6 +1307,8 @@ class Controller:
     def hide_children(self):
         self.display.destroy_multi_frame()
 
+
+
     def open_bottom_frame(self, box_name):
         self.close_bottom_frame()
         self.state.preferences[box_name] = True
@@ -1228,40 +1344,16 @@ class Controller:
     def update_mode(self, *args):
         self.state.preferences['gpt_mode'] = self.display.mode_var.get()
 
-    @metadata(name="Submit", keys=[], display_key="")
-    def submit(self):
-        input_text = self.display.input_box.get("1.0", 'end-1c')
-        if input_text and not self.state.preferences['gpt_mode'] == 'antisummary':
-            new_text = self.state.submit_modifications(input_text)
-            new_child = self.create_child(toggle_edit=False)
-            new_child['text'] = new_text
-            self.state.tree_updated(add=[new_child['id']])
-        self.display.input_box.delete("1.0", "end")
-        if input_text and self.state.preferences['gpt_mode'] == 'antisummary':
-            self.generate(summary=input_text)
-        elif self.state.preferences['auto_response']:
-            self.generate()
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
+        self.display.open_search()
+        #time.sleep(2)
+        #self.display.close_search()
+        #info_dict = {'name': 'created on or after',
+        #             'params': {'time': datetime.datetime(2022, 5, 3)}}
+        #print(self.state.construct_node_condition(info_dict)(self.state.selected_node))
         #pass
-        self.state.strip_metadata()
-        #self.state.tree_updated()
-        # self.state.merge_temp(self.state.tree_node_dict[self.state.selected_node['parent_id']],
-        #                       self.state.selected_node)
-        #self.display.open_preview_textbox()
-        #self.scroll_to_selected()
-        # self.display.set_mode("Multiverse")
-        # self.refresh_textbox()
-        # multiverse, ground_truth = self.state.generate_greedy_multiverse(max_depth=4, unnormalized_threshold=0.001)
-        # self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth)
-
-        #self.print_to_debug("test debug message")
-        #print(self.state.selected_node['meta'])
-        #self.state.generate_tree_init(max_depth=3, branching_factor=3, engine='davinci')
-        #self.state.measure_path_optimization(root=self.state.ancestry()[1], node=self.state.selected_node)
-        #print(self.state.generate_canonical_tree())
-        # dialog = CreateSummary(parent=self.display.frame, root_node=self.state.ancestry()[1], state=self.state)
 
 
     @metadata(name="Insert summary")
@@ -1292,6 +1384,10 @@ class Controller:
     def report_counterfactual(self, context_breaker, target):
         print(f'{target}: ',
               self.state.score_counterfactual(context_breaker=context_breaker, target=target, engine='davinci'))
+
+    #################################
+    #   Autocomplete
+    #################################
 
     @metadata(name="Autocomplete", keys=["<Alt_L>"], display_key="", in_autocomplete=False, autocomplete_range=None,
               input_range=None, possible_tokens=None, matched_tokens=None, token_index=None, filter_chars='', leading_space=False)
@@ -1421,10 +1517,6 @@ class Controller:
         self.autocomplete.meta["matched_tokens"] = None
         self.autocomplete.meta["filter_chars"] = ''
 
-    @metadata(name="Chat settings", keys=[], display_key="")
-    def chat_settings(self):
-        dialog = ChatSettingsDialog(parent=self.display.frame, orig_params=self.state.chat_preferences)
-        #self.refresh_textbox()
 
     def has_focus(self, widget):
         return self.display.textbox.focus_displayof() == widget
@@ -1863,7 +1955,7 @@ class Controller:
         # visible_conditions = [lambda _node: not _node.get('archived', False)] \
         #     if self.state.preferences['hide_archived'] else []
         #visible_nodes = collect_visible(self.state.tree_raw_data["root"], visible_conditions)
-        tree_conditions = self.state.generate_conditions()
+        tree_conditions = self.state.generate_visible_conditions()
         tree_conditions.append(self.node_open)
         visible_nodes = collect_conditional(self.state.tree_raw_data["root"], tree_conditions)
         #print(visible_nodes)

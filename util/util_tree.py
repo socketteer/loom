@@ -225,16 +225,18 @@ def num_leaves(node, filter_set=None):
     else:
         return 0
 
+
 # TODO regex, tags
-def search(root, pattern, text=True, tags=False, case_sensitive=False, regex=False, filter_set=None, max_depth=None):
+def search(root, pattern, text=True, text_attribute_name='text', tags=False, case_sensitive=False, regex=False,
+           filter_set=None, max_depth=None):
     matches = []
     if not (text or tags) \
             or (filter_set is not None and root['id'] not in filter_set)\
             or max_depth == 0:
         return []
     if text:
-        matches_iter = re.finditer(pattern, root['text']) if case_sensitive \
-            else re.finditer(pattern, root['text'], re.IGNORECASE)
+        matches_iter = re.finditer(pattern, root[text_attribute_name]) if case_sensitive \
+            else re.finditer(pattern, root[text_attribute_name], re.IGNORECASE)
         for match in matches_iter:
             matches.append({'node_id': root['id'],
                             'span': match.span(),
@@ -243,7 +245,8 @@ def search(root, pattern, text=True, tags=False, case_sensitive=False, regex=Fal
         # search for pattern in root['tags']
         pass
     for child in root['children']:
-        matches += search(child, pattern, text, tags, case_sensitive, regex, filter_set, max_depth-1 if max_depth else None)
+        matches += search(child, pattern, text, text_attribute_name, tags, case_sensitive, regex, filter_set,
+                          max_depth-1 if max_depth else None)
     return matches
 
 

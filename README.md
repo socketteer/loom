@@ -121,7 +121,9 @@ Go to next bookmark: `d`, `Control-d`
 
 Go to prev bookmark: `a`, `Control-a`
 
-Search: `Control-f`
+Search ancestry: `Control-f`
+
+Search tree: `Control-shift-f`
 
 Click to split node: `Control-alt-click`
 
