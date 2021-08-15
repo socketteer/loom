@@ -165,7 +165,8 @@ class BlockMultiverse:
 
     def draw_multiverse(self, multiverse, ground_truth='', block_width=150, start_position=(0, 0), color_index=0,
                         prefix='', show_text=True, show_probabilities=False, prompt=''):
-        self.prompt = prompt
+        if not self.prompt:
+            self.prompt = prompt
         self.set_past_box(prompt_text=self.prompt)
         if not self.wavefunction:
             self.wavefunction = multiverse
