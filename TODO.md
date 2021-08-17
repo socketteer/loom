@@ -1,5 +1,6 @@
 ## Priority
 
+- always have immutable root
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
@@ -9,7 +10,6 @@
 - vis expanded state out of sync with nav tree expanded state
 - tutorial
 - substitute (node)
-- masks
 - floating nodes/subtrees
 - fix old tree function
 
@@ -33,7 +33,6 @@
 * generating when trying to calculate optimization bits??
 * merge with children is broken?
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
-* even in hide canonical mode, often noncanonical nodes show up after changes to the tree
 * after the first counterfactual subtitution via select node, other selections will be misaligned
 
 ### problems
@@ -67,6 +66,18 @@
 - integrate other models
     - GPT-J 
     - GPT-2
+
+### Masking
+- collapse chain 
+    - forward 
+    - backward 
+    - bidirectional
+- auto-collapse chains in read mode
+- handle all attempts at editing
+    - preview child mode
+    - merging, splitting operations
+- transform compound node into regular node
+- root
 
 
 ### Usability 

@@ -150,6 +150,9 @@ class Controller:
                 ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
                 ('Toggle hide archived', None, None, no_junk_args(self.toggle_hide_archived)),
                 ('Toggle canonical only', None, None, no_junk_args(self.toggle_canonical_only)),
+                ('Expand', '', None, no_junk_args(self.expand_node)),
+                ('Collapse all', '', None, no_junk_args(self.collapse_all_chains)),
+                ('Expand all', '', None, no_junk_args(self.expand_all))
             ],
             "Edit": [
                 ('Edit mode', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
@@ -166,6 +169,7 @@ class Controller:
                 ('Copy', 'Ctrl+C', None, no_junk_args(self.copy_text)),
                 ('Delete', 'Backspace', None, no_junk_args(self.delete_node)),
                 ('Delete and reassign children', '', None, no_junk_args(self.delete_node_reassign_children)),
+
             ],
             "Navigate": [
                 ('Return to root', 'R', None, no_junk_args(self.return_to_root)),
@@ -377,13 +381,14 @@ class Controller:
         self.display.vis.center_view_on_node(self.state.selected_node)
 
     def update_read_color(self, old_node, node):
-        nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
-        nca_end_index = self.ancestor_end_indices[index]
-        self.display.textbox.tag_delete("old")
-        self.display.textbox.tag_add("old",
-                                     "1.0",
-                                     f"1.0 + {nca_end_index} chars")
-        self.display.textbox.tag_config("old", foreground=history_color())
+        if self.display.mode == 'read':
+            nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
+            nca_end_index = self.ancestor_end_indices[index]
+            self.display.textbox.tag_delete("old")
+            self.display.textbox.tag_add("old",
+                                         "1.0",
+                                         f"1.0 + {nca_end_index} chars")
+            self.display.textbox.tag_config("old", foreground=history_color())
 
     @metadata(name="Select node")
     def select_node(self, node, noscroll=False):
@@ -572,6 +577,20 @@ class Controller:
         ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
         return ancestor_index, node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
 
+    def collapse_chain(self, node=None):
+        node = node if node else self.state.selected_node
+        self.state.collapse_chain(node)
+
+    def collapse_all_chains(self):
+        self.state.collapse_all_chains()
+        self.state.tree_updated(rebuild=True)
+        self.state.select_node(self.state.tree_raw_data['root']['id'])
+
+    def expand_all(self):
+        self.state.expand_all()
+        self.state.tree_updated(rebuild=True)
+        self.state.select_node(self.state.tree_raw_data['root']['id'])
+
     #################################
     #   Token manipulation
     #################################
@@ -696,6 +715,12 @@ class Controller:
     #   State
     #################################
 
+    def ask_expand(self, node=None):
+        node = node if node else self.state.selected_node
+        result = messagebox.askquestion("Edit compound node", "Would you like to expand this compound node?", icon='warning')
+        if result == 'yes':
+            self.state.expand(mask=node)
+
     # TODO fix metadata references?
     @metadata(name="Edit", keys=[], display_key="e")
     def edit_button_pressed(self):
@@ -704,26 +729,29 @@ class Controller:
     # Enters edit mode or exits either edit mode
     @metadata(name="Edit Toggle", keys=["<e>", "<Control-e>"], display_key="e")
     def toggle_edit_mode(self, to_edit_mode=None, override_focus=False):
-        if self.display.mode != "Visualize":
-            if self.has_focus(self.display.textbox) or override_focus:
-                self.save_edits()
-                to_edit_mode = to_edit_mode if to_edit_mode is not None else not self.display.in_edit_mode
-                if to_edit_mode:
-                    self.display.set_mode("Edit")
-                else:
-                    if self.edit_history.meta["persistent_id"] is not None:
-                        self.state.select_node(self.edit_history.meta["persistent_id"])
-                        self.edit_history.meta["persistent_id"] = None
-                    self.display.set_mode("Read")
-                self.refresh_textbox()
-            else:
-                self.display.all_edit_off()
-
+        if self.state.is_compound(self.state.selected_node):
+            self.ask_expand(self.state.selected_node)
         else:
-            if self.display.vis.textbox is None:
-                self.display.vis.textbox_events[self.state.selected_node['id']]()
+            if self.display.mode != "Visualize":
+                if self.has_focus(self.display.textbox) or override_focus:
+                    self.save_edits()
+                    to_edit_mode = to_edit_mode if to_edit_mode is not None else not self.display.in_edit_mode
+                    if to_edit_mode:
+                        self.display.set_mode("Edit")
+                    else:
+                        if self.edit_history.meta["persistent_id"] is not None:
+                            self.state.select_node(self.edit_history.meta["persistent_id"])
+                            self.edit_history.meta["persistent_id"] = None
+                        self.display.set_mode("Read")
+                    self.refresh_textbox()
+                else:
+                    self.display.all_edit_off()
+
             else:
-                self.display.vis.delete_textbox()
+                if self.display.vis.textbox is None:
+                    self.display.vis.textbox_events[self.state.selected_node['id']]()
+                else:
+                    self.display.vis.delete_textbox()
 
 
 
@@ -1143,7 +1171,7 @@ class Controller:
                 self.clear_search()
         self.search_textbox.meta['search_term'] = pattern
         self.search_textbox.meta['case_sensitive'] = case_sensitive
-        ancestry_text, _ = self.state.node_ancestry_text()
+        ancestry_text, _ = self.state.ancestry_text_list()
         ancestry_text = ''.join(ancestry_text)
         matches = []
         matches_iter = re.finditer(pattern, ancestry_text) if case_sensitive \
@@ -1345,7 +1373,12 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
-        self.display.open_search()
+        #self.state.expand(self.state.selected_node)
+        self.collapse_all_chains()
+        # node = self.state.selected_node
+        # parent = self.state.parent(node)
+        # grandparent = self.state.parent(parent)
+        # self.state.collapse(head=grandparent, tail=node)
         #time.sleep(2)
         #self.display.close_search()
         #info_dict = {'name': 'created on or after',
@@ -1353,6 +1386,10 @@ class Controller:
         #print(self.state.construct_node_condition(info_dict)(self.state.selected_node))
         #pass
 
+    @metadata(name="Expand node")
+    def expand_node(self, node=None):
+        node = node if node else self.state.selected_node
+        self.state.expand(node)
 
     @metadata(name="Insert summary")
     def insert_summary(self, index):
@@ -1614,7 +1651,7 @@ class Controller:
                 # TODO bad color for lightmode
                 self.display.textbox.tag_config("selected", background="black", foreground=text_color())
                 self.display.textbox.tag_config("modified", background="blue", foreground=text_color())
-                ancestry, indices = self.state.node_ancestry_text()
+                ancestry, indices = self.state.ancestry_text_list()
                 self.ancestor_end_indices = indices
                 history = ''
                 for node_text in ancestry[:-1]:
@@ -1678,7 +1715,7 @@ class Controller:
         else:
             self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size']))
         self.display.textbox.tag_remove("prompt", "1.0", 'end')
-        ancestry_text, indices = self.state.node_ancestry_text()
+        ancestry_text, indices = self.state.ancestry_text_list()
         start_index = 0
         for i, ancestor in enumerate(node_ancestry(self.state.selected_node, self.state.tree_node_dict)):
             if 'meta' in ancestor and 'source' in ancestor['meta']:
@@ -1765,6 +1802,24 @@ class Controller:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
 
+    def nav_entry_params(self, node):
+        if node['id'] == self.state.checkpoint:
+            image = self.display.marker_icon
+        elif self.state.is_compound(node):
+            image = self.display.icons['compound']['icon']
+        elif 'multimedia' in node and len(node['multimedia']) > 0:
+            image = self.display.media_icon
+        else:
+            image = self.display.bookmark_icon if node.get("bookmark", False) else None
+        if not image:
+            image = self.display.empty_icon
+        tags = ["visited"] if node.get("visited", False) else ["not visited"]
+        if node['id'] in self.state.calc_canonical_set():
+            tags.append("canonical")
+        else:
+            tags.append("uncanonical")
+        return image, tags
+
     def build_nav_tree(self, flat_tree=None):
         if not flat_tree:
             flat_tree = self.state.generate_filtered_tree()
@@ -1776,19 +1831,7 @@ class Controller:
         self.display.nav_tree.delete(*self.display.nav_tree.get_children())
         for id in flat_tree:
             node = self.state.tree_node_dict[id]
-            if id == self.state.checkpoint:
-                image = self.display.marker_icon
-            elif 'multimedia' in node and len(node['multimedia']) > 0:
-                image = self.display.media_icon
-            else:
-                image = self.display.bookmark_icon if node.get("bookmark", False) else None
-            tags = ["visited"] if node.get("visited", False) else ["not visited"]
-            if node['id'] in self.state.calc_canonical_set():
-                tags.append("canonical")
-            else:
-                tags.append("uncanonical")
-            if not image:
-                image = self.display.empty_icon
+            image, tags = self.nav_entry_params(node)
             self.display.nav_tree.insert(
                 parent=node.get("parent_id", ""),
                 index="end",
@@ -1817,27 +1860,18 @@ class Controller:
         if 'edit' not in kwargs and 'add' not in kwargs and 'delete' not in kwargs:
             return
         else:
+            visible = lambda _node: all(condition(_node) for condition in self.state.generate_visible_conditions())
             delete_items = [i for i in kwargs['delete']] if 'delete' in kwargs else []
-            edit_items = [i for i in kwargs['edit']] if 'edit' in kwargs else []
-            add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict] if 'add' in kwargs else []
+            edit_items = [i for i in kwargs['edit'] if i in self.state.tree_node_dict
+                          and visible(self.state.tree_node_dict[i])] if 'edit' in kwargs else []
+            add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict
+                         and visible(self.state.tree_node_dict[i])] if 'add' in kwargs else []
 
         self.display.nav_tree.delete(*delete_items)
 
         for id in add_items + edit_items:
             node = self.state.tree_node_dict[id]
-            if id == self.state.checkpoint:
-                image = self.display.marker_icon
-            elif 'multimedia' in node and len(node['multimedia']) > 0:
-                image = self.display.media_icon
-            else:
-                image = self.display.bookmark_icon if node.get("bookmark", False) else None
-            tags = ["visited"] if node.get("visited", False) else ["not visited"]
-            if node['id'] in self.state.calc_canonical_set():
-                tags.append("canonical")
-            else:
-                tags.append("uncanonical")
-            if not image:
-                image = self.display.empty_icon
+            image, tags = self.nav_entry_params(node)
             if id in add_items:
                 #print('adding id', id)
                 if self.display.nav_tree.exists(id):
@@ -2032,6 +2066,8 @@ class Controller:
         current_width = depth(selected_chapter, chapter_trees_dict) \
                         * WIDTH_PER_INDENT + offset_from_selected
         self.display.chapter_nav_tree.xview_moveto(clip_num(current_width / total_width, 0, 1))
+
+
 
 
 

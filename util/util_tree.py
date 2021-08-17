@@ -15,29 +15,6 @@ def new_node(node_id=None, text=''):
     return node
 
 
-# returns new compound node object
-# parent or child may also be compound nodes
-def compound_node(parent, child, node_id=None):
-    if not node_id:
-        node_id = str(uuid.uuid1())
-    node_list = []
-    if 'node_list' in parent:
-        node_list += parent['node_list']
-    else:
-        node_list.append(parent)
-
-    if 'node_list' in child:
-        node_list += child['node_list']
-    else:
-        node_list.append(child)
-
-    node = {"id": node_id,
-            # TODO this is static - is that ok?
-            "text": ''.join(node['text'] for node in node_list),
-            "children": child.get('children', [])}
-    return node
-
-
 # Height of d, root has the greatest height, minimum is 1
 def height(d):
     return 1 + max([0, *[height(c) for c in d["children"]]])

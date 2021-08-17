@@ -166,6 +166,7 @@ class Display:
         self.init_icon("close", "close-window-48.png", 16)
         self.init_icon("archive", "archive-2-48.png", 16)
         self.init_icon("go", "arrow-green.png", 16)
+        self.init_icon("compound", "layers-2-48.png", 16)
 
     # TODO init with init_icons
     def build_static(self):
@@ -757,11 +758,15 @@ class Display:
         # self.rebuild_multi_frame()
 
     def edit_on(self, textbox_id):
-        edit_height = min(self.multi_default_height, self.multi_textboxes[textbox_id]['num_lines'] + 2)
-        self.multi_textboxes[textbox_id]['textbox'].configure(state='normal', background=edit_color(),
-                                                              relief=tk.SUNKEN,
-                                                              height=edit_height)
-        self.multi_textboxes[textbox_id]['textbox'].focus()
+        if self.state.is_compound(self.state.selected_node):
+            print('error: node is compound')
+            pass
+        else:
+            edit_height = min(self.multi_default_height, self.multi_textboxes[textbox_id]['num_lines'] + 2)
+            self.multi_textboxes[textbox_id]['textbox'].configure(state='normal', background=edit_color(),
+                                                                  relief=tk.SUNKEN,
+                                                                  height=edit_height)
+            self.multi_textboxes[textbox_id]['textbox'].focus()
 
     def edit_off(self, textbox_id):
         height = self.textbox_height(textbox_id)
@@ -896,7 +901,7 @@ class Display:
         self.search_label.pack(side='left', expand=False)
 
         self.search_box = TextAware(self.search_frame, bd=2, height=1)
-        self.search_box.pack(side='left', expand=True, fill='x', padx=5)
+        self.search_box.pack(side='left', expand=False, fill='x', padx=5)
         self.search_box.configure(
             font=self.font,
             foreground=text_color(),

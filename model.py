@@ -17,7 +17,7 @@ from gpt import openAI_generate, janus_generate, search, generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children, anti_conditions_lambda, \
-    new_node, compound_node
+    new_node
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 from util.multiverse_util import greedy_word_multiverse
 from util.node_conditions import conditions
@@ -205,8 +205,15 @@ class TreeModel:
     @event
     def tree_updated(self, rebuild_dict=True, **kwargs):
         if self.tree_raw_data and rebuild_dict:
-            self.tree_node_dict = {d["id"]: d for d in flatten_tree(self.tree_raw_data["root"])}
-            fix_miro_tree(self.nodes)
+            self.rebuild_tree()
+
+    @event
+    def tree_updated_silent(self):
+        self.rebuild_tree()
+
+    def rebuild_tree(self):
+        self.tree_node_dict = {d["id"]: d for d in flatten_tree(self.tree_raw_data["root"])}
+        fix_miro_tree(self.nodes)
 
     @event
     def edit_new_nodes(self):
@@ -257,17 +264,22 @@ class TreeModel:
             i += 1
         return ancestry[i:]
 
-    def node_ancestry_text(self, node=None):
+    def ancestry_text_list(self, node=None, ancestry=None):
         node = node if node else self.selected_node
+        ancestry = ancestry if ancestry else node_ancestry(node, self.tree_node_dict)
         text = []
         end_indices = []
         index = 0
-        for node in node_ancestry(node, self.tree_node_dict):
+        for node in ancestry:
             text.append(node["text"])
             index += len(node["text"])
             end_indices.append(index)
         return text, end_indices
         # return [node["text"] for node in node_ancestry(node, self.tree_node_dict)]
+
+    def ancestry_plaintext(self, ancestry=None):
+        ancestry = ancestry if ancestry else node_ancestry(node, self.tree_node_dict)
+        return ''.join(node['text'] for node in ancestry)
 
     @property
     def selected_node(self):
@@ -417,17 +429,17 @@ class TreeModel:
         node = node if node else self.selected_node
         return node['id'] in self.calc_canonical_set()
 
-    def node_is_visible(self, node=None):
+    def not_archived(self, node=None):
         node = node if node else self.selected_node
         return not (node.get('archived', False))
 
-    def generate_canonical_tree(self, root=None):
-        root = root if root else self.tree_raw_data["root"]
-        return generate_conditional_tree(root, self.node_is_canonical)
+    # def generate_canonical_tree(self, root=None):
+    #     root = root if root else self.tree_raw_data["root"]
+    #     return generate_conditional_tree(root, self.node_is_canonical)
 
-    def generate_visible_tree(self, root=None):
-        root = root if root else self.tree_raw_data["root"]
-        return generate_conditional_tree(root, self.node_is_visible)
+    # def generate_visible_tree(self, root=None):
+    #     root = root if root else self.tree_raw_data["root"]
+    #     return generate_conditional_tree(root, self.node_is_visible)
 
     def generate_filtered_tree(self, root=None):
         root = root if root else self.tree_raw_data["root"]
@@ -442,7 +454,7 @@ class TreeModel:
         if self.preferences['canonical_only']:
             conditions.append(self.node_is_canonical)
         if self.preferences['hide_archived']:
-            conditions.append(self.node_is_visible)
+            conditions.append(self.not_archived)
         return conditions
 
     def visible_children(self, node=None):
@@ -467,7 +479,7 @@ class TreeModel:
         # TODO replace with history
         node["meta"]["modified"] = False
 
-    def create_child(self, parent=None, update_selection=True, expand=True, tree_updated=True):
+    def create_child(self, parent=None, update_selection=True, expand=True, refresh_nav=True):
         parent = parent if parent else self.selected_node
         if not parent:
             return
@@ -475,8 +487,10 @@ class TreeModel:
         new_child = new_node()
         parent["children"].append(new_child)
 
-        if tree_updated:
+        if refresh_nav:
             self.tree_updated(add=[new_child['id']])
+        else:
+            self.tree_updated_silent()
         if update_selection:
             self.select_node(new_child["id"])
         if expand:
@@ -491,7 +505,7 @@ class TreeModel:
         parent = self.parent(node)
         return self.create_child(parent=parent, update_selection=update_selection)
 
-    def create_parent(self, node=None):
+    def create_parent(self, node=None, refresh_nav=True):
         node = node if node else self.selected_node
         if not node:
             return
@@ -512,10 +526,13 @@ class TreeModel:
         node["parent_id"] = new_parent["id"]
         new_parent["open"] = True
 
-        self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
+        if refresh_nav:
+            self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
+        else:
+            self.tree_updated_silent()
         return new_parent
 
-    def merge_with_parent(self, node=None):
+    def merge_with_parent(self, node=None, refresh_nav=True):
         node = node if node else self.selected_node
         if not node:
             return
@@ -531,7 +548,10 @@ class TreeModel:
 
         if node == self.selected_node:
             self.select_node(parent["id"])
-        self.tree_updated(add=[n['id'] for n in subtree_list(parent)])
+        if refresh_nav:
+            self.tree_updated(add=[n['id'] for n in subtree_list(parent)])
+        else:
+            self.tree_updated_silent()
 
     def merge_with_children(self, node=None):
         node = node if node else self.selected_node
@@ -543,32 +563,8 @@ class TreeModel:
             child["text"] = node["text"] + child["text"]
         self.delete_node(node, reassign_children=True)
 
-    # TODO maybe not the right approach
-    # TODO construct new tree?
-    # TODO inherit attributes?
-    def merge_temp(self, parent, child):
-        compound = compound_node(parent, child)
-        # TODO is this necessary?
-        # if 'parent_id' in parent:
-        #     compound['parent_id'] = parent['parent_id']
-        self.tree_node_dict[compound['id']] = compound
-        if 'parent_id' in parent:
-            grandparent = self.tree_node_dict[parent['parent_id']]
-            temp_children = [child for child in grandparent['children'] if child != parent]
-            temp_children.append(compound)
-            grandparent['temp_children'] = temp_children
-        elif self.tree_raw_data['root'] == parent:
-            # TODO
-            pass
-        else:
-            print('error!')
-            exit(0)
-        self.select_node(self.tree_raw_data['root']['id'], fire_callbacks=False)
-        self.tree_updated(add=[compound['id']], delete=[parent['parent_id']])
-        # what if root?
-
     # TODO indicate that change parent has been toggled
-    def change_parent(self, node=None, new_parent_id=None):
+    def change_parent(self, node=None, new_parent_id=None, refresh_nav=True):
         node = node if node else self.selected_node
         if not node:
             return
@@ -590,7 +586,10 @@ class TreeModel:
         node["parent_id"] = new_parent_id
         new_parent["children"].append(node)
         # TODO does this cause bugs
-        self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
+        if refresh_nav:
+            self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
+        else:
+            self.tree_updated_silent()
 
     # adds node to ghostchildren of new ghostparent
     def add_parent(self, node=None, new_ghostparent=None):
@@ -601,15 +600,18 @@ class TreeModel:
     def change_main_parent(self, node=None, new_main_parent=None):
         pass
 
-    def shift(self, node, interval):
+    def shift(self, node, interval, refresh_nav=True):
         siblings = self.parent(node)["children"]
         old_index = siblings.index(node)
         new_index = (old_index + interval) % len(siblings)
         siblings[old_index], siblings[new_index] = siblings[new_index], siblings[old_index]
-        self.tree_updated(add=[n['id'] for n in subtree_list(self.parent(node))])
+        if refresh_nav:
+            self.tree_updated(add=[n['id'] for n in subtree_list(self.parent(node))])
+        else:
+            self.tree_updated_silent()
 
     # TODO Doesn't support deleting root
-    def delete_node(self, node=None, reassign_children=False):
+    def delete_node(self, node=None, reassign_children=False, refresh_nav=True):
         node = node if node else self.selected_node
         if "parent_id" not in node:
             return
@@ -628,10 +630,13 @@ class TreeModel:
             #     self.select_node(parent["id"])
             # else:
             #     self.select_node(siblings[old_index % len(siblings)]["id"])
-        self.tree_updated(delete=[node['id']])
+        if refresh_nav:
+            self.tree_updated(delete=[node['id']])
+        else:
+            self.tree_updated_silent()
 
     # TODO add creation date if it doesn't exist
-    def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False):
+    def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False, refresh_nav=True):
         assert node["id"] in self.tree_node_dict, text
 
         # Remove trailing spaces
@@ -680,7 +685,9 @@ class TreeModel:
                     #         old_tokens = tokenize_ada(old_text)
                     # node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
                     #                               'revision timestamp': timestamp()})
-            self.tree_updated(edit=[node['id']])
+            if refresh_nav:
+                self.tree_updated(edit=[node['id']])
+
 
     def update_note(self, node, text, index=0):
         assert node["id"] in self.tree_node_dict, text
@@ -696,7 +703,7 @@ class TreeModel:
         # if edited:
         #     self.tree_updated()
 
-    def split_node(self, node, split_index):
+    def split_node(self, node, split_index, refresh_nav=True):
         new_parent = self.create_parent(node)
         parent_text = node['text'][:split_index]
         child_text = node['text'][split_index:]
@@ -718,7 +725,10 @@ class TreeModel:
             node['summaries'] = []
         if 'meta' in node and 'source' in node['meta']:
             new_parent['meta']['source'] = node['meta']['source']
-        self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
+        if refresh_nav:
+            self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
+        else:
+            self.tree_updated_silent()
         return new_parent, node
 
     #################################
@@ -856,7 +866,7 @@ class TreeModel:
 
     # returns first node that is fully contained in the context window
     def context_window_index(self):
-        _, indices = self.node_ancestry_text()
+        _, indices = self.ancestry_text_list()
         first_in_context_index = indices[-1] - self.generation_settings['prompt_length']
         if first_in_context_index < 0:
             return 0
@@ -1019,7 +1029,7 @@ class TreeModel:
                       'parent_tree': self.tree_raw_data}
         self.hoist_stack.append(hoist_info)
 
-        history_text = "".join(self.node_ancestry_text(node)[0][:-1])
+        history_text = "".join(self.ancestry_text_list(node)[0][:-1])
         history_parent = new_node(text=history_text)
         history_parent['children'] = [node]
         node['parent_id'] = history_parent['id']
@@ -1068,7 +1078,7 @@ class TreeModel:
         return True
 
     def export_history(self, node, filename):
-        history = "".join(self.node_ancestry_text(node)[0])
+        history = "".join(self.ancestry_text_list(node)[0])
         f = open(filename, "w")
         f.write(history)
         f.close()
@@ -1234,7 +1244,7 @@ class TreeModel:
                             # prompt += f'\n[{summary["text"]}]\n'
                 prompt += ancestor['text']
         else:
-            prompt = "".join(self.node_ancestry_text(node)[0])
+            prompt = "".join(self.ancestry_text_list(node)[0])
         if not prompt_length:
             prompt_length = self.generation_settings['prompt_length']
         prompt = prompt[-prompt_length:]
@@ -1279,11 +1289,11 @@ class TreeModel:
         new_nodes = []
         # pprint(self.generation_settings)
         for i in range(self.generation_settings['num_continuations']):
-            child = self.create_child(node, update_selection=False, expand=True, tree_updated=False)
+            child = self.create_child(node, update_selection=False, expand=True, refresh_nav=False)
             children.append(child)
             new_nodes.append(child['id'])
             if self.generation_settings['adaptive']:
-                grandchild = self.create_child(child, update_selection=False, expand=True, tree_updated=False)
+                grandchild = self.create_child(child, update_selection=False, expand=True, refresh_nav=False)
                 grandchildren.append(grandchild)
                 new_nodes.append(grandchild['id'])
 
@@ -1339,7 +1349,7 @@ class TreeModel:
         # create child nodes
         children = []
         for i in range(branching_factor):
-            child = self.create_child(node, update_selection=False, expand=True, tree_updated=False)
+            child = self.create_child(node, update_selection=False, expand=True, refresh_nav=False)
             children.append(child)
         # set child nodes
         self.generated_nodes_metadata(children, results, prompt)
@@ -1633,5 +1643,115 @@ class TreeModel:
             root['meta'].pop('generation')
         for child in root['children']:
             self.clear_old_generation_metadata(child)
+
+    def sever_from_parent(self, node):
+        parent = self.parent(node)
+        parent['children'].remove(node)
+        node['parent_id'] = None
+        return parent
+
+    def sever_children(self, node):
+        children = node['children'].copy()
+        for child in children:
+            child['parent_id'] = None
+        node['children'] = []
+        # TODO empty?
+        return children
+
+    def adopt_parent(self, node, parent):
+        node['parent_id'] = parent['id']
+        parent['children'].append(node)
+
+    def adopt_children(self, node, children):
+        for child in children:
+            self.adopt_parent(child, parent=node)
+
+    def has_parent(self, node):
+        return 'parent_id' in node and node['parent_id']
+
+    def is_compound(self, node):
+        return 'masked_head' in node
+
+    def collapse(self, head, tail, refresh_nav=True, update_selection=True):
+        text = self.ancestry_plaintext(self.ancestry_in_range(root=head, node=tail))
+        mask = new_node(text=text)
+        if self.has_parent(head):
+            parent = self.sever_from_parent(head)
+            self.adopt_parent(mask, parent)
+        else:
+            print('error: collapse root not implemented')
+            return
+        children = self.sever_children(tail)
+        self.adopt_children(mask, children)
+        # TODO don't save tail
+        mask['masked_head'] = head
+        mask['tail_id'] = tail['id']
+
+        if refresh_nav:
+            self.tree_updated(delete=[head['id']], add=[n['id'] for n in subtree_list(mask)])
+        else:
+            self.tree_updated_silent()
+        if update_selection:
+            self.select_node(mask['id'])
+            self.selection_updated()
+        return mask
+
+    def expand(self, mask, refresh_nav=True, update_selection=True):
+        if not self.is_compound(mask):
+            print('nothing to expand')
+            return
+        head = mask['masked_head']
+        head_dict = {d["id"]: d for d in flatten_tree(head)}
+        tail = head_dict[mask['tail_id']]
+        if self.has_parent(mask):
+            parent = self.sever_from_parent(mask)
+            self.adopt_parent(head, parent)
+        children = self.sever_children(mask)
+        self.adopt_children(tail, children)
+
+        if refresh_nav:
+            self.tree_updated(delete=[mask['id']], add=[n['id'] for n in subtree_list(head)])
+        else:
+            self.tree_updated_silent()
+        if update_selection:
+            self.select_node(head['id'])
+            self.selection_updated()
+        return head
+
+    def collapse_chain(self, node, mode='bidirectional', refresh_nav=False, update_selection=False):
+        head = node
+        tail = node
+        if mode in ('bidirectional', 'backward'):
+            while self.has_parent(head) and len(self.visible_children(self.parent(head))) == 1:
+                head = self.parent(head)
+        if mode in ('bidirectional', 'forward'):
+            while len(self.visible_children(tail)) == 1:
+                tail = self.visible_children(tail)[0]
+        if not (head == node and tail == node):
+            return self.collapse(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
+        else:
+            return node
+
+    def collapse_all_chains(self, root=None):
+        root = root if root else self.tree_raw_data['root']
+        # TODO root problem
+        if root is not self.tree_raw_data['root']:
+            new_node = self.collapse_chain(root, mode='forward')
+        else:
+            new_node = root
+        children = self.visible_children(new_node)
+        for child in children:
+            self.collapse_all_chains(child)
+
+    def expand_all(self, root=None):
+        root = root if root else self.tree_raw_data['root']
+        children = self.visible_children(root)
+        for child in children:
+            self.expand_all(child)
+        if self.is_compound(root):
+            head = self.expand(root, refresh_nav=False, update_selection=False)
+
+
+
 
 
