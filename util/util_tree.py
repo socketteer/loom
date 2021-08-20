@@ -5,13 +5,13 @@ import re
 import random
 from datetime import datetime
 
-
-def new_node(node_id=None, text=''):
+def new_node(node_id=None, text='', mutable=True):
     if not node_id:
         node_id = str(uuid.uuid1())
     node = {"id": node_id,
             "text": text,
-            "children": []}
+            "children": [],
+            "mutable": mutable}
     return node
 
 
@@ -305,4 +305,14 @@ def fix_miro_tree(flat_data):
                 ("parent_id" not in d or not id_to_node[d["parent_id"]]["text"].endswith("\n")):
             d["text"] = " " + d["text"]
 
+
+def add_immutable_root(tree):
+    if tree['root'].get('mutable', True):
+        old_root = tree['root']
+        tree['root'] = {
+            "mutable": False,
+            "text": "",
+            "id": str(uuid.uuid1()),
+            "children": [old_root],
+        }
 

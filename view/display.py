@@ -57,6 +57,8 @@ class Display:
         self.multiverse_frame = None
         self.multiverse = None
 
+        self.side_frame = None
+
         self.notes_frame = None
         self.notes_textbox_frame = None
         self.notes_textbox = None
@@ -167,6 +169,7 @@ class Display:
         self.init_icon("archive", "archive-2-48.png", 16)
         self.init_icon("go", "arrow-green.png", 16)
         self.init_icon("compound", "layers-2-48.png", 16)
+        self.init_icon("tree", "flow-chart-48.png", 16)
 
     # TODO init with init_icons
     def build_static(self):
@@ -220,12 +223,7 @@ class Display:
         self.button_bar.pack(side="top", fill="both")
 
         self.search_frame = ttk.Frame(self.main_frame)
-        # self.build_debug_box()
 
-        # if self.state.preferences['input_box']:
-        #     self.build_input_box(self.bottom_frame)
-
-        # self.destroy_input_box()
 
     def build_textboxes(self, frame):
         self._build_textbox(frame, "preview_textbox_frame", "preview_textbox", height=3)
@@ -387,13 +385,21 @@ class Display:
         if scrollbarx_attr is not None:
             self.__setattr__(scrollbarx_attr, scrollbarx)
 
+    # TODO chapter_nav_frame is currently not used
+    def destroy_chapter_nav(self):
+        print('destroy chapter nav')
+        if self.chapter_nav_frame is not None:
+            print('destroying')
+            self.chapter_nav_frame.pack_forget()
+            self.chapter_nav_frame.destroy()
+            self.chapter_nav_tree = None
+            self.chapter_nav_scrollbarx = None
+
     #################################
     #   Side panel
     #################################
 
-    # TODO bind to variables
-    def build_side(self, frame):
-        self.side_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
+    def build_notes(self):
         self.notes_options_frame = ttk.Frame(self.side_frame, height=200, width=300)
         self.notes_options_frame.pack(fill='both')
 
@@ -436,30 +442,26 @@ class Display:
         self.notes_textbox_frame.pack(expand=True, fill="both")
 
     def open_side(self):
-        self.build_side(self.pane)
+        if not self.side_frame:
+            self.side_frame = ttk.Frame(self.pane, height=500, width=300, relief='sunken', borderwidth=2)
         self.pane.add(self.side_frame, weight=1)
 
     def destroy_side(self):
         if self.side_frame is not None:
             self.side_frame.pack_forget()
+            # is this warranted?
             self.side_frame.destroy()
-            self.notes_frame = None
-            self.notes_options_frame = None
-            self.notes_select = None
-            self.notes_title = None
-            self.scope_select = None
-            self.change_root_button = None
-            self.delete_note_button = None
+            self.destroy_notes()
 
-    # TODO chapter_nav_frame is currently not used
-    def destroy_chapter_nav(self):
-        print('destroy chapter nav')
-        if self.chapter_nav_frame is not None:
-            print('destroying')
-            self.chapter_nav_frame.pack_forget()
-            self.chapter_nav_frame.destroy()
-            self.chapter_nav_tree = None
-            self.chapter_nav_scrollbarx = None
+    def destroy_notes(self):
+        self.notes_frame = None
+        self.notes_options_frame = None
+        self.notes_select = None
+        self.notes_title = None
+        self.scope_select = None
+        self.change_root_button = None
+        self.delete_note_button = None
+
 
     #################################
     #   Bottom frame
@@ -700,7 +702,8 @@ class Display:
             if self.state.preferences['coloring'] != 'read':
                 self.make_button('go', self.goto_child, i, 2, tb_id, tb_item)
                 self.make_button('close', self.dismiss_textbox, i, 3, tb_id, tb_item)
-                self.make_button('edit', self.toggle_editable, i, 4, tb_id, tb_item)
+                if self.state.is_mutable(child):
+                    self.make_button('edit', self.toggle_editable, i, 4, tb_id, tb_item)
                 self.make_button('archive', self.archive_child, i, 5, tb_id, tb_item)
                 self.make_button('delete', self.delete_child, i, 6, tb_id, tb_item)
                 # TODO only create label if node has descendents
@@ -831,7 +834,8 @@ class Display:
     def save_all(self):
         if self.multi_textboxes:
             for tb_id, tb_item in self.multi_textboxes.items():
-                self.save_edits(tb_id)
+                if self.multi_textboxes[tb_id]['textbox'].cget('state') == 'normal':
+                    self.save_edits(tb_id)
 
     #################################
     #   Edit mode

@@ -17,7 +17,7 @@ from gpt import openAI_generate, janus_generate, search, generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children, anti_conditions_lambda, \
-    new_node
+    new_node, add_immutable_root
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 from util.multiverse_util import greedy_word_multiverse
 from util.node_conditions import conditions
@@ -131,6 +131,19 @@ EMPTY_TREE = {
     "chapters": {}
 }
 
+EMPTY_ROOT_TREE = {
+    "root": {
+        "mutable": False,
+        "text": "",
+        "children": [
+            {
+                "text": "",
+                "children": [],
+            }
+        ],
+    }
+}
+
 
 class TreeModel:
 
@@ -155,11 +168,6 @@ class TreeModel:
         self.state_preferences = DEFAULT_STATE
 
         self.hoist_stack = []
-
-        # self.hoisted_root_id = None
-        # self.hoisted_parent_id = None
-        # self.parent_tree = None
-        # self.parent_filename = None
 
         self.selected_node_id = None
 
@@ -194,6 +202,9 @@ class TreeModel:
     def master_tree(self):
         return self.hoist_stack[0]['parent_tree'] if self.hoist_stack else self.tree_raw_data
 
+    def name(self):
+        return os.path.splitext(os.path.basename(self.tree_filename))[0] if self.tree_filename else 'Untitled'
+
     #################################
     #   Hooks
     #################################
@@ -212,8 +223,10 @@ class TreeModel:
         self.rebuild_tree()
 
     def rebuild_tree(self):
+        add_immutable_root(self.tree_raw_data)
         self.tree_node_dict = {d["id"]: d for d in flatten_tree(self.tree_raw_data["root"])}
         fix_miro_tree(self.nodes)
+
 
     @event
     def edit_new_nodes(self):
@@ -236,6 +249,9 @@ class TreeModel:
     #################################
     #   Access
     #################################
+
+    def root(self):
+        return self.tree_raw_data['root']
 
     def node(self, node_id=None):
         if node_id is None:
@@ -537,7 +553,10 @@ class TreeModel:
         if not node:
             return
 
+        assert 'parent_id' in node, self.is_mutable(node)
         parent = self.parent(node)
+        assert self.is_mutable(parent)
+
         parent["text"] += node["text"]
 
         index_in_parent = parent["children"].index(node)
@@ -555,6 +574,7 @@ class TreeModel:
 
     def merge_with_children(self, node=None):
         node = node if node else self.selected_node
+        assert self.is_mutable(node)
         if not node:
             return
 
@@ -638,6 +658,7 @@ class TreeModel:
     # TODO add creation date if it doesn't exist
     def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False, refresh_nav=True):
         assert node["id"] in self.tree_node_dict, text
+        assert self.is_mutable(node)
 
         # Remove trailing spaces
         # count spaces that will be removed
@@ -767,7 +788,7 @@ class TreeModel:
 
     def remove_all_chapters(self, node=None):
         was_root = node is None
-        node = node if node else self.tree_raw_data['root']
+        node = node if node else self.root()
         if "chapter_id" in node:
             self.delete_chapter(self.chapters[node["chapter_id"]], update_tree=False)
         for child in node["children"]:
@@ -977,7 +998,7 @@ class TreeModel:
             self._init_global_objects()
         self.tree_updated(rebuild=True)
 
-        self.select_node(self.tree_raw_data.get("selected_node_id", self.nodes[0]["id"]))
+        self.select_node(self.tree_raw_data.get("selected_node_id", self.root()['children'][0]['id']))
 
     # Open a new tree json
     def open_tree(self, filename):
@@ -1624,8 +1645,8 @@ class TreeModel:
 
     # TODO only strip generation metadata
     def strip_metadata(self, root=None, delete_chapters=False):
-        root = root if root else self.tree_raw_data['root']
-        if root == self.tree_raw_data['root'] and delete_chapters:
+        root = root if root else self.root()
+        if root == self.root() and delete_chapters:
             self.remove_all_chapters(root)
             self.tree_raw_data['chapters'] = {}
         if 'meta' in root:
@@ -1636,7 +1657,7 @@ class TreeModel:
             self.strip_metadata(root=child)
 
     def clear_old_generation_metadata(self, root=None):
-        root = root if root else self.tree_raw_data['root']
+        root = root if root else self.root()
         print('...')
         if 'meta' in root and 'generation' in root['meta']:
             print('clearing generation data')
@@ -1672,9 +1693,15 @@ class TreeModel:
     def is_compound(self, node):
         return 'masked_head' in node
 
+    def is_mutable(self, node):
+        return node.get('mutable', True)
+
+    def is_root(self, node):
+        return node == self.root()
+
     def collapse(self, head, tail, refresh_nav=True, update_selection=True):
         text = self.ancestry_plaintext(self.ancestry_in_range(root=head, node=tail))
-        mask = new_node(text=text)
+        mask = new_node(text=text, mutable=False)
         if self.has_parent(head):
             parent = self.sever_from_parent(head)
             self.adopt_parent(mask, parent)
@@ -1733,9 +1760,9 @@ class TreeModel:
             return node
 
     def collapse_all_chains(self, root=None):
-        root = root if root else self.tree_raw_data['root']
+        root = root if root else self.root()
         # TODO root problem
-        if root is not self.tree_raw_data['root']:
+        if not self.is_root(root):
             new_node = self.collapse_chain(root, mode='forward')
         else:
             new_node = root
@@ -1744,7 +1771,7 @@ class TreeModel:
             self.collapse_all_chains(child)
 
     def expand_all(self, root=None):
-        root = root if root else self.tree_raw_data['root']
+        root = root if root else self.root()
         children = self.visible_children(root)
         for child in children:
             self.expand_all(child)

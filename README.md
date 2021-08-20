@@ -163,6 +163,8 @@ Move node down: `Shift-Down`
 
 Change parent: `Shift-P`
 
+New root child: `Control-Shift-h`
+
 New Child: `h`, `Control-h`, `Alt-Right`
 
 New Parent: `Alt-Left`

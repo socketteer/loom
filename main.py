@@ -8,7 +8,7 @@ from tkinter import ttk, messagebox
 from ttkthemes import ThemedStyle
 
 from controller import Controller
-from model import TreeModel, EMPTY_TREE
+from model import TreeModel, EMPTY_TREE, EMPTY_ROOT_TREE
 from util.custom_tks import ClosableNotebook
 from util.util import json_open, json_create
 from util.util_tk import create_menubar
@@ -104,7 +104,7 @@ class Application:
             print("opening", filename)
             tab.state.open_tree(filename)
         else:
-            tab.state.load_tree_data(EMPTY_TREE)
+            tab.state.load_tree_data(EMPTY_ROOT_TREE)
 
 
     def close_tab(self, event=None, index=None):
@@ -125,8 +125,7 @@ class Application:
 
     def set_tab_names(self):
         for i, t in enumerate(self.tabs):
-            name = os.path.splitext(os.path.basename(t.state.tree_filename))[0] \
-                if t.state.tree_filename else f"Tab {i+1}"
+            name = t.state.name()
             self.notebook.tab(i, text=name)
 
     # Build the applications menubar

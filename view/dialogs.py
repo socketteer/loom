@@ -34,6 +34,10 @@ class NodeInfoDialog(Dialog):
         create_side_label(master, "id")
         create_label(master, self.node["id"], row=master.grid_size()[1] - 1, col=1, padx=15)
 
+        create_side_label(master, "mutable")
+        create_label(master, "true" if self.state.is_mutable(self.node) else "false",
+                     row=master.grid_size()[1] - 1, col=1, padx=15)
+
         create_side_label(master, "bookmarked")
         create_label(master, "true" if self.node.get("bookmark", False) else "false", row=master.grid_size()[1] - 1,
                      col=1, padx=15)

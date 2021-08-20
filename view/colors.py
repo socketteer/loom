@@ -66,8 +66,13 @@ def text_color():
     return DARKMODE_TEXT if darkmode else LIGHTMODE_TEXT
 
 
+def immutable_color():
+    return DM_INACTIVE_TEXT if darkmode else LM_INACTIVE_TEXT
+
+
 def uncanonical_color():
     return DARKMODE_UNCANONICAL if darkmode else LIGHTMODE_UNCANONICAL
+
 
 def bg_color():
     return DARKMODE_TEXTBOX_BG if darkmode else LIGHTMODE_TEXTBOX_BG

@@ -18,15 +18,16 @@ import bisect
 
 import traceback
 
-from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color
+from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color, \
+    immutable_color
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
     PreferencesDialog, AIMemory, CreateMemory, NodeMemory, ChatSettingsDialog, CreateSummary, Summaries
 from model import TreeModel
 from util.util import clip_num, metadata, diff
-from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, node_index, \
-    nearest_common_ancestor, collect_conditional
+from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
+    node_index, nearest_common_ancestor, collect_conditional
 from util.gpt_util import logprobs_to_probs
 
 
@@ -150,18 +151,20 @@ class Controller:
                 ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
                 ('Toggle hide archived', None, None, no_junk_args(self.toggle_hide_archived)),
                 ('Toggle canonical only', None, None, no_junk_args(self.toggle_canonical_only)),
-                ('Expand', '', None, no_junk_args(self.expand_node)),
-                ('Collapse all', '', None, no_junk_args(self.collapse_all_chains)),
-                ('Expand all', '', None, no_junk_args(self.expand_all))
+                ('Unzip', '', None, no_junk_args(self.unzip_node)),
+                ('Zip chain', '', None, no_junk_args(self.zip_chain)),
+                ('Zip all', '', None, no_junk_args(self.zip_all_chains)),
+                ('Unzip all', '', None, no_junk_args(self.unzip_all))
             ],
             "Edit": [
                 ('Edit mode', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
+                ("New root child", 'Ctrl+Shift+H', None, no_junk_args(self.create_root_child)),
                 ("Create parent", 'Alt-Left', None, no_junk_args(self.create_parent)),
                 ("Change parent", 'Shift-P', None, no_junk_args(self.change_parent)),
-                ("New Child", 'H, Ctrl+H, Alt+Right', None, no_junk_args(self.create_child)),
-                ("New Sibling", 'Alt+Down', None, no_junk_args(self.create_sibling)),
-                ("Merge with parent", 'Shift+Left', None, no_junk_args(self.merge_with_parent)),
-                ("Merge with children", 'Shift+Right', None, no_junk_args(self.merge_with_children)),
+                ("New child", 'H, Ctrl+H, Alt+Right', None, no_junk_args(self.create_child)),
+                ("New sibling", 'Alt+Down', None, no_junk_args(self.create_sibling)),
+                ("Merge with parent", 'Shift+Left', None, no_junk_args(self.merge_parent)),
+                ("Merge with children", 'Shift+Right', None, no_junk_args(self.merge_children)),
                 ("Move up", 'Shift+Up', None, no_junk_args(self.move_up)),
                 ("Move up", 'Shift+Down', None, no_junk_args(self.move_down)),
                 ('Prepend newline', 'N, Ctrl+N', None, no_junk_args(self.prepend_newline)),
@@ -413,10 +416,13 @@ class Controller:
     #   Node operations
     #################################
 
+    @metadata(name="New root child", keys=["<Control-Shift-KeyPress-H>"], display_key="ctrl-shift-h" )
+    def create_root_child(self):
+        self.create_child(node=self.state.root())
+
     @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Alt-Right>"], display_key="h",)
     def create_child(self, node=None, update_selection=True, toggle_edit=True):
-        if node is None:
-            node = self.state.selected_node
+        node = node if node else self.state.selected_node
         child = self.state.create_child(parent=node, update_selection=update_selection)
         self.state.node_creation_metadata(child, source='prompt')
         if self.display.mode == "Read" and toggle_edit:
@@ -425,8 +431,7 @@ class Controller:
 
     @metadata(name="New Sibling", keys=["<Alt-Down>"], display_key="alt-down")
     def create_sibling(self, node=None):
-        if node is None:
-            node = self.state.selected_node
+        node = node if node else self.state.selected_node
         sibling = self.state.create_sibling(node=node)
         self.state.node_creation_metadata(sibling, source='prompt')
         if self.display.mode == "Read":
@@ -434,16 +439,14 @@ class Controller:
 
     @metadata(name="New Parent", keys=["<Alt-Left>"], display_key="alt-left")
     def create_parent(self, node=None):
-        if node is None:
-            node = self.state.selected_node
+        node = node if node else self.state.selected_node
         parent = self.state.create_parent(node=node)
         self.state.node_creation_metadata(parent, source='prompt')
         return parent
 
     @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None, click_mode=False)
     def change_parent(self, node=None, click_mode=False):
-        if node is None:
-            node = self.state.selected_node
+        node = node if node else self.state.selected_node
         if self.change_parent.meta["selected_node"] is None:
             self.display.change_cursor("fleur")
             self.change_parent.meta["selected_node"] = node
@@ -456,14 +459,27 @@ class Controller:
 
     @metadata(name="Merge with Parent", keys=["<Shift-Left>"], display_key="shift-left",)
     def merge_parent(self, node=None):
-        if node is None:
-            node = self.state.selected_node
+        node = node if node else self.state.selected_node
+        if not self.state.is_mutable(node):
+            self.immutable_popup(node)
+            return
+        parent = self.state.parent(node)
+        if not self.state.is_mutable(parent):
+            self.immutable_popup(parent)
+            return
         self.state.merge_with_parent(node=node)
 
     @metadata(name="Merge with children", keys=["<Shift-Right>"], display_key="shift-right")
     def merge_children(self, node=None):
-        if node is None:
-            node = self.state.selected_node
+        node = node if node else self.state.selected_node
+        if not self.state.is_mutable(node):
+            self.immutable_popup(node)
+            return
+        children = node['children']
+        for child in children:
+            if not self.state.is_mutable(child):
+                self.immutable_popup(child)
+                return
         self.state.merge_with_children(node=node)
 
     @metadata(name="Move up", keys=["<Shift-Up>"], display_key="shift-up")
@@ -520,9 +536,11 @@ class Controller:
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
     def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node?"):
-        if node is None:
-            node = self.state.selected_node
-        if not node or "parent_id" not in node:
+        node = node if node else self.state.selected_node
+        if not node:
+            return
+        if node == self.state.root():
+            messagebox.showerror("Root", "Cannot delete root")
             return
         if ask:
             result = messagebox.askquestion("Delete", ask_text, icon='warning')
@@ -577,16 +595,16 @@ class Controller:
         ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
         return ancestor_index, node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
 
-    def collapse_chain(self, node=None):
+    def zip_chain(self, node=None):
         node = node if node else self.state.selected_node
-        self.state.collapse_chain(node)
+        self.state.collapse_chain(node, refresh_nav=True, update_selection=True)
 
-    def collapse_all_chains(self):
+    def zip_all_chains(self):
         self.state.collapse_all_chains()
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
 
-    def expand_all(self):
+    def unzip_all(self):
         self.state.expand_all()
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
@@ -715,9 +733,15 @@ class Controller:
     #   State
     #################################
 
-    def ask_expand(self, node=None):
+    def immutable_popup(self, node):
+        if self.state.is_compound(node):
+            self.ask_unzip(node)
+        else:
+            messagebox.showerror(title="Immutable", message=f"Operation disallowed on immutable node")
+
+    def ask_unzip(self, node=None):
         node = node if node else self.state.selected_node
-        result = messagebox.askquestion("Edit compound node", "Would you like to expand this compound node?", icon='warning')
+        result = messagebox.askquestion("Edit compound node", "Operation disallowed on zipped node. Would you like to unzip this compound node?", icon='warning')
         if result == 'yes':
             self.state.expand(mask=node)
 
@@ -729,8 +753,8 @@ class Controller:
     # Enters edit mode or exits either edit mode
     @metadata(name="Edit Toggle", keys=["<e>", "<Control-e>"], display_key="e")
     def toggle_edit_mode(self, to_edit_mode=None, override_focus=False):
-        if self.state.is_compound(self.state.selected_node):
-            self.ask_expand(self.state.selected_node)
+        if not self.state.is_mutable(self.state.selected_node):
+            self.immutable_popup(self.state.selected_node)
         else:
             if self.display.mode != "Visualize":
                 if self.has_focus(self.display.textbox) or override_focus:
@@ -790,15 +814,17 @@ class Controller:
     #################################
 
 
-    @metadata(name="Merge with parent")
-    def merge_with_parent(self, node=None):
-        self.state.merge_with_parent()
+    # @metadata(name="Merge with parent")
+    # def merge_with_parent(self, node=None):
+    #     node = node if node else self.state.selected_node
+    #     self.state.merge_with_parent(node)
 
 
-    # TODO broken?
-    @metadata(name="Merge with children")
-    def merge_with_children(self):
-        self.state.merge_with_children()
+    # # TODO broken?
+    # @metadata(name="Merge with children")
+    # def merge_with_children(self, node=None):
+    #     node = node if node else self.state.selected_node
+    #     self.state.merge_with_children()
 
     @metadata(name="Copy")
     def copy_text(self):
@@ -806,30 +832,38 @@ class Controller:
 
 
     @metadata(name="Prepend newline", keys=["n", "<Control-n>"], display_key="n")
-    def prepend_newline(self):
-        self.save_edits()
-        if self.state.selected_node:
-            text = self.state.selected_node["text"]
-            if text.startswith("\n"):
-                text = text[1:]
-            else:
-                if text.startswith(' '):
+    def prepend_newline(self, node):
+        node = node if node else self.state.selected_node
+        if not self.state.is_mutable(node):
+            self.immutable_popup(node)
+        else:
+            self.save_edits()
+            if self.state.selected_node:
+                text = node["text"]
+                if text.startswith("\n"):
                     text = text[1:]
-                text = "\n" + text
+                else:
+                    if text.startswith(' '):
+                        text = text[1:]
+                    text = "\n" + text
 
-            self.state.update_text(self.state.selected_node, text)
+                self.state.update_text(node, text)
 
 
     @metadata(name="Prepend space", keys=["<Control-space>"], display_key="ctrl-space")
-    def prepend_space(self):
-        self.save_edits()
-        if self.state.selected_node:
-            text = self.state.selected_node["text"]
-            if text.startswith(" "):
-                text = text[1:]
-            else:
-                text = " " + text
-            self.state.update_text(self.state.selected_node, text)
+    def prepend_space(self, node):
+        node = node if node else self.state.selected_node
+        if not self.state.is_mutable(node):
+            self.immutable_popup(node)
+        else:
+            self.save_edits()
+            if self.state.selected_node:
+                text = node["text"]
+                if text.startswith(" "):
+                    text = text[1:]
+                else:
+                    text = " " + text
+                self.state.update_text(node, text)
 
 
     #################################
@@ -1374,7 +1408,8 @@ class Controller:
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
         #self.state.expand(self.state.selected_node)
-        self.collapse_all_chains()
+        self.display.open_side()
+        #self.collapse_all_chains()
         # node = self.state.selected_node
         # parent = self.state.parent(node)
         # grandparent = self.state.parent(parent)
@@ -1386,8 +1421,8 @@ class Controller:
         #print(self.state.construct_node_condition(info_dict)(self.state.selected_node))
         #pass
 
-    @metadata(name="Expand node")
-    def expand_node(self, node=None):
+    @metadata(name="Unzip node")
+    def unzip_node(self, node=None):
         node = node if node else self.state.selected_node
         self.state.expand(node)
 
@@ -1594,6 +1629,8 @@ class Controller:
             self.display.save_all()
 
     def refresh_display(self, **kwargs):
+
+        self.configure_buttons()
         if self.display.mode == 'Read':
             if self.display.past_box:
                 self.display.destroy_bottom_frame()
@@ -1794,16 +1831,21 @@ class Controller:
     #################################
 
     def nav_tree_name(self, node):
-        text = node['text'].strip()[:20].replace('\n', ' ')
-        text = text if text else "EMPTY"
-        text = text + "..." if len(node['text']) > 20 else text
-        text = '~' + text if node.get('archived', False) else text
+        if node == self.state.root():
+            text = self.state.name()
+        else:
+            text = node['text'].strip()[:20].replace('\n', ' ')
+            text = text if text else "EMPTY"
+            text = text + "..." if len(node['text']) > 20 else text
+            text = '~' + text if node.get('archived', False) else text
         if 'chapter_id' in node:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
 
     def nav_entry_params(self, node):
-        if node['id'] == self.state.checkpoint:
+        if node == self.state.root():
+            image = self.display.icons['tree']['icon']
+        elif node['id'] == self.state.checkpoint:
             image = self.display.marker_icon
         elif self.state.is_compound(node):
             image = self.display.icons['compound']['icon']
@@ -1818,6 +1860,8 @@ class Controller:
             tags.append("canonical")
         else:
             tags.append("uncanonical")
+        if not self.state.is_mutable(node):
+            tags.append("immutable")
         return image, tags
 
     def build_nav_tree(self, flat_tree=None):
@@ -1843,8 +1887,9 @@ class Controller:
             )
         self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
         self.display.nav_tree.tag_configure("visited", background=visited_color())
-        self.display.nav_tree.tag_configure("canonical", foreground=text_color())
-        self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
+        #self.display.nav_tree.tag_configure("canonical", foreground=text_color())
+        #self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
+        self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())
 
     # TODO Probably move this to display
     # (Re)build the nav tree
@@ -2067,8 +2112,12 @@ class Controller:
                         * WIDTH_PER_INDENT + offset_from_selected
         self.display.chapter_nav_tree.xview_moveto(clip_num(current_width / total_width, 0, 1))
 
-
-
+    def configure_buttons(self):
+        if self.state.selected_node:
+            if not self.state.is_mutable(self.state.selected_node):
+                self.display.edit_button.configure(state='disabled')
+            else:
+                self.display.edit_button.configure(state='normal')
 
 
 

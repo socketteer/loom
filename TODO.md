@@ -1,6 +1,9 @@
 ## Priority
 
-- always have immutable root
+- arbitrary tags
+    - tag dialog
+    - search tags
+- navigate to invisible node error handling
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
@@ -11,7 +14,7 @@
 - tutorial
 - substitute (node)
 - floating nodes/subtrees
-- fix old tree function
+- general purpose side frame
 
 ## Other TODO
 
@@ -34,9 +37,10 @@
 * merge with children is broken?
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * after the first counterfactual subtitution via select node, other selections will be misaligned
+* immutable nodes become white when selected in nav tree
 
 ### problems
-* saving is slow for massive trees
+* saving and inserting into nav tree is slow for massive trees
 
 
 ### Deprecated
@@ -78,6 +82,7 @@
     - merging, splitting operations
 - transform compound node into regular node
 - root
+
 
 
 ### Usability 
@@ -205,6 +210,9 @@
 * save counterfactuals?
 
 ### Hoist
+* REFACTOR hoist to use a mask?
+    * pros: able to save hoist state; more elegant
+    * cons: unhoist all more difficult?
 * history parent should be immutable
 * navigating to history parent should (expose option to) unhoist
 * handle navigating to node outside subtree (expand to common ancestor of current and new node?)
@@ -280,7 +288,7 @@
 * mark as visited in tree mode
 * save vis settings
 * increase offsets when text is too long OR scrollbar OR pages
-* collapsed nodes don't need their own column
+* collapsed nodes don't need their own column / variable offsets
 * save pointer to offset when drawing tree...
  
 * more space after collapsed node
@@ -297,6 +305,9 @@
 global edit mode, where all nodes turn into textboxes, but no zooming?
 
 - collapse nodes when too many are expanded
+
+* show history in nodes option
+* move at finite speed (animation)
 
 
 # Windows
