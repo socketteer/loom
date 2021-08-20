@@ -72,16 +72,10 @@
     - GPT-2
 
 ### Masking
-- collapse chain 
-    - forward 
-    - backward 
-    - bidirectional
 - auto-collapse chains in read mode
-- handle all attempts at editing
-    - preview child mode
-    - merging, splitting operations
 - transform compound node into regular node
 - root
+    - when attempt to edit hoisted root, ask to unhoist (instead of unzip)
 
 
 
@@ -129,11 +123,6 @@
 ### Preventing data loss
 - log gpt-3 output files
 - ask before quitting if unsaved changes
-
-
-### Masks
-- A mask is a node which "masks" other node(s), and preserves all information needed to "unmask"
-- turn mask into base node
 
 
 

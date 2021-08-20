@@ -52,7 +52,7 @@ def event(func):
 
 DEFAULT_PREFERENCES = {
     'hide_archived': True,
-    'highlight_canonical': True,
+    'highlight_canonical': False,
     'canonical_only': False,
     'walk': 'descendents',  # 'leaves', 'uniform'
     'coloring': 'edit',  # 'read', 'none'
@@ -134,6 +134,7 @@ EMPTY_TREE = {
 EMPTY_ROOT_TREE = {
     "root": {
         "mutable": False,
+        "visited": True,
         "text": "",
         "children": [
             {
@@ -167,8 +168,6 @@ class TreeModel:
         self.model_responses = None
         self.state_preferences = DEFAULT_STATE
 
-        self.hoist_stack = []
-
         self.selected_node_id = None
 
         self.callbacks = defaultdict(list)
@@ -199,8 +198,10 @@ class TreeModel:
             if self.master_tree() and "chat_preferences" in self.master_tree() \
             else DEFAULT_CHAT_PREFERENCES
 
+    # TODO deprecate?
     def master_tree(self):
-        return self.hoist_stack[0]['parent_tree'] if self.hoist_stack else self.tree_raw_data
+        return self.tree_raw_data
+        #return self.hoist_stack[0]['parent_tree'] if self.hoist_stack else self.tree_raw_data
 
     def name(self):
         return os.path.splitext(os.path.basename(self.tree_filename))[0] if self.tree_filename else 'Untitled'
@@ -1039,37 +1040,30 @@ class TreeModel:
     # current node acts like root from now on
     #
     # creates parent node with ancestry text
-    # TODO history parent should be immutable and portal to parent tree (unhoist)
-    #
-    # TODO hoist stack for multiple hoists / unhoists
-    # TODO return if tries to hoist root
     def hoist(self, node=None):
         node = self.selected_node if not node else node
-        hoist_info = {'root_id': node['id'],
-                      'parent_id': node['parent_id'],
-                      'parent_tree': self.tree_raw_data}
-        self.hoist_stack.append(hoist_info)
-
-        history_text = "".join(self.ancestry_text_list(node)[0][:-1])
-        history_parent = new_node(text=history_text)
-        history_parent['children'] = [node]
-        node['parent_id'] = history_parent['id']
-        self.open_node_as_root(history_parent, save=False, rebuild_global=False)
-        self.select_node(hoist_info['root_id'])
-
-    def unhoist(self, index=-1):
-        if not self.hoist_stack:
-            print('nothing in hoist stack')
+        if self.is_root(node):
+            print('cannot hoist root')
             return
-        hoist_data = self.hoist_stack[index]
-        del self.hoist_stack[index:]
+        new_root = self.zip(head=self.root(), tail=self.parent(node), refresh_nav=False, update_selection=False)
+        self.tree_raw_data['root'] = new_root
+        self.tree_updated(rebuild=True)
 
-        child_tree = self.tree_node_dict[hoist_data['root_id']]
-        child_tree['parent_id'] = hoist_data['parent_id']
-        self.load_tree_data(hoist_data['parent_tree'], init_global=False)
+    def unhoist(self, rebuild=True):
+        if not self.is_compound(self.root()):
+            print('nothing hoisted')
+            return
+        new_root = self.unzip(mask=self.root(), refresh_nav=False, update_selection=False)
+        self.tree_raw_data['root'] = new_root
+        if rebuild:
+            self.tree_updated(rebuild=True)
+        else:
+            self.tree_updated_silent()
 
     def unhoist_all(self):
-        self.unhoist(index=0)
+        while self.is_compound(self.root()):
+            self.unhoist(rebuild=False)
+        self.tree_updated(rebuild=True)
 
     # Tree flat data is just a different view to tree raw data!
     # We edit tree flat data with tkinter and save raw data which is still in json form
@@ -1093,7 +1087,6 @@ class TreeModel:
 
         # print('chapters:', subtree['chapters'])
         # Save tree
-        # Save tree dict from bottom of hoist stack
         json_create(save_filename, subtree)
         self.io_update()
         return True
@@ -1699,15 +1692,12 @@ class TreeModel:
     def is_root(self, node):
         return node == self.root()
 
-    def collapse(self, head, tail, refresh_nav=True, update_selection=True):
+    def zip(self, head, tail, refresh_nav=True, update_selection=True):
         text = self.ancestry_plaintext(self.ancestry_in_range(root=head, node=tail))
         mask = new_node(text=text, mutable=False)
         if self.has_parent(head):
             parent = self.sever_from_parent(head)
             self.adopt_parent(mask, parent)
-        else:
-            print('error: collapse root not implemented')
-            return
         children = self.sever_children(tail)
         self.adopt_children(mask, children)
         # TODO don't save tail
@@ -1723,7 +1713,7 @@ class TreeModel:
             self.selection_updated()
         return mask
 
-    def expand(self, mask, refresh_nav=True, update_selection=True):
+    def unzip(self, mask, refresh_nav=True, update_selection=True):
         if not self.is_compound(mask):
             print('nothing to expand')
             return
@@ -1745,7 +1735,7 @@ class TreeModel:
             self.selection_updated()
         return head
 
-    def collapse_chain(self, node, mode='bidirectional', refresh_nav=False, update_selection=False):
+    def zip_chain(self, node, mode='bidirectional', refresh_nav=False, update_selection=False):
         head = node
         tail = node
         if mode in ('bidirectional', 'backward'):
@@ -1755,28 +1745,28 @@ class TreeModel:
             while len(self.visible_children(tail)) == 1:
                 tail = self.visible_children(tail)[0]
         if not (head == node and tail == node):
-            return self.collapse(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
+            return self.zip(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
         else:
             return node
 
-    def collapse_all_chains(self, root=None):
+    def zip_all_chains(self, root=None):
         root = root if root else self.root()
         # TODO root problem
         if not self.is_root(root):
-            new_node = self.collapse_chain(root, mode='forward')
+            new_node = self.zip_chain(root, mode='forward')
         else:
             new_node = root
         children = self.visible_children(new_node)
         for child in children:
-            self.collapse_all_chains(child)
+            self.zip_all_chains(child)
 
-    def expand_all(self, root=None):
+    def unzip_all(self, root=None):
         root = root if root else self.root()
         children = self.visible_children(root)
         for child in children:
-            self.expand_all(child)
+            self.unzip_all(child)
         if self.is_compound(root):
-            head = self.expand(root, refresh_nav=False, update_selection=False)
+            head = self.unzip(root, refresh_nav=False, update_selection=False)
 
 
 

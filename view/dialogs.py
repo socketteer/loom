@@ -690,6 +690,7 @@ class PreferencesDialog(Dialog):
         self.vars = {
             "hide_archived": tk.BooleanVar,
             "canonical_only": tk.BooleanVar,
+            "highlight_canonical": tk.BooleanVar,
             "side_pane": tk.BooleanVar,
             "bold_prompt": tk.BooleanVar,
             "input_box": tk.BooleanVar,
@@ -714,6 +715,7 @@ class PreferencesDialog(Dialog):
         #print(self.orig_params)
         create_checkbutton(master, "Hide archived", "hide_archived", self.vars)
         create_checkbutton(master, "Canonical only", "canonical_only", self.vars)
+        create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)
         create_checkbutton(master, "Bold prompt", "bold_prompt", self.vars)
         create_checkbutton(master, "Show input box", "input_box", self.vars)
         create_checkbutton(master, "AI responses on submit", "auto_response", self.vars)

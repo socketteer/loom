@@ -311,6 +311,7 @@ def add_immutable_root(tree):
         old_root = tree['root']
         tree['root'] = {
             "mutable": False,
+            "visited": True,
             "text": "",
             "id": str(uuid.uuid1()),
             "children": [old_root],

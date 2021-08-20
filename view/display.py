@@ -104,6 +104,10 @@ class Display:
         self.button_bar = None
         self.edit_button = None
 
+        self.hoist_button = None
+        self.unhoist_button = None
+        self.scroll_to_selected_button = None
+
         self.icons = {}
 
         # Build it!
@@ -323,14 +327,17 @@ class Display:
     def build_nav(self, frame):
         self.nav_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
         # Nav controls
-        buttons = [
-            # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
-            ["Hoist", dict(width=15), dict(fill="x")],
-            ["Unhoist", dict(width=15), dict(fill="x")],
-            ["Scroll to selected", dict(width=15), dict(fill="x")],  # , dict(side="bottom", fill="x")],
-        ]
-        for btn in buttons:
-            self.build_button(self.nav_frame, *btn, side="top")
+        self.hoist_button = self.build_button(self.nav_frame, "Hoist", dict(width=15), dict(fill="x"), side="top")
+        self.unhoist_button = self.build_button(self.nav_frame, "Unhoist", dict(width=15), dict(fill="x"), side="top")
+        self.scroll_to_selected_button = self.build_button(self.nav_frame, "Scroll to selected", dict(width=15), dict(fill="x"), side="top")
+        # buttons = [
+        #     # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
+        #     ["Hoist", dict(width=15), dict(fill="x")],
+        #     ["Unhoist", dict(width=15), dict(fill="x")],
+        #     ["Scroll to selected", dict(width=15), dict(fill="x")],  # , dict(side="bottom", fill="x")],
+        # ]
+        # for btn in buttons:
+        #     self.build_button(self.nav_frame, *btn, side="top")
 
         self.nav_pane = ttk.PanedWindow(self.nav_frame, height=500, width=300)
         self.nav_pane.pack(expand=True, fill='both')

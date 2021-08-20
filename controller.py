@@ -142,6 +142,7 @@ class Controller:
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
                 ('Hoist subtree', 'Alt-H', None, no_junk_args(self.hoist)),
                 ('Unhoist subtree', 'Alt-Shift-H', None, no_junk_args(self.unhoist)),
+                ('Unhoist all', '', None, no_junk_args(self.unhoist_all)),
                 ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
                 ('Collapse subtree', 'Ctrl-minus', None, no_junk_args(self.collapse_subtree)),
                 ('Collapse all except subtree', 'Ctrl-:', None, no_junk_args(self.collapse_all_except_subtree)),
@@ -597,15 +598,15 @@ class Controller:
 
     def zip_chain(self, node=None):
         node = node if node else self.state.selected_node
-        self.state.collapse_chain(node, refresh_nav=True, update_selection=True)
+        self.state.zip_chain(node, refresh_nav=True, update_selection=True)
 
     def zip_all_chains(self):
-        self.state.collapse_all_chains()
+        self.state.zip_all_chains()
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
 
     def unzip_all(self):
-        self.state.expand_all()
+        self.state.unzip_all()
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
 
@@ -735,7 +736,10 @@ class Controller:
 
     def immutable_popup(self, node):
         if self.state.is_compound(node):
-            self.ask_unzip(node)
+            if self.state.is_root(node):
+                self.ask_unhoist()
+            else:
+                self.ask_unzip(node)
         else:
             messagebox.showerror(title="Immutable", message=f"Operation disallowed on immutable node")
 
@@ -743,7 +747,14 @@ class Controller:
         node = node if node else self.state.selected_node
         result = messagebox.askquestion("Edit compound node", "Operation disallowed on zipped node. Would you like to unzip this compound node?", icon='warning')
         if result == 'yes':
-            self.state.expand(mask=node)
+            self.state.unzip(mask=node)
+
+    def ask_unhoist(self):
+        result = messagebox.askquestion("Unhoist",
+                                        "Unhoist tree (unzip root)?",
+                                        icon='warning')
+        if result == 'yes':
+            self.state.unhoist()
 
     # TODO fix metadata references?
     @metadata(name="Edit", keys=[], display_key="e")
@@ -1004,6 +1015,10 @@ class Controller:
     @metadata(name="Unhoist", keys=["<Alt-Shift-KeyPress-H>"], display_key="")
     def unhoist(self):
         self.state.unhoist()
+
+    @metadata(name="Unhoist all", keys=[], display_key="")
+    def unhoist_all(self):
+        self.state.unhoist_all()
 
     @metadata(name="Save", keys=["<s>", "<Control-s>"], display_key="s")
     def save_tree(self, popup=True, autosave=False, filename=None, subtree=None):
@@ -1424,7 +1439,7 @@ class Controller:
     @metadata(name="Unzip node")
     def unzip_node(self, node=None):
         node = node if node else self.state.selected_node
-        self.state.expand(node)
+        self.state.unzip(node)
 
     @metadata(name="Insert summary")
     def insert_summary(self, index):
@@ -1631,6 +1646,7 @@ class Controller:
     def refresh_display(self, **kwargs):
 
         self.configure_buttons()
+        self.configure_nav_tags()
         if self.display.mode == 'Read':
             if self.display.past_box:
                 self.display.destroy_bottom_frame()
@@ -1856,13 +1872,27 @@ class Controller:
         if not image:
             image = self.display.empty_icon
         tags = ["visited"] if node.get("visited", False) else ["not visited"]
+        if not self.state.is_mutable(node):
+            tags.append("immutable")
         if node['id'] in self.state.calc_canonical_set():
             tags.append("canonical")
         else:
             tags.append("uncanonical")
-        if not self.state.is_mutable(node):
-            tags.append("immutable")
+
         return image, tags
+
+    def configure_nav_tags(self):
+        if self.state.preferences.get('highlight_canonical', False):
+            self.display.nav_tree.tag_configure("canonical", foreground=text_color())
+            self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
+        else:
+            self.display.nav_tree.tag_configure("canonical", foreground=text_color())
+            self.display.nav_tree.tag_configure("uncanonical", foreground=text_color())
+        self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
+        self.display.nav_tree.tag_configure("visited", background=visited_color())
+        self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())
+
+
 
     def build_nav_tree(self, flat_tree=None):
         if not flat_tree:
@@ -1885,11 +1915,7 @@ class Controller:
                 tags=tags,
                 **dict(image=image) if image else {}
             )
-        self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
-        self.display.nav_tree.tag_configure("visited", background=visited_color())
-        #self.display.nav_tree.tag_configure("canonical", foreground=text_color())
-        #self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
-        self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())
+        self.configure_nav_tags()
 
     # TODO Probably move this to display
     # (Re)build the nav tree
@@ -2118,6 +2144,14 @@ class Controller:
                 self.display.edit_button.configure(state='disabled')
             else:
                 self.display.edit_button.configure(state='normal')
+            if self.state.is_root(self.state.selected_node):
+                self.display.hoist_button.configure(state='disabled')
+            else:
+                self.display.hoist_button.configure(state='normal')
+        if self.state.is_compound(self.state.root()):
+            self.display.unhoist_button.configure(state='normal')
+        else:
+            self.display.unhoist_button.configure(state='disabled')
 
 
 
