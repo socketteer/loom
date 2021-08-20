@@ -232,7 +232,7 @@ class TreeModel:
     @event
     def edit_new_nodes(self):
         print('new nodes:', self.new_nodes)
-        self.tree_updated(edit=self.new_nodes[0])
+        self.tree_updated(edit=self.new_nodes[0], override_visible=True)
         del self.new_nodes[0]
 
     @event
@@ -360,13 +360,17 @@ class TreeModel:
     #################################
 
     # Update the selected node, the nav tree selection, and possibly the position in the tree traversal
-    def select_node(self, node_id, fire_callbacks=True, **kwargs):
+    def select_node(self, node_id, fire_callbacks=True, reveal_node=False, **kwargs):
         if self.selected_node_id != node_id and self.tree_node_dict and node_id in self.tree_node_dict:
             self.pre_selection_updated()
+
 
             self.selected_node_id = node_id
             self.selected_node["visited"] = True
             self.tree_raw_data["selected_node_id"] = self.selected_node_id
+
+            if reveal_node:
+                self.reveal_nodes([self.selected_node])
 
             # Open all parents but not the node itself
             ancestors = node_ancestry(self.selected_node, self.tree_node_dict)
@@ -1312,7 +1316,8 @@ class TreeModel:
                 new_nodes.append(grandchild['id'])
 
         self.new_nodes.append(new_nodes)
-        self.tree_updated(add=new_nodes)
+        self.tree_updated(add=new_nodes, override_visible=True)
+        #self.reveal_nodes(children + grandchildren)
         prompt = self.build_prompt(quiet=False, node=node)
 
         if 'summary' in kwargs:
@@ -1329,7 +1334,7 @@ class TreeModel:
             child["text"] = "\n\n** Generating **"
         for grandchild in grandchildren:
             grandchild["text"] = "\n\n** Generating **"
-        self.tree_updated(edit=new_nodes)
+        self.tree_updated(edit=new_nodes, override_visible=True)
         if update_selection:
             self.select_node(children[0]["id"])
 
@@ -1767,6 +1772,26 @@ class TreeModel:
             self.unzip_all(child)
         if self.is_compound(root):
             head = self.unzip(root, refresh_nav=False, update_selection=False)
+
+    def reveal_ancestry(self, node):
+        ancestry = node_ancestry(node, self.tree_node_dict)
+        hidden_ancestry_ids = []
+        for i in range(1, len(ancestry)):
+            if not self.visible(ancestry[-i]):
+                hidden_ancestry_ids.insert(0, ancestry[-i]['id'])
+            else:
+                break
+        self.tree_updated(add=hidden_ancestry_ids, override_visible=True)
+
+    # unlike reveal_ancestry, this assumes parents are visible
+    def reveal_nodes(self, nodes):
+        invisible_node_ids = [node['id'] for node in nodes if not self.visible(node)]
+        if invisible_node_ids:
+            self.tree_updated(add=invisible_node_ids, override_visible=True)
+
+    def visible(self, node):
+        return all(condition(node) for condition in self.generate_visible_conditions())
+
 
 
 

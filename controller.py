@@ -395,7 +395,12 @@ class Controller:
             self.display.textbox.tag_config("old", foreground=history_color())
 
     @metadata(name="Select node")
-    def select_node(self, node, noscroll=False):
+    def select_node(self, node, noscroll=False, ask_reveal=True):
+        if not self.display.nav_tree.exists(node['id']):
+            if ask_reveal:
+                self.ask_reveal(node)
+            else:
+                self.reveal_node(node)
         if self.state.preferences['coloring'] == 'read':
             # if only one visible child, go straight to child
             old_node = self.state.selected_node
@@ -424,7 +429,8 @@ class Controller:
     @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Alt-Right>"], display_key="h",)
     def create_child(self, node=None, update_selection=True, toggle_edit=True):
         node = node if node else self.state.selected_node
-        child = self.state.create_child(parent=node, update_selection=update_selection)
+        child = self.state.create_child(parent=node, update_selection=False)
+        self.select_node(child, ask_reveal=False)
         self.state.node_creation_metadata(child, source='prompt')
         if self.display.mode == "Read" and toggle_edit:
             self.toggle_edit_mode()
@@ -433,7 +439,8 @@ class Controller:
     @metadata(name="New Sibling", keys=["<Alt-Down>"], display_key="alt-down")
     def create_sibling(self, node=None):
         node = node if node else self.state.selected_node
-        sibling = self.state.create_sibling(node=node)
+        sibling = self.state.create_sibling(node=node, update_selection=False)
+        self.select_node(sibling, ask_reveal=False)
         self.state.node_creation_metadata(sibling, source='prompt')
         if self.display.mode == "Read":
             self.toggle_edit_mode()
@@ -1892,16 +1899,9 @@ class Controller:
         self.display.nav_tree.tag_configure("visited", background=visited_color())
         self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())
 
-
-
     def build_nav_tree(self, flat_tree=None):
         if not flat_tree:
             flat_tree = self.state.generate_filtered_tree()
-            # if self.state.preferences['hide_archived']:
-            #     flat_tree = self.state.generate_visible_tree()
-            # else:
-            #     flat_tree = self.state.tree_node_dict
-        #print(flat_tree)
         self.display.nav_tree.delete(*self.display.nav_tree.get_children())
         for id in flat_tree:
             node = self.state.tree_node_dict[id]
@@ -1928,15 +1928,18 @@ class Controller:
         if not self.display.nav_tree.get_children() or kwargs.get('rebuild', False):
             self.build_nav_tree()
 
+        override_visible = kwargs.get('override_visible', False)
+
         if 'edit' not in kwargs and 'add' not in kwargs and 'delete' not in kwargs:
             return
         else:
-            visible = lambda _node: all(condition(_node) for condition in self.state.generate_visible_conditions())
+            #visible = lambda _node: all(condition(_node) for condition in self.state.generate_visible_conditions())
+            visible = self.state.visible
             delete_items = [i for i in kwargs['delete']] if 'delete' in kwargs else []
             edit_items = [i for i in kwargs['edit'] if i in self.state.tree_node_dict
-                          and visible(self.state.tree_node_dict[i])] if 'edit' in kwargs else []
+                          and (visible(self.state.tree_node_dict[i]) or override_visible)] if 'edit' in kwargs else []
             add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict
-                         and visible(self.state.tree_node_dict[i])] if 'add' in kwargs else []
+                         and (visible(self.state.tree_node_dict[i]) or override_visible)] if 'add' in kwargs else []
 
         self.display.nav_tree.delete(*delete_items)
 
@@ -2001,6 +2004,10 @@ class Controller:
         if self.state.selected_node is None:
             return
 
+        if not self.display.nav_tree.exists(self.state.selected_node_id):
+            print('error: node is not in treeview')
+            return
+
         # Select on the nav tree and highlight
         state_selected_id = self.state.selected_node["id"]
         navbar_selected_id = self.display.nav_tree.selection()[0] if self.display.nav_tree.selection() else None
@@ -2032,6 +2039,21 @@ class Controller:
 
         # Scroll to node, open it's parent nodes
         self.scroll_to_selected()
+
+    # add node and ancestry to open tree
+    # TODO masked nodes
+    def reveal_node(self, node):
+        if self.display.nav_tree.exists(node['id']):
+            return
+        self.state.reveal_ancestry(node)
+
+
+    def ask_reveal(self, node):
+        result = messagebox.askquestion("Navigate to hidden node",
+                                        "Attempting to navigate to a hidden node. Reveal node in nav tree?",
+                                        icon='warning')
+        if result == 'yes':
+            self.reveal_node(node)
 
     @metadata(name="Scroll to selected", keys=[], display_key="")
     def scroll_to_selected(self):

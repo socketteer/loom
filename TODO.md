@@ -1,9 +1,11 @@
 ## Priority
 
+- function to check if a node is masked
 - arbitrary tags
     - tag dialog
     - search tags
 - navigate to invisible node error handling
+    - by bookmark: only go to visible bookmarks
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
@@ -36,7 +38,7 @@
 * generating when trying to calculate optimization bits??
 * merge with children is broken?
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
-* after the first counterfactual subtitution via select node, other selections will be misaligned
+* after the first counterfactual substitution via select node, other selections will be misaligned
 * immutable nodes become white when selected in nav tree
 
 ### problems
@@ -71,12 +73,12 @@
     - GPT-J 
     - GPT-2
 
-### Masking
+### Masking / zipping
 - auto-collapse chains in read mode
 - transform compound node into regular node
 - root
     - when attempt to edit hoisted root, ask to unhoist (instead of unzip)
-
+- interactions with canonical, chapters
 
 
 ### Usability 
