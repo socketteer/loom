@@ -850,7 +850,7 @@ class Controller:
 
 
     @metadata(name="Prepend newline", keys=["n", "<Control-n>"], display_key="n")
-    def prepend_newline(self, node):
+    def prepend_newline(self, node=None):
         node = node if node else self.state.selected_node
         if not self.state.is_mutable(node):
             self.immutable_popup(node)

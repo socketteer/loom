@@ -1,6 +1,13 @@
 ## Priority
 
-- function to check if a node is masked
+- masking
+    - mask subtree
+        - option to automatically mask new chapters
+        - test if this makes splitting faster on huge tree
+        - should all *collapsed* nodes be masked by default?
+            - but I want "open" state to be property of session, not tree?
+            - should all masking belong to a *session mask*?
+    - function to check if a node is masked
 - arbitrary tags
     - tag dialog
     - search tags
@@ -204,12 +211,9 @@
 * REFACTOR hoist to use a mask?
     * pros: able to save hoist state; more elegant
     * cons: unhoist all more difficult?
-* history parent should be immutable
-* navigating to history parent should (expose option to) unhoist
-* handle navigating to node outside subtree (expand to common ancestor of current and new node?)
+* handle navigating to node outside subtree (expand to common ancestor of current and new node?) (see handle navigating to masked node)
 * option to automatically hoist when new chapter
 * pack hoist/unhoist/unhoist all buttons more compactly
-* gray out buttons when appropriate
 * re-center view if in vis
 
 
