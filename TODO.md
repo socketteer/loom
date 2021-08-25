@@ -110,11 +110,6 @@
     - enabled by default in read mode
 
 
-### Files
-- export as plain JSON
-- 
-
-
 ### "Floating" nodes
 - floating subtree associated with root node and accessible in subtree(or path, node)
 
@@ -338,10 +333,6 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
     * deal with metadata
     * option to not nav to split node / otherwise indicate split position
     * in vis and edit mode
-
-
-# import / export 
-* export subtree as json
 
 
 # versioning
