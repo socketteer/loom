@@ -17,7 +17,7 @@ from gpt import openAI_generate, janus_generate, search, generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children, anti_conditions_lambda, \
-    new_node, add_immutable_root
+    new_node, add_immutable_root, make_simple_tree
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
 from util.multiverse_util import greedy_word_multiverse
 from util.node_conditions import conditions
@@ -1094,6 +1094,13 @@ class TreeModel:
         json_create(save_filename, subtree)
         self.io_update()
         return True
+
+    def save_simple_tree(self, save_filename, subtree=None):
+        subtree = subtree if subtree else self.master_tree()
+        simple_tree = make_simple_tree(subtree)
+        json_create(save_filename, simple_tree)
+        self.io_update()
+
 
     def export_history(self, node, filename):
         history = "".join(self.ancestry_text_list(node)[0])

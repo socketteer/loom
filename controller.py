@@ -1088,6 +1088,20 @@ class Controller:
         except Exception as e:
             messagebox.showerror(title="Error", message=f"Failed to Export!\n{str(e)}")
 
+    @metadata(name="Export simple subtree")
+    def export_simple_subtree(self, node=None):
+        node = node if node else self.state.selected_node
+        title = os.path.splitext(os.path.basename(self.state.tree_filename))[0] if self.state.tree_filename else 'untitled'
+        filename = os.path.join(os.getcwd() + '/data/exports',
+                                f"{title}_export.json")
+        filename = filedialog.asksaveasfilename(
+            initialfile=os.path.splitext(os.path.basename(filename))[0],
+            initialdir=os.path.dirname(filename),
+            defaultextension='.json')
+        if filename:
+            self.state.save_simple_tree(filename, subtree=node)
+
+
 
     @metadata(name="Clear chapters")
     def clear_chapters(self):

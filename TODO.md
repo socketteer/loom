@@ -1,5 +1,8 @@
 ## Priority
 
+- ability for a to "conceal" ancestry (to reader and/or language model) 
+- expose start text and restart text and logprob masks
+    - presets reflected
 - masking
     - mask subtree
         - option to automatically mask new chapters
@@ -50,6 +53,7 @@
 
 ### problems
 * saving and inserting into nav tree is slow for massive trees
+* rebuild view children frame is slow (enough to be annoying)
 
 
 ### Deprecated

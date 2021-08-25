@@ -317,3 +317,11 @@ def add_immutable_root(tree):
             "children": [old_root],
         }
 
+
+def make_simple_tree(tree):
+    if 'root' in tree:
+        tree = tree['root']
+    simple_tree = {}
+    simple_tree['text'] = tree['text']
+    simple_tree['children'] = [make_simple_tree(child) for child in tree['children']]
+    return simple_tree

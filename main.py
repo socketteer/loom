@@ -146,6 +146,8 @@ class Application:
                  lambda event=None: self.forward_command(Controller.export_text)),
                 ('Export subtree', 'Ctrl+Alt+X', '<Control-Alt-KeyPress-X>',
                  lambda event=None: self.forward_command(Controller.export_subtree)),
+                ('Export simple subtree', None, None,
+                 lambda event=None: self.forward_command(Controller.export_simple_subtree)),
                 ('Close Tab', None, None, self.close_tab),
                 ('Quit', 'Ctrl+Q', '<Control-q>', self.quit_app)
             ]
