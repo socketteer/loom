@@ -131,7 +131,7 @@ def format_openAI_response(response, prompt, echo):
 
 @retry(n_tries=3, delay=1, backoff=2, on_failure=lambda *args, **kwargs: "")
 def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
-                    model='davinci', **kwargs):
+                    model='davinci', logit_bias=None, **kwargs):
 
     response = openai.Completion.create(
         engine=model,
@@ -140,6 +140,7 @@ def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temper
         max_tokens=length,
         top_p=top_p,
         logprobs=logprobs,
+        logit_bias=logit_bias,
         n=num_continuations,
         stop=stop,
         **kwargs

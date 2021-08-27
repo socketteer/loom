@@ -28,7 +28,7 @@ from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
     node_index, nearest_common_ancestor, collect_conditional
-from util.gpt_util import logprobs_to_probs
+from util.gpt_util import logprobs_to_probs, parse_logit_bias
 
 
 def gated_call(f, condition):
@@ -1143,8 +1143,7 @@ class Controller:
         if dialog.result:
             #self.save_tree(popup=False)
             self.refresh_textbox()
-            #pprint(self.state.generation_settings)
-
+            pprint(self.state.generation_settings)
 
     @metadata(name="Visualization Settings", keys=["<Control-u>"], display_key="ctrl-u")
     def visualization_settings_dialog(self):
@@ -1166,7 +1165,7 @@ class Controller:
             "": "",
             "Total nodes": f'{len(self.state.tree_node_dict):,}',
             "Max depth": height(self.state.tree_raw_data["root"]),
-            "Max width": max([len(d["children"]) for d in self.state.tree_node_dict.values()])
+            "Max branching factor": max([len(d["children"]) for d in self.state.tree_node_dict.values()])
 
         }
         dialog = InfoDialog(self.display.frame, data)
@@ -1763,13 +1762,14 @@ class Controller:
                 # self.refresh_textbox.meta["last_num_lines"] = num_lines
 
                 self.tag_prompts()
+                if not kwargs.get('noscroll', False):
+                    self.display.textbox.update_idletasks()
+                    self.display.textbox.see(history_end)
             self.display.textbox.configure(state="disabled")
 
             # makes text copyable
             self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
-            if not kwargs.get('noscroll', False):
-                self.display.textbox.update_idletasks()
-                self.display.textbox.see(history_end)
+
 
 
 

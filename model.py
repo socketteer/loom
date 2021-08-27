@@ -18,7 +18,7 @@ from util.util import json_create, timestamp, json_open, clip_num, index_clip, d
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children, anti_conditions_lambda, \
     new_node, add_immutable_root, make_simple_tree
-from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs
+from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs, parse_logit_bias, parse_stop
 from util.multiverse_util import greedy_word_multiverse
 from util.node_conditions import conditions
 
@@ -95,7 +95,6 @@ DEFAULT_GENERATION_SETTINGS = {
     'response_length': 100,
     'prompt_length': 6000,
     'logprobs': 4,
-    #"janus": False,
     #"adaptive": False,
     "model": "davinci",
     "stop": '',  # separated by '|'
@@ -103,6 +102,7 @@ DEFAULT_GENERATION_SETTINGS = {
     "restart": '',
     'preset': 'default',  # 'chat', 'dialogue', 'antisummary'
     'global_context': '',
+    'logit_bias': '',
 }
 
 DEFAULT_VISUALIZATION_SETTINGS = {
@@ -1124,7 +1124,15 @@ class TreeModel:
     #   Generation
     #################################
 
-    def gen(self, prompt, n, stop):
+    def gen(self, prompt, n):
+        if self.generation_settings["stop"]:
+            stop = parse_stop(self.generation_settings["stop"])
+        else:
+            stop = None
+        if self.generation_settings["logit_bias"]:
+            logit_bias = parse_logit_bias(self.generation_settings["logit_bias"])
+        else:
+            logit_bias = None
         try:
             results, error = generate(prompt=prompt,
                                       length=self.generation_settings['response_length'],
@@ -1134,6 +1142,7 @@ class TreeModel:
                                       top_p=self.generation_settings['top_p'],
                                       model=self.generation_settings['model'],
                                       stop=stop,
+                                      logit_bias=logit_bias,
                                       )
         except TypeError as e:
             results = None
@@ -1178,7 +1187,7 @@ class TreeModel:
         prompt = prompt + start_text
         print('antisummary prompt:\n', prompt)
         if self.generation_settings["stop"]:
-            stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
+            stop = parse_stop(self.generation_settings["stop"])
         else:
             stop = []
         stop.append('[')
@@ -1201,16 +1210,13 @@ class TreeModel:
         self.app.event_generate("<<NewNodes>>", when="tail")
 
     def default_generate(self, prompt, nodes, grandchildren=None):
-        if self.generation_settings["stop"]:
-            stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
-        else:
-            stop = None
+
         # if self.preferences['gpt_mode'] == 'antisummary':
         #     if not stop:
         #         stop = []
         #     stop.append('[')
         #     stop.append('\n\n')
-        results, error = self.gen(prompt, len(nodes), stop)
+        results, error = self.gen(prompt, len(nodes))
         self.post_generation(error, nodes, results)
 
 
@@ -1224,26 +1230,6 @@ class TreeModel:
     #         grandchildren[i]["text"] = grandchild_text
     #         # TODO metadata
 
-    # TODO save mode
-    # def generated_nodes_metadata(self, nodes, results, prompt, prepend_text='', append_text=''):
-    #     # TODO "history"
-    #     for index, node in enumerate(nodes):
-    #         node["text"] = prepend_text + results.choices[index]["text"] + append_text
-    #         node["meta"] = {}
-    #         node["meta"]["generation"] = results.choices[index]
-    #         node["meta"]["generation"]["model"] = results["model"]
-    #         node["meta"]["generation"]["prompt"] = prompt
-    #         # created
-    #         node["meta"]["modified"] = False
-    #         node["meta"]["origin"] = "generated"
-    #         #node["meta"]["source"] = "AI"
-    #         self.node_creation_metadata(node, source='AI')
-    #         # remove offset of prompt
-    #         # TODO fix old nodes
-    #         # TODO save a list of tokens in completion
-    #         corrected_text_offset = [n - len(prompt) for n in node['meta']['generation']["logprobs"]["text_offset"]]
-    #         node['meta']['generation']["logprobs"]["text_offset"] = corrected_text_offset
-    #         node['meta']['generation']['logprobs']['echo_text_offset'] = node['meta']['generation']["logprobs"]["text_offset"]
 
     def antisummary_embedding(self, summary):
         return f'\n[Next section summary: {summary}]\n'

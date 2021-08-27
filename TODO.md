@@ -1,10 +1,7 @@
 ## Priority
 - alt textbox
 - make hoisted node actual root
-- ability for a to "conceal" ancestry (to reader and/or language model) 
-- expose start text and restart text and logprob masks
-    - show global context option (should this be in generation settings?)
-    - antisummary is different - its a program, not just generation mode. remove for now
+- node can "conceal" ancestry (to reader and/or language model) 
 - masking
     - mask subtree
         - option to automatically mask new chapters
@@ -170,7 +167,6 @@
 
 ### Generation
 - generation 
-    - logit bias
     - multiverse generation options (depth, branching factor, branching interval/conditions)
   
 - gpt modes     
@@ -184,6 +180,8 @@
 - presets
     - toggle whether context appears in textbox
     - toggle whether context remains in prompt
+    - antisummary is different - its a program, not just generation mode. remove for now
+
 
 
 

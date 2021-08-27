@@ -764,13 +764,15 @@ class GenerationSettingsDialog(Dialog):
             'start': tk.StringVar,
             'restart': tk.StringVar,
             'global_context': tk.StringVar,
+            'logit_bias': tk.StringVar,
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
         #self.memory_textbox = None
         self.textboxes = {'stop': None,
                           'start': None,
-                          'restart': None}
+                          'restart': None,
+                          'logit_bias': None}
         self.context_textbox = None
         self.memory_label = None
         self.preset_dropdown = None
@@ -796,7 +798,8 @@ class GenerationSettingsDialog(Dialog):
 
         for name in self.textboxes:
             self.create_textbox(master, name)
-        
+    
+
         row = master.grid_size()[1]
         self.memory_label = create_label(master, "global context (prepended)", row)
         self.context_textbox = TextAware(master, height=4)
@@ -858,7 +861,7 @@ class GenerationSettingsDialog(Dialog):
 
     def create_textbox(self, master, name):
         row = master.grid_size()[1]
-        label_text = 'stop sequences (| delimited)' if name == 'stop' else name + ' text'
+        label_text = 'stop sequences (| delimited)' if name == 'stop' else 'logit bias (| delimited)' if name == 'logit_bias' else name + ' text'
         create_side_label(master, label_text, row)
         self.textboxes[name] = TextAware(master, height=1, width=20)
         self.textboxes[name].grid(row=row, column=1)

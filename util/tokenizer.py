@@ -20,6 +20,9 @@ def token_to_word(token):
 def logit_mask(mask):
     id_mask = {}
     for token in mask:
-        token_id = tokenize([token])[0][0]
+        if token == '\n':
+            token_id = 198
+        else:
+            token_id = tokenize([token])[0][0]
         id_mask[token_id] = mask[token]
     return id_mask

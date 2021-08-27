@@ -1,6 +1,8 @@
 import openai
 import numpy as np
 import math
+import codecs
+from util.tokenizer import logit_mask
 
 
 def normalize(probs):
@@ -177,3 +179,18 @@ def decibels(prior, evidence, target, engine='ada'):
     prior_target_logprob = conditional_logprob(prompt=prior, target=target, engine=engine)
     evidence_target_logprob = conditional_logprob(prompt=evidence, target=target, engine=engine)
     return (evidence_target_logprob - prior_target_logprob), prior_target_logprob, evidence_target_logprob
+
+
+def parse_stop(stop_string):
+    return codecs.decode(stop_string, "unicode-escape").split('|')
+
+def parse_logit_bias(logit_string):
+    biases = codecs.decode(logit_string, "unicode-escape").split('|')
+    bias_dict = {}
+    for b in biases:
+        bias_parts = b.split(':')
+        token = bias_parts[0]
+        bias = int(bias_parts[1])
+        bias_dict[token] = bias
+    return logit_mask(bias_dict)
+
