@@ -71,6 +71,7 @@ DEFAULT_PREFERENCES = {
     'autosave': True,
     'save_counterfactuals': False,
     'prob': True,
+    'reverse': False,
     # display children preview
     # darkmode
 }
@@ -1061,25 +1062,38 @@ class TreeModel:
         if self.is_root(node):
             print('cannot hoist root')
             return
-        new_root = self.zip(head=self.root(), tail=self.parent(node), refresh_nav=False, update_selection=False)
+        new_root = self.zip(head=self.root(), tail=node, refresh_nav=False, update_selection=False)
         self.tree_raw_data['root'] = new_root
+        new_root['open'] = True
         self.tree_updated(rebuild=True)
+        self.select_node(new_root['id'])
 
-    def unhoist(self, rebuild=True):
-        if not self.is_compound(self.root()):
+
+    def unhoist(self, rebuild=True, update_selection=True):
+        old_root = self.root()
+        if not self.is_compound(old_root):
             print('nothing hoisted')
             return
         new_root = self.unzip(mask=self.root(), refresh_nav=False, update_selection=False)
         self.tree_raw_data['root'] = new_root
+        if self.selected_node_id == old_root['id']:
+            self.selected_node_id = new_root['id']
         if rebuild:
             self.tree_updated(rebuild=True)
         else:
             self.tree_updated_silent()
+        if update_selection:
+            self.selection_updated()
+        return new_root
 
     def unhoist_all(self):
+        old_selection = self.selected_node
         while self.is_compound(self.root()):
-            self.unhoist(rebuild=False)
+            self.unhoist(rebuild=False, update_selection=False)
         self.tree_updated(rebuild=True)
+        if self.selected_node_id != old_selection['id']:
+            self.selection_updated()
+
 
     # Tree flat data is just a different view to tree raw data!
     # We edit tree flat data with tkinter and save raw data which is still in json form
@@ -1693,9 +1707,10 @@ class TreeModel:
             self.adopt_parent(mask, parent)
         children = self.sever_children(tail)
         self.adopt_children(mask, children)
-        # TODO don't save tail
         mask['masked_head'] = head
         mask['tail_id'] = tail['id']
+        # TODO hacky
+        mask['nav_display_text'] = tail['text']
 
         if refresh_nav:
             self.tree_updated(delete=[head['id']], add=[n['id'] for n in subtree_list(mask)])

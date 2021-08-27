@@ -44,6 +44,9 @@ class Display:
 
         self.main_frame = None
 
+        self.alt_frame = None
+        self.alt_textbox = None
+
         self.story_frame = None
         self.textbox_frame = None
         self.textbox = None
@@ -205,6 +208,9 @@ class Display:
     def build_main_frame(self, frame):
         self.main_frame = ttk.Frame(frame, width=500, height=500)
 
+        # Alt textbox
+        self.alt_frame = ttk.Frame(self.main_frame, height=0)
+        
         # Textbox
         self.story_frame = ttk.Frame(self.main_frame)
         self.story_frame.pack(expand=True, fill='both')
@@ -228,11 +234,38 @@ class Display:
 
         self.search_frame = ttk.Frame(self.main_frame)
 
-
     def build_textboxes(self, frame):
         self._build_textbox(frame, "preview_textbox_frame", "preview_textbox", height=3)
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
+
+
+    def build_alt_textbox(self):
+        self.story_frame.pack_forget()
+        self.alt_frame.pack(expand=False, fill='x')
+        self.story_frame.pack(expand=True, fill='both')
+
+        self.alt_textbox = TextAware(self.alt_frame, height=3)
+        self.alt_textbox.pack(expand=False, fill='x')
+        self.alt_textbox.configure(
+            font=self.font,
+            spacing1=10,  # spacing between paragraphs
+            foreground=text_color(),
+            background=bg_color(),
+            padx=2,
+            pady=5,
+            spacing2=8,  # Spacing between lines
+            spacing3=5,
+            wrap="word",
+        )
+        self.alt_textbox.configure(state='disabled')
+
+
+    def destroy_alt_textbox(self):
+        self.alt_textbox.pack_forget()
+        self.alt_textbox = None
+        self.alt_frame.pack_forget()
+        self.textbox_frame.pack(expand=True, side="top", fill='both')
 
     def key_pressed(self, event=None):
         if event.keysym == 'Tab':
@@ -270,6 +303,8 @@ class Display:
             spacing3=5,
             wrap="word",
         )
+
+
 
     def edit_history(self, txt, event=None):
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
@@ -351,6 +386,7 @@ class Display:
         # Make display nav (but not chapter) selection update real selection (e.g. arrow keys
         f = self.callbacks["Nav Select"]["callback"]
         self.nav_tree.bind("<<TreeviewSelect>>", lambda event: f(node_id=(self.nav_tree.selection()[0])))
+
         # Make nav and chapter clicks update real selection
         self.nav_tree.bind(
             "<Button-1>", lambda event: f(node_id=self.nav_tree.identify('item', event.x, event.y))
@@ -596,7 +632,9 @@ class Display:
     def place_textboxes(self):
         row = 0
         tk.Grid.columnconfigure(self.multi_scroll_frame.scrollable_frame, 1, weight=1)
-        for textbox_id, tb_item in self.multi_textboxes.items():
+
+        items = self.multi_textboxes.items() if not self.state.preferences.get('reverse', False) else reversed(self.multi_textboxes.items())
+        for textbox_id, tb_item in items:
             tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row, weight=1)
             tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row + 1, weight=1)
 
@@ -621,7 +659,9 @@ class Display:
         self.multi_scroll_frame = None
         self.init_multi_frame(num_textboxes=len(self.multi_textboxes.items()))
 
-        for tb_id, tb_item in self.multi_textboxes.items():
+        items = self.multi_textboxes.items() if not self.state.preferences.get('reverse', False) else reversed(self.multi_textboxes.items())
+
+        for tb_id, tb_item in items:
             state = 'disabled'
             height = self.multi_default_height
             # if tb_item['textbox']:
@@ -644,8 +684,9 @@ class Display:
         for child in new_children:
             self.multi_textboxes[str(uuid.uuid1())] = {'node': child}
         self.rebuild_multi_frame()
-        self.multi_scroll_frame.canvas.update_idletasks()
-        self.multi_scroll_frame.canvas.yview_moveto(1)
+        if not self.state.preferences.get('reverse', False):
+            self.multi_scroll_frame.canvas.update_idletasks()
+            self.multi_scroll_frame.canvas.yview_moveto(1)
 
     def update_text(self):
         for tb_id, tb_item in self.multi_textboxes.items():

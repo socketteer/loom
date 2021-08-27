@@ -86,7 +86,7 @@ Toggle input box: `Tab`
 
 Toggle debug box: `Control+Shift+D`
 
-Toggle show children: `c`
+Toggle show children: `Alt-c`
 
 Hoist: `Alt-h`
 

@@ -696,7 +696,7 @@ class PreferencesDialog(Dialog):
             "input_box": tk.BooleanVar,
             "auto_response": tk.BooleanVar,
             "show_prompt": tk.BooleanVar,
-            "log_diff": tk.BooleanVar,
+            #"log_diff": tk.BooleanVar,
             "autosave": tk.BooleanVar,
             "save_counterfactuals": tk.BooleanVar,
             "prob": tk.BooleanVar,
@@ -704,7 +704,8 @@ class PreferencesDialog(Dialog):
             #"gpt_mode": tk.StringVar,
             "font_size": tk.IntVar,
             "line_spacing": tk.IntVar,
-            "paragraph_spacing": tk.IntVar
+            "paragraph_spacing": tk.IntVar,
+            "reverse": tk.BooleanVar,
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
@@ -713,16 +714,26 @@ class PreferencesDialog(Dialog):
 
     def body(self, master):
         #print(self.orig_params)
+        create_label(master, "Filter nodes")
         create_checkbutton(master, "Hide archived", "hide_archived", self.vars)
         create_checkbutton(master, "Canonical only", "canonical_only", self.vars)
+
+        create_label(master, "Nav tree")
         create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)
+        create_checkbutton(master, "Reverse node order", "reverse", self.vars)
+
+        create_label(master, "Story frame")
         create_checkbutton(master, "Bold prompt", "bold_prompt", self.vars)
         create_checkbutton(master, "Show input box", "input_box", self.vars)
-        create_checkbutton(master, "AI responses on submit", "auto_response", self.vars)
         create_checkbutton(master, "Show literal prompt", "show_prompt", self.vars)
-        create_checkbutton(master, "Log diffs", "log_diff", self.vars)
+
+        create_label(master, "Saving")
         create_checkbutton(master, "Autosave", "autosave", self.vars)
         create_checkbutton(master, "Save counterfactuals", "save_counterfactuals", self.vars)
+
+        create_label(master, "Generation")
+        create_checkbutton(master, "AI responses on submit", "auto_response", self.vars)
+        #create_checkbutton(master, "Log diffs", "log_diff", self.vars)
         create_checkbutton(master, "Show logprobs as probs", "prob", self.vars)
 
         # row = master.grid_size()[1]
@@ -756,7 +767,6 @@ class GenerationSettingsDialog(Dialog):
             'response_length': tk.IntVar,
             'prompt_length': tk.IntVar,
             'logprobs': tk.IntVar,
-            #"janus": tk.BooleanVar,
             #"adaptive": tk.BooleanVar,
             "model": tk.StringVar,
             "preset": tk.StringVar,

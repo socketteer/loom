@@ -1,6 +1,7 @@
 ## Priority
 - alt textbox
-- make hoisted node actual root
+    - editable
+    - alt_text attribute?
 - node can "conceal" ancestry (to reader and/or language model) 
 - masking
     - mask subtree
@@ -13,6 +14,7 @@
 - arbitrary tags
     - tag dialog
     - search tags
+    - hotkey to tag
 - navigate to invisible node error handling
     - by bookmark: only go to visible bookmarks
 - fix everything that uses old data format
@@ -33,7 +35,6 @@
 - navigate to next tag
 - only show visible nodes in vis mode
 - archive button in vis mode
-- insert new nodes at top of list
 - fix c / ctrl+c binding conflict
 - child frame
     - fix children textbox height

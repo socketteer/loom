@@ -138,7 +138,7 @@ class Controller:
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
         menu_list = {
             "View": [
-                ('Toggle children', 'C', None, no_junk_args(self.toggle_show_children)),
+                ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
                 ('Hoist subtree', 'Alt-H', None, no_junk_args(self.hoist)),
                 ('Unhoist subtree', 'Alt-Shift-H', None, no_junk_args(self.unhoist)),
@@ -282,7 +282,7 @@ class Controller:
     @metadata(name="Return to root", keys=["<Key-r>", "<Control-r>"], display_key="r")
     def return_to_root(self):
         #self.state.select_node(self.state.tree_raw_data["root"]["id"])
-        self.select_node(node=self.state.tree_raw_data["root"])
+        self.select_node(node=self.state.root())
 
     @metadata(name="Save checkpoint", keys=["<Control-t>"], display_key="ctrl-t")
     def save_checkpoint(self, node=None):
@@ -1378,7 +1378,7 @@ class Controller:
         else:
             self.close_bottom_frame()
 
-    @metadata(name="Children", keys=["<Key-c>"], display_key="c")
+    @metadata(name="Children", keys=["<Alt-c>"], display_key="")
     def toggle_show_children(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.preferences['show_children']):
             self.state.preferences['show_children'] = True
@@ -1450,7 +1450,11 @@ class Controller:
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
         #self.state.expand(self.state.selected_node)
-        self.display.open_side()
+        if self.display.alt_textbox:
+            self.close_alt_textbox()
+        else:
+            self.open_alt_textbox()
+        #self.display.open_side()
         #self.collapse_all_chains()
         # node = self.state.selected_node
         # parent = self.state.parent(node)
@@ -1462,6 +1466,12 @@ class Controller:
         #             'params': {'time': datetime.datetime(2022, 5, 3)}}
         #print(self.state.construct_node_condition(info_dict)(self.state.selected_node))
         #pass
+
+    def open_alt_textbox(self):
+        self.display.build_alt_textbox()
+
+    def close_alt_textbox(self):
+        self.display.destroy_alt_textbox()
 
     @metadata(name="Unzip node")
     def unzip_node(self, node=None):
@@ -1875,12 +1885,16 @@ class Controller:
     #################################
 
     def nav_tree_name(self, node):
-        if node == self.state.root():
+        if self.state.is_root(node) and not self.state.is_compound(node):
             text = self.state.name()
         else:
-            text = node['text'].strip()[:20].replace('\n', ' ')
+            if 'nav_display_text' in node:
+                node_text = node['nav_display_text']
+            else:
+                node_text = node['text']
+            text = node_text.strip()[:20].replace('\n', ' ')
             text = text if text else "EMPTY"
-            text = text + "..." if len(node['text']) > 20 else text
+            text = text + "..." if len(node_text) > 20 else text
             text = '~' + text if node.get('archived', False) else text
         if 'chapter_id' in node:
             text = f"{text} | {self.state.chapter_title(node)}"
@@ -1929,7 +1943,7 @@ class Controller:
             image, tags = self.nav_entry_params(node)
             self.display.nav_tree.insert(
                 parent=node.get("parent_id", ""),
-                index="end",
+                index=0 if self.state.preferences.get('reverse', False) else "end",
                 iid=node["id"],
                 text=self.nav_tree_name(node),
                 open=node.get("open", False),
@@ -1973,7 +1987,7 @@ class Controller:
                     self.display.nav_tree.delete(id)
                 self.display.nav_tree.insert(
                     parent=node.get("parent_id", ""),
-                    index="end",
+                    index=0 if self.state.preferences.get('reverse', False) else "end",
                     iid=node["id"],
                     text=self.nav_tree_name(node),
                     open=node.get("open", False),
