@@ -235,7 +235,7 @@ class Display:
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
     def key_pressed(self, event=None):
-        if event.keysym in ('Tab'):
+        if event.keysym == 'Tab':
             self.callbacks["Key Pressed"]["callback"](char=event.keysym)
             return 'break'
         self.callbacks["Key Pressed"]["callback"](char=event.char)
@@ -556,13 +556,14 @@ class Display:
             wrap="word",
         )
         self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
-        self.mode_var = tk.StringVar()
-        choices = ('default', 'chat', 'dialogue', 'antisummary')
-        self.mode_select = tk.OptionMenu(self.input_frame, self.mode_var, *choices)
-        self.mode_var.trace('w', self.callbacks["Update mode"]["callback"])
 
-        tk.Label(self.input_frame, text="Mode", bg=bg_color(), fg=text_color()).pack(side='left')
-        self.mode_select.pack(side='left')
+        # self.mode_var = tk.StringVar()
+        # choices = ('default', 'chat', 'dialogue', 'antisummary')
+        # self.mode_select = tk.OptionMenu(self.input_frame, self.mode_var, *choices)
+        # self.mode_var.trace('w', self.callbacks["Update mode"]["callback"])
+
+        # tk.Label(self.input_frame, text="Mode", bg=bg_color(), fg=text_color()).pack(side='left')
+        # self.mode_select.pack(side='left')
 
         self.submit_button = ttk.Button(self.input_frame, text="Submit",
                                         command=self.callbacks["Submit"]["callback"], width=10)

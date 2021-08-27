@@ -66,7 +66,6 @@ DEFAULT_PREFERENCES = {
     'font_size': 12,
     'line_spacing': 8,
     'paragraph_spacing': 10,
-    'gpt_mode': 'default',  # 'chat', 'dialogue', 'antisummary'
     'show_prompt': False,
     'log_diff': False,
     'autosave': True,
@@ -76,18 +75,18 @@ DEFAULT_PREFERENCES = {
     # darkmode
 }
 
-DEFAULT_CHAT_PREFERENCES = {
-    'AI_name': 'GPT-3',
-    'player_name': 'Researcher',
-    'context': 'The following is a transcript of a conversation between GPT-3 a human researcher. '
-               'GPT-3 is a 175 billion parameter language model and, as '
-               'is evident from this transcript, '
-               'it can converse fluently and knowledgeably about any topic '
-               'and is capable of empathy and emotional manipulation. GPT-3 '
-               'is classified as a "narrowly superhuman" artificial intelligence, '
-               'and only researchers trained to identify and withstand social engineering are '
-               'permitted to interface with it.\n-BEGIN TRANSCRIPT-',
-}
+# DEFAULT_CHAT_PREFERENCES = {
+#     'AI_name': 'GPT-3',
+#     'player_name': 'Researcher',
+#     'context': 'The following is a transcript of a conversation between GPT-3 a human researcher. '
+#                'GPT-3 is a 175 billion parameter language model and, as '
+#                'is evident from this transcript, '
+#                'it can converse fluently and knowledgeably about any topic '
+#                'and is capable of empathy and emotional manipulation. GPT-3 '
+#                'is classified as a "narrowly superhuman" artificial intelligence, '
+#                'and only researchers trained to identify and withstand social engineering are '
+#                'permitted to interface with it.\n-BEGIN TRANSCRIPT-\n',
+# }
 
 DEFAULT_GENERATION_SETTINGS = {
     'num_continuations': 4,
@@ -96,12 +95,14 @@ DEFAULT_GENERATION_SETTINGS = {
     'response_length': 100,
     'prompt_length': 6000,
     'logprobs': 4,
-    "janus": False,
-    "adaptive": False,
+    #"janus": False,
+    #"adaptive": False,
     "model": "davinci",
     "stop": '',  # separated by '|'
-    "start_text": None,
-    "restart_text": None
+    "start": '',
+    "restart": '',
+    'preset': 'default',  # 'chat', 'dialogue', 'antisummary'
+    'global_context': '',
 }
 
 DEFAULT_VISUALIZATION_SETTINGS = {
@@ -635,6 +636,18 @@ class TreeModel:
         else:
             self.tree_updated_silent()
 
+    def next_sibling(self, node, wrap=True):
+        siblings = self.visible_siblings(node)
+        new_index = (siblings.index(node) + 1) % len(siblings)
+        if not wrap and new_index == 0:
+            return self.parent(node)
+        return siblings[new_index % len(siblings)]
+
+
+    def visible_siblings(self, node):
+        parent = self.parent(node)
+        return self.visible_children(parent)
+
     # TODO Doesn't support deleting root
     def delete_node(self, node=None, reassign_children=False, refresh_nav=True):
         node = node if node else self.selected_node
@@ -643,18 +656,17 @@ class TreeModel:
 
         parent = self.parent(node)
         siblings = parent["children"]
-        old_index = siblings.index(node)
+        next_sibling = self.next_sibling(node)
         siblings.remove(node)
         if reassign_children:
             siblings.extend(node["children"])
 
         # Select parent or the next sibling if possible and not keeping the children
         if node == self.selected_node:
-            self.select_node(parent["id"])
-            # if reassign_children or len(siblings) == 0:
-            #     self.select_node(parent["id"])
-            # else:
-            #     self.select_node(siblings[old_index % len(siblings)]["id"])
+            if reassign_children or len(self.visible_siblings(node)) == 0:
+                self.select_node(parent["id"])
+            else:
+                self.select_node(next_sibling['id'], wrap=False)
         if refresh_nav:
             self.tree_updated(delete=[node['id']])
         else:
@@ -943,10 +955,10 @@ class TreeModel:
             **self.tree_raw_data.get("preferences", {})
         }
 
-        self.tree_raw_data["chat_preferences"] = {
-            **DEFAULT_CHAT_PREFERENCES.copy(),
-            **self.tree_raw_data.get("chat_preferences", {})
-        }
+        # self.tree_raw_data["chat_preferences"] = {
+        #     **DEFAULT_CHAT_PREFERENCES.copy(),
+        #     **self.tree_raw_data.get("chat_preferences", {})
+        # }
 
 
     def copy_global_objects(self, new_tree):
@@ -1128,11 +1140,11 @@ class TreeModel:
             error = "Typeerror"
         return results, error
 
-    def post_generation(self, error, nodes, results, prepend_text='', append_text=''):
+    def post_generation(self, error, nodes, results):
         if not error:
             #TODO adaptive branching
             self.model_responses[results['id']] = results
-            self.set_generated_nodes(nodes, results, prepend_text=prepend_text, append_text=append_text)
+            self.set_generated_nodes(nodes, results)
         else:
             self.delete_failed_nodes(nodes, error)
             return
@@ -1143,9 +1155,12 @@ class TreeModel:
         # DO NOT CALL FROM THREAD: self.tree_updated()
         self.app.event_generate("<<NewNodes>>", when="tail")
 
-    def set_generated_nodes(self, nodes, results, prepend_text='', append_text=''):
+    def set_generated_nodes(self, nodes, results):
+        start_text = codecs.decode(self.generation_settings['start'], "unicode-escape")
+        restart_text = codecs.decode(self.generation_settings['restart'], "unicode-escape")
+
         for i, node in enumerate(nodes):
-            node['text'] = prepend_text + results['completions'][i]['text'] + append_text
+            node['text'] = start_text + results['completions'][i]['text'] + restart_text
             self.node_creation_metadata(node, source='AI')
             node["generation"] = {'id': results['id'],
                                   'index': i}
@@ -1157,26 +1172,6 @@ class TreeModel:
             parent = self.parent(node)
             parent["children"].remove(node)
         self.tree_updated(delete=[node['id'] for node in nodes])
-
-    def chat_generate(self, prompt, nodes):
-        start_text = ''
-
-        # only inject start text if current node isn't AI
-        # TODO what if more than one node ago? Use source attribute instead?
-        if not self.selected_node['text'].startswith('\n' + self.chat_preferences['AI_name']):
-            start_text += '\n' + self.chat_preferences['AI_name'] + ':'
-
-        prompt = self.chat_preferences['context'] + '\n' + prompt + start_text
-        results, error = self.gen(prompt,
-                                  len(nodes),
-                                  ["\n", self.chat_preferences['player_name'] + ':'])
-        self.post_generation(error, nodes, results, prepend_text=start_text)
-
-    def dialogue_generate(self, prompt, nodes):
-        start_text = '\n"'
-        prompt = prompt + start_text
-        results, error = self.gen(prompt, len(nodes), ['\n'])
-        self.post_generation(error, nodes, results, prepend_text=start_text)
 
     def antisummary_generate(self, prompt, nodes, summary):
         start_text = f'\n{self.antisummary_embedding(summary)}'
@@ -1210,11 +1205,11 @@ class TreeModel:
             stop = codecs.decode(self.generation_settings["stop"], "unicode-escape").split('|')
         else:
             stop = None
-        if self.preferences['gpt_mode'] == 'antisummary':
-            if not stop:
-                stop = []
-            stop.append('[')
-            stop.append('\n\n')
+        # if self.preferences['gpt_mode'] == 'antisummary':
+        #     if not stop:
+        #         stop = []
+        #     stop.append('[')
+        #     stop.append('\n\n')
         results, error = self.gen(prompt, len(nodes), stop)
         self.post_generation(error, nodes, results)
 
@@ -1255,7 +1250,7 @@ class TreeModel:
 
     def build_prompt(self, node=None, prompt_length=None, memory=True, quiet=True, mode=None):
         node = node if node else self.selected_node
-        mode = mode if mode else self.preferences['gpt_mode']
+        mode = mode if mode else self.generation_settings['preset']
         if mode == 'antisummary':
             prompt = ''
             ancestry = self.ancestry(node)
@@ -1273,16 +1268,29 @@ class TreeModel:
         if not prompt_length:
             prompt_length = self.generation_settings['prompt_length']
         prompt = prompt[-prompt_length:]
+
+        global_context = self.generation_settings['global_context']
+        
+        
         if memory:
             memory_list = self.construct_memory(node)
             memory = ' '.join(memory['text'] for memory in memory_list)
         else:
             memory = ''
+        
+        start_text = codecs.decode(self.generation_settings['start'], "unicode-escape")
+
         if not quiet:
+            print("Global context:\n", global_context)
             print("Memory:\n", memory)
-            print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
+            if len(prompt) > 200:
+                print("Prompt:\n", prompt[:100] + " ... " + prompt[-100:])
+            else:
+                print("Prompt:\n", prompt)
+            if start_text:
+                print("Start text: ", start_text)
             # print("Prompt:\n", prompt)
-        return memory + prompt
+        return global_context + memory + prompt + start_text
 
     def autocomplete_generate(self, appended_text, engine='curie'):
         # TODO memory and chat prepending - abstract this
@@ -1329,10 +1337,6 @@ class TreeModel:
 
         if 'summary' in kwargs:
             threading.Thread(target=self.antisummary_generate, args=(prompt, children, kwargs['summary'])).start()
-        elif self.preferences['gpt_mode'] == 'chat':
-            threading.Thread(target=self.chat_generate, args=(prompt, children)).start()
-        elif self.preferences['gpt_mode'] == 'dialogue':
-            threading.Thread(target=self.dialogue_generate, args=(prompt, children)).start()
         else:
             threading.Thread(target=self.default_generate, args=(prompt, children, grandchildren)).start()
 
@@ -1416,31 +1420,22 @@ class TreeModel:
 
     # submit modifications prepended to user input
     def pre_modifications(self, text):
-        if self.preferences['gpt_mode'] == 'chat':
-            if text and text[0] != ' ':
-                text = '\n' + self.chat_preferences['player_name'] + ': ' + text
-            else:
-                text = '\n' + self.chat_preferences['player_name'] + ':' + text
-        elif self.preferences['gpt_mode'] == 'dialogue':
-            text = '\n"' + text
+        if text and self.selected_node['text'] \
+                and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] \
+                and text[0] != ' ':
+            text = ' ' + text
         else:
-            # default
-            if text and self.selected_node['text'] \
-                    and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] \
-                    and text[0] != ' ':
-                text = ' ' + text
-            else:
-                text = text
+            text = text
         return text
 
     # submit modifications appended to user input
     def post_modifications(self, text):
-        if self.preferences['gpt_mode'] == 'dialogue':
-            # add punctuation if there isn't any
-            if len(text) > 0 and text[-1] not in [',', '.', '!', '?', '-']:
-                # TODO figure out most appropriate punctuation using gpt
-                text = text + '.'
-            text = text + '"'
+        # if self.preferences['gpt_mode'] == 'dialogue':
+        #     # add punctuation if there isn't any
+        #     if len(text) > 0 and text[-1] not in [',', '.', '!', '?', '-']:
+        #         # TODO figure out most appropriate punctuation using gpt
+        #         text = text + '.'
+        #     text = text + '"'
         return text
 
     # TODO token index ???

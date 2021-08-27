@@ -23,7 +23,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
-    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, ChatSettingsDialog, CreateSummary, Summaries
+    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
@@ -189,7 +189,6 @@ class Controller:
             ],
             "Generation": [
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
-                ('Chat settings', None, None, no_junk_args(self.chat_settings)),
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
                 ('View summaries', '', None, no_junk_args(self.view_summaries)),
 
@@ -224,7 +223,6 @@ class Controller:
                 ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences)),
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
-                ('Chat settings', None, None, no_junk_args(self.chat_settings)),
 
 
             ],
@@ -342,9 +340,13 @@ class Controller:
     @metadata(name="Archive")
     def archive(self, node=None):
         node = node if node else self.state.selected_node
+        next_sibling = self.state.next_sibling(node, wrap=False)
         node['archived'] = True
         if self.state.preferences['hide_archived']:
-            self.select_node(self.state.parent(node))
+            if len(self.state.visible_siblings(node)) == 0:
+                self.select_node(self.state.parent(node))
+            else:
+                self.select_node(next_sibling)
             self.state.tree_updated(delete=[node['id']])
         else:
             self.state.tree_updated(edit=[node['id']])
@@ -1141,6 +1143,7 @@ class Controller:
         if dialog.result:
             #self.save_tree(popup=False)
             self.refresh_textbox()
+            #pprint(self.state.generation_settings)
 
 
     @metadata(name="Visualization Settings", keys=["<Control-u>"], display_key="ctrl-u")
@@ -1212,10 +1215,10 @@ class Controller:
         dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state, default_inheritability='delayed')
         self.refresh_textbox()
 
-    @metadata(name="Chat settings", keys=[], display_key="")
-    def chat_settings(self):
-        dialog = ChatSettingsDialog(parent=self.display.frame, orig_params=self.state.chat_preferences)
-        #self.refresh_textbox()
+    # @metadata(name="Chat settings", keys=[], display_key="")
+    # def chat_settings(self):
+    #     dialog = ChatSettingsDialog(parent=self.display.frame, orig_params=self.state.chat_preferences)
+    #     #self.refresh_textbox()
 
     #################################
     #   Search
@@ -1355,15 +1358,18 @@ class Controller:
     @metadata(name="Submit", keys=[], display_key="")
     def submit(self):
         input_text = self.display.input_box.get("1.0", 'end-1c')
-        if input_text and not self.state.preferences['gpt_mode'] == 'antisummary':
+        if input_text:
             new_text = self.state.submit_modifications(input_text)
             new_child = self.create_child(toggle_edit=False)
             new_child['text'] = new_text
             self.state.tree_updated(add=[new_child['id']])
         self.display.input_box.delete("1.0", "end")
-        if input_text and self.state.preferences['gpt_mode'] == 'antisummary':
-            self.generate(summary=input_text)
-        elif self.state.preferences['auto_response']:
+
+
+        # if input_text and self.state.preferences['gpt_mode'] == 'antisummary':
+        #     self.generate(summary=input_text)
+        
+        if self.state.preferences['auto_response']:
             self.generate()
 
     @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
@@ -1429,16 +1435,17 @@ class Controller:
 
     def update_dropdown(self):
         if self.display.mode_var:
-            self.display.mode_var.set(self.state.preferences['gpt_mode'])
+            pass
+            #self.display.mode_var.set(self.state.preferences['gpt_mode'])
 
     def print_to_debug(self, message):
         # TODO print to debug stream even if debug box is not active
         self.display.write_to_debug(message)
 
 
-    @metadata(name="Update mode", keys=[], display_key="")
-    def update_mode(self, *args):
-        self.state.preferences['gpt_mode'] = self.display.mode_var.get()
+    # @metadata(name="Update mode", keys=[], display_key="")
+    # def update_mode(self, *args):
+    #     self.state.preferences['gpt_mode'] = self.display.mode_var.get()
 
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")

@@ -11,7 +11,7 @@ from util.util_tree import search, node_ancestry
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 import math
 import json
-
+import codecs
 
 class InfoDialog(Dialog):
     def __init__(self, parent, data_dict):
@@ -701,7 +701,7 @@ class PreferencesDialog(Dialog):
             "save_counterfactuals": tk.BooleanVar,
             "prob": tk.BooleanVar,
             "coloring": tk.StringVar,
-            "gpt_mode": tk.StringVar,
+            #"gpt_mode": tk.StringVar,
             "font_size": tk.IntVar,
             "line_spacing": tk.IntVar,
             "paragraph_spacing": tk.IntVar
@@ -735,11 +735,7 @@ class PreferencesDialog(Dialog):
         options = ['edit', 'read', 'none']
         dropdown = tk.OptionMenu(master, self.vars["coloring"], *options)
         dropdown.grid(row=row, column=1, pady=3)
-        row = master.grid_size()[1]
-        create_side_label(master, "AI mode", row)
-        options = ['default', 'chat', 'dialogue', 'antisummary']
-        dropdown = tk.OptionMenu(master, self.vars["gpt_mode"], *options)
-        dropdown.grid(row=row, column=1, pady=3)
+
         create_slider(master, "Font size", self.vars["font_size"], (5, 20))
         create_slider(master, "Line spacing", self.vars["line_spacing"], (0, 20))
         create_slider(master, "Paragraph spacing", self.vars["paragraph_spacing"], (0, 40))
@@ -760,19 +756,32 @@ class GenerationSettingsDialog(Dialog):
             'response_length': tk.IntVar,
             'prompt_length': tk.IntVar,
             'logprobs': tk.IntVar,
-            "janus": tk.BooleanVar,
-            "adaptive": tk.BooleanVar,
+            #"janus": tk.BooleanVar,
+            #"adaptive": tk.BooleanVar,
             "model": tk.StringVar,
+            "preset": tk.StringVar,
+            'stop': tk.StringVar,
+            'start': tk.StringVar,
+            'restart': tk.StringVar,
+            'global_context': tk.StringVar,
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
         #self.memory_textbox = None
-        self.stop_textbox = None
+        self.textboxes = {'stop': None,
+                          'start': None,
+                          'restart': None}
+        self.context_textbox = None
+        self.memory_label = None
+        self.preset_dropdown = None
 
         Dialog.__init__(self, parent, title="Generation Settings")
 
     # Creates sliders for each sensitivity slider
     def body(self, master):
+
+        create_combo_box(master, "Model", self.vars["model"], POSSIBLE_MODELS, width=20)
+
         sliders = {
             'num_continuations': (1, 20),
             'temperature': (0., 1.),
@@ -785,88 +794,13 @@ class GenerationSettingsDialog(Dialog):
             create_slider(master, name, self.vars[name], value_range)
 
 
-
+        for name in self.textboxes:
+            self.create_textbox(master, name)
+        
         row = master.grid_size()[1]
-        create_side_label(master, "stop (| delimited)", row)
-        self.stop_textbox = TextAware(master, height=1, width=20)
-        stop_var = self.orig_params.get("stop", '')
-        if not stop_var:
-            stop_var = ''
-        self.stop_textbox.insert("1.0", stop_var)
-        self.stop_textbox.grid(row=row, column=1)
-        create_side_label(master, "Use Janus?", row+1)
-        check = ttk.Checkbutton(master, variable=self.vars["janus"])
-        check.grid(row=row+1, column=1, pady=3)
-        create_side_label(master, "Adaptive branching", row+2)
-        check2 = ttk.Checkbutton(master, variable=self.vars["adaptive"])
-        check2.grid(row=row+2, column=1, pady=3)
-
-        create_combo_box(master, "Model", self.vars["model"], POSSIBLE_MODELS, width=20)
-
-
-        create_button(master, "Reset", self.reset_variables)
-
-
-    # Reset all sliders to 50
-    def reset_variables(self):
-        for key, var in self.vars.items():
-            var.set(self.orig_params[key])
-        self.stop_textbox.delete("1.0", "end")
-        self.stop_textbox.insert("1.0", self.orig_params["stop"])
-
-
-    # Put the slider values into the result field
-    def apply(self):
-        for key, var in self.vars.items():
-            self.orig_params[key] = var.get()
-        self.orig_params["stop"] = self.stop_textbox.get("1.0", "end-1c")
-        self.result = self.orig_params
-
-
-class ChatSettingsDialog(Dialog):
-    def __init__(self, parent, orig_params):
-        # print(orig_params)
-        self.orig_params = orig_params
-        self.AI_name_textbox = None
-        self.player_name_textbox = None
-        self.context_textbox = None
-        self.preset = tk.StringVar()
-        self.presets_dict = None
-        self.vars = {
-            'AI_name': tk.StringVar,
-            'player_name': tk.StringVar,
-            'context': tk.StringVar,
-        }
-        for key in self.vars.keys():
-            self.vars[key] = self.vars[key](value=orig_params[key])
-
-        Dialog.__init__(self, parent, title="Chat settings")
-
-    def body(self, master):
-        # print(self.orig_params)
-        self.master = master
-        row = master.grid_size()[1]
-        create_side_label(master, "AI name", row)
-        self.AI_name_textbox = TextAware(self.master, height=1)
-        self.AI_name_textbox.insert(tk.INSERT, self.vars['AI_name'].get())
-        self.AI_name_textbox.grid(row=row, column=1, columnspan=3)
-        self.AI_name_textbox.configure(
-            foreground=text_color(),
-            background=bg_color())
-        row = master.grid_size()[1]
-        create_side_label(master, "Player name", row)
-        self.player_name_textbox = TextAware(self.master, height=1)
-        self.player_name_textbox.insert(tk.INSERT, self.vars['player_name'].get())
-        self.player_name_textbox.grid(row=row, column=1, columnspan=3)
-        self.player_name_textbox.configure(
-            foreground=text_color(),
-            background=bg_color())
-
-        row = master.grid_size()[1]
-        create_side_label(master, "Context (prepended)", row)
-        self.context_textbox = TextAware(self.master, height=4)
-        self.context_textbox.insert(tk.INSERT, self.vars['context'].get())
-        self.context_textbox.grid(row=row, column=1, columnspan=3)
+        self.memory_label = create_label(master, "global context (prepended)", row)
+        self.context_textbox = TextAware(master, height=4)
+        self.context_textbox.grid(row=row+1, column=0, columnspan=2, padx=20)
         self.context_textbox.configure(
             foreground=text_color(),
             background=bg_color(),
@@ -874,41 +808,111 @@ class ChatSettingsDialog(Dialog):
             wrap="word",
         )
 
+        self.set_textboxes()
+
+
         row = master.grid_size()[1]
-        create_side_label(master, "Preset", row)
-
-        with open('./config/chat_presets.json') as f:
+        create_side_label(master, "preset", row)
+        
+        # load presets into options
+        with open('./config/presets.json') as f:
             self.presets_dict = json.load(f)
-        options = [p['preset_name'] for p in self.presets_dict.values()]
-        #options = ['GPT-3/researcher', 'chatroulette']
-        #self.preset.set(options[0])
-        dropdown = tk.OptionMenu(master, self.preset, *options)
-        dropdown.grid(row=row, column=1, pady=3)
-        button = create_button(master, "Apply", self.apply_preset)
-        button.grid(row=row, column=2, sticky='w')
-        button = create_button(master, "Save preset", self.save_preset)
-        button.grid(row=row, column=3, sticky='w')
 
-    def apply_preset(self):
-        new_preset = self.presets_dict[self.preset.get()]
-        self.AI_name_textbox.delete("1.0", "end")
-        self.player_name_textbox.delete("1.0", "end")
-        self.context_textbox.delete("1.0", "end")
+        # if custom presets json exists, also append it to presets dict and options
+        if os.path.isfile('./config/custom_presets.json'):
+            with open('./config/custom_presets.json') as f:
+                self.presets_dict.update(json.load(f))
 
-        self.AI_name_textbox.insert(tk.INSERT, new_preset['AI_name'])
-        self.player_name_textbox.insert(tk.INSERT, new_preset['player_name'])
-        self.context_textbox.insert(tk.INSERT, new_preset['context'])
+        # when the preset changes, apply the preset
+        self.vars['preset'].trace('w', self.apply_preset)
 
-    # TODO checkbox for show prepended context in story box
-    # TODO preset name textbox
+        self.preset_dropdown = tk.OptionMenu(master, self.vars["preset"], "Select preset...")
+        self.preset_dropdown.grid(row=row, column=1, pady=3)
+        self.set_options()
 
-    def save_preset(self):
-        pass
+        create_button(master, "Save preset", self.save_preset)
+        create_button(master, "Reset", self.reset_variables)
 
+        
+
+    # set presets dropdown options to presets in preset dict
+    def set_options(self):
+        options = [p['preset'] for p in self.presets_dict.values()]
+        menu = self.preset_dropdown['menu']
+        menu.delete(0, 'end')
+        for option in options:
+            menu.add_command(label=option, command=tk._setit(self.vars['preset'], option))
+
+
+    def reset_variables(self):
+        for key, var in self.vars.items():
+            var.set(self.orig_params[key])
+        self.set_textboxes()
+
+    def set_textboxes(self):
+        for name in self.textboxes:
+            self.textboxes[name].delete(1.0, "end")
+            self.textboxes[name].insert(1.0, self.get_text(name))
+        self.context_textbox.delete(1.0, "end")
+        self.context_textbox.insert(1.0, self.vars['global_context'].get())
+
+    def create_textbox(self, master, name):
+        row = master.grid_size()[1]
+        label_text = 'stop sequences (| delimited)' if name == 'stop' else name + ' text'
+        create_side_label(master, label_text, row)
+        self.textboxes[name] = TextAware(master, height=1, width=20)
+        self.textboxes[name].grid(row=row, column=1)
+
+    def get_text(self, name):
+        decoded_string = codecs.decode(self.vars[name].get(), "unicode-escape")
+        repr_string = repr(decoded_string)
+        repr_noquotes = repr_string[1:-1]
+        return repr_noquotes
+
+    def get_vars(self):
+        params = {}
+        for key, var in self.vars.items():
+            try:
+                params[key] = var.get()
+            except AttributeError:
+                print(key)
+        for key in self.textboxes:
+            params[key] = self.textboxes[key].get(1.0, "end-1c")
+        params["global_context"] = self.context_textbox.get("1.0", "end-1c")
+        return params
+        
+
+    # Put the slider values into the result field
     def apply(self):
-        self.orig_params['AI_name'] = self.AI_name_textbox.get("1.0", 'end-1c')
-        self.orig_params['player_name'] = self.player_name_textbox.get("1.0", 'end-1c')
-        self.orig_params['context'] = self.context_textbox.get("1.0", 'end-1c')
+        for key, value in self.get_vars().items():
+            self.orig_params[key] = value
+        self.result = self.orig_params
+
+    def apply_preset(self, *args):
+        new_preset = self.presets_dict[self.vars["preset"].get()]
+        for key, value in new_preset.items():
+            self.vars[key].set(value)
+        self.set_textboxes()
+
+    def save_preset(self, *args):
+        preset_name = tk.simpledialog.askstring("Save preset", "Enter preset name")
+        if preset_name is None:
+            return
+        
+        preset_dict = self.get_vars()
+        preset_dict['preset'] = preset_name
+        self.presets_dict[preset_name] = preset_dict
+
+        self.set_options()
+        self.vars['preset'].set(preset_name)
+
+        # append new presets to json
+        with open('./config/custom_presets.json') as f:
+            custom_dict = json.load(f)
+        custom_dict[preset_name] = self.presets_dict[preset_name]
+        with open('./config/custom_presets.json', 'w') as f:
+            json.dump(custom_dict, f)
+        
 
 
 class VisualizationSettingsDialog(Dialog):

@@ -1,8 +1,10 @@
 ## Priority
-
+- alt textbox
+- make hoisted node actual root
 - ability for a to "conceal" ancestry (to reader and/or language model) 
 - expose start text and restart text and logprob masks
-    - presets reflected
+    - show global context option (should this be in generation settings?)
+    - antisummary is different - its a program, not just generation mode. remove for now
 - masking
     - mask subtree
         - option to automatically mask new chapters
@@ -27,13 +29,23 @@
 - substitute (node)
 - floating nodes/subtrees
 - general purpose side frame
+- export visible tree / prune hidden nodes
+- edit textbox directly causes branch from nearest unmodified ancestor?
+    - compare verbatim text
+    - ask whether to create new branch or overwrite old
+- navigate to next tag
+- only show visible nodes in vis mode
+- archive button in vis mode
+- insert new nodes at top of list
+- fix c / ctrl+c binding conflict
+- child frame
+    - fix children textbox height
+    - set visited status when edited in child mode
 
 ## Other TODO
 
 ### bugs
 
-* "a" and "b" don't work as inputs to input box??
-    * capitals work
 * crashes with this error sometimes: `_tkinter.TclError: bad text index "tk::anchor1"`
 * key bindings only work in most recent tab
 * num leaves calculated incorrectly
@@ -50,6 +62,7 @@
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * after the first counterfactual substitution via select node, other selections will be misaligned
 * immutable nodes become white when selected in nav tree
+* nodes sometimes in wrong order in nav tree
 
 ### problems
 * saving and inserting into nav tree is slow for massive trees
@@ -165,12 +178,10 @@
     - save generation mode metadata
     - stop at newline generation mode
 
- 
-- dialogue
-    - optimize prompt / multiple modes 
+- chat
+    - don't show restart text
  
 - presets
-    - save preset
     - toggle whether context appears in textbox
     - toggle whether context remains in prompt
 
@@ -192,10 +203,6 @@
 - memory
     - enable/disable memory entries
     - goto root 
-    - add global memory option
-
-  
-
 
 
 ### Autocomplete
