@@ -87,6 +87,7 @@ class Display:
         self.multi_pady = 8
         self.multi_padx = 2
         self.multi_default_height = 3
+        self.multi_bd_width = 3
         self.default_num_textbox = 4
         self.button_height = 30
         self.add_child_button = None
@@ -438,6 +439,14 @@ class Display:
             self.chapter_nav_tree = None
             self.chapter_nav_scrollbarx = None
 
+    def refresh_nav_node(self, node):
+        tags = self.state.get_node_tags(node)
+        self.nav_tree.item(
+            node["id"],
+            open=node.get("open", False),
+            tags=tags
+        )
+
     #################################
     #   Side panel
     #################################
@@ -614,7 +623,7 @@ class Display:
         self.destroy_multi_frame()
         self.init_multi_frame(num_textboxes)
         self.multi_textboxes = {str(uuid.uuid1()): {'textbox': TextAware(self.multi_scroll_frame.scrollable_frame,
-                                                                         height=self.multi_default_height, bd=3,
+                                                                         height=self.multi_default_height, bd=self.multi_bd_width,
                                                                          relief=tk.RAISED)} for i in
                                 range(num_textboxes)}
         self.place_textboxes()
@@ -623,8 +632,8 @@ class Display:
 
         font_height = tk.font.Font(font=self.font).metrics('linespace')
         # TODO max height
-        textbox_height = self.multi_default_height * (font_height + 4) + self.button_height
-        height = min(num_textboxes * textbox_height, self.default_num_textbox * textbox_height)
+        textbox_height = self.multi_default_height * (font_height) + self.multi_pady * 2 + self.multi_bd_width * 2 + 2
+        height = min(num_textboxes, self.default_num_textbox) * textbox_height
 
         self.multi_scroll_frame = ScrollableFrame(self.story_frame, height=height)
         self.multi_scroll_frame.pack(expand=False, fill="both", side=tk.BOTTOM)
@@ -633,8 +642,7 @@ class Display:
         row = 0
         tk.Grid.columnconfigure(self.multi_scroll_frame.scrollable_frame, 1, weight=1)
 
-        items = self.multi_textboxes.items() if not self.state.preferences.get('reverse', False) else reversed(self.multi_textboxes.items())
-        for textbox_id, tb_item in items:
+        for textbox_id, tb_item in self.multi_textboxes.items():
             tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row, weight=1)
             tk.Grid.rowconfigure(self.multi_scroll_frame.scrollable_frame, row + 1, weight=1)
 
@@ -659,9 +667,7 @@ class Display:
         self.multi_scroll_frame = None
         self.init_multi_frame(num_textboxes=len(self.multi_textboxes.items()))
 
-        items = self.multi_textboxes.items() if not self.state.preferences.get('reverse', False) else reversed(self.multi_textboxes.items())
-
-        for tb_id, tb_item in items:
+        for tb_id, tb_item in self.multi_textboxes.items():
             state = 'disabled'
             height = self.multi_default_height
             # if tb_item['textbox']:
@@ -734,6 +740,7 @@ class Display:
     # adds text of children into textboxes
     # creates icons/labels and binds functions
     def populate_textboxes(self, children):
+        children = children if not self.state.preferences.get("reverse", False) else children[::-1]
         for i, (tb_id, tb_item) in enumerate(self.multi_textboxes.items()):
             child = children[i]
             tb = tb_item['textbox']
@@ -803,6 +810,7 @@ class Display:
     # when editing is enabled, textbox height expands to show all text
     # when editing is disabled, height defaults to self.multi_default_height
     def toggle_editable(self, textbox_id):
+        print(self.multi_textboxes[textbox_id]['textbox'].cget('state'))
         if self.multi_textboxes[textbox_id]['textbox'].cget('state') == 'disabled':
             self.edit_on(textbox_id)
         else:
@@ -814,11 +822,14 @@ class Display:
             print('error: node is compound')
             pass
         else:
+            
             edit_height = min(self.multi_default_height, self.multi_textboxes[textbox_id]['num_lines'] + 2)
             self.multi_textboxes[textbox_id]['textbox'].configure(state='normal', background=edit_color(),
                                                                   relief=tk.SUNKEN,
                                                                   height=edit_height)
             self.multi_textboxes[textbox_id]['textbox'].focus()
+            self.multi_textboxes[textbox_id]["node"]["visited"] = True
+            self.refresh_nav_node(self.multi_textboxes[textbox_id]["node"])
 
     def edit_off(self, textbox_id):
         height = self.textbox_height(textbox_id)

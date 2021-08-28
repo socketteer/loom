@@ -11,10 +11,16 @@
             - but I want "open" state to be property of session, not tree?
             - should all masking belong to a *session mask*?
     - function to check if a node is masked
+- visible
+    - search for all instances that need to be changed to visible
 - arbitrary tags
     - tag dialog
     - search tags
     - hotkey to tag
+    - hotkey to navigate tags
+    - navigate to next tag
+    - refactor archived, canonical etc to use generic tag system
+    - tags when splitting, merging nodes
 - navigate to invisible node error handling
     - by bookmark: only go to visible bookmarks
 - fix everything that uses old data format
@@ -32,13 +38,10 @@
 - edit textbox directly causes branch from nearest unmodified ancestor?
     - compare verbatim text
     - ask whether to create new branch or overwrite old
-- navigate to next tag
+
 - only show visible nodes in vis mode
 - archive button in vis mode
-- fix c / ctrl+c binding conflict
-- child frame
-    - fix children textbox height
-    - set visited status when edited in child mode
+- bring selected node stuff out of model
 
 ## Other TODO
 
@@ -59,7 +62,6 @@
 * merge with children is broken?
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * after the first counterfactual substitution via select node, other selections will be misaligned
-* immutable nodes become white when selected in nav tree
 * nodes sometimes in wrong order in nav tree
 
 ### problems
@@ -352,7 +354,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * search chapter titles
 * search tags
 * regex
-* integrated search
+* integrated (inline) search
 * key filter -> semantic search among matches
 
 # Features

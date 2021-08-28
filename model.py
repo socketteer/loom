@@ -127,14 +127,6 @@ DEFAULT_STATE = {
 
 EMPTY_TREE = {
     "root": {
-        "text": "",
-        "children": [],
-    },
-    "chapters": {}
-}
-
-EMPTY_ROOT_TREE = {
-    "root": {
         "mutable": False,
         "visited": True,
         "text": "",
@@ -146,6 +138,13 @@ EMPTY_ROOT_TREE = {
         ],
     }
 }
+
+DEFAULT_TAGS = { 
+    "bookmark": { 
+        "name": "bookmark", 
+        "scope": "node"
+    }
+ }
 
 
 class TreeModel:
@@ -167,6 +166,7 @@ class TreeModel:
         self.summaries = None
         self.checkpoint = None
         self.canonical = None
+        self.tags = None
         self.model_responses = None
         self.state_preferences = DEFAULT_STATE
 
@@ -193,12 +193,6 @@ class TreeModel:
         return self.master_tree().get("preferences") \
             if self.master_tree() and "preferences" in self.master_tree() \
             else DEFAULT_PREFERENCES
-
-    @property
-    def chat_preferences(self):
-        return self.master_tree().get("chat_preferences") \
-            if self.master_tree() and "chat_preferences" in self.master_tree() \
-            else DEFAULT_CHAT_PREFERENCES
 
     # TODO deprecate?
     def master_tree(self):
@@ -316,13 +310,25 @@ class TreeModel:
     def nodes(self):
         return list(self.tree_node_dict.values()) if self.tree_node_dict else None
 
-    def nodes_list(self, flat_tree=None):
-        flat_tree = flat_tree if flat_tree else self.tree_node_dict
-        return list(flat_tree.values()) if flat_tree else None
+    @property
+    def visible_nodes(self):
+        return [n for n in list(self.tree_node_dict.values()) if self.visible(n)] if self.tree_node_dict else None
 
     @property
     def tree_traversal_idx(self):
         return self.nodes.index(self.selected_node)
+
+    @property
+    def visible_traversal_idx(self):
+        return self.visible_nodes.index(self.selected_node)
+
+
+    # TODO deprecate?
+    def nodes_list(self, flat_tree=None):
+        flat_tree = flat_tree if flat_tree else self.tree_node_dict
+        return list(flat_tree.values()) if flat_tree else None
+
+
 
     def tree_traversal_idx_gen(self, flat_tree=None):
         flat_tree = flat_tree if flat_tree else self.tree_node_dict
@@ -938,6 +944,10 @@ class TreeModel:
         if 'model_responses' not in self.tree_raw_data:
             self.tree_raw_data['model_responses'] = {}
         self.model_responses = self.tree_raw_data['model_responses']
+
+        if 'tags' not in self.tree_raw_data:
+            self.tree_raw_data['tags'] = DEFAULT_TAGS
+        self.tags = self.tree_raw_data['tags']
 
         # Generation settings
         self.tree_raw_data["generation_settings"] = {
@@ -1795,8 +1805,55 @@ class TreeModel:
     def visible(self, node):
         return all(condition(node) for condition in self.generate_visible_conditions())
 
+    def get_node_tags(self, node):
+        tags = ["visited"] if node.get("visited", False) else ["not visited"]
+        if not self.is_mutable(node):
+            tags.append("immutable")
+        if node['id'] in self.calc_canonical_set():
+            tags.append("canonical")
+        else:
+            tags.append("uncanonical")
+        return tags
 
+    def add_tag(self, name, scope):
+        self.tags[name] = {'name': name, 
+                           'scope': scope,
+                           }
 
+    def delete_tag(self, name):
+        del self.tags[name]
+        # TODO delete tag from all nodes
 
+    def tag_node(self, node, tag):
+        if tag not in self.tags:
+            print('no such tag')
+            return
+        if 'tags' not in node:
+            node['tags'] = []
+        node['tags'].append(tag)
 
+    def untag_node(self, node, tag):
+        if 'tags' in node and tag in node['tags']:
+            node['tags'].remove(tag)
 
+    def toggle_tag(self, node, tag):
+        if self.has_tag(node, tag):
+            self.untag_node(node, tag)
+        else:
+            self.tag_node(node, tag)
+
+    def tagged_nodes(self, tag):
+        return {idx: d for idx, d in enumerate(self.visible_nodes) if self.has_tag(d, tag)}
+
+    def has_tag(self, node, tag):
+        return 'tags' in node and tag in node['tags']
+
+    # temporary function to turn "bookmark" attribute into a tag in all nodes
+    def turn_bookmark_into_tags(self):
+        if 'bookmark' not in self.tags:
+            self.add_tag('bookmark', 'node')
+        for node in self.nodes:
+            if 'bookmark' in node:
+                self.tag_node(node, 'bookmark')
+                del node['bookmark']
+        print('done')

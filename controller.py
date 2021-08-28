@@ -23,7 +23,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
-    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries
+    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
@@ -314,7 +314,8 @@ class Controller:
     def bookmark(self, node=None):
         if node is None:
             node = self.state.selected_node
-        node["bookmark"] = not node.get("bookmark", False)
+        self.state.toggle_tag(node, "bookmark")
+        #node["bookmark"] = not node.get("bookmark", False)
         self.state.tree_updated(edit=[node['id']])
 
     @metadata(name="Toggle canonical", keys=["<Control-Shift-KeyPress-C>"], display_key="ctrl+shift+C")
@@ -359,27 +360,31 @@ class Controller:
         else:
             self.state.tree_updated(edit=[node['id']])
 
-    @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
-    def next_bookmark(self):
-        book_indices = {idx: d for idx, d in enumerate(self.state.nodes) if d.get("bookmark", False)}
-        if len(book_indices) < 1:
+    def next_tag(self, tag):
+        tag_indices = self.state.tagged_nodes(tag)
+        if len(tag_indices) < 1:
             return
         try:
-            go_to_book = next(i for i, idx in enumerate(book_indices.keys()) if idx > self.state.tree_traversal_idx)
+            go_to_tag = next(i for i, idx in enumerate(tag_indices.keys()) if idx > self.state.visible_traversal_idx)
         except StopIteration:
-            go_to_book = 0
-        #self.state.select_node(list(book_indices.values())[go_to_book]["id"])
-        self.select_node(list(book_indices.values())[go_to_book])
+            go_to_tag = 0
+        self.select_node(list(tag_indices.values())[go_to_tag])
+
+    def prev_tag(self, tag):
+        tag_indices = self.state.tagged_nodes(tag)
+        if len(tag_indices) < 1:
+            return
+        earlier_tags = list(i for i, idx in enumerate(tag_indices.keys()) if idx < self.state.visible_traversal_idx)
+        go_to_tag = earlier_tags[-1] if len(earlier_tags) > 0 else -1
+        self.select_node(list(tag_indices.values())[go_to_tag])
+
+    @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
+    def next_bookmark(self):
+        self.next_tag("bookmark")
 
     @metadata(name="Go to prev bookmark", keys=["<Key-a>", "<Control-a>"])
     def prev_bookmark(self):
-        book_indices = {i: d for i, d in enumerate(self.state.nodes) if d.get("bookmark", False)}
-        if len(book_indices) < 1:
-            return
-        earlier_books = list(i for i, idx in enumerate(book_indices.keys()) if idx < self.state.tree_traversal_idx)
-        go_to_book = earlier_books[-1] if len(earlier_books) > 0 else -1
-        #self.state.select_node(list(book_indices.values())[go_to_book]["id"])
-        self.select_node(list(book_indices.values())[go_to_book])
+        self.prev_tag("bookmark")
 
     @metadata(name="Center view", keys=["<Key-l>", "<Control-l>"])
     def center_view(self):
@@ -1449,11 +1454,15 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
+        self.state.turn_bookmark_into_tags()
+        #TagNodeDialog(parent=self.display.frame, node=self.state.selected_node, state=self.state)
+        #AddTagDialog(parent=self.display.frame, state=self.state)
         #self.state.expand(self.state.selected_node)
-        if self.display.alt_textbox:
-            self.close_alt_textbox()
-        else:
-            self.open_alt_textbox()
+
+        # if self.display.alt_textbox:
+        #     self.close_alt_textbox()
+        # else:
+        #     self.open_alt_textbox()
         #self.display.open_side()
         #self.collapse_all_chains()
         # node = self.state.selected_node
@@ -1884,7 +1893,7 @@ class Controller:
     #   Navtree
     #################################
 
-    def nav_tree_name(self, node):
+    def nav_name(self, node):
         if self.state.is_root(node) and not self.state.is_compound(node):
             text = self.state.name()
         else:
@@ -1900,7 +1909,7 @@ class Controller:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
 
-    def nav_entry_params(self, node):
+    def nav_icon(self, node):
         if node == self.state.root():
             image = self.display.icons['tree']['icon']
         elif node['id'] == self.state.checkpoint:
@@ -1910,18 +1919,10 @@ class Controller:
         elif 'multimedia' in node and len(node['multimedia']) > 0:
             image = self.display.media_icon
         else:
-            image = self.display.bookmark_icon if node.get("bookmark", False) else None
+            image = self.display.bookmark_icon if self.state.has_tag(node, "bookmark") else None
         if not image:
             image = self.display.empty_icon
-        tags = ["visited"] if node.get("visited", False) else ["not visited"]
-        if not self.state.is_mutable(node):
-            tags.append("immutable")
-        if node['id'] in self.state.calc_canonical_set():
-            tags.append("canonical")
-        else:
-            tags.append("uncanonical")
-
-        return image, tags
+        return image
 
     def configure_nav_tags(self):
         if self.state.preferences.get('highlight_canonical', False):
@@ -1940,12 +1941,13 @@ class Controller:
         self.display.nav_tree.delete(*self.display.nav_tree.get_children())
         for id in flat_tree:
             node = self.state.tree_node_dict[id]
-            image, tags = self.nav_entry_params(node)
+            image = self.nav_icon(node)
+            tags = self.state.get_node_tags(node)
             self.display.nav_tree.insert(
                 parent=node.get("parent_id", ""),
                 index=0 if self.state.preferences.get('reverse', False) else "end",
                 iid=node["id"],
-                text=self.nav_tree_name(node),
+                text=self.nav_name(node),
                 open=node.get("open", False),
                 tags=tags,
                 **dict(image=image) if image else {}
@@ -1980,7 +1982,8 @@ class Controller:
 
         for id in add_items + edit_items:
             node = self.state.tree_node_dict[id]
-            image, tags = self.nav_entry_params(node)
+            image = self.nav_icon(node)
+            tags = self.state.get_node_tags(node)
             if id in add_items:
                 #print('adding id', id)
                 if self.display.nav_tree.exists(id):
@@ -1989,27 +1992,18 @@ class Controller:
                     parent=node.get("parent_id", ""),
                     index=0 if self.state.preferences.get('reverse', False) else "end",
                     iid=node["id"],
-                    text=self.nav_tree_name(node),
+                    text=self.nav_name(node),
                     open=node.get("open", False),
                     tags=tags,
                     **dict(image=image) if image else {}
                 )
             elif id in edit_items:
                 self.display.nav_tree.item(id,
-                                           text=self.nav_tree_name(node),
+                                           text=self.nav_name(node),
                                            open=node.get("open", False),
                                            tags=tags,
                                            **dict(image=image) if image else {})
-        #
-        # self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
-        # self.display.nav_tree.tag_configure("visited", background=visited_color())
-        # self.display.nav_tree.tag_configure("canonical", foreground=text_color())
-        # self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
 
-        # # Restore opened state
-        # for node_id in open_nodes:
-        #     if node_id in self.state.tree_node_dict and self.display.nav_tree.exists(node_id):
-        #         self.display.nav_tree.item(node_id, open=True)
 
 
     def update_chapter_nav_tree(self, **kwargs):
@@ -2061,16 +2055,7 @@ class Controller:
 
         # Update tag of node based on visited status
         d = self.state.selected_node
-        tags = ["visited"] if d.get("visited", False) else ["not visited"]
-        if d['id'] in self.state.calc_canonical_set():
-            tags.append("canonical")
-        else:
-            tags.append("uncanonical")
-        self.display.nav_tree.item(
-            state_selected_id,
-            open=self.state.selected_node.get("open", False),
-            tags=tags
-        )
+        self.display.refresh_nav_node(d)
 
         # Scroll to node, open it's parent nodes
         self.scroll_to_selected()

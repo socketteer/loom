@@ -305,6 +305,51 @@ class NodeChapterDialog(Dialog):
         self.state.create_new_chapter(node=self.node, title=new_title)
 
 
+class TagNodeDialog(Dialog):
+    def __init__(self, parent, node, state):
+        self.node = node
+        self.parent = parent
+        self.state = state
+        self.tags_textbox = None
+        Dialog.__init__(self, parent, title="Tag node")
+
+    def body(self, master):
+        tags = '' if 'tags' not in self.node else ', '.join(self.node['tags'])
+        self.tags_textbox = Entry(master, master.grid_size()[1], "Tags", tags, None, width=20)
+        self.tags_textbox.controls.focus_set()
+
+    def apply(self):
+        tags_string = self.tags_textbox.tk_variables.get()
+        tags = [tag.strip() for tag in tags_string.split(',')]
+        for tag in tags:
+            if tag not in self.state.tags:
+                AddTagDialog(self.parent, self.state, tag)
+            if tag in self.state.tags:
+                self.state.tag_node(self.node, tag)
+                
+
+class AddTagDialog(Dialog):
+    def __init__(self, parent, state, tag_name=None):
+        self.state = state
+        self.title_textbox = None
+        self.scope_dropdown = None
+        self.scope = tk.StringVar()
+        self.tag_name = tag_name
+        Dialog.__init__(self, parent, title="Add tag")
+
+    def body(self, master):
+        name = self.tag_name if self.tag_name else ""
+        self.title_textbox = Entry(master, master.grid_size()[1], "Tag name", name, None)
+        self.title_textbox.controls.focus_set()
+        create_side_label(master, "Scope")
+        scope_options = ('node', 'ancestry', 'subtree')
+        self.scope.set('node')
+        dropdown = tk.OptionMenu(master, self.scope, *scope_options)
+        dropdown.grid(row=master.grid_size()[1]-1, column=1, pady=3)
+
+    def apply(self):
+        self.state.add_tag(self.title_textbox.tk_variables.get(), self.scope.get())
+
 class AIMemory(Dialog):
     def __init__(self, parent, node, state):
         self.node = node
@@ -367,6 +412,8 @@ class AIMemory(Dialog):
 
     def apply(self):
         pass
+
+
 
 # TODO repeated code
 class NodeMemory(Dialog):
