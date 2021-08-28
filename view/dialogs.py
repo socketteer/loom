@@ -12,6 +12,7 @@ from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PRO
 import math
 import json
 import codecs
+from copy import deepcopy
 
 class InfoDialog(Dialog):
     def __init__(self, parent, data_dict):
@@ -39,7 +40,7 @@ class NodeInfoDialog(Dialog):
                      row=master.grid_size()[1] - 1, col=1, padx=15)
 
         create_side_label(master, "bookmarked")
-        create_label(master, "true" if self.node.get("bookmark", False) else "false", row=master.grid_size()[1] - 1,
+        create_label(master, "true" if self.state.has_tag(self.node, "bookmark") else "false", row=master.grid_size()[1] - 1,
                      col=1, padx=15)
 
         create_side_label(master, "visited")
@@ -47,7 +48,7 @@ class NodeInfoDialog(Dialog):
                      col=1, padx=15)
 
         create_side_label(master, "canonical")
-        create_label(master, "true" if self.node["id"] in self.state.calc_canonical_set() else "false",
+        create_label(master, "true" if self.state.has_tag(self.node, "canonical") else "false",
                      row=master.grid_size()[1] - 1, col=1, padx=15)
 
         if "meta" in self.node:
@@ -184,7 +185,7 @@ class SearchDialog(Dialog):
                          tags=self.tags.get(),
                          case_sensitive=self.case_sensitive.get(),
                          regex=self.regex.get(),
-                         filter_set=self.state.calc_canonical_set() if self.canonical.get() else None,
+                         filter_set=self.state.tagged_nodes("canonical") if self.canonical.get() else None,
                          max_depth=depth_limit)
 
         self.search_results(matches)
@@ -306,15 +307,17 @@ class NodeChapterDialog(Dialog):
 
 
 class TagNodeDialog(Dialog):
-    def __init__(self, parent, node, state):
+    def __init__(self, parent, node, state, modifications):
         self.node = node
         self.parent = parent
         self.state = state
         self.tags_textbox = None
+        self.original_tags = self.node.get('tags', [])
+        self.modifications = modifications
         Dialog.__init__(self, parent, title="Tag node")
 
     def body(self, master):
-        tags = '' if 'tags' not in self.node else ', '.join(self.node['tags'])
+        tags = '' if 'tags' not in self.node else ', '.join(self.original_tags)
         self.tags_textbox = Entry(master, master.grid_size()[1], "Tags", tags, None, width=20)
         self.tags_textbox.controls.focus_set()
 
@@ -324,17 +327,29 @@ class TagNodeDialog(Dialog):
         for tag in tags:
             if tag not in self.state.tags:
                 AddTagDialog(self.parent, self.state, tag)
-            if tag in self.state.tags:
+            if tag in self.state.tags and tag not in self.original_tags:
                 self.state.tag_node(self.node, tag)
-                
+                self.modifications['add'].append(tag)
+        for tag in self.original_tags:
+            if tag not in tags:
+                self.state.untag_node(self.node, tag)
+                self.modifications['remove'].append(tag)
+                        
 
 class AddTagDialog(Dialog):
     def __init__(self, parent, state, tag_name=None):
         self.state = state
         self.title_textbox = None
         self.scope_dropdown = None
-        self.scope = tk.StringVar()
+        self.vars = {
+            'scope': tk.StringVar(),
+            'hide': tk.BooleanVar(),
+            'show_only': tk.BooleanVar(),
+        }
         self.tag_name = tag_name
+        self.hide_checkbox = None
+        self.show_only_checkbox = None
+        self.dropdown = None
         Dialog.__init__(self, parent, title="Add tag")
 
     def body(self, master):
@@ -343,12 +358,93 @@ class AddTagDialog(Dialog):
         self.title_textbox.controls.focus_set()
         create_side_label(master, "Scope")
         scope_options = ('node', 'ancestry', 'subtree')
-        self.scope.set('node')
-        dropdown = tk.OptionMenu(master, self.scope, *scope_options)
-        dropdown.grid(row=master.grid_size()[1]-1, column=1, pady=3)
+        self.vars['scope'].set('node')
+        
+        self.dropdown = tk.OptionMenu(master, self.vars['scope'], *scope_options)
+        self.dropdown.grid(row=master.grid_size()[1]-1, column=1, pady=3)
+        self.hide_checkbox = create_checkbutton(master, "Hide", 'hide', self.vars)
+        self.show_only_checkbox = create_checkbutton(master, "Show only", 'show_only', self.vars)
+        self.configure_checkbuttons()
+        for var in self.vars.values():
+            var.trace('w', self.configure_checkbuttons)
+
+    def configure_checkbuttons(self, *args):
+        # hide is false and disabled if scope == 'ancestry' or if show_only is true
+        if self.vars['scope'].get() == 'ancestry' or self.vars['show_only'].get():
+            self.vars['hide'].set(False)
+            self.hide_checkbox.configure(state=tk.DISABLED)
+        else:
+            self.hide_checkbox.configure(state=tk.NORMAL)
+        # show_only is false and disabled if scope == 'node' or if hide is true
+        if self.vars['scope'].get() == 'node' or self.vars['hide'].get():
+            self.vars['show_only'].set(False)
+            self.show_only_checkbox.configure(state=tk.DISABLED)
+        else:
+            self.show_only_checkbox.configure(state=tk.NORMAL)
 
     def apply(self):
-        self.state.add_tag(self.title_textbox.tk_variables.get(), self.scope.get())
+        self.state.add_tag(self.title_textbox.tk_variables.get(), self.vars['scope'].get(), self.vars['hide'].get(), self.vars['show_only'].get())
+
+
+class TagsDialog(Dialog):
+    def __init__(self, parent, state, modifications=None):
+        self.state = state
+        self.modifications = modifications
+        self.tags = self.state.tags
+        self.vars = {}
+        self.widgets = {}
+        Dialog.__init__(self, parent, title="Tags")
+
+    def body(self, master):
+        scope_options = ('node', 'ancestry', 'subtree')
+        # create header labels
+        create_side_label(master, "Tag")
+        create_side_label(master, "Scope", row=master.grid_size()[1]-1, col=1)
+        create_side_label(master, "Hide", row=master.grid_size()[1]-1, col=2)
+        create_side_label(master, "Show only", row=master.grid_size()[1]-1, col=3)
+        for tag, properties in self.tags.items():
+            self.vars[tag] = {
+                'scope': tk.StringVar,
+                'hide': tk.BooleanVar,
+                'show_only': tk.BooleanVar,
+            }
+            self.widgets[tag] = {}
+            for key in self.vars[tag].keys():
+                self.vars[tag][key] = self.vars[tag][key](value=properties[key])
+            create_side_label(master, tag)
+            #self.tag_vars[tag]['scope'].set(properties['scope'])
+            self.widgets[tag]['dropdown'] = tk.OptionMenu(master, self.vars[tag]['scope'], *scope_options)
+            self.widgets[tag]['dropdown'].grid(row=master.grid_size()[1]-1, column=1, pady=3)
+            # configure checkbuttons if dropdown value changes
+            #self.vars[tag]['scope'].trace('w', lambda *_, _tag=tag: self.configure_checkbuttons(_tag))
+            self.widgets[tag]['hide_checkbox'] = tk.Checkbutton(master, variable=self.vars[tag]['hide'])
+            self.widgets[tag]['hide_checkbox'].grid(row=master.grid_size()[1]-1, column=2, pady=3)
+            self.widgets[tag]['show_only_checkbox'] = tk.Checkbutton(master, variable=self.vars[tag]['show_only'])
+            self.widgets[tag]['show_only_checkbox'].grid(row=master.grid_size()[1]-1, column=3, pady=3)
+            # trace all vars to configure checkbuttons
+            for var in self.vars[tag].values():
+                var.trace('w', lambda *_, _tag=tag: self.configure_checkbuttons(_tag))
+            self.configure_checkbuttons(tag)
+
+    def configure_checkbuttons(self, tag):
+        # hide is false and disabled if scope == 'ancestry' or if show_only is true
+        if self.vars[tag]['scope'].get() == 'ancestry' or self.vars[tag]['show_only'].get():
+            self.vars[tag]['hide'].set(False)
+            self.widgets[tag]['hide_checkbox'].configure(state=tk.DISABLED)
+        else:
+            self.widgets[tag]['hide_checkbox'].configure(state=tk.NORMAL)
+        # show_only is false and disabled if scope == 'node' or if hide is true
+        if self.vars[tag]['scope'].get() == 'node' or self.vars[tag]['hide'].get():
+            self.vars[tag]['show_only'].set(False)
+            self.widgets[tag]['show_only_checkbox'].configure(state=tk.DISABLED)
+        else:
+            self.widgets[tag]['show_only_checkbox'].configure(state=tk.NORMAL)
+
+    def apply(self):
+        for tag in self.tags:
+            for key, var in self.vars[tag].items():
+                self.state.tags[tag][key] = var.get()
+
 
 class AIMemory(Dialog):
     def __init__(self, parent, node, state):
@@ -735,8 +831,8 @@ class PreferencesDialog(Dialog):
     def __init__(self, parent, orig_params):
         self.orig_params = orig_params
         self.vars = {
-            "hide_archived": tk.BooleanVar,
-            "canonical_only": tk.BooleanVar,
+            #"hide_archived": tk.BooleanVar,
+            #"canonical_only": tk.BooleanVar,
             "highlight_canonical": tk.BooleanVar,
             "side_pane": tk.BooleanVar,
             "bold_prompt": tk.BooleanVar,
@@ -761,9 +857,9 @@ class PreferencesDialog(Dialog):
 
     def body(self, master):
         #print(self.orig_params)
-        create_label(master, "Filter nodes")
-        create_checkbutton(master, "Hide archived", "hide_archived", self.vars)
-        create_checkbutton(master, "Canonical only", "canonical_only", self.vars)
+        # create_label(master, "Filter nodes")
+        # create_checkbutton(master, "Hide archived", "hide_archived", self.vars)
+        # create_checkbutton(master, "Canonical only", "canonical_only", self.vars)
 
         create_label(master, "Nav tree")
         create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)

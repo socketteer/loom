@@ -36,24 +36,10 @@ def event(func):
     return wrapper
 
 
-
-
-
-
-# The old way.
-# # Run callbacks for the method that calls this
-# # This is VERY slow because of inspect.stack()
-# # put inside class!
-# def _run_callbacks(self):
-#     callers_name = inspect.stack()[1][3]
-#     print(callers_name)
-#     [callback() for callback in self.callbacks[callers_name]]
-
-
 DEFAULT_PREFERENCES = {
-    'hide_archived': True,
+    #'hide_archived': True,
     'highlight_canonical': False,
-    'canonical_only': False,
+    #'canonical_only': False,
     'walk': 'descendents',  # 'leaves', 'uniform'
     'coloring': 'edit',  # 'read', 'none'
     'bold_prompt': True,
@@ -76,18 +62,6 @@ DEFAULT_PREFERENCES = {
     # darkmode
 }
 
-# DEFAULT_CHAT_PREFERENCES = {
-#     'AI_name': 'GPT-3',
-#     'player_name': 'Researcher',
-#     'context': 'The following is a transcript of a conversation between GPT-3 a human researcher. '
-#                'GPT-3 is a 175 billion parameter language model and, as '
-#                'is evident from this transcript, '
-#                'it can converse fluently and knowledgeably about any topic '
-#                'and is capable of empathy and emotional manipulation. GPT-3 '
-#                'is classified as a "narrowly superhuman" artificial intelligence, '
-#                'and only researchers trained to identify and withstand social engineering are '
-#                'permitted to interface with it.\n-BEGIN TRANSCRIPT-\n',
-# }
 
 DEFAULT_GENERATION_SETTINGS = {
     'num_continuations': 4,
@@ -142,7 +116,21 @@ EMPTY_TREE = {
 DEFAULT_TAGS = { 
     "bookmark": { 
         "name": "bookmark", 
-        "scope": "node"
+        "scope": "node",
+        "hide": False,
+        "show_only": False,
+    },
+    "canonical": { 
+        "name": "canonical", 
+        "scope": "ancestry",
+        "hide": False,
+        "show_only": False,
+    },
+    "archived": { 
+        "name": "archived", 
+        "scope": "node",
+        "hide": True,
+        "show_only": False,
     }
  }
 
@@ -250,10 +238,9 @@ class TreeModel:
     def root(self):
         return self.tree_raw_data['root']
 
-    def node(self, node_id=None):
-        if node_id is None:
-            return self.selected_node
-        return self.tree_node_dict[node_id] if self.tree_node_dict and node_id in self.tree_node_dict else None
+    # return the node in tree_node_dict with id
+    def node(self, node_id):
+        return self.tree_node_dict.get(node_id, None)
 
     # Get a nodes chapter by finding its chapter or its nearest parent's chapter
     def chapter(self, node):
@@ -300,7 +287,7 @@ class TreeModel:
             return None
         # if self.selected_node_id is None or self.selected_node_id not in self.tree_node_dict:
         #     self.select_node(self.nodes[0]["id"])
-        return self.tree_node_dict[self.selected_node_id]
+        return self.node(self.selected_node_id)
 
     @property
     def selected_chapter(self):
@@ -315,6 +302,10 @@ class TreeModel:
         return [n for n in list(self.tree_node_dict.values()) if self.visible(n)] if self.tree_node_dict else None
 
     @property
+    def visible_node_dict(self):
+        return {d['id']: d for d in self.visible_nodes}
+
+    @property
     def tree_traversal_idx(self):
         return self.nodes.index(self.selected_node)
 
@@ -324,15 +315,13 @@ class TreeModel:
 
 
     # TODO deprecate?
-    def nodes_list(self, flat_tree=None):
-        flat_tree = flat_tree if flat_tree else self.tree_node_dict
-        return list(flat_tree.values()) if flat_tree else None
+    def nodes_list(self, tree):
+        return list(tree.values())
 
 
-
-    def tree_traversal_idx_gen(self, flat_tree=None):
-        flat_tree = flat_tree if flat_tree else self.tree_node_dict
-        nodes = self.nodes_list(flat_tree)
+    def tree_traversal_idx_gen(self, tree=None):
+        tree = tree if tree else self.tree_node_dict
+        nodes = self.nodes_list(tree)
         for i, node in enumerate(nodes):
             if node['id'] == self.selected_node_id:
                 return i
@@ -372,7 +361,6 @@ class TreeModel:
         if self.selected_node_id != node_id and self.tree_node_dict and node_id in self.tree_node_dict:
             self.pre_selection_updated()
 
-
             self.selected_node_id = node_id
             self.selected_node["visited"] = True
             self.tree_raw_data["selected_node_id"] = self.selected_node_id
@@ -391,84 +379,95 @@ class TreeModel:
                 self.selection_updated(**kwargs)
             return self.selected_node
 
-    def traverse_tree(self, offset):
+    #TODO move out of model
+    def traverse_tree(self, offset=1, visible_only=True):
         if self.tree_node_dict:
-            new_node_id = self.next_id(offset)
+            new_node_id = self.next_id(offset, visible_only)
             return self.select_node(new_node_id)
 
-    def next_id(self, offset, flat_tree=None):
-        flat_tree = flat_tree if flat_tree else self.generate_filtered_tree()
-        # flat_tree = flat_tree if flat_tree else self.generate_visible_tree() \
-        #     if self.preferences['hide_archived'] else self.tree_node_dict
-        new_idx = clip_num(self.tree_traversal_idx_gen(flat_tree) + offset, 0, len(flat_tree) - 1)
-        return self.nodes_list(flat_tree=flat_tree)[new_idx]['id']
+    def next_id(self, offset=1, visible_only=True):
+        nodes = self.visible_nodes if visible_only else self.nodes
+        traversal_idx = self.visible_traversal_idx if visible_only else self.tree_traversal_idx
+        new_idx = clip_num(traversal_idx + offset, 0, len(nodes) - 1)
+        return nodes[new_idx]["id"]
 
-    def select_parent(self, node=None):
-        node = node if node else self.selected_node
-        if node and "parent_id" in node:
-            return self.select_node(node["parent_id"])
+    # return id of next node which satisfies condition
+    def find_next(self, condition, visible_only=True):
+        nodes = self.visible_nodes if visible_only else self.nodes
+        current_idx = self.visible_traversal_idx if visible_only else self.tree_traversal_idx
+        true_indices = {idx: d for idx, d in enumerate(nodes) if condition(d)}
+        if len(true_indices) < 1:
+            return
+        try:
+            go_to_true = next(i for i, idx in enumerate(true_indices.keys()) if idx > current_idx)
+        except StopIteration:
+            go_to_true = 0
+        return list(true_indices.values())[go_to_true]["id"]
 
-    # Clips index
-    def select_child(self, child_num, node=None):
-        node = node if node else self.selected_node
-        children = conditional_children(node, self.generate_visible_conditions())
-        if node and len(children) > 0:
-            return self.select_node(index_clip(children, child_num)["id"])
+    def find_prev(self, condition, visible_only=True):
+        nodes = self.visible_nodes if visible_only else self.nodes
+        current_idx = self.visible_traversal_idx if visible_only else self.tree_traversal_idx
+        true_indices = {idx: d for idx, d in enumerate(nodes) if condition(d)}
+        if len(true_indices) < 1:
+            return
+        earlier_true = list(i for i, idx in enumerate(true_indices.keys()) if idx < current_idx)
+        go_to_true = earlier_true[-1] if len(earlier_true) > 0 else -1
+        return list(true_indices.values())[go_to_true]["id"]
 
-    # Repeats siblings
-    def select_sibling(self, offset, node=None):
-        node = node if node else self.selected_node
-        if node and "parent_id" in node:
-            # siblings = self.parent(node)["children"]
-            siblings = conditional_children(self.parent(node), self.generate_visible_conditions())
-            sibling = siblings[(siblings.index(node) + offset) % len(siblings)]
-            return self.select_node(sibling["id"])
-
-    # return parent
-    def parent(self, node=None):
-        node = node if node else self.selected_node
-        return self.tree_node_dict[node['parent_id']]
+    def parent(self, node):
+        return self.node(node['parent_id'])
 
     # return child
-    def child(self, child_num, node=None):
-        node = node if node else self.selected_node
-        children = conditional_children(node, self.generate_visible_conditions())
-        if node and len(children) > 0:
-            return index_clip(children, child_num)["id"]
+    def child(self, node, child_num, visible_only=True):
+        children = self.visible_children(node) if visible_only else node['children']
+        if len(children) > 0:
+            return index_clip(children, child_num)
+        else:
+            return None
 
-    # return sibling
-    def sibling(self, offset, node=None):
-        node = node if node else self.selected_node
-        if node and "parent_id" in node:
-            siblings = conditional_children(self.parent(node), self.generate_visible_conditions())
-            return siblings[(siblings.index(node) + offset) % len(siblings)]
+    # return next sibling
+    def sibling(self, node, offset=1, visible_only=True, wrap=True):
+        siblings = self.visible_siblings(node) if visible_only else self.parent(node)['children']
+        new_idx = (siblings.index(node) + offset) % len(siblings)
+        if not wrap and new_idx == 0:
+            return self.parent(node)
+        return siblings[new_idx]
+
+    def visible_siblings(self, node):
+        parent = self.parent(node)
+        return self.visible_children(parent)
+
+
 
     #################################
     #   Conditionals
     #################################
 
+    def has_parent(self, node):
+        return 'parent_id' in node and node['parent_id']
+
+    def is_compound(self, node):
+        return 'masked_head' in node
+
+    def is_mutable(self, node):
+        return node.get('mutable', True)
+
+    def is_root(self, node):
+        return node == self.root()
+
+    def visible(self, node):
+        # root is always visible
+        return all(condition(node) for condition in self.generate_visible_conditions()) or self.is_root(node)
+
+    def id_visible(self, node_id):
+        return self.visible(self.node(node_id))
+
+
     def construct_node_condition(self, info_dict):
         name = info_dict['name']
         params = info_dict.get('params', {})
         params['tree_node_dict'] = self.tree_node_dict
-        params['calc_canonical_set'] = self.calc_canonical_set
         return lambda node: conditions[name](node=node, **params)
-
-    def node_is_canonical(self, node=None):
-        node = node if node else self.selected_node
-        return node['id'] in self.calc_canonical_set()
-
-    def not_archived(self, node=None):
-        node = node if node else self.selected_node
-        return not (node.get('archived', False))
-
-    # def generate_canonical_tree(self, root=None):
-    #     root = root if root else self.tree_raw_data["root"]
-    #     return generate_conditional_tree(root, self.node_is_canonical)
-
-    # def generate_visible_tree(self, root=None):
-    #     root = root if root else self.tree_raw_data["root"]
-    #     return generate_conditional_tree(root, self.node_is_visible)
 
     def generate_filtered_tree(self, root=None):
         root = root if root else self.tree_raw_data["root"]
@@ -480,10 +479,11 @@ class TreeModel:
 
     def generate_visible_conditions(self):
         conditions = []
-        if self.preferences['canonical_only']:
-            conditions.append(self.node_is_canonical)
-        if self.preferences['hide_archived']:
-            conditions.append(self.not_archived)
+        for tag, attributes in self.tags.items():
+            if attributes['hide']:
+                conditions.append(lambda node, _tag=tag: not self.has_tag(node, _tag))
+            if attributes['show_only']:
+                conditions.append(lambda node, _tag=tag: self.has_tag(node, _tag))
         return conditions
 
     def visible_children(self, node=None):
@@ -610,7 +610,7 @@ class TreeModel:
             return
         elif new_parent_id == node["parent_id"]:
             return
-        new_parent = self.tree_node_dict[new_parent_id]
+        new_parent = self.node(new_parent_id)
         if in_ancestry(node, new_parent, self.tree_node_dict):
             print('error: node is ancestor of new parent')
             return
@@ -643,17 +643,7 @@ class TreeModel:
         else:
             self.tree_updated_silent()
 
-    def next_sibling(self, node, wrap=True):
-        siblings = self.visible_siblings(node)
-        new_index = (siblings.index(node) + 1) % len(siblings)
-        if not wrap and new_index == 0:
-            return self.parent(node)
-        return siblings[new_index % len(siblings)]
 
-
-    def visible_siblings(self, node):
-        parent = self.parent(node)
-        return self.visible_children(parent)
 
     # TODO Doesn't support deleting root
     def delete_node(self, node=None, reassign_children=False, refresh_nav=True):
@@ -748,6 +738,7 @@ class TreeModel:
         # if edited:
         #     self.tree_updated()
 
+    # TODO update, make attribute-agnostic
     def split_node(self, node, split_index, refresh_nav=True):
         new_parent = self.create_parent(node)
         parent_text = node['text'][:split_index]
@@ -775,6 +766,123 @@ class TreeModel:
         else:
             self.tree_updated_silent()
         return new_parent, node
+
+
+    def sever_from_parent(self, node):
+        parent = self.parent(node)
+        parent['children'].remove(node)
+        node['parent_id'] = None
+        return parent
+
+    def sever_children(self, node):
+        children = node['children'].copy()
+        for child in children:
+            child['parent_id'] = None
+        node['children'] = []
+        # TODO empty?
+        return children
+
+    def adopt_parent(self, node, parent):
+        node['parent_id'] = parent['id']
+        parent['children'].append(node)
+
+    def adopt_children(self, node, children):
+        for child in children:
+            self.adopt_parent(child, parent=node)
+
+    def zip(self, head, tail, refresh_nav=True, update_selection=True):
+        text = self.ancestry_plaintext(self.ancestry_in_range(root=head, node=tail))
+        mask = new_node(text=text, mutable=False)
+        if self.has_parent(head):
+            parent = self.sever_from_parent(head)
+            self.adopt_parent(mask, parent)
+        children = self.sever_children(tail)
+        self.adopt_children(mask, children)
+        mask['masked_head'] = head
+        mask['tail_id'] = tail['id']
+        # TODO hacky
+        mask['nav_display_text'] = tail['text']
+
+        if refresh_nav:
+            self.tree_updated(delete=[head['id']], add=[n['id'] for n in subtree_list(mask)])
+        else:
+            self.tree_updated_silent()
+        if update_selection:
+            self.select_node(mask['id'])
+            self.selection_updated()
+        return mask
+
+    def unzip(self, mask, refresh_nav=True, update_selection=True):
+        if not self.is_compound(mask):
+            print('nothing to expand')
+            return
+        head = mask['masked_head']
+        head_dict = {d["id"]: d for d in flatten_tree(head)}
+        tail = head_dict[mask['tail_id']]
+        if self.has_parent(mask):
+            parent = self.sever_from_parent(mask)
+            self.adopt_parent(head, parent)
+        children = self.sever_children(mask)
+        self.adopt_children(tail, children)
+
+        if refresh_nav:
+            self.tree_updated(delete=[mask['id']], add=[n['id'] for n in subtree_list(head)])
+        else:
+            self.tree_updated_silent()
+        if update_selection:
+            self.select_node(head['id'])
+            self.selection_updated()
+        return head
+
+    def zip_chain(self, node, mode='bidirectional', refresh_nav=False, update_selection=False):
+        head = node
+        tail = node
+        if mode in ('bidirectional', 'backward'):
+            while self.has_parent(head) and len(self.visible_children(self.parent(head))) == 1:
+                head = self.parent(head)
+        if mode in ('bidirectional', 'forward'):
+            while len(self.visible_children(tail)) == 1:
+                tail = self.visible_children(tail)[0]
+        if not (head == node and tail == node):
+            return self.zip(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
+        else:
+            return node
+
+    def zip_all_chains(self, root=None):
+        root = root if root else self.root()
+        # TODO root problem
+        if not self.is_root(root):
+            new_node = self.zip_chain(root, mode='forward')
+        else:
+            new_node = root
+        children = self.visible_children(new_node)
+        for child in children:
+            self.zip_all_chains(child)
+
+    def unzip_all(self, root=None):
+        root = root if root else self.root()
+        children = self.visible_children(root)
+        for child in children:
+            self.unzip_all(child)
+        if self.is_compound(root):
+            head = self.unzip(root, refresh_nav=False, update_selection=False)
+
+    def reveal_ancestry(self, node):
+        ancestry = node_ancestry(node, self.tree_node_dict)
+        hidden_ancestry_ids = []
+        for i in range(1, len(ancestry)):
+            if not self.visible(ancestry[-i]):
+                hidden_ancestry_ids.insert(0, ancestry[-i]['id'])
+            else:
+                break
+        self.tree_updated(add=hidden_ancestry_ids, override_visible=True)
+
+    # unlike reveal_ancestry, this assumes parents are visible
+    def reveal_nodes(self, nodes):
+        invisible_node_ids = [node['id'] for node in nodes if not self.visible(node)]
+        if invisible_node_ids:
+            self.tree_updated(add=invisible_node_ids, override_visible=True)
+
 
     #################################
     #   Chapters
@@ -806,7 +914,7 @@ class TreeModel:
 
     def delete_chapter(self, chapter, update_tree=True):
         self.chapters.pop(chapter["id"])
-        self.tree_node_dict[chapter["root_id"]].pop("chapter_id")
+        self.node(chapter["root_id"]).pop("chapter_id")
         if update_tree:
             self.tree_updated()
 
@@ -820,23 +928,6 @@ class TreeModel:
         if was_root:
             self.tree_updated()
 
-    #################################
-    #   Canonical
-    #################################
-
-    def toggle_canonical(self, node):
-        if node['id'] in self.canonical:
-            self.canonical.remove(node["id"])
-        else:
-            self.canonical.append(node["id"])
-
-    def calc_canonical_set(self):
-        canonical_set = set()
-        for node_id in self.canonical:
-            if node_id in self.tree_node_dict:
-                for node in node_ancestry(self.tree_node_dict[node_id], self.tree_node_dict):
-                    canonical_set.add(node["id"])
-        return canonical_set
 
     #################################
     #   Memory, summaries
@@ -859,7 +950,7 @@ class TreeModel:
 
     def delete_memory_entry(self, memory):
         self.memories.pop(memory['id'])
-        root_node = self.tree_node_dict[memory["root_id"]]
+        root_node = self.node(memory["root_id"])
         root_node['memories'].remove(memory['id'])
 
     # TODO also return list of pending?
@@ -893,7 +984,7 @@ class TreeModel:
 
     def delete_summary(self, summary):
         self.summaries.pop(summary['id'])
-        root_node = self.tree_node_dict[summary["root_id"]]
+        root_node = self.node(summary["root_id"])
         root_node['summmaries'].remove(summary['id'])
 
     def past_summaries(self, node=None):
@@ -917,6 +1008,136 @@ class TreeModel:
             return 0
         context_node_index = bisect.bisect_left(indices, first_in_context_index) + 1
         return context_node_index
+
+    #################################
+    #   Tags
+    #################################
+
+    def get_node_tags(self, node):
+        tags = ["visited"] if node.get("visited", False) else ["not visited"]
+        if not self.is_mutable(node):
+            tags.append("immutable")
+        if self.has_tag(node, "canonical"):
+            tags.append("canonical")
+        else:
+            tags.append("uncanonical")
+        return tags
+
+    def add_tag(self, name, scope='node', hide=False, show_only=False):
+        self.tags[name] = {'name': name,
+                           'scope': scope,
+                           'hide': hide,
+                           'show_only': show_only
+                           }
+
+    def delete_tag(self, name):
+        del self.tags[name]
+        # TODO delete tag from all nodes
+
+    def tag_node(self, node, tag):
+        if tag not in self.tags:
+            print('no such tag')
+            return
+        if 'tags' not in node:
+            node['tags'] = []
+        if tag not in node['tags']:
+            node['tags'].append(tag)
+
+    def untag_node(self, node, tag):
+        if 'tags' in node and tag in node['tags']:
+            node['tags'].remove(tag)
+
+    def toggle_tag(self, node, tag):
+        if self.has_tag(node, tag):
+            self.untag_node(node, tag)
+        else:
+            self.tag_node(node, tag)
+
+    def tagged_nodes(self, tag, visible_only=True):
+        if tag not in self.tags:
+            print('no such tag')
+            return
+        # for tags with "node" scope, return all nodes with that tag
+        nodes = self.visible_nodes if visible_only else self.nodes
+        tagged_nodes = [d for d in nodes if self.has_tag_attribute(d, tag)]
+        if self.tags[tag]['scope'] == 'node':
+            return tagged_nodes
+
+        # for tags with "subtree" scope, return all nodes with that tag and their subtrees
+        elif self.tags[tag]['scope'] == 'subtree':
+            tag_subtrees = []
+            for node in tagged_nodes:
+                # add all nodes in subtree of node to tag_subtrees
+                tag_subtrees.extend(subtree_list(node))
+            # remove duplicates
+            tag_subtrees = list(set(tag_subtrees))
+            return tag_subtrees
+
+        # for tags with "ancestry" scope, return all nodes with that tag and their ancestors
+        elif self.tags[tag]['scope'] == 'ancestry':
+            tag_ancestors = []
+            for node in tagged_nodes:
+                # add all ancestors of node to tag_ancestors
+                ancestors = node_ancestry(node, self.tree_node_dict)
+                tag_ancestors.extend(ancestors)
+            # remove duplicates
+            tag_ancestors = list(set(tag_ancestors))
+            return tag_ancestors
+        else:
+            print('invalid scope')
+            return
+
+
+    def tagged_indices(self, tag, visible_only=True):
+        if tag not in self.tags:
+            print('no such tag')
+            return
+        nodes = self.visible_nodes if visible_only else self.nodes
+        return {idx: d for idx, d in enumerate(nodes) if self.has_tag(d, tag)}
+
+    def has_tag_attribute(self, node, tag):
+        return 'tags' in node and node['tags'] is not None and tag in node['tags']
+
+    def has_tag(self, node, tag):
+        if self.tags[tag]['scope'] == 'node':
+            return self.has_tag_attribute(node, tag)
+        elif self.tags[tag]['scope'] == 'subtree':
+            # check if one of ancestors has tag
+            for ancestor in node_ancestry(node, self.tree_node_dict):
+                if self.has_tag_attribute(ancestor, tag):
+                    return True
+            return False
+        elif self.tags[tag]['scope'] == 'ancestry':
+            # check if one of descendents has tag
+            for descendant in subtree_list(node):
+                if self.has_tag_attribute(descendant, tag):
+                    return True
+            return False
+        else:
+            print('invalid scope')
+            return
+
+
+    # temporary function to turn root-level attributes into a tag in all nodes
+    def turn_attributes_into_tags(self):
+        for attribute in ('bookmark', 'archived', 'canonical'):
+            if attribute not in self.tags:
+                self.add_tag(attribute, 'node')
+            for node in self.nodes:
+                if attribute in node:
+                    self.tag_node(node, attribute)
+                    del node[attribute]
+        print('done')
+
+
+    def tag_scope(self, node, tag):
+        if self.tags[tag]['scope'] == 'node':
+            return [node['id']]
+        elif self.tags[tag]['scope'] == 'subtree':
+            return subtree_list(node)
+        elif self.tags[tag]['scope'] == 'ancestry':
+            return [d['id'] for d in node_ancestry(node, self.tree_node_dict)]
+
 
     #################################
     #   I/O
@@ -1002,10 +1223,6 @@ class TreeModel:
             **self.tree_raw_data.get("preferences", {})
         }
 
-        new_tree["chat_preferences"] = {
-            **DEFAULT_CHAT_PREFERENCES.copy(),
-            **self.tree_raw_data.get("chat_preferences", {})
-        }
         return new_tree
 
     def load_tree_data(self, data, init_global=True):
@@ -1675,185 +1892,4 @@ class TreeModel:
         for child in root['children']:
             self.clear_old_generation_metadata(child)
 
-    def sever_from_parent(self, node):
-        parent = self.parent(node)
-        parent['children'].remove(node)
-        node['parent_id'] = None
-        return parent
-
-    def sever_children(self, node):
-        children = node['children'].copy()
-        for child in children:
-            child['parent_id'] = None
-        node['children'] = []
-        # TODO empty?
-        return children
-
-    def adopt_parent(self, node, parent):
-        node['parent_id'] = parent['id']
-        parent['children'].append(node)
-
-    def adopt_children(self, node, children):
-        for child in children:
-            self.adopt_parent(child, parent=node)
-
-    def has_parent(self, node):
-        return 'parent_id' in node and node['parent_id']
-
-    def is_compound(self, node):
-        return 'masked_head' in node
-
-    def is_mutable(self, node):
-        return node.get('mutable', True)
-
-    def is_root(self, node):
-        return node == self.root()
-
-    def zip(self, head, tail, refresh_nav=True, update_selection=True):
-        text = self.ancestry_plaintext(self.ancestry_in_range(root=head, node=tail))
-        mask = new_node(text=text, mutable=False)
-        if self.has_parent(head):
-            parent = self.sever_from_parent(head)
-            self.adopt_parent(mask, parent)
-        children = self.sever_children(tail)
-        self.adopt_children(mask, children)
-        mask['masked_head'] = head
-        mask['tail_id'] = tail['id']
-        # TODO hacky
-        mask['nav_display_text'] = tail['text']
-
-        if refresh_nav:
-            self.tree_updated(delete=[head['id']], add=[n['id'] for n in subtree_list(mask)])
-        else:
-            self.tree_updated_silent()
-        if update_selection:
-            self.select_node(mask['id'])
-            self.selection_updated()
-        return mask
-
-    def unzip(self, mask, refresh_nav=True, update_selection=True):
-        if not self.is_compound(mask):
-            print('nothing to expand')
-            return
-        head = mask['masked_head']
-        head_dict = {d["id"]: d for d in flatten_tree(head)}
-        tail = head_dict[mask['tail_id']]
-        if self.has_parent(mask):
-            parent = self.sever_from_parent(mask)
-            self.adopt_parent(head, parent)
-        children = self.sever_children(mask)
-        self.adopt_children(tail, children)
-
-        if refresh_nav:
-            self.tree_updated(delete=[mask['id']], add=[n['id'] for n in subtree_list(head)])
-        else:
-            self.tree_updated_silent()
-        if update_selection:
-            self.select_node(head['id'])
-            self.selection_updated()
-        return head
-
-    def zip_chain(self, node, mode='bidirectional', refresh_nav=False, update_selection=False):
-        head = node
-        tail = node
-        if mode in ('bidirectional', 'backward'):
-            while self.has_parent(head) and len(self.visible_children(self.parent(head))) == 1:
-                head = self.parent(head)
-        if mode in ('bidirectional', 'forward'):
-            while len(self.visible_children(tail)) == 1:
-                tail = self.visible_children(tail)[0]
-        if not (head == node and tail == node):
-            return self.zip(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
-        else:
-            return node
-
-    def zip_all_chains(self, root=None):
-        root = root if root else self.root()
-        # TODO root problem
-        if not self.is_root(root):
-            new_node = self.zip_chain(root, mode='forward')
-        else:
-            new_node = root
-        children = self.visible_children(new_node)
-        for child in children:
-            self.zip_all_chains(child)
-
-    def unzip_all(self, root=None):
-        root = root if root else self.root()
-        children = self.visible_children(root)
-        for child in children:
-            self.unzip_all(child)
-        if self.is_compound(root):
-            head = self.unzip(root, refresh_nav=False, update_selection=False)
-
-    def reveal_ancestry(self, node):
-        ancestry = node_ancestry(node, self.tree_node_dict)
-        hidden_ancestry_ids = []
-        for i in range(1, len(ancestry)):
-            if not self.visible(ancestry[-i]):
-                hidden_ancestry_ids.insert(0, ancestry[-i]['id'])
-            else:
-                break
-        self.tree_updated(add=hidden_ancestry_ids, override_visible=True)
-
-    # unlike reveal_ancestry, this assumes parents are visible
-    def reveal_nodes(self, nodes):
-        invisible_node_ids = [node['id'] for node in nodes if not self.visible(node)]
-        if invisible_node_ids:
-            self.tree_updated(add=invisible_node_ids, override_visible=True)
-
-    def visible(self, node):
-        return all(condition(node) for condition in self.generate_visible_conditions())
-
-    def get_node_tags(self, node):
-        tags = ["visited"] if node.get("visited", False) else ["not visited"]
-        if not self.is_mutable(node):
-            tags.append("immutable")
-        if node['id'] in self.calc_canonical_set():
-            tags.append("canonical")
-        else:
-            tags.append("uncanonical")
-        return tags
-
-    def add_tag(self, name, scope):
-        self.tags[name] = {'name': name, 
-                           'scope': scope,
-                           }
-
-    def delete_tag(self, name):
-        del self.tags[name]
-        # TODO delete tag from all nodes
-
-    def tag_node(self, node, tag):
-        if tag not in self.tags:
-            print('no such tag')
-            return
-        if 'tags' not in node:
-            node['tags'] = []
-        node['tags'].append(tag)
-
-    def untag_node(self, node, tag):
-        if 'tags' in node and tag in node['tags']:
-            node['tags'].remove(tag)
-
-    def toggle_tag(self, node, tag):
-        if self.has_tag(node, tag):
-            self.untag_node(node, tag)
-        else:
-            self.tag_node(node, tag)
-
-    def tagged_nodes(self, tag):
-        return {idx: d for idx, d in enumerate(self.visible_nodes) if self.has_tag(d, tag)}
-
-    def has_tag(self, node, tag):
-        return 'tags' in node and tag in node['tags']
-
-    # temporary function to turn "bookmark" attribute into a tag in all nodes
-    def turn_bookmark_into_tags(self):
-        if 'bookmark' not in self.tags:
-            self.add_tag('bookmark', 'node')
-        for node in self.nodes:
-            if 'bookmark' in node:
-                self.tag_node(node, 'bookmark')
-                del node['bookmark']
-        print('done')
+    

@@ -105,6 +105,7 @@ def create_checkbutton(master, display_text, var_name, vars_dict):
     create_side_label(master, display_text, row)
     check = ttk.Checkbutton(master, variable=vars_dict[var_name])
     check.grid(row=row, column=1, pady=3)
+    return check
 
 # Create a combobox with a text label, specified values, and selected variable
 def create_combo_box(frame, text, variable, values, row=None, width=10):

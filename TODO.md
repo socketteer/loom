@@ -11,16 +11,18 @@
             - but I want "open" state to be property of session, not tree?
             - should all masking belong to a *session mask*?
     - function to check if a node is masked
-- visible
-    - search for all instances that need to be changed to visible
 - arbitrary tags
-    - tag dialog
+    - tag config
+        - remove tag
+        - configure nav tree colors and icons
+        - reset
+    - update scopes based on tag scope and hide settings
     - search tags
     - hotkey to tag
     - hotkey to navigate tags
-    - navigate to next tag
-    - refactor archived, canonical etc to use generic tag system
     - tags when splitting, merging nodes
+
+- more general navigate to next node if selected node becomes invisible
 - navigate to invisible node error handling
     - by bookmark: only go to visible bookmarks
 - fix everything that uses old data format
@@ -41,7 +43,9 @@
 
 - only show visible nodes in vis mode
 - archive button in vis mode
-- bring selected node stuff out of model
+- bring selected node out of Model
+    - should be with Display?
+    - multiple selected nodes
 
 ## Other TODO
 

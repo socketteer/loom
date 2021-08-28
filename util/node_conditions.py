@@ -14,11 +14,6 @@ def node_is_canonical(node, **kwargs):
     return node['id'] in kwargs['calc_canonical_set']()
 
 
-@condition("visible")
-def node_is_visible(node, **kwargs):
-    return not (node.get('archived', False))
-
-
 @condition("descendent of")
 def descendent_of(ancestor_id, node, **kwargs):
     tree_node_dict = kwargs['tree_node_dict']

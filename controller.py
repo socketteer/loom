@@ -23,7 +23,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
-    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog
+    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
@@ -58,10 +58,6 @@ class Controller:
         self.build_menus()
         self.ancestor_end_indices = None
 
-        # move to preferences dict in state
-        self.canonical_only = False
-        self.display_canonical = True
-
 
     #################################
     #   Hooks
@@ -78,6 +74,7 @@ class Controller:
 
     def register_model_callbacks(self):
         # When the tree is updated, refresh the navtree, nav selection, and textbox
+        self.state.register_callback(self.state.tree_updated, self.fix_selection)
         self.state.register_callback(self.state.tree_updated, self.update_nav_tree)
         self.state.register_callback(self.state.tree_updated, self.update_nav_tree_selected)
         self.state.register_callback(self.state.tree_updated, self.update_chapter_nav_tree)
@@ -95,6 +92,7 @@ class Controller:
         self.state.register_callback(self.state.pre_selection_updated, self.save_edits)
 
         # When the selection is updated, refresh the nav selection and textbox
+        self.state.register_callback(self.state.selection_updated, self.fix_selection)
         self.state.register_callback(self.state.selection_updated, self.update_nav_tree_selected)
         self.state.register_callback(self.state.selection_updated, self.update_chapter_nav_tree_selected)
         self.state.register_callback(self.state.selection_updated, self.refresh_textbox)
@@ -199,31 +197,23 @@ class Controller:
                 ('Node memory', 'Alt+M', None, no_junk_args(self.node_memory)),
             ],
             "Flags": [
+                ("Tag node", None, None, no_junk_args(self.tag_node)),
+                ("Add tag", None, None, no_junk_args(self.add_tag)),
+                ("Configure tags", None, None, no_junk_args(self.configure_tags)),
                 ("Mark node visited", None, None, lambda: self.set_visited(True)),
                 ("Mark node unvisited", None, None, lambda: self.set_visited(False)),
-                ("Mark subtree visited", None, None, lambda: self.set_subtree_visited(True)),
-                ("Mark subtree unvisited", None, None, lambda: self.set_subtree_visited(False)),
-                ("Mark all visited", None, None, lambda: self.set_all_visited(True)),
-                ("Mark all unvisited", None, None, lambda: self.set_all_visited(False)),
                 ("Toggle canonical", "Ctrl+Shift+C", None, no_junk_args(self.toggle_canonical)),
                 ("Toggle archive", "!", None, no_junk_args(self.toggle_archived)),
-                ("Bookmark", "B", None, no_junk_args(self.bookmark)),
-                ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
-                ("Mark node as prompt", None, None, lambda: self.set_source('prompt')),
-                ("Mark node as AI completion", None, None, lambda: self.set_source('AI')),
-                ("Mark subtree as prompt", None, None, lambda: self.set_subtree_source('prompt')),
-                ("Mark subtree as AI completion", None, None, lambda: self.set_subtree_source('AI')),
-                ("Mark all as prompt", None, None, lambda: self.set_all_source('prompt')),
-                ("Mark all as AI completion", None, None, lambda: self.set_all_source('AI')),
                 ("Archive", None, None, no_junk_args(self.archive)),
                 ("Unarchive", None, None, no_junk_args(self.unarchive)),
+                ("Bookmark", "B", None, no_junk_args(self.bookmark)),
+                ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
 
             ],
             "Settings": [
                 ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences)),
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
-
 
             ],
             "Info": [
@@ -244,36 +234,38 @@ class Controller:
     # @metadata(name=, keys=, display_key=)
     @metadata(name="Next", keys=["<period>", "<Return>", "<Control-period>"], display_key=">")
     def next(self):
-        self.select_node(node=self.state.tree_node_dict[self.state.next_id(1)])
+        self.select_node(node=self.state.node(self.state.next_id(1)))
 
     @metadata(name="Prev", keys=["<comma>", "<Control-comma>"], display_key="<",)
     def prev(self):
-        self.select_node(node=self.state.tree_node_dict[self.state.next_id(-1)])
+        self.select_node(node=self.state.node(self.state.next_id(-1)))
 
     @metadata(name="Go to parent", keys=["<Left>", "<Control-Left>"], display_key="←")
-    def parent(self):
-        #self.state.select_parent()
-        self.select_node(node=self.state.parent())
+    def parent(self, node=None):
+        node = node if node else self.state.selected_node
+        self.select_node(node=self.state.parent(node))
 
     @metadata(name="Go to child", keys=["<Right>", "<Control-Right>"], display_key="→")
-    def child(self):
-        child_id = self.state.child(0)
-        if child_id is not None:
-            self.select_node(node=self.state.tree_node_dict[child_id])
+    def child(self, node=None):
+        node = node if node else self.state.selected_node
+        child = self.state.child(node, 0)
+        if child is not None:
+            self.select_node(node=child)
 
     @metadata(name="Go to next sibling", keys=["<Down>", "<Control-Down>"], display_key="↓")
-    def next_sibling(self):
-        #self.state.select_sibling(1)
-        self.select_node(node=self.state.sibling(1))
+    def next_sibling(self, node=None):
+        node = node if node else self.state.selected_node
+        self.select_node(node=self.state.sibling(node, 1))
 
     @metadata(name="Go to previous Sibling", keys=["<Up>", "<Control-Up>"], display_key="↑")
-    def prev_sibling(self):
-        #self.state.select_sibling(-1)
-        self.select_node(node=self.state.sibling(-1))
+    def prev_sibling(self, node=None):
+        node = node if node else self.state.selected_node
+        self.select_node(node=self.state.sibling(node, -1))
 
+    # TODO deprecated canonical
     @metadata(name="Walk", keys=["<Key-w>", "<Control-w>"], display_key="w")
     def walk(self, canonical_only=False):
-        filter_set = self.state.calc_canonical_set() if canonical_only else None
+        filter_set = self.state.tagged_nodes("canonical") if canonical_only else None
         if 'children' in self.state.selected_node and len(self.state.selected_node['children']) > 0:
             chosen_child = stochastic_transition(self.state.selected_node, mode='descendents', filter_set=filter_set)
             #self.state.select_node(chosen_child['id'])
@@ -281,57 +273,59 @@ class Controller:
 
     @metadata(name="Return to root", keys=["<Key-r>", "<Control-r>"], display_key="r")
     def return_to_root(self):
-        #self.state.select_node(self.state.tree_raw_data["root"]["id"])
         self.select_node(node=self.state.root())
 
     @metadata(name="Save checkpoint", keys=["<Control-t>"], display_key="ctrl-t")
     def save_checkpoint(self, node=None):
-        if node is None:
-            node = self.state.selected_node
+        node = node if node else self.state.selected_node
         self.state.checkpoint = node['id']
         self.state.tree_updated(edit=[node['id']])
 
     @metadata(name="Go to checkpoint", keys=["<Key-t>"], display_key="t")
     def goto_checkpoint(self):
         if self.state.checkpoint:
-            #self.state.select_node(self.state.checkpoint)
-            self.select_node(node=self.state.tree_node_dict[self.state.checkpoint])
+            self.select_node(node=self.state.node(self.state.checkpoint))
 
     @metadata(name="Nav Select")
     def nav_select(self, *, node_id):
         if not node_id or node_id == self.state.selected_node_id:
             return
         if self.change_parent.meta["click_mode"]:
-            self.change_parent(node=self.state.tree_node_dict[node_id])
+            self.change_parent(node=self.state.node(node_id))
         # TODO This causes infinite recursion from the vis node. Need to change how updating open status works
         # Update the open state of the node based on the nav bar
-        # node = self.state.tree_node_dict[node_id]
+        # node = self.state.node(node_id]
         # node["open"] = self.display.nav_tree.item(node["id"], "open")
         #self.state.select_node(node_id)
-        self.select_node(node=self.state.tree_node_dict[node_id])
+        self.select_node(node=self.state.node(node_id))
+
+    # figure out scope and whether should add, edit, delete
+    def toggle_tag(self, tag, node=None):
+        pass
 
     @metadata(name="Bookmark", keys=["<Key-b>", "<Control-b>"], display_key="b")
     def bookmark(self, node=None):
-        if node is None:
-            node = self.state.selected_node
+        node = node if node else self.state.selected_node
         self.state.toggle_tag(node, "bookmark")
-        #node["bookmark"] = not node.get("bookmark", False)
-        self.state.tree_updated(edit=[node['id']])
+        update_scope = self.state.tag_scope(node, "bookmark")
+        self.state.tree_updated(edit=update_scope)
 
     @metadata(name="Toggle canonical", keys=["<Control-Shift-KeyPress-C>"], display_key="ctrl+shift+C")
     def toggle_canonical(self, node=None):
-        if node is None:
-            node = self.state.selected_node
-        self.state.toggle_canonical(node=node)
-        self.state.tree_updated(edit=[n['id'] for n in node_ancestry(node, self.state.tree_node_dict)])
+        node = node if node else self.state.selected_node
+        self.state.toggle_tag(node, "canonical")
+        update_scope = self.state.tag_scope(node, "canonical")
+        self.state.tree_updated(edit=update_scope)
 
     @metadata(name="Toggle archived", keys=["<exclam>"], display_key="")
     def toggle_archived(self, node=None):
         node = node if node else self.state.selected_node
-        if 'archived' in node and node['archived']:
-            self.unarchive(node)
+        self.state.toggle_tag(node, "archived")
+        update_scope = self.state.tag_scope(node, "archived")
+        if self.state.has_tag(node, "archived") and self.state.preferences['hide_archived']:
+            self.state.tree_updated(delete=update_scope)
         else:
-            self.archive(node)
+            self.state.tree_updated(edit=update_scope)
 
     @metadata(name="Toggle prompt", keys=["<asterisk>"], display_key="")
     def toggle_prompt(self, node=None):
@@ -341,42 +335,27 @@ class Controller:
     @metadata(name="Archive")
     def archive(self, node=None):
         node = node if node else self.state.selected_node
-        next_sibling = self.state.next_sibling(node, wrap=False)
-        node['archived'] = True
+        self.state.tag_node(node, "archived")
         if self.state.preferences['hide_archived']:
-            if len(self.state.visible_siblings(node)) == 0:
-                self.select_node(self.state.parent(node))
-            else:
-                self.select_node(next_sibling)
             self.state.tree_updated(delete=[node['id']])
         else:
             self.state.tree_updated(edit=[node['id']])
 
     def unarchive(self, node=None):
         node = node if node else self.state.selected_node
-        node['archived'] = False
+        self.state.untag_node(node, "archived")
         if self.state.preferences['hide_archived']:
             self.state.tree_updated(add=[node['id']])
         else:
             self.state.tree_updated(edit=[node['id']])
 
     def next_tag(self, tag):
-        tag_indices = self.state.tagged_nodes(tag)
-        if len(tag_indices) < 1:
-            return
-        try:
-            go_to_tag = next(i for i, idx in enumerate(tag_indices.keys()) if idx > self.state.visible_traversal_idx)
-        except StopIteration:
-            go_to_tag = 0
-        self.select_node(list(tag_indices.values())[go_to_tag])
+        next_tag_id = self.state.find_next(condition=lambda node: self.state.has_tag(node, tag))
+        self.select_node(self.state.nodes(next_tag_id))
 
     def prev_tag(self, tag):
-        tag_indices = self.state.tagged_nodes(tag)
-        if len(tag_indices) < 1:
-            return
-        earlier_tags = list(i for i, idx in enumerate(tag_indices.keys()) if idx < self.state.visible_traversal_idx)
-        go_to_tag = earlier_tags[-1] if len(earlier_tags) > 0 else -1
-        self.select_node(list(tag_indices.values())[go_to_tag])
+        prev_tag_id = self.state.find_prev(condition=lambda node: self.state.has_tag(node, tag))
+        self.select_node(self.state.nodes(prev_tag_id))
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
@@ -1219,10 +1198,6 @@ class Controller:
         dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state, default_inheritability='delayed')
         self.refresh_textbox()
 
-    # @metadata(name="Chat settings", keys=[], display_key="")
-    # def chat_settings(self):
-    #     dialog = ChatSettingsDialog(parent=self.display.frame, orig_params=self.state.chat_preferences)
-    #     #self.refresh_textbox()
 
     #################################
     #   Search
@@ -1316,21 +1291,12 @@ class Controller:
 
     @metadata(name="Toggle hide archived", keys=[], display_key="")
     def toggle_hide_archived(self, toggle=None):
-        toggle = not self.state.preferences['hide_archived'] if not toggle else toggle
-        self.state.preferences['hide_archived'] = toggle
-        if toggle:
-            if self.state.selected_node.get('archived', False):
-                self.state.select_node(self.state.selected_node['parent_id'])
-        self.refresh_textbox()
-        self.refresh_display()
+        self.state.tags['archived']['hide'] = not self.state.tags['archived']['hide']
         self.state.tree_updated(rebuild=True)
 
     @metadata(name="Toggle canonical only", keys=[], display_key="")
     def toggle_canonical_only(self, toggle=None):
-        toggle = not self.state.preferences['canonical_only'] if not toggle else toggle
-        self.state.preferences['canonical_only'] = toggle
-        self.refresh_textbox()
-        self.refresh_display()
+        self.state.tags['canonical']['show_only'] = not self.state.tags['canonical']['show_only']
         self.state.tree_updated(rebuild=True)
 
     # @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
@@ -1408,8 +1374,8 @@ class Controller:
     def update_children(self, **kwargs):
         if self.state.preferences['show_children'] and self.display.mode in ("Read", "Edit"):
             if 'add' in kwargs:
-                self.display.update_children([self.state.tree_node_dict[node_id] for node_id in kwargs['add']
-                                             if self.state.tree_node_dict[node_id]['parent_id'] == self.state.selected_node_id])
+                self.display.update_children([self.state.node(node_id) for node_id in kwargs['add']
+                                             if self.state.node(node_id)['parent_id'] == self.state.selected_node_id])
             if 'edit' in kwargs:
                 self.display.update_text()
 
@@ -1454,8 +1420,8 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
-        self.state.turn_bookmark_into_tags()
-        #TagNodeDialog(parent=self.display.frame, node=self.state.selected_node, state=self.state)
+        self.state.turn_attributes_into_tags()
+        #TagsDialog(parent=self.display.frame, state=self.state)
         #AddTagDialog(parent=self.display.frame, state=self.state)
         #self.state.expand(self.state.selected_node)
 
@@ -1482,6 +1448,23 @@ class Controller:
     def close_alt_textbox(self):
         self.display.destroy_alt_textbox()
 
+    def configure_tags(self):
+        dialog = TagsDialog(parent=self.display.frame, state=self.state)
+        self.state.tree_updated(rebuild=True)
+
+    def add_tag(self):
+        dialog = AddTagDialog(parent=self.display.frame, state=self.state)
+
+    def tag_node(self, node=None):
+        node = node if node else self.state.selected_node
+        modifications = {'add': [], 'remove': []}
+        dialog = TagNodeDialog(parent=self.display.frame, node=self.state.selected_node, state=self.state, modifications=modifications)
+        # TODO will this be slow for large trees?
+        if modifications['add'] or modifications['remove']:
+            self.state.tree_updated(rebuild=True)
+        # for added_tag in modifications['add']:
+        #     self.state.tag_scope_update(node, added_tag)
+
     @metadata(name="Unzip node")
     def unzip_node(self, node=None):
         node = node if node else self.state.selected_node
@@ -1499,7 +1482,7 @@ class Controller:
 
     @metadata(name="Goto node id", keys=["<Control-Shift-KeyPress-G>"], display_key="")
     def goto_node_dialog(self):
-        dialog = GotoNode(parent=self.display.frame, goto=lambda node_id: self.select_node(self.state.tree_node_dict[node_id]))
+        dialog = GotoNode(parent=self.display.frame, goto=lambda node_id: self.select_node(self.state.node(node_id)))
 
     def test_counterfactual(self):
         threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
@@ -1904,7 +1887,7 @@ class Controller:
             text = node_text.strip()[:20].replace('\n', ' ')
             text = text if text else "EMPTY"
             text = text + "..." if len(node_text) > 20 else text
-            text = '~' + text if node.get('archived', False) else text
+            text = '~' + text if self.state.has_tag(node, "archived") else text
         if 'chapter_id' in node:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
@@ -1935,23 +1918,30 @@ class Controller:
         self.display.nav_tree.tag_configure("visited", background=visited_color())
         self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())
 
+    def insert_nav(self, node, image, tags):
+        parent_id = node.get("parent_id", "")
+        if parent_id:
+            if not self.state.visible(self.state.node(parent_id)):
+                parent_id = self.state.root()['id']
+        self.display.nav_tree.insert(
+            parent=parent_id,
+            index=0 if self.state.preferences.get('reverse', False) else "end",
+            iid=node["id"],
+            text=self.nav_name(node),
+            open=node.get("open", False),
+            tags=tags,
+            **dict(image=image) if image else {}
+        )
+
     def build_nav_tree(self, flat_tree=None):
         if not flat_tree:
-            flat_tree = self.state.generate_filtered_tree()
+            flat_tree = self.state.visible_node_dict#self.state.generate_filtered_tree()
         self.display.nav_tree.delete(*self.display.nav_tree.get_children())
         for id in flat_tree:
-            node = self.state.tree_node_dict[id]
+            node = self.state.node(id)
             image = self.nav_icon(node)
             tags = self.state.get_node_tags(node)
-            self.display.nav_tree.insert(
-                parent=node.get("parent_id", ""),
-                index=0 if self.state.preferences.get('reverse', False) else "end",
-                iid=node["id"],
-                text=self.nav_name(node),
-                open=node.get("open", False),
-                tags=tags,
-                **dict(image=image) if image else {}
-            )
+            self.insert_nav(node, image, tags)
         self.configure_nav_tags()
 
     # TODO Probably move this to display
@@ -1971,39 +1961,30 @@ class Controller:
             return
         else:
             #visible = lambda _node: all(condition(_node) for condition in self.state.generate_visible_conditions())
-            visible = self.state.visible
+            visible = self.state.id_visible
             delete_items = [i for i in kwargs['delete']] if 'delete' in kwargs else []
             edit_items = [i for i in kwargs['edit'] if i in self.state.tree_node_dict
-                          and (visible(self.state.tree_node_dict[i]) or override_visible)] if 'edit' in kwargs else []
+                          and (visible(i) or override_visible)] if 'edit' in kwargs else []
             add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict
-                         and (visible(self.state.tree_node_dict[i]) or override_visible)] if 'add' in kwargs else []
+                         and (visible(i) or override_visible)] if 'add' in kwargs else []
 
         self.display.nav_tree.delete(*delete_items)
 
         for id in add_items + edit_items:
-            node = self.state.tree_node_dict[id]
+            node = self.state.node(id)
             image = self.nav_icon(node)
             tags = self.state.get_node_tags(node)
             if id in add_items:
                 #print('adding id', id)
                 if self.display.nav_tree.exists(id):
                     self.display.nav_tree.delete(id)
-                self.display.nav_tree.insert(
-                    parent=node.get("parent_id", ""),
-                    index=0 if self.state.preferences.get('reverse', False) else "end",
-                    iid=node["id"],
-                    text=self.nav_name(node),
-                    open=node.get("open", False),
-                    tags=tags,
-                    **dict(image=image) if image else {}
-                )
+                self.insert_nav(node, image, tags)
             elif id in edit_items:
                 self.display.nav_tree.item(id,
                                            text=self.nav_name(node),
                                            open=node.get("open", False),
                                            tags=tags,
                                            **dict(image=image) if image else {})
-
 
 
     def update_chapter_nav_tree(self, **kwargs):
@@ -2194,6 +2175,12 @@ class Controller:
             self.display.unhoist_button.configure(state='normal')
         else:
             self.display.unhoist_button.configure(state='disabled')
+
+    def fix_selection(self, **kwargs):
+        if not self.state.selected_node:
+            self.state.selected_node_id = self.state.root()["id"]
+        elif not self.state.visible(self.state.selected_node):
+            self.state.selected_node_id = self.state.find_next(condition=lambda node:self.state.visible(node), visible_only=False)
 
 
 

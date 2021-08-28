@@ -694,7 +694,7 @@ class TreeVis:
 
     def draw_bookmark_star(self, node, box):
         self.draw_icon(node, box[0]-15, box[1] + (box[3] - box[1])/2,
-                       icon_name="star" if node.get("bookmark", False) else "empty_star",
+                       icon_name="star" if self.state.has_tag(node, "bookmark") else "empty_star",
                        name="bookmark",
                        method=lambda event, _node=node: self.toggle_bookmark(_node))
 
