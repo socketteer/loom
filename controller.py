@@ -1434,6 +1434,7 @@ class Controller:
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
         #self.setup_custom_key_bindings()
+        #self.state.reset_tags()
         self.state.turn_attributes_into_tags()
         #TagsDialog(parent=self.display.frame, state=self.state)
         #AddTagDialog(parent=self.display.frame, state=self.state)
@@ -1907,6 +1908,7 @@ class Controller:
         return node.get("name", text)
 
     def nav_icon(self, node):
+        image = None
         if node == self.state.root():
             image = self.display.icons['tree']['icon']
         elif node['id'] == self.state.checkpoint:
@@ -1916,18 +1918,21 @@ class Controller:
         elif 'multimedia' in node and len(node['multimedia']) > 0:
             image = self.display.media_icon
         else:
-            image = self.display.bookmark_icon if self.state.has_tag(node, "bookmark") else None
+            for tag in self.state.tags:
+                if self.state.has_tag(node, tag):
+                    if self.state.tags[tag]['icon'] != 'None':
+                        image = self.display.icons[self.state.tags[tag]['icon']]["icon"]
         if not image:
             image = self.display.empty_icon
         return image
 
     def configure_nav_tags(self):
-        if self.state.preferences.get('highlight_canonical', False):
-            self.display.nav_tree.tag_configure("canonical", foreground=text_color())
-            self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
-        else:
-            self.display.nav_tree.tag_configure("canonical", foreground=text_color())
-            self.display.nav_tree.tag_configure("uncanonical", foreground=text_color())
+        # if self.state.preferences.get('highlight_canonical', False):
+        #     self.display.nav_tree.tag_configure("canonical", foreground=text_color())
+        #     self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
+        # else:
+        #     self.display.nav_tree.tag_configure("canonical", foreground=text_color())
+        #     self.display.nav_tree.tag_configure("uncanonical", foreground=text_color())
         self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
         self.display.nav_tree.tag_configure("visited", background=visited_color())
         self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())

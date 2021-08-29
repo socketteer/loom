@@ -13,6 +13,7 @@ from util.util_tree import num_descendents
 # from PIL import ImageTk, Image
 import uuid
 import time
+import os
 
 
 class Display:
@@ -178,10 +179,14 @@ class Display:
         self.init_icon("go", "arrow-green.png", 16)
         self.init_icon("compound", "layers-2-48.png", 16)
         self.init_icon("tree", "flow-chart-48.png", 16)
+        # automatically add all icons in tag_icons folder
+        for filename in os.listdir("./static/icons/tag_icons"):
+            icon_name = os.path.splitext(filename)[0]
+            self.init_icon(icon_name, 'tag_icons/' + filename, 16)
 
     # TODO init with init_icons
     def build_static(self):
-        self.bookmark_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/star_small.png"))
+        #self.bookmark_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/star_small.png"))
         self.marker_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/marker.png"))
         self.media_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/media.png"))
         self.empty_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/empty.png"))

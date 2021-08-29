@@ -13,7 +13,8 @@
     - function to check if a node is masked
 - tags
     - tag config
-        - configure nav tree colors and icons
+        - don't ask to make new tag if tag list is empty
+        - colors
         - reset
     - search tags
     - hotkey to navigate tags

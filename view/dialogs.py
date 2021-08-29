@@ -15,6 +15,7 @@ import json
 import codecs
 from copy import deepcopy
 import pprint
+import PIL
 
 class InfoDialog(Dialog):
     def __init__(self, parent, data_dict):
@@ -342,19 +343,25 @@ class AddTagDialog(Dialog):
     def __init__(self, parent, state, tag_name=None):
         self.state = state
         self.title_textbox = None
-        self.scope_dropdown = None
+        #self.scope_dropdown = None
         self.vars = {
             'scope': tk.StringVar(),
             'hide': tk.BooleanVar(),
             'show_only': tk.BooleanVar(),
+            'toggle_key': tk.StringVar()
         }
         self.tag_name = tag_name
+        self.icon_name = None
+        self.icon = None
+        self.change_icon_button = None
         self.hide_checkbox = None
         self.show_only_checkbox = None
-        self.dropdown = None
+        self.scope_dropdown = None
+        self.toggle_key_dropdown = None
         Dialog.__init__(self, parent, title="Add tag")
 
     def body(self, master):
+        self.master = master
         name = self.tag_name if self.tag_name else ""
         self.title_textbox = Entry(master, master.grid_size()[1], "Tag name", name, None)
         self.title_textbox.controls.focus_set()
@@ -362,13 +369,45 @@ class AddTagDialog(Dialog):
         scope_options = ('node', 'ancestry', 'subtree')
         self.vars['scope'].set('node')
         
-        self.dropdown = tk.OptionMenu(master, self.vars['scope'], *scope_options)
-        self.dropdown.grid(row=master.grid_size()[1]-1, column=1, pady=3)
+        self.scope_dropdown = tk.OptionMenu(master, self.vars['scope'], *scope_options)
+        self.scope_dropdown.grid(row=master.grid_size()[1]-1, column=1, pady=3)
         self.hide_checkbox = create_checkbutton(master, "Hide", 'hide', self.vars)
         self.show_only_checkbox = create_checkbutton(master, "Show only", 'show_only', self.vars)
         self.configure_checkbuttons()
         for var in self.vars.values():
             var.trace('w', self.configure_checkbuttons)
+        keybinding_options = ('None', '6', '7', '8', '9', '0', '@', '#', '$', '%', '^', '&', '*', '(', ')')
+        self.vars['toggle_key'].set('None')
+        create_side_label(master, "Toggle key")
+        self.toggle_key_dropdown = tk.OptionMenu(master, self.vars['toggle_key'], *keybinding_options)
+        self.toggle_key_dropdown.grid(row=master.grid_size()[1]-1, column=1, pady=3)
+        create_side_label(master, "Nav icon")
+        self.draw_icon()
+        self.change_icon_button = tk.Button(master, text="Change icon", command=self.change_icon)
+        self.change_icon_button.grid(row=master.grid_size()[1]-1, column=2, pady=3)
+
+
+    def draw_icon(self):
+        if self.icon:
+            self.icon.destroy()
+        if not self.icon_name:
+            self.icon = tk.Label(self.master, text="None", fg=text_color(), bg=bg_color())
+        else:
+            icon =  PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_name}.png")).resize((20, 20)))
+            self.icon = tk.Label(self.master, bg=bg_color())
+            self.icon.image = icon
+            self.icon.configure(image=icon)
+        self.icon.grid(row=self.master.grid_size()[1]-1, column=1, pady=3)
+        
+
+    def change_icon(self, *args):
+        # open a file chooser dialog and allow the user to select an image
+        file_path = filedialog.askopenfilename(title='Choose an image', 
+                                               initialdir=f"static/icons/tag_icons/",
+                                               filetypes=[('PNG', '.png'), ('JPEG', '.jpg'), ('GIF', '.gif')])
+        if file_path:
+            self.icon_name = os.path.splitext(os.path.basename(file_path))[0]
+            self.draw_icon()
 
     def configure_checkbuttons(self, *args):
         # hide is false and disabled if scope == 'ancestry' or if show_only is true
@@ -385,7 +424,12 @@ class AddTagDialog(Dialog):
             self.show_only_checkbox.configure(state=tk.NORMAL)
 
     def apply(self):
-        self.state.add_tag(self.title_textbox.tk_variables.get(), self.vars['scope'].get(), self.vars['hide'].get(), self.vars['show_only'].get())
+        self.state.add_tag(self.title_textbox.tk_variables.get(), 
+                           self.vars['scope'].get(), 
+                           self.vars['hide'].get(), 
+                           self.vars['show_only'].get(),
+                           self.vars['toggle_key'].get(),
+                           self.icon_name)
 
 
 class TagsDialog(Dialog):
@@ -395,6 +439,7 @@ class TagsDialog(Dialog):
         self.modifications = modifications
         self.vars = {}
         self.widgets = {}
+        self.icon_names = {}
         self.add_button = None
         Dialog.__init__(self, parent, title="Tags")
 
@@ -406,6 +451,7 @@ class TagsDialog(Dialog):
         create_side_label(master, "Hide", row=master.grid_size()[1]-1, col=2)
         create_side_label(master, "Show only", row=master.grid_size()[1]-1, col=3)
         create_side_label(master, "Toggle key", row=master.grid_size()[1]-1, col=4)
+        create_side_label(master, "Nav icon", row=master.grid_size()[1]-1, col=5)
         for tag, properties in self.state.tags.items():
             self.add_row(tag, properties)
         self.make_add_button()
@@ -426,9 +472,10 @@ class TagsDialog(Dialog):
         self.widgets[tag] = {}
         for key in self.vars[tag].keys():
             self.vars[tag][key] = self.vars[tag][key](value=properties[key])
+        self.icon_names[tag] = properties['icon']
         self.widgets[tag]['name'] = create_side_label(self.master, tag)
-        self.widgets[tag]['dropdown'] = tk.OptionMenu(self.master, self.vars[tag]['scope'], *scope_options)
-        self.widgets[tag]['dropdown'].grid(row=self.master.grid_size()[1]-1, column=1, pady=3)
+        self.widgets[tag]['scope_dropdown'] = tk.OptionMenu(self.master, self.vars[tag]['scope'], *scope_options)
+        self.widgets[tag]['scope_dropdown'].grid(row=self.master.grid_size()[1]-1, column=1, pady=3)
         self.widgets[tag]['hide_checkbox'] = tk.Checkbutton(self.master, variable=self.vars[tag]['hide'])
         self.widgets[tag]['hide_checkbox'].grid(row=self.master.grid_size()[1]-1, column=2, pady=3)
         self.widgets[tag]['show_only_checkbox'] = tk.Checkbutton(self.master, variable=self.vars[tag]['show_only'])
@@ -438,12 +485,40 @@ class TagsDialog(Dialog):
         for var in self.vars[tag].values():
             var.trace('w', lambda *_, _tag=tag: self.configure_checkbuttons(_tag))
 
-        self.widgets[tag]['toggle_key'] = tk.OptionMenu(self.master, self.vars[tag]['toggle_key'], *keybinding_options)
-        self.widgets[tag]['toggle_key'].grid(row=self.master.grid_size()[1]-1, column=4, pady=3)
+        self.widgets[tag]['toggle_key_dropdown'] = tk.OptionMenu(self.master, self.vars[tag]['toggle_key'], *keybinding_options)
+        self.widgets[tag]['toggle_key_dropdown'].grid(row=self.master.grid_size()[1]-1, column=4, pady=3)
         self.configure_checkbuttons(tag)
+        # draw icon
+        self.widgets[tag]['icon'] = None
+        self.draw_icon(tag, row=self.master.grid_size()[1]-1)
+        # add button for changing icon
+        self.widgets[tag]['change_icon_button'] = tk.Button(self.master, text="Change icon", command=lambda _tag=tag, _row=self.master.grid_size()[1]-1: self.change_icon(_tag, _row))
+        self.widgets[tag]['change_icon_button'].grid(row=self.master.grid_size()[1]-1, column=6, pady=3)
+
         # make delete button
         self.widgets[tag]['delete_button'] = tk.Button(self.master, text="Delete", command=lambda _tag=tag: self.delete_tag(_tag), width=4)
-        self.widgets[tag]['delete_button'].grid(row=self.master.grid_size()[1]-1, column=5, pady=3)
+        self.widgets[tag]['delete_button'].grid(row=self.master.grid_size()[1]-1, column=7, pady=3)
+
+    def draw_icon(self, tag, row):
+        if self.widgets[tag]['icon']:
+            self.widgets[tag]['icon'].destroy()
+        if self.icon_names[tag] == 'None':
+            self.widgets[tag]['icon'] = tk.Label(self.master, text='None', bg=bg_color(), fg=text_color())
+        else:
+            icon =  PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_names[tag]}.png")).resize((20, 20)))
+            self.widgets[tag]['icon'] = tk.Label(self.master, bg=bg_color())
+            self.widgets[tag]['icon'].image = icon
+            self.widgets[tag]['icon'].configure(image=icon)
+        self.widgets[tag]['icon'].grid(row=row, column=5, padx=2, pady=2)
+
+    def change_icon(self, tag, row):
+        # open a file chooser dialog and allow the user to select an image
+        file_path = filedialog.askopenfilename(title='Choose an image', 
+                                               initialdir=f"static/icons/tag_icons/",
+                                               filetypes=[('PNG', '.png'), ('JPEG', '.jpg'), ('GIF', '.gif')])
+        if file_path:
+            self.icon_names[tag] = os.path.splitext(os.path.basename(file_path))[0]
+            self.draw_icon(tag, row)
 
     def configure_checkbuttons(self, tag):
         # hide is false and disabled if scope == 'ancestry' or if show_only is true
@@ -482,10 +557,12 @@ class TagsDialog(Dialog):
         self.vars.pop(tag)
         # remove row from grid
         self.widgets[tag]['name'].grid_remove()
-        self.widgets[tag]['dropdown'].grid_remove()
+        self.widgets[tag]['scope_dropdown'].grid_remove()
         self.widgets[tag]['hide_checkbox'].grid_remove()
         self.widgets[tag]['show_only_checkbox'].grid_remove()
-        self.widgets[tag]['toggle_key'].grid_remove()
+        self.widgets[tag]['toggle_key_dropdown'].grid_remove()
+        self.widgets[tag]['change_icon_button'].grid_remove()
+        self.widgets[tag]['icon'].grid_remove()
         self.widgets[tag]['delete_button'].grid_remove()
 
 
@@ -493,6 +570,7 @@ class TagsDialog(Dialog):
         for tag in self.vars:
             for key, var in self.vars[tag].items():
                 self.state.tags[tag][key] = var.get()
+            self.state.tags[tag]['icon'] = self.icon_names[tag]
 
 
 class AIMemory(Dialog):
@@ -882,7 +960,7 @@ class PreferencesDialog(Dialog):
         self.vars = {
             #"hide_archived": tk.BooleanVar,
             #"canonical_only": tk.BooleanVar,
-            "highlight_canonical": tk.BooleanVar,
+            #"highlight_canonical": tk.BooleanVar,
             "side_pane": tk.BooleanVar,
             "bold_prompt": tk.BooleanVar,
             "input_box": tk.BooleanVar,
@@ -911,7 +989,7 @@ class PreferencesDialog(Dialog):
         # create_checkbutton(master, "Canonical only", "canonical_only", self.vars)
 
         create_label(master, "Nav tree")
-        create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)
+        #create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)
         create_checkbutton(master, "Reverse node order", "reverse", self.vars)
 
         create_label(master, "Story frame")

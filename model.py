@@ -38,7 +38,7 @@ def event(func):
 
 DEFAULT_PREFERENCES = {
     #'hide_archived': True,
-    'highlight_canonical': False,
+    #'highlight_canonical': False,
     #'canonical_only': False,
     'walk': 'descendents',  # 'leaves', 'uniform'
     'coloring': 'edit',  # 'read', 'none'
@@ -120,6 +120,7 @@ DEFAULT_TAGS = {
         "hide": False,
         "show_only": False,
         "toggle_key": "b",
+        "icon": "star-black",
     },
     "canonical": { 
         "name": "canonical", 
@@ -127,6 +128,7 @@ DEFAULT_TAGS = {
         "hide": False,
         "show_only": False,
         "toggle_key": '^',
+        "icon": "book-white",
     },
     "archived": { 
         "name": "archived", 
@@ -134,6 +136,7 @@ DEFAULT_TAGS = {
         "hide": True,
         "show_only": False,
         "toggle_key": "!",
+        "icon": "None",
     }
  }
 
@@ -157,7 +160,7 @@ class TreeModel:
         self.summaries = None
         self.checkpoint = None
         self.canonical = None
-        self.tags = None
+        #self.tags = None
         self.model_responses = None
         self.state_preferences = DEFAULT_STATE
 
@@ -169,26 +172,28 @@ class TreeModel:
 
     @property
     def visualization_settings(self):
-        return self.master_tree().get("visualization_settings") \
-            if self.master_tree() and "visualization_settings" in self.master_tree() \
+        return self.tree_raw_data.get("visualization_settings") \
+            if self.tree_raw_data and "visualization_settings" in self.tree_raw_data \
             else DEFAULT_VISUALIZATION_SETTINGS
 
     @property
     def generation_settings(self):
-        return self.master_tree().get("generation_settings") \
-            if self.master_tree() and "generation_settings" in self.master_tree() \
+        return self.tree_raw_data.get("generation_settings") \
+            if self.tree_raw_data and "generation_settings" in self.tree_raw_data \
             else DEFAULT_GENERATION_SETTINGS
 
     @property
     def preferences(self):
-        return self.master_tree().get("preferences") \
-            if self.master_tree() and "preferences" in self.master_tree() \
+        return self.tree_raw_data.get("preferences") \
+            if self.tree_raw_data and "preferences" in self.tree_raw_data \
             else DEFAULT_PREFERENCES
 
-    # TODO deprecate?
-    def master_tree(self):
-        return self.tree_raw_data
-        #return self.hoist_stack[0]['parent_tree'] if self.hoist_stack else self.tree_raw_data
+    @property
+    def tags(self):
+        return self.tree_raw_data.get("tags") \
+            if self.tree_raw_data and "tags" in self.tree_raw_data \
+            else DEFAULT_TAGS
+
 
     def name(self):
         return os.path.splitext(os.path.basename(self.tree_filename))[0] if self.tree_filename else 'Untitled'
@@ -1026,12 +1031,13 @@ class TreeModel:
             tags.append("uncanonical")
         return tags
 
-    def add_tag(self, name, scope='node', hide=False, show_only=False, toggle_key='None'):
+    def add_tag(self, name, scope='node', hide=False, show_only=False, toggle_key='None', icon='None'):
         self.tags[name] = {'name': name,
                            'scope': scope,
                            'hide': hide,
                            'show_only': show_only,
-                           'toggle_key': toggle_key}
+                           'toggle_key': toggle_key,
+                           'icon': icon}
 
     def delete_tag(self, name):
         del self.tags[name]
@@ -1123,6 +1129,7 @@ class TreeModel:
 
     # temporary function to turn root-level attributes into a tag in all nodes
     def turn_attributes_into_tags(self):
+        self.tree_raw_data['tags'] = DEFAULT_TAGS
         for attribute in ('bookmark', 'archived', 'canonical'):
             if attribute not in self.tags:
                 self.add_tag(attribute, 'node')
@@ -1188,6 +1195,10 @@ class TreeModel:
             self.tree_raw_data['model_responses'] = {}
         self.model_responses = self.tree_raw_data['model_responses']
 
+        # if 'tags' not in self.tree_raw_data:
+        #     self.tree_raw_data['tags'] = DEFAULT_TAGS
+        # self.tags = self.tree_raw_data['tags']
+
         # Generation settings
         self.tree_raw_data["generation_settings"] = {
             **DEFAULT_GENERATION_SETTINGS.copy(),
@@ -1244,6 +1255,11 @@ class TreeModel:
         new_tree["preferences"] = {
             **DEFAULT_PREFERENCES.copy(),
             **self.tree_raw_data.get("preferences", {})
+        }
+
+        self.tree_raw_data['tags'] = {
+            **DEFAULT_TAGS.copy(),
+            **self.tree_raw_data.get('tags', {})
         }
 
         return new_tree
@@ -1349,7 +1365,7 @@ class TreeModel:
     # We edit tree flat data with tkinter and save raw data which is still in json form
     def save_tree(self, backup=True, save_filename=None, subtree=None):
         save_filename = save_filename if save_filename else self.tree_filename
-        subtree = subtree if subtree else self.master_tree()
+        subtree = subtree if subtree else self.tree_raw_data
         if not save_filename:
             return False
         print('saving tree')
@@ -1372,7 +1388,7 @@ class TreeModel:
         return True
 
     def save_simple_tree(self, save_filename, subtree=None):
-        subtree = subtree if subtree else self.master_tree()
+        subtree = subtree if subtree else self.tree_raw_data
         simple_tree = make_simple_tree(subtree)
         json_create(save_filename, simple_tree)
         self.io_update()
