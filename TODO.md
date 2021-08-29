@@ -13,10 +13,8 @@
     - function to check if a node is masked
 - arbitrary tags
     - tag config
-        - remove tag
         - configure nav tree colors and icons
         - reset
-    - update scopes based on tag scope and hide settings
     - search tags
     - hotkey to tag
     - hotkey to navigate tags
@@ -71,6 +69,7 @@
 ### problems
 * saving and inserting into nav tree is slow for massive trees
 * rebuild view children frame is slow (enough to be annoying)
+    * use grid_remove instead of reloading everything when archiving/deleting?
 
 
 ### Deprecated

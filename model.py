@@ -119,18 +119,21 @@ DEFAULT_TAGS = {
         "scope": "node",
         "hide": False,
         "show_only": False,
+        "toggle_key": "b",
     },
     "canonical": { 
         "name": "canonical", 
         "scope": "ancestry",
         "hide": False,
         "show_only": False,
+        "toggle_key": '^',
     },
     "archived": { 
         "name": "archived", 
         "scope": "node",
         "hide": True,
         "show_only": False,
+        "toggle_key": "!",
     }
  }
 
@@ -1023,12 +1026,12 @@ class TreeModel:
             tags.append("uncanonical")
         return tags
 
-    def add_tag(self, name, scope='node', hide=False, show_only=False):
+    def add_tag(self, name, scope='node', hide=False, show_only=False, toggle_key='None'):
         self.tags[name] = {'name': name,
                            'scope': scope,
                            'hide': hide,
-                           'show_only': show_only
-                           }
+                           'show_only': show_only,
+                           'toggle_key': toggle_key}
 
     def delete_tag(self, name):
         del self.tags[name]
@@ -1139,6 +1142,25 @@ class TreeModel:
             return [d['id'] for d in node_ancestry(node, self.tree_node_dict)]
 
 
+    def update_tree_tag_changed(self, node, tag):
+        update_scope = self.tag_scope(node, tag)
+        if self.has_tag_attribute(node, tag):
+            if self.tags[tag]['hide']:
+                self.tree_updated(delete=update_scope)
+                return
+            elif self.tags[tag]['show_only']:
+                self.tree_updated(add=update_scope)
+                return
+        else:
+            if self.tags[tag]['hide']:
+                self.tree_updated(add=update_scope)
+                return
+            elif self.tags[tag]['show_only']:
+                self.tree_updated(delete=update_scope)
+                return
+        self.tree_updated(edit=update_scope)
+
+
     #################################
     #   I/O
     #################################
@@ -1185,6 +1207,11 @@ class TreeModel:
         self.tree_raw_data["preferences"] = {
             **DEFAULT_PREFERENCES.copy(),
             **self.tree_raw_data.get("preferences", {})
+        }
+
+        self.tree_raw_data['tags'] = {
+            **DEFAULT_TAGS.copy(),
+            **self.tree_raw_data.get('tags', {})
         }
 
         # self.tree_raw_data["chat_preferences"] = {

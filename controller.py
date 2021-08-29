@@ -29,6 +29,7 @@ from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
     node_index, nearest_common_ancestor, collect_conditional
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
+from util.keybindings import tkinter_keybindings
 
 
 def gated_call(f, condition):
@@ -85,6 +86,7 @@ class Controller:
         self.state.register_callback(self.state.tree_updated, self.refresh_textbox)
         self.state.register_callback(self.state.tree_updated, self.refresh_visualization)
         self.state.register_callback(self.state.tree_updated, self.refresh_display)
+        self.state.register_callback(self.state.tree_updated, self.setup_custom_key_bindings)
         # TODO autosaving takes too long for a big tree
         self.state.register_callback(self.state.tree_updated, lambda **kwargs: self.save_tree(popup=False, autosave=True))
 
@@ -125,12 +127,21 @@ class Controller:
                 )
 
         # Numbers to select children
-        for i in range(1, 11):
+        for i in range(1, 6):
             i = i % 10
             f = lambda _i=i: self.state.select_child(_i-1)
             self.root.bind(
                 f"<Key-{i}>", no_junk_args(gated_call(f, lambda: not in_edit()))
             )
+
+    
+    def setup_custom_key_bindings(self, **kwargs):
+        for tag, properties in self.state.tags.items():
+            if properties['toggle_key'] != 'None':
+                self.root.bind(
+                    f"<{tkinter_keybindings(properties['toggle_key'])}>",
+                    lambda event, _tag=tag: self.toggle_tag(_tag)
+                )
 
     def build_menus(self):
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
@@ -148,8 +159,8 @@ class Controller:
                 ('Expand subtree', 'Ctrl-+', None, no_junk_args(self.expand_subtree)),
                 ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
                 ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
-                ('Toggle hide archived', None, None, no_junk_args(self.toggle_hide_archived)),
-                ('Toggle canonical only', None, None, no_junk_args(self.toggle_canonical_only)),
+                #('Toggle hide archived', None, None, no_junk_args(self.toggle_hide_archived)),
+                #('Toggle canonical only', None, None, no_junk_args(self.toggle_canonical_only)),
                 ('Unzip', '', None, no_junk_args(self.unzip_node)),
                 ('Zip chain', '', None, no_junk_args(self.zip_chain)),
                 ('Zip all', '', None, no_junk_args(self.zip_all_chains)),
@@ -202,11 +213,11 @@ class Controller:
                 ("Configure tags", None, None, no_junk_args(self.configure_tags)),
                 ("Mark node visited", None, None, lambda: self.set_visited(True)),
                 ("Mark node unvisited", None, None, lambda: self.set_visited(False)),
-                ("Toggle canonical", "Ctrl+Shift+C", None, no_junk_args(self.toggle_canonical)),
-                ("Toggle archive", "!", None, no_junk_args(self.toggle_archived)),
-                ("Archive", None, None, no_junk_args(self.archive)),
-                ("Unarchive", None, None, no_junk_args(self.unarchive)),
-                ("Bookmark", "B", None, no_junk_args(self.bookmark)),
+                #("Toggle canonical", "Ctrl+Shift+C", None, no_junk_args(self.toggle_canonical)),
+                #("Toggle archive", "!", None, no_junk_args(self.toggle_archived)),
+                #("Archive", None, None, no_junk_args(self.archive)),
+                #("Unarchive", None, None, no_junk_args(self.unarchive)),
+                #("Bookmark", "B", None, no_junk_args(self.bookmark)),
                 ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
 
             ],
@@ -301,31 +312,33 @@ class Controller:
 
     # figure out scope and whether should add, edit, delete
     def toggle_tag(self, tag, node=None):
-        pass
-
-    @metadata(name="Bookmark", keys=["<Key-b>", "<Control-b>"], display_key="b")
-    def bookmark(self, node=None):
         node = node if node else self.state.selected_node
-        self.state.toggle_tag(node, "bookmark")
-        update_scope = self.state.tag_scope(node, "bookmark")
-        self.state.tree_updated(edit=update_scope)
+        self.state.toggle_tag(node, tag)
+        self.state.update_tree_tag_changed(node, tag)
 
-    @metadata(name="Toggle canonical", keys=["<Control-Shift-KeyPress-C>"], display_key="ctrl+shift+C")
-    def toggle_canonical(self, node=None):
-        node = node if node else self.state.selected_node
-        self.state.toggle_tag(node, "canonical")
-        update_scope = self.state.tag_scope(node, "canonical")
-        self.state.tree_updated(edit=update_scope)
+    # @metadata(name="Bookmark", keys=["<Key-b>", "<Control-b>"], display_key="b")
+    # def bookmark(self, node=None):
+    #     node = node if node else self.state.selected_node
+    #     self.state.toggle_tag(node, "bookmark")
+    #     update_scope = self.state.tag_scope(node, "bookmark")
+    #     self.state.tree_updated(edit=update_scope)
 
-    @metadata(name="Toggle archived", keys=["<exclam>"], display_key="")
-    def toggle_archived(self, node=None):
-        node = node if node else self.state.selected_node
-        self.state.toggle_tag(node, "archived")
-        update_scope = self.state.tag_scope(node, "archived")
-        if self.state.has_tag(node, "archived") and self.state.preferences['hide_archived']:
-            self.state.tree_updated(delete=update_scope)
-        else:
-            self.state.tree_updated(edit=update_scope)
+    # @metadata(name="Toggle canonical", keys=["<Control-Shift-KeyPress-C>"], display_key="ctrl+shift+C")
+    # def toggle_canonical(self, node=None):
+    #     node = node if node else self.state.selected_node
+    #     self.state.toggle_tag(node, "canonical")
+    #     update_scope = self.state.tag_scope(node, "canonical")
+    #     self.state.tree_updated(edit=update_scope)
+
+    # @metadata(name="Toggle archived", keys=["<exclam>"], display_key="")
+    # def toggle_archived(self, node=None):
+    #     node = node if node else self.state.selected_node
+    #     self.state.toggle_tag(node, "archived")
+    #     update_scope = self.state.tag_scope(node, "archived")
+    #     if self.state.has_tag(node, "archived") and self.state.preferences['hide_archived']:
+    #         self.state.tree_updated(delete=update_scope)
+    #     else:
+    #         self.state.tree_updated(edit=update_scope)
 
     @metadata(name="Toggle prompt", keys=["<asterisk>"], display_key="")
     def toggle_prompt(self, node=None):
@@ -351,11 +364,11 @@ class Controller:
 
     def next_tag(self, tag):
         next_tag_id = self.state.find_next(condition=lambda node: self.state.has_tag(node, tag))
-        self.select_node(self.state.nodes(next_tag_id))
+        self.select_node(self.state.node(next_tag_id))
 
     def prev_tag(self, tag):
         prev_tag_id = self.state.find_prev(condition=lambda node: self.state.has_tag(node, tag))
-        self.select_node(self.state.nodes(prev_tag_id))
+        self.select_node(self.state.node(prev_tag_id))
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
@@ -1420,6 +1433,7 @@ class Controller:
 
     @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
     def debug(self):
+        #self.setup_custom_key_bindings()
         self.state.turn_attributes_into_tags()
         #TagsDialog(parent=self.display.frame, state=self.state)
         #AddTagDialog(parent=self.display.frame, state=self.state)

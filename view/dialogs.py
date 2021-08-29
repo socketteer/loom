@@ -8,11 +8,13 @@ from gpt import POSSIBLE_MODELS
 from util.custom_tks import Dialog, TextAware
 from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
 from util.util_tree import search, node_ancestry
+from util.keybindings import tkinter_keybindings
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 import math
 import json
 import codecs
 from copy import deepcopy
+import pprint
 
 class InfoDialog(Dialog):
     def __init__(self, parent, data_dict):
@@ -370,13 +372,13 @@ class AddTagDialog(Dialog):
 
     def configure_checkbuttons(self, *args):
         # hide is false and disabled if scope == 'ancestry' or if show_only is true
-        if self.vars['scope'].get() == 'ancestry' or self.vars['show_only'].get():
+        if self.vars['show_only'].get():#if self.vars['scope'].get() == 'ancestry' or self.vars['show_only'].get():
             self.vars['hide'].set(False)
             self.hide_checkbox.configure(state=tk.DISABLED)
         else:
             self.hide_checkbox.configure(state=tk.NORMAL)
         # show_only is false and disabled if scope == 'node' or if hide is true
-        if self.vars['scope'].get() == 'node' or self.vars['hide'].get():
+        if self.vars['hide'].get():#self.vars['scope'].get() == 'node' or self.vars['hide'].get():
             self.vars['show_only'].set(False)
             self.show_only_checkbox.configure(state=tk.DISABLED)
         else:
@@ -389,59 +391,106 @@ class AddTagDialog(Dialog):
 class TagsDialog(Dialog):
     def __init__(self, parent, state, modifications=None):
         self.state = state
+        self.parent = parent
         self.modifications = modifications
-        self.tags = self.state.tags
         self.vars = {}
         self.widgets = {}
+        self.add_button = None
         Dialog.__init__(self, parent, title="Tags")
 
     def body(self, master):
-        scope_options = ('node', 'ancestry', 'subtree')
+        self.master = master
         # create header labels
         create_side_label(master, "Tag")
         create_side_label(master, "Scope", row=master.grid_size()[1]-1, col=1)
         create_side_label(master, "Hide", row=master.grid_size()[1]-1, col=2)
         create_side_label(master, "Show only", row=master.grid_size()[1]-1, col=3)
-        for tag, properties in self.tags.items():
-            self.vars[tag] = {
+        create_side_label(master, "Toggle key", row=master.grid_size()[1]-1, col=4)
+        for tag, properties in self.state.tags.items():
+            self.add_row(tag, properties)
+        self.make_add_button()
+
+    def make_add_button(self):
+        self.add_button = tk.Button(self.master, text="Add tag", command=self.add_tag)
+        self.add_button.grid(row=self.master.grid_size()[1], column=0, pady=3)
+
+    def add_row(self, tag, properties):
+        scope_options = ('node', 'ancestry', 'subtree')
+        keybinding_options = ('None', '6', '7', '8', '9', '0', '@', '#', '$', '%', '^', '&', '*', '(', ')')
+        self.vars[tag] = {
                 'scope': tk.StringVar,
                 'hide': tk.BooleanVar,
                 'show_only': tk.BooleanVar,
+                'toggle_key': tk.StringVar,
             }
-            self.widgets[tag] = {}
-            for key in self.vars[tag].keys():
-                self.vars[tag][key] = self.vars[tag][key](value=properties[key])
-            create_side_label(master, tag)
-            #self.tag_vars[tag]['scope'].set(properties['scope'])
-            self.widgets[tag]['dropdown'] = tk.OptionMenu(master, self.vars[tag]['scope'], *scope_options)
-            self.widgets[tag]['dropdown'].grid(row=master.grid_size()[1]-1, column=1, pady=3)
-            # configure checkbuttons if dropdown value changes
-            #self.vars[tag]['scope'].trace('w', lambda *_, _tag=tag: self.configure_checkbuttons(_tag))
-            self.widgets[tag]['hide_checkbox'] = tk.Checkbutton(master, variable=self.vars[tag]['hide'])
-            self.widgets[tag]['hide_checkbox'].grid(row=master.grid_size()[1]-1, column=2, pady=3)
-            self.widgets[tag]['show_only_checkbox'] = tk.Checkbutton(master, variable=self.vars[tag]['show_only'])
-            self.widgets[tag]['show_only_checkbox'].grid(row=master.grid_size()[1]-1, column=3, pady=3)
-            # trace all vars to configure checkbuttons
-            for var in self.vars[tag].values():
-                var.trace('w', lambda *_, _tag=tag: self.configure_checkbuttons(_tag))
-            self.configure_checkbuttons(tag)
+        self.widgets[tag] = {}
+        for key in self.vars[tag].keys():
+            self.vars[tag][key] = self.vars[tag][key](value=properties[key])
+        self.widgets[tag]['name'] = create_side_label(self.master, tag)
+        self.widgets[tag]['dropdown'] = tk.OptionMenu(self.master, self.vars[tag]['scope'], *scope_options)
+        self.widgets[tag]['dropdown'].grid(row=self.master.grid_size()[1]-1, column=1, pady=3)
+        self.widgets[tag]['hide_checkbox'] = tk.Checkbutton(self.master, variable=self.vars[tag]['hide'])
+        self.widgets[tag]['hide_checkbox'].grid(row=self.master.grid_size()[1]-1, column=2, pady=3)
+        self.widgets[tag]['show_only_checkbox'] = tk.Checkbutton(self.master, variable=self.vars[tag]['show_only'])
+        self.widgets[tag]['show_only_checkbox'].grid(row=self.master.grid_size()[1]-1, column=3, pady=3)
+
+        # trace all vars to configure checkbuttons
+        for var in self.vars[tag].values():
+            var.trace('w', lambda *_, _tag=tag: self.configure_checkbuttons(_tag))
+
+        self.widgets[tag]['toggle_key'] = tk.OptionMenu(self.master, self.vars[tag]['toggle_key'], *keybinding_options)
+        self.widgets[tag]['toggle_key'].grid(row=self.master.grid_size()[1]-1, column=4, pady=3)
+        self.configure_checkbuttons(tag)
+        # make delete button
+        self.widgets[tag]['delete_button'] = tk.Button(self.master, text="Delete", command=lambda _tag=tag: self.delete_tag(_tag), width=4)
+        self.widgets[tag]['delete_button'].grid(row=self.master.grid_size()[1]-1, column=5, pady=3)
 
     def configure_checkbuttons(self, tag):
         # hide is false and disabled if scope == 'ancestry' or if show_only is true
-        if self.vars[tag]['scope'].get() == 'ancestry' or self.vars[tag]['show_only'].get():
+        if self.vars[tag]['show_only'].get():#self.vars[tag]['scope'].get() == 'ancestry' or self.vars[tag]['show_only'].get():
             self.vars[tag]['hide'].set(False)
             self.widgets[tag]['hide_checkbox'].configure(state=tk.DISABLED)
         else:
             self.widgets[tag]['hide_checkbox'].configure(state=tk.NORMAL)
         # show_only is false and disabled if scope == 'node' or if hide is true
-        if self.vars[tag]['scope'].get() == 'node' or self.vars[tag]['hide'].get():
+        if self.vars[tag]['hide'].get():#self.vars[tag]['scope'].get() == 'node' or self.vars[tag]['hide'].get():
             self.vars[tag]['show_only'].set(False)
             self.widgets[tag]['show_only_checkbox'].configure(state=tk.DISABLED)
         else:
             self.widgets[tag]['show_only_checkbox'].configure(state=tk.NORMAL)
 
+    def append_new_tags(self):
+        # remove add_tag button 
+        self.add_button.grid_remove()
+        # adds new rows for new tags in self.state.tags that aren't already in self.vars
+        for tag in self.state.tags:
+            print(f'adding tag {tag}')
+            if tag not in self.vars:
+                self.add_row(tag, self.state.tags[tag])
+        # add add_tag button
+        self.make_add_button()
+
+
+    def add_tag(self, *args):
+        # open AddTagDialog
+        add_tag_dialog = AddTagDialog(self.parent, self.state)
+        #pprint(self.state.tags)
+        self.append_new_tags()
+        
+    def delete_tag(self, tag):
+        self.state.delete_tag(tag)
+        self.vars.pop(tag)
+        # remove row from grid
+        self.widgets[tag]['name'].grid_remove()
+        self.widgets[tag]['dropdown'].grid_remove()
+        self.widgets[tag]['hide_checkbox'].grid_remove()
+        self.widgets[tag]['show_only_checkbox'].grid_remove()
+        self.widgets[tag]['toggle_key'].grid_remove()
+        self.widgets[tag]['delete_button'].grid_remove()
+
+
     def apply(self):
-        for tag in self.tags:
+        for tag in self.vars:
             for key, var in self.vars[tag].items():
                 self.state.tags[tag][key] = var.get()
 

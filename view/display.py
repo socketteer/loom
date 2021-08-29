@@ -350,7 +350,7 @@ class Display:
             ["Next", {}, dict(side="right")],
             ["Prev", {}, dict(side="right")],
             # ["Parent"],
-            ["Bookmark"],
+            #["Bookmark"],
         ]
 
         for btn in buttons:
