@@ -1188,10 +1188,6 @@ class TreeModel:
             self.tree_raw_data['model_responses'] = {}
         self.model_responses = self.tree_raw_data['model_responses']
 
-        if 'tags' not in self.tree_raw_data:
-            self.tree_raw_data['tags'] = DEFAULT_TAGS
-        self.tags = self.tree_raw_data['tags']
-
         # Generation settings
         self.tree_raw_data["generation_settings"] = {
             **DEFAULT_GENERATION_SETTINGS.copy(),

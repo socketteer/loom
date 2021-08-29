@@ -11,18 +11,16 @@
             - but I want "open" state to be property of session, not tree?
             - should all masking belong to a *session mask*?
     - function to check if a node is masked
-- arbitrary tags
+- tags
     - tag config
         - configure nav tree colors and icons
         - reset
     - search tags
-    - hotkey to tag
     - hotkey to navigate tags
-    - tags when splitting, merging nodes
+    - redistribute tags when splitting, merging nodes
 
 - more general navigate to next node if selected node becomes invisible
 - navigate to invisible node error handling
-    - by bookmark: only go to visible bookmarks
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
