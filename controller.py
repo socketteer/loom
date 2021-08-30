@@ -1931,7 +1931,7 @@ class Controller:
             image = self.display.media_icon
         else:
             for tag in self.state.tags:
-                if self.state.has_tag(node, tag):
+                if self.state.has_tag_attribute(node, tag):
                     if self.state.tags[tag]['icon'] != 'None':
                         image = self.display.icons[self.state.tags[tag]['icon']]["icon"]
         if not image:
@@ -1950,13 +1950,16 @@ class Controller:
         self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())
 
     def insert_nav(self, node, image, tags):
+        # get index of node in sibling list 
+        # if node is root, then index = 0
+        insert_idx = self.state.siblings_index(node)
         parent_id = node.get("parent_id", "")
         if parent_id:
             if not self.state.visible(self.state.node(parent_id)):
                 parent_id = self.state.root()['id']
         self.display.nav_tree.insert(
             parent=parent_id,
-            index=0 if self.state.preferences.get('reverse', False) else "end",
+            index=insert_idx,#0 if self.state.preferences.get('reverse', False) else "end",
             iid=node["id"],
             text=self.nav_name(node),
             open=node.get("open", False),

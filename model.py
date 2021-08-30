@@ -445,6 +445,13 @@ class TreeModel:
         parent = self.parent(node)
         return self.visible_children(parent)
 
+    def siblings_index(self, node, visible_only=True):
+        if not self.has_parent(node):
+            return 0
+        siblings = self.visible_siblings(node) if visible_only else self.parent(node)['children']
+        return siblings.index(node)
+
+
 
 
     #################################

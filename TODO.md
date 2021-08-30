@@ -48,8 +48,10 @@
 - multiple generation presets
     - for generating new nodes
     - for inline generation
-- also reverse nav direction when nav tree is reversed
 - nav tree insert position - detect position in sibling list
+- fix reverse
+    - also reverse nav direction when nav tree is reversed
+
 
 ## Other TODO
 
@@ -71,7 +73,6 @@
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * after the first counterfactual substitution via select node, other selections will be misaligned
 * nodes sometimes in wrong order in nav tree
-* no next_sibling
 * visited state sometimes doesn't update
 * add tag causes program freeze
 
