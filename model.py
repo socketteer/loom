@@ -661,21 +661,23 @@ class TreeModel:
 
         parent = self.parent(node)
         siblings = parent["children"]
-        next_sibling = self.next_sibling(node)
+        #next_sibling = self.next_sibling(node)
         siblings.remove(node)
         if reassign_children:
             siblings.extend(node["children"])
 
         # Select parent or the next sibling if possible and not keeping the children
-        if node == self.selected_node:
-            if reassign_children or len(self.visible_siblings(node)) == 0:
-                self.select_node(parent["id"])
-            else:
-                self.select_node(next_sibling['id'], wrap=False)
-        if refresh_nav:
-            self.tree_updated(delete=[node['id']])
-        else:
-            self.tree_updated_silent()
+        # if node == self.selected_node:
+        #     self.select_node()
+        #     if reassign_children or len(self.visible_siblings(node)) == 0:
+        #         self.select_node(parent["id"])
+        #     else:
+        #         self.select_node(next_sibling['id'], wrap=False)
+        self.tree_updated_silent()
+        # if refresh_nav:
+        #     self.tree_updated(delete=[node['id']])
+        # else:
+        #     self.tree_updated_silent()
 
     # TODO add creation date if it doesn't exist
     def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False, refresh_nav=True):

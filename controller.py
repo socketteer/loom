@@ -561,7 +561,11 @@ class Controller:
             result = messagebox.askquestion("Delete", ask_text, icon='warning')
             if result != 'yes':
                 return False
+        next_sibling = self.state.sibling(node, wrap=False)
         self.state.delete_node(node=node, reassign_children=reassign_children)
+        if self.state.selected_node_id == node['id']:
+            self.select_node(next_sibling)
+        self.state.tree_updated(delete=[node['id']])
         return True
 
     @metadata(name="Delete and reassign children")
@@ -2207,7 +2211,8 @@ class Controller:
         if not self.state.selected_node:
             self.state.selected_node_id = self.state.root()["id"]
         elif not self.state.visible(self.state.selected_node):
-            self.state.selected_node_id = self.state.find_next(condition=lambda node:self.state.visible(node), visible_only=False)
+            self.state.selected_node_id = self.state.find_next(condition=lambda node: self.state.visible(node),
+                                                               visible_only=False)
 
 
 
