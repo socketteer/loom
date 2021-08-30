@@ -1,7 +1,7 @@
 import re
 
 special_keybindings = {'!': 'exclam',
-                       '@': 'AT',
+                       '@': 'at',
                        '#': 'numbersign',
                        '$': 'dollar',
                        '%': 'percent',

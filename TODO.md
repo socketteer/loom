@@ -16,10 +16,12 @@
         - don't ask to make new tag if tag list is empty
         - colors
         - reset
+    - fix deprecated canonical
+    - do nav icons increase latency?
     - search tags
     - hotkey to navigate tags
     - redistribute tags when splitting, merging nodes
-
+- inline scroll through short completions
 - more general navigate to next node if selected node becomes invisible
 - navigate to invisible node error handling
 - fix everything that uses old data format
@@ -43,6 +45,11 @@
 - bring selected node out of Model
     - should be with Display?
     - multiple selected nodes
+- multiple generation presets
+    - for generating new nodes
+    - for inline generation
+- also reverse nav direction when nav tree is reversed
+- nav tree insert position - detect position in sibling list
 
 ## Other TODO
 
@@ -64,6 +71,9 @@
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * after the first counterfactual substitution via select node, other selections will be misaligned
 * nodes sometimes in wrong order in nav tree
+* no next_sibling
+* visited state sometimes doesn't update
+* add tag causes program freeze
 
 ### problems
 * saving and inserting into nav tree is slow for massive trees

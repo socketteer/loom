@@ -127,20 +127,28 @@ class Controller:
                 )
 
         # Numbers to select children
+        # TODO fix this
         for i in range(1, 6):
             i = i % 10
-            f = lambda _i=i: self.state.select_child(_i-1)
+            f = lambda _i=i: self.child(idx=_i-1)
             self.root.bind(
                 f"<Key-{i}>", no_junk_args(gated_call(f, lambda: not in_edit()))
             )
 
     
     def setup_custom_key_bindings(self, **kwargs):
+        def in_edit():
+            return self.display.mode in ["Edit", "Child Edit"] \
+                   or (self.display.mode == "Visualize" and self.display.vis.textbox) \
+                   or self.has_focus(self.display.input_box) or self.multi_text_has_focus() \
+                   or self.has_focus(self.display.search_box)
+
         for tag, properties in self.state.tags.items():
             if properties['toggle_key'] != 'None':
+                f = lambda _tag=tag: self.toggle_tag(_tag)
                 self.root.bind(
                     f"<{tkinter_keybindings(properties['toggle_key'])}>",
-                    lambda event, _tag=tag: self.toggle_tag(_tag)
+                    no_junk_args(gated_call(f, lambda: not in_edit()))
                 )
 
     def build_menus(self):
@@ -257,9 +265,9 @@ class Controller:
         self.select_node(node=self.state.parent(node))
 
     @metadata(name="Go to child", keys=["<Right>", "<Control-Right>"], display_key="→")
-    def child(self, node=None):
+    def child(self, node=None, idx=0):
         node = node if node else self.state.selected_node
-        child = self.state.child(node, 0)
+        child = self.state.child(node, idx)
         if child is not None:
             self.select_node(node=child)
 

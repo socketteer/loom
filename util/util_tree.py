@@ -28,7 +28,8 @@ def depth(d, node_dict):
 def generate_conditional_tree(root, conditions=None):
     return {d["id"]: d for d in flatten_tree(tree_subset(root=root,
                                                          new_root=None,
-                                                         include_condition=conditions))}
+                                                         include_condition=conditions),
+                                             )}
 
 
 # generates flat list of nodes in a tree that satisfy condition
@@ -248,15 +249,15 @@ def subtree_list(root, depth_limit=None):
 #   generation_settings: {...}
 # }
 # Adds an ID field and a parent ID field to each dict in a recursive tree with "children"
-def flatten_tree(d):
+def flatten_tree(d, reverse=False):
     if "id" not in d:
         d["id"] = str(uuid.uuid1())
 
     children = d.get("children", [])
     flat_children = []
-    for child in children:
+    for child in (reversed(children) if reverse else children):
         child["parent_id"] = d["id"]
-        flat_children.extend(flatten_tree(child))
+        flat_children.extend(flatten_tree(child, reverse))
 
     return [d, *flat_children]
 
