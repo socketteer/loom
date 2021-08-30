@@ -74,7 +74,6 @@
 * after the first counterfactual substitution via select node, other selections will be misaligned
 * nodes sometimes in wrong order in nav tree
 * visited state sometimes doesn't update
-* add tag causes program freeze
 
 ### problems
 * saving and inserting into nav tree is slow for massive trees

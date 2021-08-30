@@ -351,7 +351,7 @@ class AddTagDialog(Dialog):
             'toggle_key': tk.StringVar()
         }
         self.tag_name = tag_name
-        self.icon_name = None
+        self.icon_name = "None"
         self.icon = None
         self.change_icon_button = None
         self.hide_checkbox = None
@@ -390,10 +390,10 @@ class AddTagDialog(Dialog):
     def draw_icon(self):
         if self.icon:
             self.icon.destroy()
-        if not self.icon_name:
+        if self.icon_name == "None":
             self.icon = tk.Label(self.master, text="None", fg=text_color(), bg=bg_color())
         else:
-            icon =  PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_name}.png")).resize((20, 20)))
+            icon = PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_name}.png")).resize((20, 20)))
             self.icon = tk.Label(self.master, bg=bg_color())
             self.icon.image = icon
             self.icon.configure(image=icon)
@@ -505,7 +505,8 @@ class TagsDialog(Dialog):
         if self.icon_names[tag] == 'None':
             self.widgets[tag]['icon'] = tk.Label(self.master, text='None', bg=bg_color(), fg=text_color())
         else:
-            icon =  PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_names[tag]}.png")).resize((20, 20)))
+            print(self.icon_names[tag])
+            icon = PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_names[tag]}.png")).resize((20, 20)))
             self.widgets[tag]['icon'] = tk.Label(self.master, bg=bg_color())
             self.widgets[tag]['icon'].image = icon
             self.widgets[tag]['icon'].configure(image=icon)
