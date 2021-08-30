@@ -98,6 +98,7 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.update_nav_tree_selected)
         self.state.register_callback(self.state.selection_updated, self.update_chapter_nav_tree_selected)
         self.state.register_callback(self.state.selection_updated, self.refresh_textbox)
+        self.state.register_callback(self.state.selection_updated, self.refresh_alt_textbox)
         self.state.register_callback(self.state.selection_updated, self.refresh_vis_selection)
         self.state.register_callback(self.state.selection_updated, self.refresh_notes)
         self.state.register_callback(self.state.selection_updated, self.refresh_counterfactual_meta)
@@ -1470,10 +1471,12 @@ class Controller:
         #pass
 
     def open_alt_textbox(self):
-        self.display.build_alt_textbox()
+        if not self.display.alt_textbox:
+            self.display.build_alt_textbox()
 
     def close_alt_textbox(self):
-        self.display.destroy_alt_textbox()
+        if self.display.alt_textbox:
+            self.display.destroy_alt_textbox()
 
     def configure_tags(self):
         dialog = TagsDialog(parent=self.display.frame, state=self.state)
@@ -1732,8 +1735,19 @@ class Controller:
 
 
 
-    HISTORY_COLOR = history_color()
-    # @metadata(last_text="", last_scroll_height=0, last_num_lines=0)
+    def refresh_alt_textbox(self, **kwargs):
+        # open alt textbox if node has "alt" attribute
+        if self.display.mode == 'Read':
+            if 'alt' in self.state.selected_node:
+                self.open_alt_textbox()
+                # insert alt text into textbox
+                self.display.alt_textbox.configure(state='normal')
+                self.display.alt_textbox.delete('1.0', 'end')
+                self.display.alt_textbox.insert('1.0', self.state.selected_node['alt'])
+                self.display.alt_textbox.configure(state='disabled')
+            else:
+                self.close_alt_textbox()
+
     def refresh_textbox(self, **kwargs):
         if not self.state.tree_raw_data or not self.state.selected_node:
             return
