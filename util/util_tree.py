@@ -326,3 +326,13 @@ def make_simple_tree(tree):
     simple_tree['text'] = tree['text']
     simple_tree['children'] = [make_simple_tree(child) for child in tree['children']]
     return simple_tree
+
+# add empty children attribute to nodes without children
+def fix_tree(tree):
+    if 'root' in tree:
+        tree = tree['root']
+    if 'children' not in tree:
+        tree['children'] = []
+    else:
+        for child in tree['children']:
+            fix_tree(child)

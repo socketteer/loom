@@ -17,7 +17,7 @@ from gpt import openAI_generate, janus_generate, search, generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, created_before, tree_subset, generate_conditional_tree, conditional_children, anti_conditions_lambda, \
-    new_node, add_immutable_root, make_simple_tree
+    new_node, add_immutable_root, make_simple_tree, fix_tree
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs, parse_logit_bias, parse_stop
 from util.multiverse_util import greedy_word_multiverse
 from util.node_conditions import conditions
@@ -1274,13 +1274,16 @@ class TreeModel:
         return new_tree
 
     def load_tree_data(self, data, init_global=True):
-        self.tree_raw_data = data
-
-        if "root" not in self.tree_raw_data:
-            assert "text" in self.tree_raw_data
-            self.tree_raw_data = {
-                "root": self.tree_raw_data
-            }
+        if "root" not in data:
+            # json file with a root node
+            self.tree_raw_data = EMPTY_TREE
+            if "text" in data:
+                self.tree_raw_data['root'] = data
+            else:
+                self.tree_raw_data['root']['children'] = data
+            fix_tree(self.tree_raw_data)
+        else:
+            self.tree_raw_data = data
         self.tree_node_dict = {d["id"]: d for d in flatten_tree(self.tree_raw_data["root"])}
 
         # If things don't have an open state, give one to them
