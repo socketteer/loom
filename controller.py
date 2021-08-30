@@ -1448,7 +1448,8 @@ class Controller:
     def debug(self):
         #self.setup_custom_key_bindings()
         #self.state.reset_tags()
-        self.state.turn_attributes_into_tags()
+        #self.state.turn_attributes_into_tags()
+        print(self.state.custom_prompt(node=self.state.selected_node, filename='prose_to_script.txt'))
         #TagsDialog(parent=self.display.frame, state=self.state)
         #AddTagDialog(parent=self.display.frame, state=self.state)
         #self.state.expand(self.state.selected_node)
@@ -1762,7 +1763,7 @@ class Controller:
             self.display.textbox.delete("1.0", "end")
 
             if self.state.preferences.get('show_prompt', False):
-                self.display.textbox.insert("end-1c", self.state.build_prompt(quiet=True))
+                self.display.textbox.insert("end-1c", self.state.prompt(self.state.selected_node))
             else:
                 if self.state.preferences['coloring'] == 'edit':
                     self.display.textbox.tag_config('ooc_history', foreground=ooc_color())

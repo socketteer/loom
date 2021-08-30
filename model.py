@@ -75,9 +75,11 @@ DEFAULT_GENERATION_SETTINGS = {
     "stop": '',  # separated by '|'
     "start": '',
     "restart": '',
-    'preset': 'default',  # 'chat', 'dialogue', 'antisummary'
+    'preset': 'Default',  # 'chat', 'dialogue', 'antisummary'
     'global_context': '',
     'logit_bias': '',
+    'template': 'Default',
+    'post_template': 'Default'
 }
 
 DEFAULT_VISUALIZATION_SETTINGS = {
@@ -1456,12 +1458,22 @@ class TreeModel:
         # DO NOT CALL FROM THREAD: self.tree_updated()
         self.app.event_generate("<<NewNodes>>", when="tail")
 
-    def set_generated_nodes(self, nodes, results):
+    def default_post_template(self, completion):
         start_text = codecs.decode(self.generation_settings['start'], "unicode-escape")
         restart_text = codecs.decode(self.generation_settings['restart'], "unicode-escape")
+        return start_text + completion['text'] + restart_text
 
+    def custom_post_template(self, completion, filename):
+        text = completion['text']
+        with open(f'./config/post_templates/{filename}.txt', 'r') as f:
+            prompt = f.read()
+        eval_prompt = eval(f'f"""{prompt}"""')
+        return eval_prompt
+
+
+    def set_generated_nodes(self, nodes, results):
         for i, node in enumerate(nodes):
-            node['text'] = start_text + results['completions'][i]['text'] + restart_text
+            node['text'] = self.default_post_template(results['completions'][i]) if self.generation_settings['post_template'] == "Default" else self.custom_post_template(results['completions'][i], self.generation_settings['post_template'])
             self.node_creation_metadata(node, source='AI')
             node["generation"] = {'id': results['id'],
                                   'index': i}
@@ -1501,7 +1513,7 @@ class TreeModel:
 
         self.app.event_generate("<<NewNodes>>", when="tail")
 
-    def default_generate(self, prompt, nodes, grandchildren=None):
+    def default_generate(self, prompt, nodes):
 
         # if self.preferences['gpt_mode'] == 'antisummary':
         #     if not stop:
@@ -1526,29 +1538,45 @@ class TreeModel:
     def antisummary_embedding(self, summary):
         return f'\n[Next section summary: {summary}]\n'
 
-    def build_prompt(self, node=None, prompt_length=None, memory=True, quiet=True, mode=None):
-        node = node if node else self.selected_node
-        mode = mode if mode else self.generation_settings['preset']
-        if mode == 'antisummary':
-            prompt = ''
-            ancestry = self.ancestry(node)
-            ancestor_ids = [ancestor['id'] for ancestor in ancestry]
-            for ancestor in ancestry:
-                if 'summaries' in ancestor and len(ancestor['summaries']) > 0:
-                    for summary_id in ancestor['summaries']:
-                        summary = self.summaries[summary_id]
-                        if summary['end_id'] in ancestor_ids:
-                            prompt += self.antisummary_embedding(summary['text'])
-                            # prompt += f'\n[{summary["text"]}]\n'
-                prompt += ancestor['text']
+
+    def custom_prompt(self, node, filename):
+        input = "".join(self.ancestry_text_list(node)[0])
+        input = input[-self.generation_settings['prompt_length']:]
+        with open(f'./config/prompts/{filename}.txt', 'r') as f:
+            prompt = f.read()
+        eval_prompt = eval(f'f"""{prompt}"""')
+        eval_prompt = eval_prompt[-6000:]
+        return eval_prompt
+
+
+    def prompt(self, node):
+        if self.generation_settings['template'] == 'Default':
+            prompt = self.default_build_prompt(node)
         else:
-            prompt = "".join(self.ancestry_text_list(node)[0])
+            prompt = self.custom_prompt(node, self.generation_settings['template'])
+        return prompt
+
+    def default_build_prompt(self, node, prompt_length=None, memory=True, quiet=True):
+        #mode = mode if mode else self.generation_settings['preset']
+        # if mode == 'antisummary':
+        #     prompt = ''
+        #     ancestry = self.ancestry(node)
+        #     ancestor_ids = [ancestor['id'] for ancestor in ancestry]
+        #     for ancestor in ancestry:
+        #         if 'summaries' in ancestor and len(ancestor['summaries']) > 0:
+        #             for summary_id in ancestor['summaries']:
+        #                 summary = self.summaries[summary_id]
+        #                 if summary['end_id'] in ancestor_ids:
+        #                     prompt += self.antisummary_embedding(summary['text'])
+        #                     # prompt += f'\n[{summary["text"]}]\n'
+        #         prompt += ancestor['text']
+        # else:
+        prompt = "".join(self.ancestry_text_list(node)[0])
         if not prompt_length:
             prompt_length = self.generation_settings['prompt_length']
         prompt = prompt[-prompt_length:]
 
         global_context = self.generation_settings['global_context']
-        
         
         if memory:
             memory_list = self.construct_memory(node)
@@ -1574,7 +1602,7 @@ class TreeModel:
         # TODO memory and chat prepending - abstract this
         # TODO different behavior if not in submit box
         appended_text = self.pre_modifications(appended_text)
-        prompt = self.build_prompt(prompt_length=4000) + appended_text
+        prompt = self.default_build_prompt(prompt_length=4000) + appended_text
         # print('prompt: ', prompt)
         results, error = openAI_generate(prompt=prompt,
                                          length=1,  # TODO 3 or so
@@ -1596,33 +1624,33 @@ class TreeModel:
             return
 
         children = []
-        grandchildren = []
+        #grandchildren = []
         new_nodes = []
         # pprint(self.generation_settings)
         for i in range(self.generation_settings['num_continuations']):
             child = self.create_child(node, update_selection=False, expand=True, refresh_nav=False)
             children.append(child)
             new_nodes.append(child['id'])
-            if self.generation_settings['adaptive']:
-                grandchild = self.create_child(child, update_selection=False, expand=True, refresh_nav=False)
-                grandchildren.append(grandchild)
-                new_nodes.append(grandchild['id'])
+            # if self.generation_settings['adaptive']:
+            #     grandchild = self.create_child(child, update_selection=False, expand=True, refresh_nav=False)
+            #     grandchildren.append(grandchild)
+            #     new_nodes.append(grandchild['id'])
 
         self.new_nodes.append(new_nodes)
         self.tree_updated(add=new_nodes, override_visible=True)
         #self.reveal_nodes(children + grandchildren)
-        prompt = self.build_prompt(quiet=False, node=node)
+        prompt = self.prompt(node=node)
 
         if 'summary' in kwargs:
             threading.Thread(target=self.antisummary_generate, args=(prompt, children, kwargs['summary'])).start()
         else:
-            threading.Thread(target=self.default_generate, args=(prompt, children, grandchildren)).start()
+            threading.Thread(target=self.default_generate, args=(prompt, children)).start()
 
         # After asking for the generation, set loading text
         for child in children:
             child["text"] = "\n\n** Generating **"
-        for grandchild in grandchildren:
-            grandchild["text"] = "\n\n** Generating **"
+        # for grandchild in grandchildren:
+        #     grandchild["text"] = "\n\n** Generating **"
         self.tree_updated(edit=new_nodes, override_visible=True)
         if update_selection:
             self.select_node(children[0]["id"])
@@ -1645,7 +1673,7 @@ class TreeModel:
         print('generating children for node', node['id'])
         if max_depth == 0 or (stop_condition and stop_condition(node)):
             return
-        prompt = self.build_prompt(quiet=False, node=node)
+        prompt = self.default_build_prompt(quiet=False, node=node)
         results, error = openAI_generate(prompt=prompt,
                                          length=interval,
                                          num_continuations=branching_factor,
@@ -1722,7 +1750,7 @@ class TreeModel:
             return
         if not node:
             node = self.selected_node
-        story = self.build_prompt(node=node, memory=False)
+        story = self.default_build_prompt(node=node, memory=False)
         return conditional_logprob(prompt=story + context_breaker, target=target, engine=engine)
 
     def measure_path_optimization(self, root=None, node=None):
@@ -1850,7 +1878,7 @@ class TreeModel:
                     changed_indices.append({'token': token, 'logprob': token_logprob, 'indices': word['indices']})
                 return changed_indices, tokens[start:]
             elif node["meta"]["source"] == "prompt":
-                prompt = self.build_prompt(node=node, quiet=True, mode='default')
+                prompt = self.default_build_prompt(node=node, quiet=True, mode='default')
                 engine = self.generation_settings['model']
                 logprobs, tokens, positions = prompt_probs(prompt, engine)
                 start_index = positions.index(len(prompt) - len(node['text']))
@@ -1889,7 +1917,7 @@ class TreeModel:
         threshold = threshold * unnormalized_amplitude
         prompt = prompt if prompt else ''
         node = node if node else self.selected_node
-        prompt = self.build_prompt(quiet=True, node=node) + prompt
+        prompt = self.default_build_prompt(quiet=True, node=node) + prompt
         multiverse, ground_truth = greedy_word_multiverse(prompt=prompt, ground_truth=ground_truth, max_depth=max_depth,
                                                           unnormalized_amplitude=unnormalized_amplitude,
                                                           unnormalized_threshold=threshold,

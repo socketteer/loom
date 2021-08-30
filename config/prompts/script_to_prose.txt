@@ -1,0 +1,50 @@
+Rewrite scripts as prose
+
+1
+Original script:
+
+- Professor Quirrell: I won't repeat what you're about to say.
+- Harry: The Sorting Hat did seem to think I was going to end up as a Dark Lord unless I went to Hufflepuff. But I don't want to be one.
+- Professor Quirrell: Mr. Potter... Don't take this the wrong way. I promise you will not be graded on the answer. I only want to know your own, honest reply. Why not?
+- Harry: Um, people would get hurt?
+- Professor Quirrell: Surely you've wanted to hurt people. You wanted to hurt those bullies today. Being a Dark Lord means that people you want to hurt get hurt.
+- Harry: First of all, just because I want to hurt someone doesn't mean it's right -
+- Professor Quirrell: What makes something right, if not your wanting it?
+- Harry: Ah, preference utilitarianism.
+- Professor Quirrell: Pardon me?
+
+Rewritten as prose:
+
+"I won't repeat what you're about to say," Professor Quirrell said, smiling.
+They both laughed, then Harry turned serious again. "The Sorting Hat did seem to think I was going to end up as a Dark Lord unless I went to Hufflepuff," Harry said. "But I don't want to be one."
+"Mr. Potter..." said Professor Quirrell. "Don't take this the wrong way. I promise you will not be graded on the answer. I only want to know your own, honest reply. Why not?"
+Harry had that helpless feeling again. Thou shalt not become a Dark Lord was such an obvious theorem in his moral system that it was hard to describe the actual proof steps. "Um, people would get hurt?"
+"Surely you've wanted to hurt people," said Professor Quirrell. "You wanted to hurt those bullies today. Being a Dark Lord means that people you want to hurt get hurt."
+Harry floundered for words and then decided to simply go with the obvious. "First of all, just because I want to hurt someone doesn't mean it's right -"
+"What makes something right, if not your wanting it?"
+"Ah," Harry said, "preference utilitarianism."
+"Pardon me?" said Professor Quirrell.
+
+2
+Original script:
+
+- Knipe: Nowadays, Mr. Bohlen, the hand-made article hasn't a hope. It can't possibly compete with mass-production, especially in this country — you know that. Carpets ... chairs ... shoes ...bricks ... crockery ... anything you like to mention — they're all made by machinery now. The quality may be inferior, but that doesn't matter. It's the cost of production that counts. And stories — well — they're just another product, like carpets and chairs, and no one cares how you produce them so long as you deliver the goods. We'll sell them wholesale, Mr. Bohlen! We'll undercut every writer in the country! We'll take the market!
+- Mr. Bohlen: But seriously now, Knipe. D'you really think they'd buy them?
+- Knipe: Listen, Mr. Bohlen. Who on earth is going to want custom-made stories when they can get the other kind at half the price? It stands to reason, doesn't it?
+- Mr. Bohlen: And how will you sell them? Who will you say has written them?
+
+Rewritten as prose:
+
+Quickly, he continued. "Nowadays, Mr. Bohlen, the hand-made article hasn't a hope. It can't possibly compete with mass-production, especially in this country — you know that. Carpets ... chairs ... shoes ...bricks ... crockery ... anything you like to mention — they're all made by machinery now. The quality may be inferior, but that doesn't matter. It's the cost of production that counts. And stories — well — they're just another product, like carpets and chairs, and no one cares how you produce them so long as you deliver the goods. We'll sell them wholesale, Mr. Bohlen! We'll undercut every writer in the country! We'll take the market!" 
+"But seriously now, Knipe. D'you really think they'd buy them?" 
+"Listen, Mr. Bohlen. Who on earth is going to want custom-made stories when they can get the other kind at half the price? It stands to reason, doesn't it?"
+"And how will you sell them? Who will you say has written them?" 
+
+3
+Original script:
+
+{input}
+
+Rewritten as prose:
+
+{node['prose_so_far']}

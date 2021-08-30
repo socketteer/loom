@@ -328,11 +328,12 @@ class TagNodeDialog(Dialog):
         tags_string = self.tags_textbox.tk_variables.get()
         tags = [tag.strip() for tag in tags_string.split(',')]
         for tag in tags:
-            if tag not in self.state.tags:
-                AddTagDialog(self.parent, self.state, tag)
-            if tag in self.state.tags and tag not in self.original_tags:
-                self.state.tag_node(self.node, tag)
-                self.modifications['add'].append(tag)
+            if tag:
+                if tag not in self.state.tags:
+                    AddTagDialog(self.parent, self.state, tag)
+                if tag in self.state.tags and tag not in self.original_tags:
+                    self.state.tag_node(self.node, tag)
+                    self.modifications['add'].append(tag)
         for tag in self.original_tags:
             if tag not in tags:
                 self.state.untag_node(self.node, tag)
@@ -1046,6 +1047,8 @@ class GenerationSettingsDialog(Dialog):
             'restart': tk.StringVar,
             'global_context': tk.StringVar,
             'logit_bias': tk.StringVar,
+            'template': tk.StringVar,
+            'post_template': tk.StringVar,
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
@@ -1056,6 +1059,8 @@ class GenerationSettingsDialog(Dialog):
                           'logit_bias': None}
         self.context_textbox = None
         self.memory_label = None
+        self.template_label = None
+        self.template_filename_label = None
         self.preset_dropdown = None
 
         Dialog.__init__(self, parent, title="Generation Settings")
@@ -1096,6 +1101,13 @@ class GenerationSettingsDialog(Dialog):
 
 
         row = master.grid_size()[1]
+        self.template_label = create_side_label(master, "template")
+        self.template_filename_label = create_side_label(master, self.vars['template'].get(), row, col = 1)
+        create_button(master, "Load prompt template", self.load_template)
+        self.vars['template'].trace("w", self.set_template)
+
+
+        row = master.grid_size()[1]
         create_side_label(master, "preset", row)
         
         # load presets into options
@@ -1117,6 +1129,19 @@ class GenerationSettingsDialog(Dialog):
         create_button(master, "Save preset", self.save_preset)
         create_button(master, "Reset", self.reset_variables)
 
+
+    def set_template(self, *args):
+        self.template_filename_label.config(text=self.vars['template'].get())
+
+    def load_template(self):
+        file_path = filedialog.askopenfilename(
+            initialdir="./config/prompts",
+            title="Select prompt template",
+            filetypes=[("Text files", ".txt")]
+        )
+        if file_path:
+            filename = os.path.splitext(os.path.basename(file_path))[0]
+            self.vars['template'].set(filename)
         
 
     # set presets dropdown options to presets in preset dict

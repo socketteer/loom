@@ -13,11 +13,8 @@
     - function to check if a node is masked
 - tags
     - tag config
-        - don't ask to make new tag if tag list is empty
-        - colors
+        - nav tree foreground / background
         - reset
-    - fix deprecated canonical
-    - do nav icons increase latency?
     - search tags
     - hotkey to navigate tags
     - redistribute tags when splitting, merging nodes
