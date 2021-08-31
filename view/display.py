@@ -710,24 +710,27 @@ class Display:
             tb_item['num_lines'] = max(node["text"].count("\n"), int(tb.index('end').split('.')[0]))
             tb.configure(height=min(tb_item['num_lines'], self.multi_default_height))
 
+    def forget_row(self, tb):
+        if 'textbox' in tb:
+            tb['textbox'].grid_forget()
+        if 'close' in tb:
+            tb['close'].grid_forget()
+        if 'go' in tb:
+            tb['go'].grid_forget()
+        if 'archive' in tb:
+            tb['archive'].grid_forget()
+        if 'edit' in tb:
+            tb['edit'].grid_forget()
+        if 'delete' in tb:
+            tb['delete'].grid_forget()
+        if 'descendents_label' in tb:
+            tb['descendents_label'].grid_forget()
+
     # clears tkinter widgets but doesn't clear multi_textboxes info
     def clear_multi_frame(self):
         if self.multi_textboxes:
             for tb_item in self.multi_textboxes.values():
-                if 'textbox' in tb_item:
-                    tb_item['textbox'].grid_forget()
-                if 'close' in tb_item:
-                    tb_item['close'].grid_forget()
-                if 'go' in tb_item:
-                    tb_item['go'].grid_forget()
-                if 'archive' in tb_item:
-                    tb_item['archive'].grid_forget()
-                if 'edit' in tb_item:
-                    tb_item['edit'].grid_forget()
-                if 'delete' in tb_item:
-                    tb_item['delete'].grid_forget()
-                if 'descendents_label' in tb_item:
-                    tb_item['descendents_label'].grid_forget()
+                self.forget_rot(tb_item)
             if self.add_child_button:
                 self.add_child_button.grid_forget()
                 self.add_child_button = None
@@ -808,9 +811,10 @@ class Display:
 
     def dismiss_textbox(self, textbox_id):
         # self.clear_multi_frame()
+        self.forget_row(self.multi_textboxes[textbox_id])
         self.multi_textboxes.pop(textbox_id)
         # self.refresh_multi_frame()
-        self.rebuild_multi_frame()
+        #self.rebuild_multi_frame()
 
     # when editing is enabled, textbox height expands to show all text
     # when editing is disabled, height defaults to self.multi_default_height

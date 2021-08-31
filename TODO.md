@@ -1,7 +1,6 @@
 ## Priority
 - alt textbox
     - editable
-    - alt_text attribute?
 - node can "conceal" ancestry (to reader and/or language model) 
 - masking
     - mask subtree
@@ -52,6 +51,7 @@
 - summaries 
     - with context
     - suggest summaries in summary dialog
+    - prompt to partition long text into summaries
 
 
 ## Other TODO
@@ -78,8 +78,6 @@
 ### problems
 * saving and inserting into nav tree is slow for massive trees
 * rebuild view children frame is slow (enough to be annoying)
-    * use grid_remove instead of reloading everything when archiving/deleting?
-
 
 ### Deprecated
 - child edit mode
