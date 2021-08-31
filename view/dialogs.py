@@ -870,7 +870,7 @@ class CreateSummary(SummaryDialog):
         self.add_child_button = None
         self.add_all_button = None
         self.init_text = ''
-        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_id)
+        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_node)
         Dialog.__init__(self, parent)
 
     def apply(self):
@@ -895,8 +895,9 @@ class EditSummary(SummaryDialog):
         self.remove_child_button = None
         self.add_child_button = None
         self.add_all_button = None
+        self.delete_button = None
         self.init_text = self.summary['text']
-        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_id)
+        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_node)
         Dialog.__init__(self, parent)
 
     def body(self, master):

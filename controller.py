@@ -522,7 +522,7 @@ class Controller:
                 self.display.nav_tree.item(node, open=True)
             except Exception as e:
                 print(str(e))
-            self.state.generate_continuation(node=node, **kwargs)
+            self.state.generate_continuations(node=node, **kwargs)
 
     def propagate_wavefunction(self):
         if self.display.mode == "Multiverse":
@@ -1449,7 +1449,8 @@ class Controller:
         #self.setup_custom_key_bindings()
         #self.state.reset_tags()
         #self.state.turn_attributes_into_tags()
-        print(self.state.custom_prompt(node=self.state.selected_node, filename='prose_to_script.txt'))
+        print(self.state.summary_prompt(node=self.state.selected_node))
+        #print(self.state.custom_prompt(node=self.state.selected_node, filename='prose_to_script.txt'))
         #TagsDialog(parent=self.display.frame, state=self.state)
         #AddTagDialog(parent=self.display.frame, state=self.state)
         #self.state.expand(self.state.selected_node)

@@ -17,7 +17,7 @@
         - reset
     - search tags
     - hotkey to navigate tags
-    - redistribute tags when splitting, merging nodes
+    - redistribute tags when merging nodes
 - inline scroll through short completions
 - more general navigate to next node if selected node becomes invisible
 - navigate to invisible node error handling
@@ -45,9 +45,13 @@
 - multiple generation presets
     - for generating new nodes
     - for inline generation
-- nav tree insert position - detect position in sibling list
 - fix reverse
     - also reverse nav direction when nav tree is reversed
+- reinstate mode dropdown
+- templates which take user input
+- summaries 
+    - with context
+    - suggest summaries in summary dialog
 
 
 ## Other TODO
@@ -69,7 +73,6 @@
 * merge with children is broken?
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * after the first counterfactual substitution via select node, other selections will be misaligned
-* nodes sometimes in wrong order in nav tree
 * visited state sometimes doesn't update
 
 ### problems
@@ -121,9 +124,6 @@
 - swap node function
 - split node and merge second part with children 
     - hotkey
-- when node is split, chapter goes to parent
-    - move chapter function?
-
 
 ### Display
 - global "read" mode (separate from coloring)

@@ -780,6 +780,18 @@ class TreeModel:
             node['summaries'] = []
         if 'meta' in node and 'source' in node['meta']:
             new_parent['meta']['source'] = node['meta']['source']
+
+        # both nodes inherit tags
+        if 'tags' in node:
+            new_parent['tags'] = node['tags']
+
+        new_parent['visited'] = True
+
+        # move chapter head to new parent
+        if 'chapter_id' in node:
+            new_parent['chapter_id'] = node['chapter_id']
+            node.pop('chapter_id')
+
         if refresh_nav:
             self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
         else:
@@ -1470,10 +1482,11 @@ class TreeModel:
         eval_prompt = eval(f'f"""{prompt}"""')
         return eval_prompt
 
-
     def set_generated_nodes(self, nodes, results):
         for i, node in enumerate(nodes):
-            node['text'] = self.default_post_template(results['completions'][i]) if self.generation_settings['post_template'] == "Default" else self.custom_post_template(results['completions'][i], self.generation_settings['post_template'])
+            node['text'] = self.default_post_template(results['completions'][i]) \
+                if self.generation_settings['post_template'] == "Default" \
+                else self.custom_post_template(results['completions'][i], self.generation_settings['post_template'])
             self.node_creation_metadata(node, source='AI')
             node["generation"] = {'id': results['id'],
                                   'index': i}
@@ -1486,40 +1499,7 @@ class TreeModel:
             parent["children"].remove(node)
         self.tree_updated(delete=[node['id'] for node in nodes])
 
-    def antisummary_generate(self, prompt, nodes, summary):
-        start_text = f'\n{self.antisummary_embedding(summary)}'
-        prompt = prompt + start_text
-        print('antisummary prompt:\n', prompt)
-        if self.generation_settings["stop"]:
-            stop = parse_stop(self.generation_settings["stop"])
-        else:
-            stop = []
-        stop.append('[')
-        stop.append('\n\n')
-        results, error = self.gen(prompt, len(nodes), stop)
-        if not error:
-            for node in nodes:
-                self.create_summary(root_node=node, end_node=node, summary_text=summary)
-            self.set_generated_nodes(nodes, results, prompt)
-            for node in nodes:
-                if node['text'][0] != '\n':
-                    node['text'] = '\n' + node['text']
-        else:
-            self.delete_failed_nodes(nodes, error)
-            return
-
-        for result in results.choices:
-            print("Generated continuation:\n", result['text'], "\nerror", error)
-
-        self.app.event_generate("<<NewNodes>>", when="tail")
-
     def default_generate(self, prompt, nodes):
-
-        # if self.preferences['gpt_mode'] == 'antisummary':
-        #     if not stop:
-        #         stop = []
-        #     stop.append('[')
-        #     stop.append('\n\n')
         results, error = self.gen(prompt, len(nodes))
         self.post_generation(error, nodes, results)
 
@@ -1534,10 +1514,16 @@ class TreeModel:
     #         grandchildren[i]["text"] = grandchild_text
     #         # TODO metadata
 
-
-    def antisummary_embedding(self, summary):
-        return f'\n[Next section summary: {summary}]\n'
-
+    def prompt(self, node):
+        if self.generation_settings['template'] == 'Default':
+            prompt = self.default_prompt(node)
+        elif self.generation_settings['template'] == 'Antisummary':
+            prompt = self.antisummary_prompt(node)
+        elif self.generation_settings['template'] == 'Adaptive Summary':
+            prompt = self.summary_prompt(node)
+        else:
+            prompt = self.custom_prompt(node, self.generation_settings['template'])
+        return prompt
 
     def custom_prompt(self, node, filename):
         input = "".join(self.ancestry_text_list(node)[0])
@@ -1548,29 +1534,72 @@ class TreeModel:
         eval_prompt = eval_prompt[-6000:]
         return eval_prompt
 
+    def antisummary_embedding(self, summary):
+        return f'\n[Next section summary: {summary}]\n'
 
-    def prompt(self, node):
-        if self.generation_settings['template'] == 'Default':
-            prompt = self.default_build_prompt(node)
-        else:
-            prompt = self.custom_prompt(node, self.generation_settings['template'])
+    def antisummary_prompt(self, node):
+        prompt = ''
+        ancestry = self.ancestry(node)
+        ancestor_ids = [ancestor['id'] for ancestor in ancestry]
+        for ancestor in ancestry:
+            if 'summaries' in ancestor and len(ancestor['summaries']) > 0:
+                for summary_id in ancestor['summaries']:
+                    summary = self.summaries[summary_id]
+                    # only add summary if entire summarized text is in prompt
+                    if summary['end_id'] in ancestor_ids:
+                        prompt += self.antisummary_embedding(summary['text'])
+            prompt += ancestor['text']
+        prompt = prompt[-self.generation_settings['prompt_length']:]
         return prompt
 
-    def default_build_prompt(self, node, prompt_length=None, memory=True, quiet=True):
-        #mode = mode if mode else self.generation_settings['preset']
-        # if mode == 'antisummary':
-        #     prompt = ''
-        #     ancestry = self.ancestry(node)
-        #     ancestor_ids = [ancestor['id'] for ancestor in ancestry]
-        #     for ancestor in ancestry:
-        #         if 'summaries' in ancestor and len(ancestor['summaries']) > 0:
-        #             for summary_id in ancestor['summaries']:
-        #                 summary = self.summaries[summary_id]
-        #                 if summary['end_id'] in ancestor_ids:
-        #                     prompt += self.antisummary_embedding(summary['text'])
-        #                     # prompt += f'\n[{summary["text"]}]\n'
-        #         prompt += ancestor['text']
-        # else:
+    # builds a summarization prompt with default summarization few-shots and any summaries from ancestry
+    def summary_prompt(self, node, num_summaries=3):
+        passages = []
+        summaries = []
+
+        # load summaries json
+        with open(f'./config/fewshots/summaries.json', 'r') as f:
+            sum_json = json.load(f)
+        
+        for entry in sum_json:
+            # add to passages and summaries
+            passages.append(entry['passage'])
+            summaries.append(entry['summary'])
+
+        ancestry = self.ancestry(node)
+        ancestor_ids = [ancestor['id'] for ancestor in ancestry]
+        for ancestor in ancestry:
+            if 'summaries' in ancestor and len(ancestor['summaries']) > 0:
+                for summary_id in ancestor['summaries']:
+                    summary = self.summaries[summary_id]
+                    # only add summary if entire summarized text is in prompt
+                    if summary['end_id'] in ancestor_ids:
+                        end_node = self.node(summary['end_id'])
+                        included_nodes = self.ancestry_in_range(root=ancestor, node=end_node)
+                        passage_text = ''.join([node['text'] for node in included_nodes])
+                        passages.append(passage_text)
+                        summaries.append(summary['text'])
+
+        # add the last num_summaries of the passages and summaries to a prompt
+        prompt = ''
+        if len(passages) > 0:
+            for i in range(num_summaries):
+                prompt += "\nPassage:\n"
+                prompt += passages[-num_summaries + i]
+                prompt += "\nSummary:\n"
+                prompt += summaries[-num_summaries + i]
+
+        input = "".join(self.ancestry_text_list(node)[0])
+        input = input[-self.generation_settings['prompt_length']:]
+
+        prompt += "\nPassage:\n"
+        prompt += input
+        prompt += "\nSummary:\n"
+        return prompt
+
+
+
+    def default_prompt(self, node, prompt_length=None, memory=True, quiet=True):
         prompt = "".join(self.ancestry_text_list(node)[0])
         if not prompt_length:
             prompt_length = self.generation_settings['prompt_length']
@@ -1602,7 +1631,7 @@ class TreeModel:
         # TODO memory and chat prepending - abstract this
         # TODO different behavior if not in submit box
         appended_text = self.pre_modifications(appended_text)
-        prompt = self.default_build_prompt(prompt_length=4000) + appended_text
+        prompt = self.default_prompt(prompt_length=4000) + appended_text
         # print('prompt: ', prompt)
         results, error = openAI_generate(prompt=prompt,
                                          length=1,  # TODO 3 or so
@@ -1618,7 +1647,7 @@ class TreeModel:
         sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
         return sorted_counterfactuals
 
-    def generate_continuation(self, node=None, update_selection=False, **kwargs):
+    def generate_continuations(self, node=None, update_selection=False, **kwargs):
         node = node if node else self.selected_node
         if not node:
             return
@@ -1641,10 +1670,10 @@ class TreeModel:
         #self.reveal_nodes(children + grandchildren)
         prompt = self.prompt(node=node)
 
-        if 'summary' in kwargs:
-            threading.Thread(target=self.antisummary_generate, args=(prompt, children, kwargs['summary'])).start()
-        else:
-            threading.Thread(target=self.default_generate, args=(prompt, children)).start()
+        # if 'summary' in kwargs:
+        #     threading.Thread(target=self.antisummary_generate, args=(prompt, children, kwargs['summary'])).start()
+        # else:
+        threading.Thread(target=self.default_generate, args=(prompt, children)).start()
 
         # After asking for the generation, set loading text
         for child in children:
@@ -1673,7 +1702,7 @@ class TreeModel:
         print('generating children for node', node['id'])
         if max_depth == 0 or (stop_condition and stop_condition(node)):
             return
-        prompt = self.default_build_prompt(quiet=False, node=node)
+        prompt = self.default_prompt(quiet=False, node=node)
         results, error = openAI_generate(prompt=prompt,
                                          length=interval,
                                          num_continuations=branching_factor,
@@ -1750,7 +1779,7 @@ class TreeModel:
             return
         if not node:
             node = self.selected_node
-        story = self.default_build_prompt(node=node, memory=False)
+        story = self.default_prompt(node=node, memory=False)
         return conditional_logprob(prompt=story + context_breaker, target=target, engine=engine)
 
     def measure_path_optimization(self, root=None, node=None):
@@ -1878,7 +1907,7 @@ class TreeModel:
                     changed_indices.append({'token': token, 'logprob': token_logprob, 'indices': word['indices']})
                 return changed_indices, tokens[start:]
             elif node["meta"]["source"] == "prompt":
-                prompt = self.default_build_prompt(node=node, quiet=True, mode='default')
+                prompt = self.default_prompt(node=node, quiet=True, mode='default')
                 engine = self.generation_settings['model']
                 logprobs, tokens, positions = prompt_probs(prompt, engine)
                 start_index = positions.index(len(prompt) - len(node['text']))
@@ -1917,7 +1946,7 @@ class TreeModel:
         threshold = threshold * unnormalized_amplitude
         prompt = prompt if prompt else ''
         node = node if node else self.selected_node
-        prompt = self.default_build_prompt(quiet=True, node=node) + prompt
+        prompt = self.default_prompt(quiet=True, node=node) + prompt
         multiverse, ground_truth = greedy_word_multiverse(prompt=prompt, ground_truth=ground_truth, max_depth=max_depth,
                                                           unnormalized_amplitude=unnormalized_amplitude,
                                                           unnormalized_threshold=threshold,

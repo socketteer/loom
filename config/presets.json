@@ -43,12 +43,40 @@
     "preset": "Prose to script",
     "start": "",
     "restart": "",
-    "stop": "\\n4",
+    "stop": "\\n4|\\n\\n",
     "global_context": "",
     "num_continuations": 1,
     "temperature": 0,
     "response_length": 500,
     "prompt_length": 2000,
     "template": "prose_to_script"
+  },
+  "Summary": {
+    "preset": "Summary",
+    "prompt_length": 400,
+    "response_length": 200,
+    "restart": "",
+    "start": "",
+    "stop": "\\n4|\\n\\n",
+    "global_context": "",
+    "template": "summary"
+  },
+  "Adaptive Summary": {
+    "preset": "Adaptive Summary",
+    "prompt_length": 400,
+    "response_length": 200,
+    "restart": "",
+    "start": "",
+    "stop": "\\n4|\\n\\n",
+    "global_context": "",
+    "template": "Adaptive Summary"
+  },
+  "Antisummary": {
+    "preset": "Antisummary",
+    "restart": "",
+    "start": "",
+    "stop": "[|\\n\\n",
+    "global_context": "",
+    "template": "Antisummary"
   }
 }
