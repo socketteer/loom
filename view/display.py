@@ -730,7 +730,7 @@ class Display:
     def clear_multi_frame(self):
         if self.multi_textboxes:
             for tb_item in self.multi_textboxes.values():
-                self.forget_rot(tb_item)
+                self.forget_row(tb_item)
             if self.add_child_button:
                 self.add_child_button.grid_forget()
                 self.add_child_button = None

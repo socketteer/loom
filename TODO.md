@@ -18,8 +18,6 @@
     - hotkey to navigate tags
     - redistribute tags when merging nodes
 - inline scroll through short completions
-- more general navigate to next node if selected node becomes invisible
-- navigate to invisible node error handling
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
@@ -52,7 +50,13 @@
     - with context
     - suggest summaries in summary dialog
     - prompt to partition long text into summaries
+- easy way to show archived children
 
+- icons showing up for ancestry
+- scroll to beginning of node text when navigating
+- generate nodes...
+- when unzipping node, children inherit all tags of zipped node (or same rules as split)
+    ??
 
 ## Other TODO
 

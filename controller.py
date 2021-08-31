@@ -2129,15 +2129,20 @@ class Controller:
         self.set_chapter_scrollbars()
 
     def node_open(self, node):
-        return self.display.nav_tree.item(node['id'], "open")
+        try:
+            open = self.display.nav_tree.item(node['id'], "open")
+            return open
+        except tk.TclError:
+            return False
 
     def set_nav_scrollbars(self):
         # visible_conditions = [lambda _node: not _node.get('archived', False)] \
         #     if self.state.preferences['hide_archived'] else []
         #visible_nodes = collect_visible(self.state.tree_raw_data["root"], visible_conditions)
-        tree_conditions = self.state.generate_visible_conditions()
-        tree_conditions.append(self.node_open)
-        visible_nodes = collect_conditional(self.state.tree_raw_data["root"], tree_conditions)
+        #tree_conditions = self.state.generate_visible_conditions()
+        #tree_conditions.append(self.node_open)
+        visible_nodes = [node for node in self.state.visible_nodes if self.node_open(node)]
+        #visible_nodes = collect_conditional(self.state.tree_raw_data["root"], tree_conditions)
         #print(visible_nodes)
         #visible_nodes = self.state.generate_filtered_tree()
         visible_ids = {d["id"] for d in visible_nodes}

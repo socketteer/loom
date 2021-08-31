@@ -466,6 +466,9 @@ class TreeModel:
     def is_compound(self, node):
         return 'masked_head' in node
 
+    def is_hoisted(self, node):
+        return node.get('hoisted', False)
+
     def is_mutable(self, node):
         return node.get('mutable', True)
 
@@ -474,7 +477,8 @@ class TreeModel:
 
     def visible(self, node):
         # root is always visible
-        return all(condition(node) for condition in self.generate_visible_conditions()) or self.is_root(node)
+        return all(condition(node) for condition in self.generate_visible_conditions()) \
+               or self.is_root(node) or self.is_compound(node)
 
     def id_visible(self, node_id):
         return self.visible(self.node(node_id))
@@ -507,11 +511,13 @@ class TreeModel:
         node = node if node else self.selected_node
         if node.get('temp_children', None):
             return node['temp_children']
-        return conditional_children(node, self.generate_visible_conditions())
+        return [child for child in node['children'] if self.visible(child)]
+        #return conditional_children(node, self.generate_visible_conditions())
 
     def hidden_children(self, node=None):
         node = node if node else self.selected_node
-        return conditional_children(node, anti_conditions_lambda(self.generate_visible_conditions()))
+        return [child for child in node['children'] if not self.visible(child)]
+        #return conditional_children(node, anti_conditions_lambda(self.generate_visible_conditions()))
 
     #################################
     #   Updates
@@ -833,6 +839,7 @@ class TreeModel:
         mask['tail_id'] = tail['id']
         # TODO hacky
         mask['nav_display_text'] = tail['text']
+        mask['visited'] = True
 
         if refresh_nav:
             self.tree_updated(delete=[head['id']], add=[n['id'] for n in subtree_list(mask)])
@@ -847,6 +854,8 @@ class TreeModel:
         if not self.is_compound(mask):
             print('nothing to expand')
             return
+        # if self.is_hoisted(mask):
+        #     return self.unhoist(rebuild=refresh_nav, update_selection=update_selection)
         head = mask['masked_head']
         head_dict = {d["id"]: d for d in flatten_tree(head)}
         tail = head_dict[mask['tail_id']]
@@ -895,7 +904,8 @@ class TreeModel:
         children = self.visible_children(root)
         for child in children:
             self.unzip_all(child)
-        if self.is_compound(root):
+        # TODO this interferes with hoist?
+        if self.is_compound(root) and not self.is_hoisted(root):
             head = self.unzip(root, refresh_nav=False, update_selection=False)
 
     def reveal_ancestry(self, node):
@@ -1080,7 +1090,7 @@ class TreeModel:
             node['tags'].remove(tag)
 
     def toggle_tag(self, node, tag):
-        if self.has_tag(node, tag):
+        if self.has_tag_attribute(node, tag):
             self.untag_node(node, tag)
         else:
             self.tag_node(node, tag)
@@ -1357,13 +1367,14 @@ class TreeModel:
         new_root = self.zip(head=self.root(), tail=node, refresh_nav=False, update_selection=False)
         self.tree_raw_data['root'] = new_root
         new_root['open'] = True
+        new_root['hoisted'] = True
         self.tree_updated(rebuild=True)
         self.select_node(new_root['id'])
 
 
     def unhoist(self, rebuild=True, update_selection=True):
         old_root = self.root()
-        if not self.is_compound(old_root):
+        if not self.is_hoisted(old_root):
             print('nothing hoisted')
             return
         new_root = self.unzip(mask=self.root(), refresh_nav=False, update_selection=False)
