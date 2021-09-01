@@ -50,13 +50,13 @@
     - for inline generation
 - fix reverse
     - also reverse nav direction when nav tree is reversed
+    - changing reverse in preferences doesn't cause update to nav tree
 - reinstate mode dropdown
 - templates which take user input
 - summaries 
     - with context
     - suggest summaries in summary dialog
     - prompt to partition long text into summaries
-- easy way to show archived children
 
 - icons showing up for ancestry scope?
 - scroll to beginning of node text when navigating
@@ -72,6 +72,19 @@
 - adding / removing ancestry is catastrophic
     - hidden attribute for ancestry doesn't necessarily entail removal of entire scope
 
+- "collapse subtree" doesn't work
+
+- override visible should probably be true by default
+
+- floating tag
+
+- move node up to grandparent hotkey
+
+- show hidden children / hide hidden children cmd
+
+- navigate to next node that's in nav tree instead of "visible"
+
+- abstract "visible" filtering in model to take arbitrary condition
 
 ## Other TODO
 

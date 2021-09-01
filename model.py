@@ -58,6 +58,7 @@ DEFAULT_PREFERENCES = {
     'save_counterfactuals': False,
     'prob': True,
     'reverse': False,
+    'nav_tag': 'bookmark',
     # display children preview
     # darkmode
 }
@@ -438,7 +439,10 @@ class TreeModel:
     # return next sibling
     def sibling(self, node, offset=1, visible_only=True, wrap=True):
         siblings = self.visible_siblings(node) if visible_only else self.parent(node)['children']
-        new_idx = (siblings.index(node) + offset) % len(siblings)
+        if node not in siblings:
+            new_idx = 0
+        else:
+            new_idx = (siblings.index(node) + offset) % len(siblings)
         if not wrap and new_idx == 0:
             return self.parent(node)
         return siblings[new_idx]
@@ -451,7 +455,10 @@ class TreeModel:
         if not self.has_parent(node):
             return 0
         siblings = self.visible_siblings(node) if visible_only else self.parent(node)['children']
-        return siblings.index(node)
+        if node in siblings:
+            return siblings.index(node)
+        else:
+            return 0
 
 
 
@@ -669,7 +676,7 @@ class TreeModel:
 
 
     # TODO Doesn't support deleting root
-    def delete_node(self, node=None, reassign_children=False, refresh_nav=True):
+    def delete_node(self, node=None, reassign_children=False):
         node = node if node else self.selected_node
         if "parent_id" not in node:
             return
@@ -681,18 +688,7 @@ class TreeModel:
         if reassign_children:
             siblings.extend(node["children"])
 
-        # Select parent or the next sibling if possible and not keeping the children
-        # if node == self.selected_node:
-        #     self.select_node()
-        #     if reassign_children or len(self.visible_siblings(node)) == 0:
-        #         self.select_node(parent["id"])
-        #     else:
-        #         self.select_node(next_sibling['id'], wrap=False)
         self.tree_updated_silent()
-        # if refresh_nav:
-        #     self.tree_updated(delete=[node['id']])
-        # else:
-        #     self.tree_updated_silent()
 
     # TODO add creation date if it doesn't exist
     def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False, refresh_nav=True):
@@ -746,7 +742,7 @@ class TreeModel:
                     # node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
                     #                               'revision timestamp': timestamp()})
             if refresh_nav:
-                self.tree_updated(edit=[node['id']])
+                self.tree_updated(edit=[node['id']], override_visible=True)
 
 
     def update_note(self, node, text, index=0):
@@ -1209,19 +1205,19 @@ class TreeModel:
         update_scope = self.tag_scope(node, tag)
         if self.has_tag_attribute(node, tag):
             if self.tags[tag]['hide']:
-                self.tree_updated(delete=update_scope)
+                self.tree_updated(delete=update_scope, override_visible=True)
                 return
-            elif self.tags[tag]['show_only']:
-                self.tree_updated(add=update_scope)
-                return
+            # elif self.tags[tag]['show_only']:
+            #     self.tree_updated(add=update_scope, override_visible=True)
+            #     return
         else:
             if self.tags[tag]['hide']:
-                self.tree_updated(add=update_scope)
+                self.tree_updated(add=update_scope, override_visible=True)
                 return
             elif self.tags[tag]['show_only']:
-                self.tree_updated(delete=update_scope)
+                self.tree_updated(delete=update_scope, override_visible=True)
                 return
-        self.tree_updated(edit=update_scope)
+        self.tree_updated(edit=update_scope, override_visible=True)
 
 
     #################################

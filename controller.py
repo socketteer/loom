@@ -254,11 +254,15 @@ class Controller:
     # @metadata(name=, keys=, display_key=)
     @metadata(name="Next", keys=["<period>", "<Return>", "<Control-period>"], display_key=">")
     def next(self):
-        self.select_node(node=self.state.node(self.state.next_id(1)))
+        #self.select_node(node=self.state.node(self.state.next_id(1)))
+        self.select_node(node=self.state.node(self.state.find_next(condition=self.in_nav,
+                                                                   visible_only=False)))
 
     @metadata(name="Prev", keys=["<comma>", "<Control-comma>"], display_key="<",)
     def prev(self):
-        self.select_node(node=self.state.node(self.state.next_id(-1)))
+        #self.select_node(node=self.state.node(self.state.next_id(-1)))
+        self.select_node(node=self.state.node(self.state.find_prev(condition=self.in_nav,
+                                                                   visible_only=False)))
 
     @metadata(name="Go to parent", keys=["<Left>", "<Control-Left>"], display_key="←")
     def parent(self, node=None):
@@ -382,12 +386,12 @@ class Controller:
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
         #self.next_tag("bookmark")
-        self.next_tag("read")
+        self.next_tag(self.state.preferences.get("nav_tag", "bookmark"))
 
     @metadata(name="Go to prev bookmark", keys=["<Key-a>", "<Control-a>"])
     def prev_bookmark(self):
         #self.prev_tag("bookmark")
-        self.prev_tag("read")
+        self.prev_tag(self.state.preferences.get("nav_tag", "bookmark"))
 
     @metadata(name="Center view", keys=["<Key-l>", "<Control-l>"])
     def center_view(self):
@@ -407,9 +411,12 @@ class Controller:
 
             #print('coloring text')
 
+    def in_nav(self, node):
+        return self.display.nav_tree.exists(node['id'])
+
     @metadata(name="Select node")
     def select_node(self, node, noscroll=False, ask_reveal=True):
-        if not self.display.nav_tree.exists(node['id']):
+        if not self.in_nav(node):
             if ask_reveal:
                 self.ask_reveal(node)
             else:
@@ -424,7 +431,8 @@ class Controller:
             #     if not noscroll:
             #         self.update_read_color(old_node, node)
             self.state.select_node(node['id'], noscroll=True)
-            self.update_read_color(old_node, node)
+            if old_node:
+                self.update_read_color(old_node, node)
 
         else:
             self.state.select_node(node['id'])
@@ -493,6 +501,9 @@ class Controller:
     @metadata(name="Merge with children", keys=["<Shift-Right>"], display_key="shift-right")
     def merge_children(self, node=None):
         node = node if node else self.state.selected_node
+        if not node['children']:
+            print('no children')
+            return
         if not self.state.is_mutable(node):
             self.immutable_popup(node)
             return
@@ -501,7 +512,11 @@ class Controller:
             if not self.state.is_mutable(child):
                 self.immutable_popup(child)
                 return
+        visible_children = self.state.visible_children(node)
         self.state.merge_with_children(node=node)
+        self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(node))])
+        if visible_children:
+            self.select_node(visible_children[0])
 
     @metadata(name="Move up", keys=["<Shift-Up>"], display_key="shift-up")
     def move_up(self, node=None):
@@ -571,7 +586,7 @@ class Controller:
         self.state.delete_node(node=node, reassign_children=reassign_children)
         if self.state.selected_node_id == node['id']:
             self.select_node(next_sibling)
-        self.state.tree_updated(delete=[node['id']])
+        self.state.tree_updated(delete=[node['id']], override_visible=True)
         return True
 
     @metadata(name="Delete and reassign children")
@@ -1148,7 +1163,7 @@ class Controller:
     @metadata(name="Preferences", keys=["<Control-p>"], display_key="")
     def preferences(self):
         #print(self.state.preferences)
-        dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences)
+        dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences, state=self.state)
         self.state.tree_updated(rebuild=True)
         self.state.selection_updated()
 
@@ -1953,11 +1968,10 @@ class Controller:
             image = self.display.icons['compound']['icon']
         elif 'multimedia' in node and len(node['multimedia']) > 0:
             image = self.display.media_icon
-        else:
-            for tag in self.state.tags:
-                if self.state.has_tag_attribute(node, tag):
-                    if self.state.tags[tag]['icon'] != 'None':
-                        image = self.display.icons[self.state.tags[tag]['icon']]["icon"]
+        for tag in self.state.tags:
+            if self.state.has_tag_attribute(node, tag):
+                if self.state.tags[tag]['icon'] != 'None':
+                    image = self.display.icons[self.state.tags[tag]['icon']]["icon"]
         if not image:
             image = self.display.empty_icon
         return image
@@ -2015,7 +2029,7 @@ class Controller:
         if not self.display.nav_tree.get_children() or kwargs.get('rebuild', False):
             self.build_nav_tree()
 
-        override_visible = kwargs.get('override_visible', False)
+        override_visible = kwargs.get('override_visible', True)
 
         if 'edit' not in kwargs and 'add' not in kwargs and 'delete' not in kwargs:
             return
@@ -2244,7 +2258,7 @@ class Controller:
     def fix_selection(self, **kwargs):
         if not self.state.selected_node:
             self.state.selected_node_id = self.state.root()["id"]
-        elif not self.state.visible(self.state.selected_node):
+        elif not self.display.nav_tree.exists(self.state.selected_node_id):
             self.state.selected_node_id = self.state.find_next(condition=lambda node: self.state.visible(node),
                                                                visible_only=False)
 

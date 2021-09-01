@@ -958,8 +958,9 @@ class Summaries(Dialog):
 
 
 class PreferencesDialog(Dialog):
-    def __init__(self, parent, orig_params):
+    def __init__(self, parent, orig_params, state):
         self.orig_params = orig_params
+        self.state = state
         self.vars = {
             #"hide_archived": tk.BooleanVar,
             #"canonical_only": tk.BooleanVar,
@@ -979,6 +980,7 @@ class PreferencesDialog(Dialog):
             "line_spacing": tk.IntVar,
             "paragraph_spacing": tk.IntVar,
             "reverse": tk.BooleanVar,
+            "nav_tag": tk.StringVar,
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
@@ -994,6 +996,14 @@ class PreferencesDialog(Dialog):
         create_label(master, "Nav tree")
         #create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)
         create_checkbutton(master, "Reverse node order", "reverse", self.vars)
+
+        create_label(master, "Navigation")
+        #create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)
+        row = master.grid_size()[1]
+        create_side_label(master, "A/D to navigate tag", row)
+        tag_options = self.state.tags.keys()
+        dropdown = tk.OptionMenu(master, self.vars["nav_tag"], *tag_options)
+        dropdown.grid(row=row, column=1, pady=3)
 
         create_label(master, "Story frame")
         create_checkbutton(master, "Bold prompt", "bold_prompt", self.vars)
@@ -1016,8 +1026,8 @@ class PreferencesDialog(Dialog):
 
         row = master.grid_size()[1]
         create_side_label(master, "Display mode", row)
-        options = ['edit', 'read', 'none']
-        dropdown = tk.OptionMenu(master, self.vars["coloring"], *options)
+        mode_options = ['edit', 'read', 'none']
+        dropdown = tk.OptionMenu(master, self.vars["coloring"], *mode_options)
         dropdown.grid(row=row, column=1, pady=3)
 
         create_slider(master, "Font size", self.vars["font_size"], (5, 20))
