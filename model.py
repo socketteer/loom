@@ -884,7 +884,9 @@ class TreeModel:
             while len(self.visible_children(tail)) == 1:
                 tail = self.visible_children(tail)[0]
         if not (head == node and tail == node):
-            return self.zip(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
+            zipped = self.zip(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
+            zipped['tags'] = self.get_constituents_tags(zipped)
+            return zipped
         else:
             return node
 
@@ -907,6 +909,27 @@ class TreeModel:
         # TODO this interferes with hoist?
         if self.is_compound(root) and not self.is_hoisted(root):
             head = self.unzip(root, refresh_nav=False, update_selection=False)
+
+    # returns list of masked nodes from head to tail
+    def constituents(self, mask):
+        if not self.is_compound(mask):
+            print('not compound node')
+            return
+        head = mask['masked_head']
+        head_dict = {d["id"]: d for d in flatten_tree(head)}
+        tail = head_dict[mask['tail_id']]
+        # TODO ancestry_in_range util instead
+        return node_ancestry(tail, head_dict)
+
+    def get_constituents_tags(self, mask):
+        tags = []
+        for node in self.constituents(mask):
+            tags.extend(node.get('tags', []))
+        tags = list(set(tags))
+        return tags
+
+    def tag_constituents(self, mask):
+        pass
 
     def reveal_ancestry(self, node):
         ancestry = node_ancestry(node, self.tree_node_dict)

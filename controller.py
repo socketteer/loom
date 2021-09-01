@@ -185,7 +185,7 @@ class Controller:
                 ("Merge with parent", 'Shift+Left', None, no_junk_args(self.merge_parent)),
                 ("Merge with children", 'Shift+Right', None, no_junk_args(self.merge_children)),
                 ("Move up", 'Shift+Up', None, no_junk_args(self.move_up)),
-                ("Move up", 'Shift+Down', None, no_junk_args(self.move_down)),
+                ("Move down", 'Shift+Down', None, no_junk_args(self.move_down)),
                 ('Prepend newline', 'N, Ctrl+N', None, no_junk_args(self.prepend_newline)),
                 ('Prepend space', 'Ctrl+Space', None, no_junk_args(self.prepend_space)),
                 ('Copy', 'Ctrl+C', None, no_junk_args(self.copy_text)),
@@ -372,20 +372,22 @@ class Controller:
             self.state.tree_updated(edit=[node['id']])
 
     def next_tag(self, tag):
-        next_tag_id = self.state.find_next(condition=lambda node: self.state.has_tag(node, tag))
+        next_tag_id = self.state.find_next(condition=lambda node: self.state.has_tag_attribute(node, tag))
         self.select_node(self.state.node(next_tag_id))
 
     def prev_tag(self, tag):
-        prev_tag_id = self.state.find_prev(condition=lambda node: self.state.has_tag(node, tag))
+        prev_tag_id = self.state.find_prev(condition=lambda node: self.state.has_tag_attribute(node, tag))
         self.select_node(self.state.node(prev_tag_id))
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
-        self.next_tag("bookmark")
+        #self.next_tag("bookmark")
+        self.next_tag("read")
 
     @metadata(name="Go to prev bookmark", keys=["<Key-a>", "<Control-a>"])
     def prev_bookmark(self):
-        self.prev_tag("bookmark")
+        #self.prev_tag("bookmark")
+        self.prev_tag("read")
 
     @metadata(name="Center view", keys=["<Key-l>", "<Control-l>"])
     def center_view(self):
@@ -393,7 +395,7 @@ class Controller:
         self.display.vis.center_view_on_node(self.state.selected_node)
 
     def update_read_color(self, old_node, node):
-        if self.display.mode == 'read':
+        if self.display.mode == 'Read':
             nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
             nca_end_index = self.ancestor_end_indices[index]
             self.display.textbox.tag_delete("old")
@@ -401,6 +403,9 @@ class Controller:
                                          "1.0",
                                          f"1.0 + {nca_end_index} chars")
             self.display.textbox.tag_config("old", foreground=history_color())
+            self.display.textbox.see(f"1.0 + {nca_end_index} chars")
+
+            #print('coloring text')
 
     @metadata(name="Select node")
     def select_node(self, node, noscroll=False, ask_reveal=True):
@@ -418,7 +423,7 @@ class Controller:
             #     self.select_node(visible_children[0], noscroll=True)
             #     if not noscroll:
             #         self.update_read_color(old_node, node)
-            self.state.select_node(node['id'], noscroll=noscroll)
+            self.state.select_node(node['id'], noscroll=True)
             self.update_read_color(old_node, node)
 
         else:
@@ -1449,7 +1454,10 @@ class Controller:
         #self.setup_custom_key_bindings()
         #self.state.reset_tags()
         #self.state.turn_attributes_into_tags()
-        print(self.state.summary_prompt(node=self.state.selected_node))
+        constituents = self.state.constituents(self.state.selected_node)
+        for c in constituents:
+            print(c['text'])
+        #print(self.state.summary_prompt(node=self.state.selected_node))
         #print(self.state.custom_prompt(node=self.state.selected_node, filename='prose_to_script.txt'))
         #TagsDialog(parent=self.display.frame, state=self.state)
         #AddTagDialog(parent=self.display.frame, state=self.state)
@@ -1970,9 +1978,11 @@ class Controller:
         # if node is root, then index = 0
         insert_idx = self.state.siblings_index(node)
         parent_id = node.get("parent_id", "")
+        # TODO instead of visible, check if parent is in nav tree
         if parent_id:
-            if not self.state.visible(self.state.node(parent_id)):
-                parent_id = self.state.root()['id']
+            if not self.display.nav_tree.exists(parent_id):
+                if not self.state.visible(self.state.node(parent_id)):
+                    parent_id = self.state.root()['id']
         self.display.nav_tree.insert(
             parent=parent_id,
             index=insert_idx,#0 if self.state.preferences.get('reverse', False) else "end",

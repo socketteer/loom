@@ -14,9 +14,16 @@
     - tag config
         - nav tree foreground / background
         - reset
+        - hotkey to navigate tags
+        - change order
     - search tags
-    - hotkey to navigate tags
     - redistribute tags when merging nodes
+    - when unzipping node, children inherit all *new* tags of zipped node (or same rules as split)
+        - should these tags be assigned at tagging time?
+    - compound node tag inheritance
+        - remove always visible condition for compound
+        - compound nodes should keep a list of all encapsulated attributes
+    - permissive show/hide
 - inline scroll through short completions
 - fix everything that uses old data format
     - wavefunction
@@ -40,7 +47,6 @@
     - should be with Display?
     - multiple selected nodes
 - multiple generation presets
-    - for generating new nodes
     - for inline generation
 - fix reverse
     - also reverse nav direction when nav tree is reversed
@@ -52,11 +58,20 @@
     - prompt to partition long text into summaries
 - easy way to show archived children
 
-- icons showing up for ancestry
+- icons showing up for ancestry scope?
 - scroll to beginning of node text when navigating
-- generate nodes...
-- when unzipping node, children inherit all tags of zipped node (or same rules as split)
-    ??
+- generate nodes when generated nodes should be hidden... override
+- when nodes fail to generate somehow, this sometimes messes up future generations
+
+- change node order doesn't work (at least with compound nodes)
+
+- compound nodes should have start text preview if not root
+
+- ancestors of compound also visible
+
+- adding / removing ancestry is catastrophic
+    - hidden attribute for ancestry doesn't necessarily entail removal of entire scope
+
 
 ## Other TODO
 

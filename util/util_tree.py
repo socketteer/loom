@@ -91,8 +91,11 @@ def tree_subset(root, new_root=None, include_condition=None):
 def node_ancestry(node, node_dict):
     ancestry = [node]
     while "parent_id" in node:
-        node = node_dict[node["parent_id"]]
-        ancestry.insert(0, node)
+        if node['parent_id'] in node_dict:
+            node = node_dict[node["parent_id"]]
+            ancestry.insert(0, node)
+        else:
+            break
     return ancestry
 
 # returns whether node_a was created before node_b
