@@ -27,7 +27,7 @@ from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSett
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
-    node_index, nearest_common_ancestor, collect_conditional
+    node_index, nearest_common_ancestor, filtered_children
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
 from util.keybindings import tkinter_keybindings
 
@@ -75,8 +75,8 @@ class Controller:
 
     def register_model_callbacks(self):
         # When the tree is updated, refresh the navtree, nav selection, and textbox
-        self.state.register_callback(self.state.tree_updated, self.fix_selection)
         self.state.register_callback(self.state.tree_updated, self.update_nav_tree)
+        self.state.register_callback(self.state.tree_updated, self.fix_selection)
         self.state.register_callback(self.state.tree_updated, self.update_nav_tree_selected)
         self.state.register_callback(self.state.tree_updated, self.update_chapter_nav_tree)
         self.state.register_callback(self.state.tree_updated, self.update_chapter_nav_tree_selected)
@@ -253,40 +253,40 @@ class Controller:
 
     # @metadata(name=, keys=, display_key=)
     @metadata(name="Next", keys=["<period>", "<Return>", "<Control-period>"], display_key=">")
-    def next(self):
-        #self.select_node(node=self.state.node(self.state.next_id(1)))
-        self.select_node(node=self.state.node(self.state.find_next(condition=self.in_nav,
-                                                                   visible_only=False)))
+    def next(self, node=None):
+        node = node if node else self.state.selected_node
+        self.select_node(node=self.state.node(self.state.find_next(node=node, visible_filter=self.in_nav)))
 
     @metadata(name="Prev", keys=["<comma>", "<Control-comma>"], display_key="<",)
-    def prev(self):
-        #self.select_node(node=self.state.node(self.state.next_id(-1)))
-        self.select_node(node=self.state.node(self.state.find_prev(condition=self.in_nav,
-                                                                   visible_only=False)))
+    def prev(self, node=None):
+        node = node if node else self.state.selected_node
+        self.select_node(node=self.state.node(self.state.find_prev(node=node, visible_filter=self.in_nav)))
 
     @metadata(name="Go to parent", keys=["<Left>", "<Control-Left>"], display_key="←")
     def parent(self, node=None):
         node = node if node else self.state.selected_node
-        self.select_node(node=self.state.parent(node))
+        parent = self.state.parent(node)
+        if parent:
+            self.select_node(node=parent)
 
     @metadata(name="Go to child", keys=["<Right>", "<Control-Right>"], display_key="→")
     def child(self, node=None, idx=0):
         node = node if node else self.state.selected_node
-        child = self.state.child(node, idx)
+        child = self.state.child(node, idx, filter=self.in_nav)
         if child is not None:
             self.select_node(node=child)
 
     @metadata(name="Go to next sibling", keys=["<Down>", "<Control-Down>"], display_key="↓")
     def next_sibling(self, node=None):
         node = node if node else self.state.selected_node
-        self.select_node(node=self.state.sibling(node, 1))
+        self.select_node(node=self.state.sibling(node, 1, filter=self.in_nav))
 
     @metadata(name="Go to previous Sibling", keys=["<Up>", "<Control-Up>"], display_key="↑")
-    def prev_sibling(self, node=None):
+    def prev_sibling(self, node=None): 
         node = node if node else self.state.selected_node
-        self.select_node(node=self.state.sibling(node, -1))
+        self.select_node(node=self.state.sibling(node, -1, filter=self.in_nav))
 
-    # TODO deprecated canonical
+    # TODO extremely deprecated
     @metadata(name="Walk", keys=["<Key-w>", "<Control-w>"], display_key="w")
     def walk(self, canonical_only=False):
         filter_set = self.state.tagged_nodes("canonical") if canonical_only else None
@@ -358,39 +358,41 @@ class Controller:
         self.state.preferences['show_prompt'] = not self.state.preferences['show_prompt']
         self.refresh_textbox()
 
-    @metadata(name="Archive")
-    def archive(self, node=None):
-        node = node if node else self.state.selected_node
-        self.state.tag_node(node, "archived")
-        if self.state.preferences['hide_archived']:
-            self.state.tree_updated(delete=[node['id']])
-        else:
-            self.state.tree_updated(edit=[node['id']])
+    # @metadata(name="Archive")
+    # def archive(self, node=None):
+    #     node = node if node else self.state.selected_node
+    #     self.state.tag_node(node, "archived")
+    #     if self.state.preferences['hide_archived']:
+    #         self.state.tree_updated(delete=[node['id']])
+    #     else:
+    #         self.state.tree_updated(edit=[node['id']])
 
-    def unarchive(self, node=None):
-        node = node if node else self.state.selected_node
-        self.state.untag_node(node, "archived")
-        if self.state.preferences['hide_archived']:
-            self.state.tree_updated(add=[node['id']])
-        else:
-            self.state.tree_updated(edit=[node['id']])
+    # def unarchive(self, node=None):
+    #     node = node if node else self.state.selected_node
+    #     self.state.untag_node(node, "archived")
+    #     if self.state.preferences['hide_archived']:
+    #         self.state.tree_updated(add=[node['id']])
+    #     else:
+    #         self.state.tree_updated(edit=[node['id']])
 
-    def next_tag(self, tag):
-        next_tag_id = self.state.find_next(condition=lambda node: self.state.has_tag_attribute(node, tag))
+    def next_tag(self, tag, node=None):
+        node = node if node else self.state.selected_node
+        next_tag_id = self.state.find_next(node=node, filter=lambda node: self.state.has_tag_attribute(node, tag),
+                                           visible_filter=self.in_nav)
         self.select_node(self.state.node(next_tag_id))
 
-    def prev_tag(self, tag):
-        prev_tag_id = self.state.find_prev(condition=lambda node: self.state.has_tag_attribute(node, tag))
+    def prev_tag(self, tag, node=None):
+        node = node if node else self.state.selected_node
+        prev_tag_id = self.state.find_prev(node=node, filter=lambda node: self.state.has_tag_attribute(node, tag),
+                                           visible_filter=self.in_nav)
         self.select_node(self.state.node(prev_tag_id))
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
     def next_bookmark(self):
-        #self.next_tag("bookmark")
         self.next_tag(self.state.preferences.get("nav_tag", "bookmark"))
 
     @metadata(name="Go to prev bookmark", keys=["<Key-a>", "<Control-a>"])
     def prev_bookmark(self):
-        #self.prev_tag("bookmark")
         self.prev_tag(self.state.preferences.get("nav_tag", "bookmark"))
 
     @metadata(name="Center view", keys=["<Key-l>", "<Control-l>"])
@@ -440,6 +442,12 @@ class Controller:
 
 
     #################################
+    #   Nav update
+    #################################
+
+
+
+    #################################
     #   Node operations
     #################################
 
@@ -450,28 +458,33 @@ class Controller:
     @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Alt-Right>"], display_key="h",)
     def create_child(self, node=None, update_selection=True, toggle_edit=True):
         node = node if node else self.state.selected_node
-        child = self.state.create_child(parent=node, update_selection=False)
-        self.select_node(child, ask_reveal=False)
-        self.state.node_creation_metadata(child, source='prompt')
+        new_child = self.state.create_child(parent=node)
+        self.state.tree_updated(add=[new_child['id']])
+        self.select_node(new_child, ask_reveal=False)
+        self.state.node_creation_metadata(new_child, source='prompt')
         if self.display.mode == "Read" and toggle_edit:
             self.toggle_edit_mode()
-        return child
+        return new_child
 
     @metadata(name="New Sibling", keys=["<Alt-Down>"], display_key="alt-down")
     def create_sibling(self, node=None):
         node = node if node else self.state.selected_node
-        sibling = self.state.create_sibling(node=node, update_selection=False)
-        self.select_node(sibling, ask_reveal=False)
-        self.state.node_creation_metadata(sibling, source='prompt')
+        new_sibling = self.state.create_sibling(node=node)
+        self.state.tree_updated(add=[new_sibling['id']])
+        self.select_node(new_sibling, ask_reveal=False)
+        self.state.node_creation_metadata(new_sibling, source='prompt')
         if self.display.mode == "Read":
             self.toggle_edit_mode()
+        return new_sibling
 
     @metadata(name="New Parent", keys=["<Alt-Left>"], display_key="alt-left")
     def create_parent(self, node=None):
         node = node if node else self.state.selected_node
-        parent = self.state.create_parent(node=node)
-        self.state.node_creation_metadata(parent, source='prompt')
-        return parent
+        new_parent = self.state.create_parent(node=node)
+        self.state.tree_updated(add=[new_parent['id']])
+        self.state.tree_updated(add=[n['id'] for n in subtree_list(new_parent, filter=self.in_nav)])
+        self.state.node_creation_metadata(new_parent, source='prompt')
+        return new_parent
 
     @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None, click_mode=False)
     def change_parent(self, node=None, click_mode=False):
@@ -483,6 +496,8 @@ class Controller:
         else:
             self.display.change_cursor("arrow")
             self.state.change_parent(node=self.change_parent.meta["selected_node"], new_parent_id=node["id"])
+            self.state.tree_updated(add=[n['id'] for n in subtree_list(self.change_parent.meta["selected_node"],
+                                                                       filter=self.in_nav)])
             self.change_parent.meta["selected_node"] = None
             self.change_parent.meta["click_mode"] = False
 
@@ -497,6 +512,8 @@ class Controller:
             self.immutable_popup(parent)
             return
         self.state.merge_with_parent(node=node)
+        self.state.tree_updated(add=[n['id'] for n in subtree_list(parent, filter=self.in_nav)])
+        self.select_node(parent, ask_reveal=False)
 
     @metadata(name="Merge with children", keys=["<Shift-Right>"], display_key="shift-right")
     def merge_children(self, node=None):
@@ -512,9 +529,9 @@ class Controller:
             if not self.state.is_mutable(child):
                 self.immutable_popup(child)
                 return
-        visible_children = self.state.visible_children(node)
+        visible_children = filtered_children(node, filter=self.in_nav)
         self.state.merge_with_children(node=node)
-        self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(node))])
+        self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
         if visible_children:
             self.select_node(visible_children[0])
 
@@ -523,12 +540,14 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         self.state.shift(node, -1)
+        self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
 
     @metadata(name="Move down", keys=["<Shift-Down>"], display_key="shift-down")
     def move_down(self, node=None):
         if node is None:
             node = self.state.selected_node
         self.state.shift(node, 1)
+        self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
 
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
     def generate(self, node=None, **kwargs):
@@ -627,6 +646,8 @@ class Controller:
             negative_offset = self.ancestor_end_indices[ancestor_index] - index
             split_index = len(selected_ancestor['text']) - negative_offset
             new_parent, _ = self.state.split_node(selected_ancestor, split_index)
+            self.state.tree_updated(add=[new_parent['id']])
+            self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(new_parent), filter=self.in_nav)])
             if change_selection:
                 self.nav_select(node_id=new_parent["id"])
             # TODO deal with metadata
@@ -637,15 +658,15 @@ class Controller:
 
     def zip_chain(self, node=None):
         node = node if node else self.state.selected_node
-        self.state.zip_chain(node, refresh_nav=True, update_selection=True)
+        self.state.zip_chain(node, filter=self.in_nav, refresh_nav=True, update_selection=True)
 
     def zip_all_chains(self):
-        self.state.zip_all_chains()
+        self.state.zip_all_chains(filter=self.in_nav)
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
 
     def unzip_all(self):
-        self.state.unzip_all()
+        self.state.unzip_all(filter=self.in_nav)
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
 
@@ -1269,8 +1290,7 @@ class Controller:
                 self.clear_search()
         self.search_textbox.meta['search_term'] = pattern
         self.search_textbox.meta['case_sensitive'] = case_sensitive
-        ancestry_text, _ = self.state.ancestry_text_list()
-        ancestry_text = ''.join(ancestry_text)
+        ancestry_text, _ = self.state.ancestry_text(self.state.selected_node)
         matches = []
         matches_iter = re.finditer(pattern, ancestry_text) if case_sensitive \
             else re.finditer(pattern, ancestry_text, re.IGNORECASE)
@@ -1404,10 +1424,11 @@ class Controller:
             self.state.preferences['show_children'] = False
             self.hide_children()
 
-    def show_children(self, **kwargs):
+    def show_children(self, node=None, **kwargs):
+        node = node if node else self.state.selected_node
         if self.state.preferences['show_children'] and self.state.selected_node \
                 and self.display.mode in ("Read", "Edit"):
-            children = self.state.visible_children()
+            children = filtered_children(node, self.in_nav)
             self.display.build_multi_frame(len(children))
             self.display.populate_textboxes(children)
             self.display.textbox.update_idletasks()
@@ -1469,9 +1490,11 @@ class Controller:
         #self.setup_custom_key_bindings()
         #self.state.reset_tags()
         #self.state.turn_attributes_into_tags()
-        constituents = self.state.constituents(self.state.selected_node)
-        for c in constituents:
+        for c in self.state.selected_node['children']:
             print(c['text'])
+        # constituents = self.state.constituents(self.state.selected_node)
+        # for c in constituents:
+        #     print(c['text'])
         #print(self.state.summary_prompt(node=self.state.selected_node))
         #print(self.state.custom_prompt(node=self.state.selected_node, filename='prose_to_script.txt'))
         #TagsDialog(parent=self.display.frame, state=self.state)
@@ -1799,7 +1822,7 @@ class Controller:
                 # TODO bad color for lightmode
                 self.display.textbox.tag_config("selected", background="black", foreground=text_color())
                 self.display.textbox.tag_config("modified", background="blue", foreground=text_color())
-                ancestry, indices = self.state.ancestry_text_list()
+                ancestry, indices = self.state.ancestry_text_list(self.state.selected_node)
                 self.ancestor_end_indices = indices
                 history = ''
                 for node_text in ancestry[:-1]:
@@ -1864,9 +1887,9 @@ class Controller:
         else:
             self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size']))
         self.display.textbox.tag_remove("prompt", "1.0", 'end')
-        ancestry_text, indices = self.state.ancestry_text_list()
+        ancestry_text, indices = self.state.ancestry_text_list(self.state.selected_node)
         start_index = 0
-        for i, ancestor in enumerate(node_ancestry(self.state.selected_node, self.state.tree_node_dict)):
+        for i, ancestor in enumerate(self.state.ancestry(self.state.selected_node)):
             if 'meta' in ancestor and 'source' in ancestor['meta']:
                 if not (ancestor['meta']['source'] == 'AI' or ancestor['meta']['source'] == 'mixed'):
                     self.display.textbox.tag_add("prompt", f"1.0 + {start_index} chars", f"1.0 + {indices[i]} chars")
@@ -1947,12 +1970,12 @@ class Controller:
             text = self.state.name()
         else:
             if 'nav_display_text' in node:
-                node_text = node['nav_display_text']
+                text = node['nav_display_text'].replace('\n', '\\n')
             else:
                 node_text = node['text']
-            text = node_text.strip()[:20].replace('\n', ' ')
-            text = text if text else "EMPTY"
-            text = text + "..." if len(node_text) > 20 else text
+                text = node_text.strip()[:30].replace('\n', '\\n')
+                text = text if text else "EMPTY"
+                text = text + "..." if len(node_text) > 30 else text
             text = '~' + text if self.state.has_tag(node, "archived") else text
         if 'chapter_id' in node:
             text = f"{text} | {self.state.chapter_title(node)}"
@@ -1990,13 +2013,15 @@ class Controller:
     def insert_nav(self, node, image, tags):
         # get index of node in sibling list 
         # if node is root, then index = 0
-        insert_idx = self.state.siblings_index(node)
+        insert_idx = self.state.siblings_index(node, filter=self.state.visible)
         parent_id = node.get("parent_id", "")
         # TODO instead of visible, check if parent is in nav tree
         if parent_id:
-            if not self.display.nav_tree.exists(parent_id):
+            if not self.in_nav(self.state.node(parent_id)):
                 if not self.state.visible(self.state.node(parent_id)):
                     parent_id = self.state.root()['id']
+                else:
+                    print('parent not in nav but visible')
         self.display.nav_tree.insert(
             parent=parent_id,
             index=insert_idx,#0 if self.state.preferences.get('reverse', False) else "end",
@@ -2009,7 +2034,7 @@ class Controller:
 
     def build_nav_tree(self, flat_tree=None):
         if not flat_tree:
-            flat_tree = self.state.visible_node_dict#self.state.generate_filtered_tree()
+            flat_tree = self.state.nodes_dict(filter=self.state.visible)#self.state.generate_filtered_tree()
         self.display.nav_tree.delete(*self.display.nav_tree.get_children())
         for id in flat_tree:
             node = self.state.node(id)
@@ -2029,18 +2054,16 @@ class Controller:
         if not self.display.nav_tree.get_children() or kwargs.get('rebuild', False):
             self.build_nav_tree()
 
-        override_visible = kwargs.get('override_visible', True)
+        #override_visible = kwargs.get('override_visible', True)
 
         if 'edit' not in kwargs and 'add' not in kwargs and 'delete' not in kwargs:
             return
         else:
             #visible = lambda _node: all(condition(_node) for condition in self.state.generate_visible_conditions())
-            visible = self.state.id_visible
+            #visible = self.state.id_visible
             delete_items = [i for i in kwargs['delete']] if 'delete' in kwargs else []
-            edit_items = [i for i in kwargs['edit'] if i in self.state.tree_node_dict
-                          and (visible(i) or override_visible)] if 'edit' in kwargs else []
-            add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict
-                         and (visible(i) or override_visible)] if 'add' in kwargs else []
+            edit_items = [i for i in kwargs['edit'] if i in self.state.tree_node_dict] if 'edit' in kwargs else []
+            add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict] if 'add' in kwargs else []
 
         self.display.nav_tree.delete(*delete_items)
 
@@ -2160,18 +2183,12 @@ class Controller:
             return False
 
     def set_nav_scrollbars(self):
-        # visible_conditions = [lambda _node: not _node.get('archived', False)] \
-        #     if self.state.preferences['hide_archived'] else []
-        #visible_nodes = collect_visible(self.state.tree_raw_data["root"], visible_conditions)
-        #tree_conditions = self.state.generate_visible_conditions()
-        #tree_conditions.append(self.node_open)
-        visible_nodes = [node for node in self.state.visible_nodes if self.node_open(node)]
-        #visible_nodes = collect_conditional(self.state.tree_raw_data["root"], tree_conditions)
-        #print(visible_nodes)
-        #visible_nodes = self.state.generate_filtered_tree()
-        visible_ids = {d["id"] for d in visible_nodes}
+
+        open_nav_nodes = self.state.nodes_list(filter=lambda node: self.in_nav(node) and self.node_open(node))
+
+        open_nav_ids = {d["id"] for d in open_nav_nodes}
         # Ordered by tree order
-        visible_ids = [iid for iid in self.state.tree_node_dict.keys() if iid in visible_ids]
+        open_nav_ids = [iid for iid in self.state.tree_node_dict.keys() if iid in open_nav_ids]
 
         # Magic numbers
         WIDTH_PER_INDENT = 20  # Derived...
@@ -2181,7 +2198,7 @@ class Controller:
 
         open_height = max([
             depth(self.state.tree_node_dict.get(iid, {}), self.state.tree_node_dict)
-            for iid in visible_ids] + [0])
+            for iid in open_nav_ids] + [0])
 
         total_width = start_width + open_height * WIDTH_PER_INDENT
 
@@ -2190,15 +2207,6 @@ class Controller:
         current_width = depth(self.state.selected_node, self.state.tree_node_dict) \
                         * WIDTH_PER_INDENT + offset_from_selected
         self.display.nav_tree.xview_moveto(clip_num(current_width / total_width, 0, 1))
-
-        # Some other attempted methods....
-        # selected_depth = depth(self.state.selected_node)
-        # max_depth = depth(self.state.tree_raw_data)
-        # current_level = max_depth - selected_depth
-        # self.display.nav_tree.xview_moveto(0)
-        # self.display.nav_tree.xview_scroll(current_level, what="units")
-        # FIXME We're going by pixels
-        # self.display.nav_tree.xview_moveto(clip_num(1 - (selected_depth+2)/max_depth, 0, 1))
 
 
     # TODO duplicated from above method with minor changes because the chapter tree is quite different
@@ -2216,8 +2224,8 @@ class Controller:
                 return []
 
         chapter_trees, chapter_trees_dict = self.state.build_chapter_trees()
-        visible_nodes = [n for c in chapter_trees for n in collect_visible_chapters(c)]
-        visible_ids = {d["id"] for d in visible_nodes}
+        visible_chapters = [n for c in chapter_trees for n in collect_visible_chapters(c)]
+        visible_ids = {d["id"] for d in visible_chapters}
         # Ordered by tree order
         visible_ids = [iid for iid in chapter_trees_dict.keys() if iid in visible_ids]
 
@@ -2259,8 +2267,8 @@ class Controller:
         if not self.state.selected_node:
             self.state.selected_node_id = self.state.root()["id"]
         elif not self.display.nav_tree.exists(self.state.selected_node_id):
-            self.state.selected_node_id = self.state.find_next(condition=lambda node: self.state.visible(node),
-                                                               visible_only=False)
+            self.state.selected_node_id = self.state.find_next(node=self.state.selected_node,
+                                                               filter=self.in_nav)
 
 
 

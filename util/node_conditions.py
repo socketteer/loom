@@ -9,6 +9,11 @@ def condition(name):
     return wrapper
 
 
+def condition_lambda(node, and_conditions=None, or_conditions=None):
+    return (all(cond(node) for cond in and_conditions) if and_conditions else True)\
+           and (any(cond(node) for cond in or_conditions) if or_conditions else True)
+
+
 @condition("canonical")
 def node_is_canonical(node, **kwargs):
     return node['id'] in kwargs['calc_canonical_set']()

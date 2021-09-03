@@ -24,47 +24,57 @@ def height(d):
 def depth(d, node_dict):
     return 0 if "parent_id" not in d else (1 + depth(node_dict[d["parent_id"]], node_dict))
 
+def num_descendents(node, filter_set=None):
+    if not filter_set or node["id"] in filter_set:
+        descendents = 1
+        if 'children' in node:
+            for child in node['children']:
+                if not filter_set or child["id"] in filter_set:
+                    descendents += num_descendents(child)
+    else:
+        descendents = 0
+    return descendents
 
-def generate_conditional_tree(root, conditions=None):
+
+def num_leaves(node, filter_set=None):
+    if not filter_set or node["id"] in filter_set:
+        if 'children' in node and len(node['children']) > 0:
+            leaves = 0
+            for child in node['children']:
+                if not filter_set or child["id"] in filter_set:
+                    leaves += num_leaves(child)
+            return leaves
+        else:
+            return 1
+    else:
+        return 0
+
+
+def generate_conditional_tree(root, filter=None):
     return {d["id"]: d for d in flatten_tree(tree_subset(root=root,
                                                          new_root=None,
-                                                         include_condition=conditions),
+                                                         filter=filter),
                                              )}
 
 
-# generates flat list of nodes in a tree that satisfy condition
-def collect_conditional(node, conditions=None):
-    if not conditions:
-        return flatten_tree(node)
-    if isinstance(conditions, list):
-        condition_func = lambda child: all(cond(child) for cond in conditions)
-    else:
-        condition_func = conditions
-    li = [node]
-    for c in node["children"]:
-        if condition_func(c):
-            li += collect_conditional(c, condition_func)
-    return li
-
-
-def conditional_children(node, conditions=None):
-    condition_func = conditions_to_lambda(conditions)
-    if condition_func:
-        return [child for child in node['children'] if condition_func(child)]
+def filtered_children(node, filter=None):
+    if filter:
+        return [child for child in node['children'] if filter(child)]
     else:
         return node['children']
 
-
-def conditions_to_lambda(conditions):
-    if isinstance(conditions, list):
-        condition_func = lambda child: all(cond(child) for cond in conditions)
-    else:
-        condition_func = conditions
-    return condition_func
+def antifiltered_children(self, node, filter=None):
+    return [child for child in node['children'] if not filter(child)] if filter else []
 
 
-def anti_conditions_lambda(conditions):
-    return lambda child: not conditions_to_lambda(conditions)(child)
+def subtree_list(root, filter=None, depth_limit=None):
+    if depth_limit == 0:
+        return []
+    sub_list = [root]
+    children = filtered_children(root, filter)
+    for child in children:
+        sub_list += subtree_list(child, filter, depth_limit - 1 if depth_limit else None)
+    return sub_list
 
 
 # given a root node and include condition, returns a new tree which contains only nodes who satisfy
@@ -74,18 +84,22 @@ def anti_conditions_lambda(conditions):
 # TODO copy contains no data except id(same as old tree) and children - will cause problems?
 # TODO modify this function or make new function that copies all of tree?
 # TODO existing python function to filter/copy dictionary?
-def tree_subset(root, new_root=None, include_condition=None):
-    if not include_condition:
+def tree_subset(root, new_root=None, filter=None):
+    if not filter:
         return root
     if not new_root:
         new_root = {'id': root['id'], 'children': []}
     if 'children' in root:
-        for child in conditional_children(root, include_condition):
+        for child in filtered_children(root, filter):
             new_child = {'id': child['id'], 'children': []}
             new_root['children'].append(new_child)
-            tree_subset(child, new_child, include_condition)
+            tree_subset(child, new_child, filter)
     return new_root
 
+
+#################################
+#   Ancestry
+#################################
 
 # Returns a list of ancestor nodes beginning with the progenitor
 def node_ancestry(node, node_dict):
@@ -97,6 +111,50 @@ def node_ancestry(node, node_dict):
         else:
             break
     return ancestry
+
+# returns node ancestry starting from root
+def ancestry_in_range(root, node, node_dict):
+    ancestry = node_ancestry(node, node_dict)
+    i = 0
+    while ancestry[i]['id'] != root['id']:
+        i += 1
+    return ancestry[i:]
+
+def ancestry_text_list(ancestry=None):
+    text = []
+    end_indices = []
+    index = 0
+    for node in ancestry:
+        text.append(node["text"])
+        index += len(node["text"])
+        end_indices.append(index)
+    return text, end_indices
+
+def ancestry_plaintext(ancestry):
+    return ''.join(node['text'] for node in ancestry)
+
+def nearest_common_ancestor(node_a, node_b, node_dict):
+    ancestry_a = node_ancestry(node_a, node_dict)
+    ancestry_b = node_ancestry(node_b, node_dict)
+    # for node in ancestry_a:
+    #     print(node['id'])
+    # print('ancestry b')
+    # for node in ancestry_b:
+    #     print(node['id'])
+    for i in range(1, len(ancestry_a)):
+        if i > (len(ancestry_b) - 1) or ancestry_a[i] is not ancestry_b[i]:
+            return ancestry_a[i-1], i-1
+    return ancestry_a[-1], len(ancestry_a) - 1
+
+# Returns True if a is ancestor of b
+def in_ancestry(a, b, node_dict):
+    ancestry = node_ancestry(b, node_dict)
+    return a in ancestry
+
+
+def node_index(node, node_dict):
+    return len(node_ancestry(node, node_dict)) - 1
+
 
 # returns whether node_a was created before node_b
 # TODO for old nodes, extract date from generation metadata...?
@@ -112,30 +170,6 @@ def created_before(node_a, node_b):
     t1 = datetime.strptime(timestamp1, "%Y-%m-%d-%H.%M.%S")
     t2 = datetime.strptime(timestamp2, "%Y-%m-%d-%H.%M.%S")
     return t1 <= t2
-
-def nearest_common_ancestor(node_a, node_b, node_dict):
-    ancestry_a = node_ancestry(node_a, node_dict)
-    ancestry_b = node_ancestry(node_b, node_dict)
-    # for node in ancestry_a:
-    #     print(node['id'])
-    # print('ancestry b')
-    # for node in ancestry_b:
-    #     print(node['id'])
-    for i in range(1, len(ancestry_a)):
-        if i > (len(ancestry_b) - 1) or ancestry_a[i] is not ancestry_b[i]:
-            return ancestry_a[i-1], i-1
-    return ancestry_a[-1], len(ancestry_a) - 1
-
-
-def node_index(node, node_dict):
-    return len(node_ancestry(node, node_dict)) - 1
-
-
-# Returns True if a is ancestor of b
-def in_ancestry(a, b, node_dict):
-    ancestry = node_ancestry(b, node_dict)
-    return a in ancestry
-
 
 def get_inherited_attribute(attribute, node, tree_node_dict):
     for lineage_node in reversed(node_ancestry(node, tree_node_dict)):
@@ -181,30 +215,6 @@ def subtree_weights(node, mode='descendents', filter_set=None):
     return normalized_weights
 
 
-def num_descendents(node, filter_set=None):
-    if not filter_set or node["id"] in filter_set:
-        descendents = 1
-        if 'children' in node:
-            for child in node['children']:
-                if not filter_set or child["id"] in filter_set:
-                    descendents += num_descendents(child)
-    else:
-        descendents = 0
-    return descendents
-
-
-def num_leaves(node, filter_set=None):
-    if not filter_set or node["id"] in filter_set:
-        if 'children' in node and len(node['children']) > 0:
-            leaves = 0
-            for child in node['children']:
-                if not filter_set or child["id"] in filter_set:
-                    leaves += num_leaves(child)
-            return leaves
-        else:
-            return 1
-    else:
-        return 0
 
 
 # TODO regex, tags
@@ -231,13 +241,6 @@ def search(root, pattern, text=True, text_attribute_name='text', tags=False, cas
     return matches
 
 
-def subtree_list(root, depth_limit=None):
-    if depth_limit == 0:
-        return []
-    subtree = [root]
-    for child in root['children']:
-        subtree += subtree_list(child, depth_limit - 1 if depth_limit else None)
-    return subtree
 
 # {
 #   root: {

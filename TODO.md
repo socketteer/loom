@@ -14,11 +14,17 @@
     - tag config
         - nav tree foreground / background
         - reset
-        - hotkey to navigate tags
         - change order
+    - convert to tags
+        - visited
+        - AI / prompt
+        - edited
+        - fix deprecated tags function
     - search tags
     - redistribute tags when merging nodes
-    - when unzipping node, children inherit all *new* tags of zipped node (or same rules as split)
+    - transform one tag into another
+    - delete all with tag 
+    - *new* tags of zipped node (or same rules as split)
         - should these tags be assigned at tagging time?
     - compound node tag inheritance
         - remove always visible condition for compound
@@ -63,18 +69,10 @@
 - generate nodes when generated nodes should be hidden... override
 - when nodes fail to generate somehow, this sometimes messes up future generations
 
-- change node order doesn't work (at least with compound nodes)
-
-- compound nodes should have start text preview if not root
-
-- ancestors of compound also visible
-
 - adding / removing ancestry is catastrophic
     - hidden attribute for ancestry doesn't necessarily entail removal of entire scope
 
-- "collapse subtree" doesn't work
-
-- override visible should probably be true by default
+- "collapse subtree" not implemented
 
 - floating tag
 
@@ -82,9 +80,20 @@
 
 - show hidden children / hide hidden children cmd
 
-- navigate to next node that's in nav tree instead of "visible"
+- Memories of hoisted / compound nodes aren't accessible
 
-- abstract "visible" filtering in model to take arbitrary condition
+- test suite
+
+- fix super deprecated search
+
+- create child doesn't open edit mode if focus on nav
+
+- unzip_all should unzip even invisible things?
+
+- change node order should move node behind / in front of next *visible* sibling
+
+- eval dialog
+    - automatically print to debug
 
 ## Other TODO
 

@@ -170,6 +170,7 @@ class SearchDialog(Dialog):
         # return causes freeze whether or not bound
         #self.master.bind('<Return>', lambda event=None: self.search)
 
+    # TODO super deprecated
     def search(self):
         search_term = self.search_entry.tk_variables.get()
         if not search_term:
@@ -506,7 +507,6 @@ class TagsDialog(Dialog):
         if self.icon_names[tag] == 'None':
             self.widgets[tag]['icon'] = tk.Label(self.master, text='None', bg=bg_color(), fg=text_color())
         else:
-            print(self.icon_names[tag])
             icon = PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_names[tag]}.png")).resize((20, 20)))
             self.widgets[tag]['icon'] = tk.Label(self.master, bg=bg_color())
             self.widgets[tag]['icon'].image = icon
