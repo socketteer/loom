@@ -92,8 +92,7 @@
 
 - change node order should move node behind / in front of next *visible* sibling
 
-- eval dialog
-    - automatically print to debug
+- repair autocomplete
 
 ## Other TODO
 

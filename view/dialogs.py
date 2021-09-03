@@ -870,7 +870,7 @@ class CreateSummary(SummaryDialog):
         self.add_child_button = None
         self.add_all_button = None
         self.init_text = ''
-        self.descendents = self.state.ancestry_in_range(root=self.root, node=self.state.selected_node)
+        self.descendents = self.state.ancestry(root=self.root, node=self.state.selected_node)
         Dialog.__init__(self, parent)
 
     def apply(self):
@@ -1441,3 +1441,32 @@ class MultimediaDialog(Dialog):
         self.n = new_index
         self.display_image()
         self.set_buttons()
+
+
+class RunDialog(Dialog):
+    def __init__(self, parent, controller):
+        self.code_textbox = None
+        self.label = None
+        self.controller = controller
+        Dialog.__init__(self, parent, title="Run code", enter_to_apply=False)
+
+    def body(self, master):
+        self.label = tk.Label(master, text='**** HUMANS ONLY ****', bg=default_color(), fg=text_color())
+        self.label.grid(row=master.grid_size()[1], column=0)
+        self.code_textbox = ScrolledText(master, height=2)
+        self.code_textbox.grid(row=master.grid_size()[1], column=0, columnspan=1)
+        self.code_textbox.configure(
+            font=Font(family="Georgia", size=12),
+            spacing1=10,
+            foreground=text_color(),
+            background=bg_color(),
+            padx=3,
+            pady=3,
+            spacing2=3,
+            spacing3=5,
+            wrap="word",
+        )
+
+    def apply(self):
+        code = self.code_textbox.get("1.0", 'end-1c')
+        self.controller.eval_code(code)

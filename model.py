@@ -227,7 +227,7 @@ class TreeModel:
     @event
     def edit_new_nodes(self):
         print('new nodes:', self.new_nodes)
-        self.tree_updated(edit=self.new_nodes[0], override_visible=True)
+        self.tree_updated(edit=self.new_nodes[0])
         del self.new_nodes[0]
 
     @event
@@ -1668,7 +1668,7 @@ class TreeModel:
         new_nodes = []
         # pprint(self.generation_settings)
         for i in range(self.generation_settings['num_continuations']):
-            child = self.create_child(node, update_selection=False, expand=True, refresh_nav=False)
+            child = self.create_child(node, expand=True)
             children.append(child)
             new_nodes.append(child['id'])
             # if self.generation_settings['adaptive']:
@@ -1677,7 +1677,7 @@ class TreeModel:
             #     new_nodes.append(grandchild['id'])
 
         self.new_nodes.append(new_nodes)
-        self.tree_updated(add=new_nodes, override_visible=True)
+        self.tree_updated(add=new_nodes)
         #self.reveal_nodes(children + grandchildren)
         prompt = self.prompt(node=node)
 

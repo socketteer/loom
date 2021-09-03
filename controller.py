@@ -21,9 +21,10 @@ import traceback
 from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color, \
     immutable_color
 from view.display import Display
-from view.dialogs import GenerationSettingsDialog, InfoDialog, VisualizationSettingsDialog, \
+from view.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
-    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog
+    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
+    RunDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
@@ -1451,7 +1452,6 @@ class Controller:
         self.display.destroy_multi_frame()
 
 
-
     def open_bottom_frame(self, box_name):
         self.close_bottom_frame()
         self.state.preferences[box_name] = True
@@ -1476,8 +1476,10 @@ class Controller:
             #self.display.mode_var.set(self.state.preferences['gpt_mode'])
 
     def print_to_debug(self, message):
-        # TODO print to debug stream even if debug box is not active
-        self.display.write_to_debug(message)
+        if message:
+            self.toggle_debug_box(toggle='on')
+            # TODO print to debug stream even if debug box is not active
+            self.display.write_to_debug(message)
 
 
     # @metadata(name="Update mode", keys=[], display_key="")
@@ -1490,8 +1492,7 @@ class Controller:
         #self.setup_custom_key_bindings()
         #self.state.reset_tags()
         #self.state.turn_attributes_into_tags()
-        for c in self.state.selected_node['children']:
-            print(c['text'])
+        dialog = RunDialog(parent=self.display.frame, controller=self)
         # constituents = self.state.constituents(self.state.selected_node)
         # for c in constituents:
         #     print(c['text'])
@@ -2269,6 +2270,17 @@ class Controller:
         elif not self.display.nav_tree.exists(self.state.selected_node_id):
             self.state.selected_node_id = self.state.find_next(node=self.state.selected_node,
                                                                filter=self.in_nav)
+
+    #################################
+    #   Programmatic weaving
+    #################################
+
+    def eval_code(self, code_string):
+        if code_string:
+            try:
+                self.print_to_debug(message=eval(code_string))
+            except Exception as e:
+                self.print_to_debug(message=e)
 
 
 
