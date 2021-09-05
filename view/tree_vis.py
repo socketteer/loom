@@ -6,7 +6,7 @@ import copy
 from pprint import pprint
 from tkinter import ttk
 
-from util.util_tree import node_ancestry
+from util.util_tree import node_ancestry, limited_branching_tree, tree_subset
 from util.custom_tks import TextAware
 from PIL import ImageTk, Image
 from view.colors import vis_bg_color, visited_node_bg_color, unvisited_node_bg_color,inactive_text_color,\
@@ -24,7 +24,7 @@ min_edit_box_height = 100
 canvas_padding = 100
 
 # TODO custom
-chapter_leafdist = 20
+chapter_leaf_distance = 20
 chapter_leveldist = 50
 
 
@@ -67,14 +67,21 @@ class TreeVis:
         self.textbox = None
         self.textbox_id = None
         self.editing_node_id = None
+
         self.node_coords = {}
+        self.levels = {}
+        self.nodes = {}
+        self.lines = {}
+
+
         self.showtext = True
         self.root = None
         self.selected_node = None
         self.overflow_display = 'PAGE' #'FULL' or 'SCROLL' or 'PAGE'
 
         self.icons = None
-        self.resize_icon_events = []
+        #self.resize_icon_events = []
+        #icon_size = 16
         #self.old_icons = []
 
         self.text_hidden = False
@@ -85,7 +92,7 @@ class TreeVis:
 
         #TODO instead of root width, long textboxes should have scrollbars
         #if not possible, multiple pages (!)
-        self.root_width = self.state.visualization_settings['textwidth']
+        self.root_width = self.state.visualization_settings['text_width']
         self.font = "Georgia"
 
         self.init_icons()
@@ -95,37 +102,6 @@ class TreeVis:
         self.bind_mouse_controls()
 
 
-    # def init_icon(self, icon_name, filename, size=18):
-    #     self.icons[icon_name] = {}
-    #     self.icons[icon_name]["size"] = size
-    #     self.icons[icon_name]["img"] = (Image.open(f"./static/icons/{filename}"))
-    #     self.icons[icon_name]["icon"] = ImageTk.PhotoImage(self.icons[icon_name]["img"].resize((self.icons[icon_name]['size'],
-    #                                                                                             self.icons[icon_name]['size'])))
-    #
-    # def init_icons(self):
-    #     self.init_icon("star", "star-48.png", 18)
-    #     self.init_icon("empty_star", "empty_star-gray-48.png", 18)
-    #     self.init_icon("children", "children-green-48.png", 18)
-    #     self.init_icon("subtree", "subtree-green-48.png", 18)
-    #     self.init_icon("ancestry", "ancestry-black-48.png", 18)
-    #     self.init_icon("edit", "tag_icons/edit-blue.png", 16)
-    #     self.init_icon("close", "minus-black-48.png", 14)
-    #     self.init_icon("collapse_subtree", "collapse-black-48.png", 16)
-    #     self.init_icon("collapse_children", "collapse-left-black-48.png", 14)
-    #     self.init_icon("merge_parent", "leftarrow-lightgray-48.png", 16)
-    #     self.init_icon("merge_children", "rightarrow-lightgray-48.png", 16)
-    #     self.init_icon("add_link", "add-link-lightgray-48.png", 16)
-    #     self.init_icon("change_link", "broken-link-lightgray-48.png", 16)
-    #     self.init_icon("read", "read-lightgrey-48.png", 16)
-    #     self.init_icon("info", "stats-lightgrey-48.png", 16)
-    #     self.init_icon("delete", "programdelete-red-48.png", 16)
-    #     self.init_icon("generate", "brain-blue-48.png", 18)
-    #     self.init_icon("memory", "memory-blue-48.png", 18)
-    #     self.init_icon("add_parent", "plus_left-blue-48.png", 16)
-    #     self.init_icon("add_child", "plus-blue-48.png", 16)
-    #     self.init_icon("shift_up", "up-lightgray-48.png", 16)
-    #     self.init_icon("shift_down", "down-lightgray-48.png", 16)
-
     def init_icons(self):
         self.icons = Icons()
 
@@ -134,6 +110,7 @@ class TreeVis:
         background_color = vis_bg_color()
         self.canvas = tkinter.Canvas(self.frame, bg=background_color)
         self.canvas.bind('<Double-Button-1>', lambda event: self.delete_textbox())
+
 
         hbar = tkinter.Scrollbar(self.frame, orient=tkinter.HORIZONTAL)
         hbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
@@ -147,6 +124,7 @@ class TreeVis:
             xscrollcommand=hbar.set,
             yscrollcommand=vbar.set
         )
+        
         self.canvas.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
 
 
@@ -178,25 +156,25 @@ class TreeVis:
                 zoom_out(event)
                 self.scroll_ratio *= 0.9
                 self.canvas.scale("all", event.x, event.y, 0.9, 0.9)
-            self.canvas.configure(scrollregion=self.canvas_bbox_padding(self.canvas.bbox("all")))
+            self.canvas.configure(scrollregion=self.canvas.bbox("all"))#self.canvas_bbox_padding(self.canvas.bbox("all")))
             self.fix_text_zoom()
-            self.fix_image_zoom()
+            self.icon_visibility_due_to_zoom()
 
         # # linux zoom
         def zoom_in(event):
             self.scroll_ratio *= 1.1
             self.canvas.scale("all", event.x, event.y, 1.1, 1.1)
-            self.canvas.configure(scrollregion=self.canvas_bbox_padding(self.canvas.bbox("all")))
+            self.canvas.configure(scrollregion=self.canvas.bbox("all"))#self.canvas_bbox_padding(self.canvas.bbox("all")))
             self.fix_text_zoom()
-            self.fix_image_zoom()
+            self.icon_visibility_due_to_zoom()
 
         def zoom_out(event):
             self.scroll_ratio *= 0.9
             self.canvas.scale("all", event.x, event.y, 0.9, 0.9)
-            self.canvas.configure(scrollregion=self.canvas_bbox_padding(self.canvas.bbox("all")))
+            self.canvas.configure(scrollregion=self.canvas.bbox("all"))#self.canvas_bbox_padding(self.canvas.bbox("all")))
             # self.showtext = event.text > 0.8
             self.fix_text_zoom()
-            self.fix_image_zoom()
+            self.icon_visibility_due_to_zoom()
 
         # Mac and then linux scrolls
         self.canvas.bind("<MouseWheel>", zoomer)
@@ -224,9 +202,9 @@ class TreeVis:
                                        width=self.get_width(item))
 
 
-    def fix_image_zoom(self):
+    def icon_visibility_due_to_zoom(self):
         approx_size = math.floor(self.scroll_ratio * 18)
-        if approx_size < 5:
+        if approx_size < 12:
             if not self.buttons_hidden:
                 self.buttons_hidden = True
                 for item in self.canvas.find_withtag("image"):
@@ -236,20 +214,12 @@ class TreeVis:
                 self.buttons_hidden = False
                 for item in self.canvas.find_withtag("image"):
                     self.canvas.itemconfigure(item, state='normal')
-            # TODO too many icons - only resize ones that are used?
-            for icon in self.icons.icons:
-                new_size = math.floor(self.scroll_ratio * self.icons[icon]["size"])
-                #self.old_icons.append(self.icons[icon]["icon"])
-                self.icons.icons[icon]["icon"] = ImageTk.PhotoImage(self.icons.icons[icon]["img"].resize((new_size, new_size)))
-            for resize_event in self.resize_icon_events:
-                resize_event()
-
 
 
     # TODO save default widths (because some nodes have different widths)
     def get_width(self, item):
         #width = int(self.canvas.itemcget(item, "width"))
-        width = self.state.visualization_settings['textwidth']
+        width = self.state.visualization_settings['text_width']
         return math.floor(width * self.scroll_ratio)
 
 
@@ -260,10 +230,124 @@ class TreeVis:
     #   Drawing
     #################################
 
+    def redraw(self, root, selected_node):
+        self.selected_node = selected_node
+        self.canvas.delete('all')
+        self.node_coords = {}
+        self.nodes = {}
+        self.lines = {}
+        self.levels = {}
+        
+        filtered_tree = tree_subset(root, filter=self.controller.in_nav)
+        ancestry = self.state.ancestry(selected_node)
+        pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=2)
+
+        self.compute_tree_coordinates(pruned_tree, 400, 400, level=0)
+        self.center_about_ancestry(ancestry, x_align=400)
+        self.center_y(selected_node, 400)
+        self.fix_orientation()
+        self.draw_precomputed_tree(pruned_tree)
+        self.color_selection(selected_node)
+        self.center_view(*self.node_coords[selected_node["id"]])
+
+    def compute_tree_coordinates(self, root, x, y, level=0):
+        self.node_coords[root["id"]] = (x, y)
+        if level not in self.levels:
+            self.levels[level] = []
+        self.levels[level].append(root["id"])
+        level_offset = self.state.visualization_settings['level_distance']
+        leaf_offset = self.state.visualization_settings['leaf_distance']
+        leaf_position = x
+        next_child_position = x
+        for child in root['children']:
+            leaf_position = next_child_position
+            subtree_offset = self.compute_tree_coordinates(child, next_child_position, y + level_offset, level+1)
+            leaf_position += subtree_offset
+            next_child_position = leaf_position + leaf_offset
+        return leaf_position - x
+
+    def fix_orientation(self):
+        if self.state.visualization_settings["horizontal"]:
+            coords = {}
+            # if the tree is horizontal, swap x and y coordinates
+            for id, value in self.node_coords.items():
+                coords[id] = (value[1], value[0])
+            self.node_coords = coords
+
+    def draw_precomputed_tree(self, root):
+        root_x, root_y = self.node_coords[root["id"]]
+        self.draw_node(root['id'], radius=15, x=root_x, y=root_y)
+
+        for child in root['children']:
+            child_x, child_y = self.node_coords[child["id"]]
+            self.draw_connector(child['id'], root_x, root_y, child_x, child_y, fill='#000000', width=1, 
+                                offset=30, 
+                                connections='horizontal' if self.state.visualization_settings["horizontal"] else 'vertical')
+            self.draw_precomputed_tree(child)
+
+    def center_about_ancestry(self, ancestry, x_align, level=0):
+        if level >= len(ancestry):
+            return
+        ancestor = ancestry[level]
+        ancestor_x, _ = self.node_coords[ancestor['id']]
+        offset = ancestor_x - x_align
+        for node_id in self.levels[level]:
+            self.node_coords[node_id] = (self.node_coords[node_id][0] - offset, self.node_coords[node_id][1])
+        if level + 1 < len(ancestry):
+            self.center_about_ancestry(ancestry, x_align, level+1)
+        else:
+            #shift all deeper levels by same offset
+            remaining_levels = [self.levels[i] for i in range(level+1, len(self.levels))]
+            for l in remaining_levels:
+                for node_id in l:
+                    self.node_coords[node_id] = (self.node_coords[node_id][0] - offset, self.node_coords[node_id][1])
+
+
+    def center_y(self, selected_node, y_align):
+        y = self.node_coords[selected_node["id"]][1]
+        offset = y - y_align
+        for node_id in self.node_coords:
+            self.node_coords[node_id] = (self.node_coords[node_id][0], self.node_coords[node_id][1] - offset)
+
+    def draw_circle(self, radius, x, y):
+        return self.canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill="black")
+
+    def draw_connector(self, child_id, x1, y1, x2, y2, fill, width=1, activefill=None, offset=0, smooth=True, connections='horizontal'):
+        if connections=='horizontal':
+            self.lines[child_id] = self.canvas.create_line(x1, y1, x1 + offset, y1, x2 - offset, y2, x2, y2, smooth=smooth,
+                                                fill=fill,
+                                                activefill=activefill,
+                                                width=width)
+        else:
+            self.lines[child_id] = self.canvas.create_line(x1, y1, x1, y1 + offset, x2, y2 - offset, x2, y2, smooth=smooth,
+                                                fill=fill,
+                                                activefill=activefill,
+                                                width=width)
+        self.canvas.tag_lower(self.lines[child_id])
+
+
+    def draw_node(self, node_id, radius, x, y):
+        node = self.draw_circle(radius, x, y)
+        self.nodes[node_id] = node
+        self.canvas.tag_bind(node, "<Button-1>", lambda event, node_id=node_id: self.select_node(node_id))
+
+    def color_selection(self, selected_node):
+        ancestry = self.state.ancestry(selected_node)
+        # color all ancestry nodes blue
+        for node in ancestry:
+            self.canvas.itemconfig(self.nodes[node['id']], fill="blue")
+            if node['id'] in self.lines:
+                self.canvas.itemconfig(self.lines[node['id']], fill="blue", width=3)
+
+
+    #################################
+    #   Old
+    #################################
+
     # TODO Slow for big tree; do not redraw everything?
     def draw(self, root_node, selected_node, center_on_selection=False):
         # pprint(self.state.visualization_settings)
-        if self.state.visualization_settings["chaptermode"]:
+        if self.state.visualization_settings["chapter_mode"]:
             self.root = self.state.build_chapter_trees()[0][0]
         else:
             self.root = root_node
@@ -275,7 +359,7 @@ class TreeVis:
 
         # TODO change this
 
-        if not self.state.visualization_settings["chaptermode"]:
+        if not self.state.visualization_settings["chapter_mode"]:
             if not self.root.get('open', False):
                 self.collapse_all()
 
@@ -288,17 +372,21 @@ class TreeVis:
 
         self.active = self.get_active()
 
-        self.draw_node(self.root, 100, 100)
+        self.compute_tree_coordinates(self.root, 100, 100, level=0)
+        self.center_about_ancestry(self.state.ancestry(self.selected_node))
+        self.draw_precomputed_tree(self.root)
 
-        self.canvas.scale("all", 0, 0, self.scroll_ratio, self.scroll_ratio)
+        #self.draw_tree(self.root, 100, 100)
 
-        region = self.canvas_bbox_padding(self.canvas.bbox("all"))
-        self.canvas.configure(scrollregion=region)
-        self.fix_text_zoom()
-        self.fix_image_zoom()
+        # self.canvas.scale("all", 0, 0, self.scroll_ratio, self.scroll_ratio)
 
-        if center_on_selection:
-            self.center_view_on_node(self.selected_node)
+        # region = self.canvas_bbox_padding(self.canvas.bbox("all"))
+        # self.canvas.configure(scrollregion=region)
+        # self.fix_text_zoom()
+        # self.icon_visibility_due_to_zoom()
+
+        # if center_on_selection:
+        #     self.center_view_on_node(self.selected_node)
 
 
     def refresh_selection(self, root_node, selected_node):
@@ -329,7 +417,7 @@ class TreeVis:
             else:
                 self.canvas.itemconfig(f'box-{node["id"]}', outline=active_line_color(), width=1)
                 self.canvas.itemconfig(f'lines-{node["id"]}', fill=active_line_color(), width=1)
-            if not self.state.visualization_settings["chaptermode"] \
+            if not self.state.visualization_settings["chapter_mode"] \
                     and self.state.tree_node_dict[node["id"]].get("visited", False):
                 self.canvas.itemconfig(f'box-{node["id"]}', fill=visited_node_bg_color())
 
@@ -337,10 +425,12 @@ class TreeVis:
 
 
 
-    def draw_node(self, node, nodex, nodey):
+
+
+    def draw_tree(self, node, nodex, nodey):
         self.node_coords[node["id"]] = (nodex, nodey)
 
-        if self.state.visualization_settings["chaptermode"]:
+        if self.state.visualization_settings["chapter_mode"]:
             bbox = self.draw_textbox(node, nodex, nodey)
             padding = 10
         else:
@@ -348,7 +438,7 @@ class TreeVis:
                 bbox = self.draw_expand_node_button(node, nodex, nodey)
                 return collapsed_offset
 
-            display_text = self.state.visualization_settings['displaytext'] and self.showtext
+            display_text = self.state.visualization_settings['display_text'] and self.showtext
             if display_text:
                 bbox = self.draw_textbox(node, nodex, nodey)
                 padding = 10
@@ -357,30 +447,31 @@ class TreeVis:
                 padding = 0
 
         textheight = bbox[3] - bbox[1]
-        textwidth = bbox[2] - bbox[0]
-        width_diff = self.state.visualization_settings['textwidth'] - textwidth \
-            if (self.state.visualization_settings['displaytext'] and fixed_level_width
-                and not self.state.visualization_settings["chaptermode"]) else 0
+        text_width = bbox[2] - bbox[0]
+        width_diff = self.state.visualization_settings['text_width'] - text_width \
+            if (self.state.visualization_settings['display_text'] and fixed_level_width
+                and not self.state.visualization_settings["chapter_mode"]) else 0
 
         offset = textheight # TODO vertical
         # Draw children with increasing offsets
         child_offset = 0
 
-        level_distance = chapter_leveldist if self.state.visualization_settings['chaptermode'] \
-            else self.state.visualization_settings['leveldistance']
+        # TODO why?
+        level_distance = chapter_leveldist if self.state.visualization_settings['chapter_mode'] \
+            else self.state.visualization_settings['level_distance']
 
-        leaf_distance = chapter_leafdist if self.state.visualization_settings['chaptermode'] \
-            else self.state.visualization_settings['leafdist']
+        leaf_distance = chapter_leaf_distance if self.state.visualization_settings['chapter_mode'] \
+            else self.state.visualization_settings['leaf_distance']
 
         for child in node['children']:
-            childx = nodex + level_distance + textwidth + width_diff
+            childx = nodex + level_distance + text_width + width_diff
             childy = nodey + child_offset
-            parentx = nodex + textwidth
+            parentx = nodex + text_width
             parenty = nodey
             # TODO if vertical
 
             child_offset += leaf_distance
-            child_offset += self.draw_node(child, childx, childy)
+            child_offset += self.draw_tree(child, childx, childy)
 
             # Draw line to child
 
@@ -392,7 +483,7 @@ class TreeVis:
                 color = active_line_color() if active else inactive_line_color()
                 width = 2 if active else 1
 
-            goto_id = node["chapter"]["root_id"] if self.state.visualization_settings['chaptermode'] else child["id"]
+            goto_id = node["chapter"]["root_id"] if self.state.visualization_settings['chapter_mode'] else child["id"]
             self.draw_line(parentx - padding, parenty - padding, childx - padding, childy - padding,
                            name=f'lines-{child["id"]}',
                            fill=color, activefill=BLUE, width=width, offset=smooth_line_offset, smooth=True,
@@ -400,7 +491,7 @@ class TreeVis:
 
         #TODO lightmode
         # if "ghostchildren" in node:
-        #     parentx = nodex + textwidth
+        #     parentx = nodex + text_width
         #     parenty = nodey
         #     for ghost_id in node["ghostchildren"]:
         #         ghost = self.state.tree_node_dict.get(ghost_id, None)
@@ -420,12 +511,12 @@ class TreeVis:
         #             #print("drew collapsed ghostchild")
         #             #TODO fix position
         #             self.draw_line(parentx - offset, parenty - offset,
-        #                            parentx + self.state.visualization_settings["leveldistance"] - offset,
+        #                            parentx + self.state.visualization_settings["level_distance"] - offset,
         #                            parenty - offset,
         #                            name=f'ghostlines-{ghost["id"]}',
         #                            fill=inactive_line_color(), activefill=BLUE, offset=smooth_line_offset, smooth=True,
         #                            method=lambda event, node_id=ghost["id"]: self.controller.nav_select(node_id=node_id))
-        #             self.draw_expand_node_button(ghost, parentx + self.state.visualization_settings["leveldistance"], parenty, ghost=True)
+        #             self.draw_expand_node_button(ghost, parentx + self.state.visualization_settings["level_distance"], parenty, ghost=True)
         #             return
 
         return offset if child_offset == 0 else child_offset
@@ -455,8 +546,8 @@ class TreeVis:
         font = tkinter.font.Font(font=self.font)
         text_width = font.measure(text)
         lineheight = font.metrics('linespace')
-        max_lines = math.floor((self.state.visualization_settings['leafdist'] - leaf_padding) / lineheight)
-        lines_estimate = text_width / self.state.visualization_settings['textwidth']
+        max_lines = math.floor((self.state.visualization_settings['leaf_distance'] - leaf_padding) / lineheight)
+        lines_estimate = text_width / self.state.visualization_settings['text_width']
         try:
             new_text_len = int(math.floor(len(text) * max_lines / lines_estimate))
         except ZeroDivisionError:
@@ -468,9 +559,9 @@ class TreeVis:
     def draw_textbox(self, node, nodex, nodey):
         active = node in self.active
         text_color = active_text_color() if active else inactive_text_color()
-        width = self.root_width if node['id'] == self.root['id'] else self.state.visualization_settings['textwidth']
+        width = self.root_width if node['id'] == self.root['id'] else self.state.visualization_settings['text_width']
 
-        if self.state.visualization_settings["chaptermode"]:
+        if self.state.visualization_settings["chapter_mode"]:
             text = node["chapter"]["title"]
         else:
             text = self.split_text(node) if self.overflow_display == 'PAGE' else node['text']
@@ -497,7 +588,7 @@ class TreeVis:
                                   width=width, activeoutline=BLUE, fill=fill, tags=[f'box-{node["id"]}', 'data'])
         self.canvas.tag_raise(text_id, rect_id)
 
-        if self.state.visualization_settings["chaptermode"]:
+        if self.state.visualization_settings["chapter_mode"]:
             self.canvas.tag_bind(
                 f'box-{node["id"]}', "<Button-1>", lambda event, node_id=node["chapter"]["root_id"]: self.select_node(
                     node_id=node_id))
@@ -519,7 +610,7 @@ class TreeVis:
 
         # TODO collapsing and buttons for chapters...
 
-        if not self.state.visualization_settings["chaptermode"]:
+        if not self.state.visualization_settings["chapter_mode"]:
             if node is not self.root:
                 self.draw_collapse_button(node, box)
             if self.state.visualization_settings["showbuttons"]:
@@ -604,9 +695,9 @@ class TreeVis:
         if name is None:
             name = icon_name
         icon_id = self.canvas.create_image(x_pos, y_pos,
-                                           image=self.icons.icons[icon_name]["icon"],
+                                           image=self.icons.get_icon(icon_name),
                                            tags=[f'{name}-{node["id"]}', 'data', 'image'])
-        self.resize_icon_events.append(lambda: self.canvas.itemconfig(icon_id, image=self.icons.icons[icon_name]["icon"]))
+        #self.resize_icon_events.append(lambda: self.canvas.itemconfig(icon_id, image=self.icons.get_icon(icon_name)))
         self.canvas.tag_bind(
             f'{name}-{node["id"]}', "<Button-1>", method)
         return icon_id
@@ -709,10 +800,8 @@ class TreeVis:
     #################################
 
     def select_node(self, node_id):
-        if isinstance(node_id, str):
-            node_id = self.state.tree_node_dict[node_id]
         self.selected_node = node_id
-        self.controller.nav_select(node_id=node_id["id"])
+        self.controller.nav_select(node_id=node_id)
 
 
     def expand_node(self, node, change_selection=True, center_selection=True):
@@ -838,7 +927,7 @@ class TreeVis:
         self.textbox.insert(tkinter.END, text)
 
         textbox_height = box[3] - box[1] if min_edit_box_height < box[3] - box[1] else min_edit_box_height
-        textbox_width = self.state.visualization_settings['textwidth']
+        textbox_width = self.state.visualization_settings['text_width']
         self.textbox_id = self.canvas.create_window(box[0] + (box[2] - box[0]) / 2, box[1] + (box[3] - box[1]) / 2,
                                                     window=self.textbox, height=textbox_height, width=textbox_width)
 
@@ -880,7 +969,7 @@ class TreeVis:
 
 
     def get_active(self):
-        if self.state.visualization_settings["chaptermode"]:
+        if self.state.visualization_settings["chapter_mode"]:
             chapter_tree = self.state.build_chapter_trees()[1]
             return node_ancestry(chapter_tree[self.state.chapter(self.selected_node)['id']], chapter_tree)
         else:
@@ -889,25 +978,31 @@ class TreeVis:
     # in node mode, returns true if node is selected node
     # in chapter mode, returns true if node corresponds to chapter of selected node
     def node_selected(self, node):
-        if self.state.visualization_settings["chaptermode"]:
+        if self.state.visualization_settings["chapter_mode"]:
             return node["id"] == self.state.chapter(self.selected_node)["id"]
         else:
             return node["id"] == self.selected_node["id"]
 
     def center_view_on_node(self, node):
-        if not self.state.visualization_settings["chaptermode"]:
+        if not self.state.visualization_settings["chapter_mode"]:
             self.center_view_on_canvas_coords(*self.node_coords[node["id"]])
         else:
             self.center_view_on_canvas_coords(*self.node_coords[self.state.chapter(node)["id"]])
 
-    def center_view_on_canvas_coords(self, x, y):
+    def center_view(self, x, y):
         x = x * self.scroll_ratio
         y = y * self.scroll_ratio
-        x1, y1, x2, y2 = self.canvas.bbox("all")
-        screen_width_in_canvas_coords = self.canvas.canvasx(self.canvas.winfo_width()) - self.canvas.canvasx(0)
-        screen_height_in_canvas_coords = self.canvas.canvasy(self.canvas.winfo_height()) - self.canvas.canvasy(0)
-        self.canvas.xview_moveto((x - screen_width_in_canvas_coords / 2) / (x2 - x1))
-        self.canvas.yview_moveto((y - screen_height_in_canvas_coords / 2) / (y2 - y1))
+        self.canvas.xview_moveto(x)
+        self.canvas.yview_moveto(y)
+
+    def center_view_on_canvas_coords(self, x, y):
+        pass
+
+        # x1, y1, x2, y2 = self.canvas.bbox("all")
+        # screen_width_in_canvas_coords = self.canvas.canvasx(self.canvas.winfo_width()) - self.canvas.canvasx(0)
+        # screen_height_in_canvas_coords = self.canvas.canvasy(self.canvas.winfo_height()) - self.canvas.canvasy(0)
+        # self.canvas.xview_moveto((x - screen_width_in_canvas_coords / 2) / (x2 - x1))
+        # self.canvas.yview_moveto((y - screen_height_in_canvas_coords / 2) / (y2 - y1))
 
 
     def reset_zoom(self):
@@ -916,7 +1011,7 @@ class TreeVis:
         self.canvas.configure(scrollregion=self.canvas_bbox_padding(self.canvas.bbox("all")))
         self.scroll_ratio = 1
         self.fix_text_zoom()
-        self.fix_image_zoom()
+        self.icon_visibility_due_to_zoom()
 
 
 

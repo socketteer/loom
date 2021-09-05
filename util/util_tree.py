@@ -52,7 +52,6 @@ def num_leaves(node, filter_set=None):
 
 def generate_conditional_tree(root, filter=None):
     return {d["id"]: d for d in flatten_tree(tree_subset(root=root,
-                                                         new_root=None,
                                                          filter=filter),
                                              )}
 
@@ -77,6 +76,30 @@ def subtree_list(root, filter=None, depth_limit=None):
     return sub_list
 
 
+def depth_limited_tree(root, depth_limit):
+    new_root = {'id': root['id'], 'children': []}
+    if depth_limit == 0:
+        return new_root
+    if 'children' in root:
+        for child in root['children']:
+            new_root['children'].append(depth_limited_tree(child, depth_limit - 1))
+    return new_root
+
+
+def limited_branching_tree(ancestry, root, depth_limit):
+    # returns a subset of tree which only contains nodes no more than depth_limit levels from a node in ancestry
+    if len(ancestry) <= 1:
+        return depth_limited_tree(root, depth_limit)
+    child_in_ancestry = ancestry[1]
+    new_root = {'id': root['id'], 'children': []}
+    for child in root['children']:
+        if child['id'] == child_in_ancestry['id']:
+            new_root['children'].append(limited_branching_tree(ancestry[1:], child, depth_limit))
+        else:
+            new_root['children'].append(depth_limited_tree(child, depth_limit-1))
+    return new_root
+
+
 # given a root node and include condition, returns a new tree which contains only nodes who satisfy
 # the condition and whose ancestors also all satisfy the condition
 # nodes in the new tree contain only their ids and a childlist
@@ -84,16 +107,13 @@ def subtree_list(root, filter=None, depth_limit=None):
 # TODO copy contains no data except id(same as old tree) and children - will cause problems?
 # TODO modify this function or make new function that copies all of tree?
 # TODO existing python function to filter/copy dictionary?
-def tree_subset(root, new_root=None, filter=None):
+def tree_subset(root, filter=None):
     if not filter:
         return root
-    if not new_root:
-        new_root = {'id': root['id'], 'children': []}
+    new_root = {'id': root['id'], 'children': []}
     if 'children' in root:
         for child in filtered_children(root, filter):
-            new_child = {'id': child['id'], 'children': []}
-            new_root['children'].append(new_child)
-            tree_subset(child, new_child, filter)
+            new_root['children'].append(tree_subset(child, filter))
     return new_root
 
 
@@ -150,6 +170,9 @@ def nearest_common_ancestor(node_a, node_b, node_dict):
 def in_ancestry(a, b, node_dict):
     ancestry = node_ancestry(b, node_dict)
     return a in ancestry
+
+
+
 
 
 def node_index(node, node_dict):

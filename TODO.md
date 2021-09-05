@@ -127,8 +127,6 @@
 - make an arbitrary number of sidebars / panes and open arbitrary modules in them
     - abstract functionality of dialogs and make non dialog versions that can be put into panes
     
-- fix vis icons
-
 - make show_children, debug, and input into modules
     - make bottom_frame into a generic frame
     
@@ -155,6 +153,10 @@
         - save old version as duplicate (new one inherits children)
             - ghostparent connection
             
+ 
+- vis 
+    - horizontal and vertical
+    - center ancestry 
  
 
 ## Other TODO

@@ -1234,14 +1234,14 @@ class VisualizationSettingsDialog(Dialog):
     def __init__(self, parent, orig_params):
         self.orig_params = orig_params
         self.vars = {
-            'textwidth': tk.IntVar,
-            'leafdist': tk.IntVar,
-            'leveldistance': tk.IntVar,
-            'textsize': tk.IntVar,
+            'text_width': tk.IntVar,
+            'leaf_distance': tk.IntVar,
+            'level_distance': tk.IntVar,
+            'text_size': tk.IntVar,
             'horizontal': tk.BooleanVar,
-            'displaytext': tk.BooleanVar,
-            'showbuttons': tk.BooleanVar,
-            'chaptermode': tk.BooleanVar,
+            'display_text': tk.BooleanVar,
+            'show_buttons': tk.BooleanVar,
+            'chapter_mode': tk.BooleanVar,
         }
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=orig_params[key])
@@ -1251,15 +1251,15 @@ class VisualizationSettingsDialog(Dialog):
     # Creates sliders for each sensitivity slider
     def body(self, master):
         sliders = {
-            'textwidth': (10, 1000),
-            'leafdist': (1, 500),
-            'leveldistance': (1, 500),
-            'textsize': (1, 25),
+            'text_width': (10, 1000),
+            'leaf_distance': (1, 500),
+            'level_distance': (1, 500),
+            'text_size': (1, 25),
         }
         for name, value_range in sliders.items():
             create_slider(master, name, self.vars[name], value_range)
 
-        for name in ['horizontal', 'displaytext', 'showbuttons', 'chaptermode']:
+        for name in ['horizontal', 'display_text', 'show_buttons', 'chapter_mode']:
             row = master.grid_size()[1]
             create_side_label(master, name, row)
             check = ttk.Checkbutton(master, variable=self.vars[name])

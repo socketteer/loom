@@ -111,7 +111,8 @@ class Display:
         self.modules = {'notes': Notes,
                         'texteditor': TextEditor,
                         'prompt': Prompt,
-                        'run': Run,}
+                        'run': Run,
+                        'minimap': MiniMap}
 
         # Build it!
         self.build_display(self.frame)

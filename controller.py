@@ -412,6 +412,7 @@ class Controller:
 
             #print('coloring text')
 
+    @metadata(name="In nav")
     def in_nav(self, node):
         return self.display.nav_tree.exists(node['id'])
 
@@ -1905,16 +1906,18 @@ class Controller:
     def refresh_visualization(self, center=False, **kwargs):
         if self.display.mode != "Visualize":
             return
-        self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
-        if center:
-            #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
-            self.display.vis.center_view_on_node(self.state.selected_node)
+        self.display.vis.redraw(self.state.root(), self.state.selected_node)
+        #self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
+        # if center:
+        #     #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+        #     self.display.vis.center_view_on_node(self.state.selected_node)
 
 
     def refresh_vis_selection(self, **kwargs):
         if self.display.mode != "Visualize":
             return
-        self.display.vis.refresh_selection(self.state.tree_raw_data["root"], self.state.selected_node)
+        self.display.vis.redraw(self.state.root(), self.state.selected_node)
+        #self.display.vis.refresh_selection(self.state.tree_raw_data["root"], self.state.selected_node)
         # TODO Without redrawing, the new open state won't be reflected
         # self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node)
         # self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])

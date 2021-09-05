@@ -90,14 +90,14 @@ DEFAULT_GENERATION_SETTINGS = {
 }
 
 DEFAULT_VISUALIZATION_SETTINGS = {
-    'textwidth': 450,
-    'leafdist': 200,
-    'leveldistance': 150,
-    'textsize': 10,
+    'text_width': 450,
+    'leaf_distance': 200,
+    'level_distance': 150,
+    'text_size': 10,
     'horizontal': True,
-    'displaytext': True,
-    'showbuttons': True,
-    'chaptermode': False
+    'display_text': True,
+    'show_buttons': True,
+    'chapter_mode': False
     # show chapters only
     # show canonical only
     # highlight canonical
