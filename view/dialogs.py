@@ -10,6 +10,8 @@ from util.util_tk import create_side_label, create_label, Entry, create_button, 
 from util.util_tree import search, node_ancestry
 from util.keybindings import tkinter_keybindings
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
+from view.styles import textbox_config
+from view.templates import *
 import math
 import json
 import codecs
@@ -705,17 +707,7 @@ class MemoryDialog(Dialog):
     def body(self, master):
         self.memory_textbox = ScrolledText(master, height=3)
         self.memory_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
-        self.memory_textbox.configure(
-            font=Font(family="Georgia", size=12),  # Other nice options: Helvetica, Arial, Georgia
-            spacing1=10,
-            foreground=text_color(),
-            background=bg_color(),
-            padx=3,
-            pady=3,
-            spacing2=3,  # Spacing between lines
-            spacing3=5,
-            wrap="word",
-        )
+        self.memory_textbox.configure(**textbox_config())
         self.memory_textbox.insert(tk.INSERT, self.memory_text)
         self.memory_textbox.focus()
         row = master.grid_size()[1]
@@ -775,31 +767,11 @@ class SummaryDialog(Dialog):
     def body(self, master):
         self.summary_textbox = ScrolledText(master, height=2)
         self.summary_textbox.grid(row=master.grid_size()[1], column=0, columnspan=2)
-        self.summary_textbox.configure(
-            font=Font(family="Georgia", size=12),
-            spacing1=10,
-            foreground=text_color(),
-            background=bg_color(),
-            padx=3,
-            pady=3,
-            spacing2=3,
-            spacing3=5,
-            wrap="word",
-        )
+        self.summary_textbox.configure(**textbox_config())
         self.summary_textbox.insert(tk.INSERT, self.init_text)
         self.summary_textbox.focus()
         self.referent_textbox = ScrolledText(master, height=6)
-        self.referent_textbox.configure(
-            font=Font(family="Georgia", size=12),
-            spacing1=10,
-            foreground=text_color(),
-            background=bg_color(),
-            padx=3,
-            pady=3,
-            spacing2=3,
-            spacing3=5,
-            wrap="word",
-        )
+        self.referent_textbox.configure(**textbox_config)
         row = master.grid_size()[1]
         self.referent_textbox.grid(row=row, column=0, columnspan=2, rowspan=4)
         self.refresh_referent()
@@ -957,25 +929,61 @@ class Summaries(Dialog):
         pass
 
 
+class WorkspaceDialog(Dialog):
+    def __init__(self, parent, orig_params):
+        self.orig_params = orig_params
+        self.vars = {
+            "input_box": tk.BooleanVar,
+            "debug_box": tk.BooleanVar,
+            "show_children": tk.BooleanVar,
+            "alt_textbox": tk.BooleanVar,
+        }
+        for key in self.vars.keys():
+            self.vars[key] = self.vars[key](value=orig_params[key])
+
+        Dialog.__init__(self, parent, title="Workspace")
+
+
+    def body(self, master):
+        # row = master.grid_size()[1]
+        # create_side_label(master, "Notes", row)
+        # check = ttk.Checkbutton(master, variable=self.vars["notes"])
+        # check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
+        create_side_label(master, "Input box", row)
+        check = ttk.Checkbutton(master, variable=self.vars["input_box"])
+        check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
+        create_side_label(master, "Debug box", row)
+        check = ttk.Checkbutton(master, variable=self.vars["debug_box"])
+        check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
+        create_side_label(master, "Show children", row)
+        check = ttk.Checkbutton(master, variable=self.vars["show_children"])
+        check.grid(row=row, column=1, pady=3)
+        row = master.grid_size()[1]
+        create_side_label(master, "Alt textbox", row)
+        check = ttk.Checkbutton(master, variable=self.vars["alt_textbox"])
+        check.grid(row=row, column=1, pady=3)
+
+    def apply(self):
+        for key, var in self.vars.items():
+            self.orig_params[key] = var.get()
+        self.result = self.orig_params
+
+
 class PreferencesDialog(Dialog):
     def __init__(self, parent, orig_params, state):
         self.orig_params = orig_params
         self.state = state
         self.vars = {
-            #"hide_archived": tk.BooleanVar,
-            #"canonical_only": tk.BooleanVar,
-            #"highlight_canonical": tk.BooleanVar,
-            "side_pane": tk.BooleanVar,
             "bold_prompt": tk.BooleanVar,
-            "input_box": tk.BooleanVar,
             "auto_response": tk.BooleanVar,
             "show_prompt": tk.BooleanVar,
-            #"log_diff": tk.BooleanVar,
             "autosave": tk.BooleanVar,
             "save_counterfactuals": tk.BooleanVar,
             "prob": tk.BooleanVar,
             "coloring": tk.StringVar,
-            #"gpt_mode": tk.StringVar,
             "font_size": tk.IntVar,
             "line_spacing": tk.IntVar,
             "paragraph_spacing": tk.IntVar,
@@ -988,17 +996,10 @@ class PreferencesDialog(Dialog):
         Dialog.__init__(self, parent, title="Preferences")
 
     def body(self, master):
-        #print(self.orig_params)
-        # create_label(master, "Filter nodes")
-        # create_checkbutton(master, "Hide archived", "hide_archived", self.vars)
-        # create_checkbutton(master, "Canonical only", "canonical_only", self.vars)
-
         create_label(master, "Nav tree")
-        #create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)
         create_checkbutton(master, "Reverse node order", "reverse", self.vars)
 
         create_label(master, "Navigation")
-        #create_checkbutton(master, "Color canonical", "highlight_canonical", self.vars)
         row = master.grid_size()[1]
         create_side_label(master, "A/D to navigate tag", row)
         tag_options = self.state.tags.keys()
@@ -1007,7 +1008,6 @@ class PreferencesDialog(Dialog):
 
         create_label(master, "Story frame")
         create_checkbutton(master, "Bold prompt", "bold_prompt", self.vars)
-        create_checkbutton(master, "Show input box", "input_box", self.vars)
         create_checkbutton(master, "Show literal prompt", "show_prompt", self.vars)
 
         create_label(master, "Saving")
@@ -1016,13 +1016,7 @@ class PreferencesDialog(Dialog):
 
         create_label(master, "Generation")
         create_checkbutton(master, "AI responses on submit", "auto_response", self.vars)
-        #create_checkbutton(master, "Log diffs", "log_diff", self.vars)
         create_checkbutton(master, "Show logprobs as probs", "prob", self.vars)
-
-        # row = master.grid_size()[1]
-        # create_side_label(master, "Show side pane", row)
-        # check = ttk.Checkbutton(master, variable=self.vars["side_pane"])
-        # check.grid(row=row, column=1, pady=3)
 
         row = master.grid_size()[1]
         create_side_label(master, "Display mode", row)
@@ -1038,6 +1032,7 @@ class PreferencesDialog(Dialog):
     def apply(self):
         for key, var in self.vars.items():
             self.orig_params[key] = var.get()
+        self.result = self.orig_params
 
 
 class GenerationSettingsDialog(Dialog):
@@ -1444,29 +1439,13 @@ class MultimediaDialog(Dialog):
 
 
 class RunDialog(Dialog):
-    def __init__(self, parent, controller):
-        self.code_textbox = None
-        self.label = None
-        self.controller = controller
+    def __init__(self, parent, callbacks, init_text=''):
+        run_init(self, init_text)
+        self.callbacks = callbacks
         Dialog.__init__(self, parent, title="Run code", enter_to_apply=False)
 
     def body(self, master):
-        self.label = tk.Label(master, text='**** HUMANS ONLY ****', bg=default_color(), fg=text_color())
-        self.label.grid(row=master.grid_size()[1], column=0)
-        self.code_textbox = ScrolledText(master, height=2)
-        self.code_textbox.grid(row=master.grid_size()[1], column=0, columnspan=1)
-        self.code_textbox.configure(
-            font=Font(family="Georgia", size=12),
-            spacing1=10,
-            foreground=text_color(),
-            background=bg_color(),
-            padx=3,
-            pady=3,
-            spacing2=3,
-            spacing3=5,
-            wrap="word",
-        )
+        run_body(self, master)
 
     def apply(self):
-        code = self.code_textbox.get("1.0", 'end-1c')
-        self.controller.eval_code(code)
+        run_apply(self)

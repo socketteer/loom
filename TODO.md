@@ -1,7 +1,9 @@
 ## Priority
 - alt textbox
     - editable
+
 - node can "conceal" ancestry (to reader and/or language model) 
+
 - masking
     - mask subtree
         - option to automatically mask new chapters
@@ -10,6 +12,7 @@
             - but I want "open" state to be property of session, not tree?
             - should all masking belong to a *session mask*?
     - function to check if a node is masked
+    
 - tags
     - tag config
         - nav tree foreground / background
@@ -26,61 +29,78 @@
     - delete all with tag 
     - *new* tags of zipped node (or same rules as split)
         - should these tags be assigned at tagging time?
-    - compound node tag inheritance
-        - remove always visible condition for compound
-        - compound nodes should keep a list of all encapsulated attributes
-    - permissive show/hide
-- inline scroll through short completions
+
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
     - diff / optimization logging
+- repair autocomplete
+- inline scroll through short completions
+
+
 - test click goto commands
     - alter for read mode
+
 - vis expanded state out of sync with nav tree expanded state
+- "collapse subtree" not implemented
+
+
 - tutorial
+
 - substitute (node)
+
 - floating nodes/subtrees
+    - pinned tag
+    - update events janky
+    - updating note won't update child edit text
+    - some way to hide notes without deleting them
+    
+- adopt grandparent hotkey
+- make top level sibling hotkey
+- move to chapter head hotkey
+
 - general purpose side frame
+    - make dialogs capable of being frames in side frame
+    - for floating notes
+    - for reading / editing arbitrary nodes
+
 - export visible tree / prune hidden nodes
+
 - edit textbox directly causes branch from nearest unmodified ancestor?
     - compare verbatim text
     - ask whether to create new branch or overwrite old
+ 
 
 - only show visible nodes in vis mode
 - archive button in vis mode
+
 - bring selected node out of Model
     - should be with Display?
     - multiple selected nodes
+    
 - multiple generation presets
     - for inline generation
+
 - fix reverse
     - also reverse nav direction when nav tree is reversed
     - changing reverse in preferences doesn't cause update to nav tree
+
 - reinstate mode dropdown
+
 - templates which take user input
+
 - summaries 
     - with context
     - suggest summaries in summary dialog
     - prompt to partition long text into summaries
 
 - icons showing up for ancestry scope?
+
 - scroll to beginning of node text when navigating
-- generate nodes when generated nodes should be hidden... override
-- when nodes fail to generate somehow, this sometimes messes up future generations
 
-- adding / removing ancestry is catastrophic
-    - hidden attribute for ancestry doesn't necessarily entail removal of entire scope
+- refactor generate edit stack
+    - when nodes fail to generate somehow, this sometimes messes up future generations
 
-- "collapse subtree" not implemented
-
-- floating tag
-
-- move node up to grandparent hotkey
-
-- show hidden children / hide hidden children cmd
-
-- Memories of hoisted / compound nodes aren't accessible
 
 - test suite
 
@@ -88,11 +108,54 @@
 
 - create child doesn't open edit mode if focus on nav
 
-- unzip_all should unzip even invisible things?
-
 - change node order should move node behind / in front of next *visible* sibling
 
-- repair autocomplete
+- memory
+    - refactor to use dicts like tags
+    - enable / disable
+    - memory preview box
+        - editable?
+    - memories of hoisted / compound nodes aren't accessible
+
+
+- separate nav update events from other events
+    - fix hacky solutions for child edit and notes
+    
+    
+- archiving/deleting children textboxes sometimes causes crash with bad text index "tk::anchor1" or anchor3
+
+- make an arbitrary number of sidebars / panes and open arbitrary modules in them
+    - abstract functionality of dialogs and make non dialog versions that can be put into panes
+    
+- fix vis icons
+
+- make show_children, debug, and input into modules
+    - make bottom_frame into a generic frame
+    
+- notes
+    - make scrollable frame        
+    - implement button functionality in notes
+        - archived - don't show archived notes
+        - remove floating tag button
+        
+- nav history
+
+- scripts to fix old workspace preferences
+
+- generations data options
+    - save in tree file
+    - don't save
+    - save in backup file
+    - handle trying to access nonexistent entry
+
+- save as duplicate button
+    - distinct:
+        - duplicate subtree
+        - duplicate only edited node(without children)
+        - save old version as duplicate (new one inherits children)
+            - ghostparent connection
+            
+ 
 
 ## Other TODO
 
@@ -118,6 +181,7 @@
 ### problems
 * saving and inserting into nav tree is slow for massive trees
 * rebuild view children frame is slow (enough to be annoying)
+    - textboxes are being rebuilt multiple times when tree updated
 
 ### Deprecated
 - child edit mode

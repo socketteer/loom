@@ -75,6 +75,7 @@ Tree Info: `i`, `Control-i`
 
 Node Metadata: `Control+Shift+N`
 
+Run Code: `Control+Shift+B`
 
 ### Mode / display
 

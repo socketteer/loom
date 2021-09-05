@@ -193,7 +193,12 @@ class TextAware(tk.Text):
 
     def _proxy(self, command, *args):
         cmd = (self._orig, command) + args
-        result = self.tk.call(cmd)
+        try:
+            result = self.tk.call(cmd)
+        except tk.TclError as e:
+            print(e)
+            print(self.get("1.0", 'end-1c'))
+            exit(0)
 
         if command in ("insert", "delete", "replace"):
             self.event_generate("<<TextModified>>")

@@ -17,7 +17,8 @@ from gpt import openAI_generate, search, generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, generate_conditional_tree, filtered_children, \
-    new_node, add_immutable_root, make_simple_tree, fix_tree, ancestry_in_range, ancestry_plaintext, ancestry_text_list
+    new_node, add_immutable_root, make_simple_tree, fix_tree, ancestry_in_range, ancestry_plaintext, ancestry_text_list, \
+    node_index
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs, parse_logit_bias, parse_stop
 from util.multiverse_util import greedy_word_multiverse
 from util.node_conditions import conditions, condition_lambda
@@ -43,11 +44,6 @@ DEFAULT_PREFERENCES = {
     'walk': 'descendents',  # 'leaves', 'uniform'
     'coloring': 'edit',  # 'read', 'none'
     'bold_prompt': True,
-    'side_pane': False,
-    'input_box': False,
-    'debug_box': False,
-    'past_box': True,
-    'show_children': False,
     'auto_response': True,
     'font_size': 12,
     'line_spacing': 8,
@@ -63,6 +59,16 @@ DEFAULT_PREFERENCES = {
     # darkmode
 }
 
+DEFAULT_WORKSPACE = {
+    'side_pane': {'open': False, 
+                  'module': 'notes'},
+    'input_box': False,
+    'debug_box': False,
+    'show_children': False,
+    'alt_textbox': False,
+    'show_search': False
+}
+
 
 DEFAULT_GENERATION_SETTINGS = {
     'num_continuations': 4,
@@ -70,7 +76,7 @@ DEFAULT_GENERATION_SETTINGS = {
     'top_p': 1,
     'response_length': 100,
     'prompt_length': 6000,
-    'logprobs': 4,
+    'logprobs': 0,
     #"adaptive": False,
     "model": "davinci",
     "stop": '',  # separated by '|'
@@ -96,10 +102,6 @@ DEFAULT_VISUALIZATION_SETTINGS = {
     # show canonical only
     # highlight canonical
     # auto collapse
-}
-
-DEFAULT_STATE = {
-    'show_search': False,
 }
 
 EMPTY_TREE = {
@@ -130,7 +132,7 @@ DEFAULT_TAGS = {
         "scope": "ancestry",
         "hide": False,
         "show_only": False,
-        "toggle_key": '^',
+        "toggle_key": '*',
         "icon": "book-white",
     },
     "archived": { 
@@ -140,6 +142,22 @@ DEFAULT_TAGS = {
         "show_only": False,
         "toggle_key": "!",
         "icon": "None",
+    },
+    "note": { 
+        "name": "note", 
+        "scope": "node",
+        "hide": True,
+        "show_only": False,
+        "toggle_key": "#",
+        "icon": "note-black",
+    },
+    "pinned": { 
+        "name": "pinned", 
+        "scope": "node",
+        "hide": False,
+        "show_only": False,
+        "toggle_key": "^",
+        "icon": "pin-red",
     }
  }
 
@@ -165,7 +183,6 @@ class TreeModel:
         self.canonical = None
         #self.tags = None
         self.model_responses = None
-        self.state_preferences = DEFAULT_STATE
 
         self.selected_node_id = None
 
@@ -190,6 +207,12 @@ class TreeModel:
         return self.tree_raw_data.get("preferences") \
             if self.tree_raw_data and "preferences" in self.tree_raw_data \
             else DEFAULT_PREFERENCES
+
+    @property
+    def workspace(self):
+        return self.tree_raw_data.get("workspace") \
+            if self.tree_raw_data and "workspace" in self.tree_raw_data \
+            else DEFAULT_WORKSPACE
 
     @property
     def tags(self):
@@ -723,6 +746,8 @@ class TreeModel:
                     #                               'revision timestamp': timestamp()})
             if refresh_nav:
                 self.tree_updated(edit=[node['id']], override_visible=True)
+            else:
+                self.rebuild_tree()
 
 
     def update_note(self, node, text, index=0):
@@ -827,7 +852,7 @@ class TreeModel:
             self.selection_updated()
         return mask
 
-    def unzip(self, mask, refresh_nav=True, update_selection=True):
+    def unzip(self, mask, filter=None, refresh_nav=True, update_selection=True):
         if not self.is_compound(mask):
             print('nothing to expand')
             return
@@ -843,7 +868,7 @@ class TreeModel:
         self.adopt_children(tail, children)
 
         if refresh_nav:
-            self.tree_updated(delete=[mask['id']], add=[n['id'] for n in subtree_list(head)])
+            self.tree_updated(delete=[mask['id']], add=[n['id'] for n in subtree_list(head, filter)])
         else:
             self.rebuild_tree()
         if update_selection:
@@ -880,12 +905,12 @@ class TreeModel:
 
     def unzip_all(self, root=None, filter=None):
         root = root if root else self.root()
-        children = filtered_children(root, filter)
+        children = root['children']
         for child in children:
             self.unzip_all(child, filter)
         # TODO this interferes with hoist?
         if self.is_compound(root) and not self.is_hoisted(root):
-            head = self.unzip(root, refresh_nav=False, update_selection=False)
+            head = self.unzip(root, filter=filter, refresh_nav=False, update_selection=False)
 
     # returns list of masked nodes from head to tail
     def constituents(self, mask):
@@ -978,7 +1003,8 @@ class TreeModel:
             "id": str(uuid.uuid1()),
             "root_id": node["id"],
             "text": text,
-            "inheritability": inheritability
+            "inheritability": inheritability,
+            "enabled": True,
         }
 
         self.memories[new_memory['id']] = new_memory
@@ -993,17 +1019,24 @@ class TreeModel:
         root_node = self.node(memory["root_id"])
         root_node['memories'].remove(memory['id'])
 
+    def memory_active(self, node, memory):
+        memory_ancestor = self.node(memory['root_id'])
+        if not in_ancestry(memory_ancestor, node, self.tree_node_dict):
+            return False
+        return memory['inheritability'] == 'none' and memory['root_id'] == node['id'] \
+               or memory['inheritability'] == 'subtree' \
+               or (memory['inheritability'] == 'delayed'
+                   and node_index(memory_ancestor, self.tree_node_dict) < self.context_window_index(node))
+
     # TODO also return list of pending?
     def construct_memory(self, node):
         ancestry = self.ancestry(node)
         memories = []
-        for i, ancestor in enumerate(ancestry):
+        for ancestor in ancestry:
             if 'memories' in ancestor:
                 for memory_id in ancestor['memories']:
                     memory = self.memories[memory_id]
-                    if (memory['inheritability'] == 'none' and memory['root_id'] == node['id']) \
-                            or memory['inheritability'] == 'subtree' \
-                            or (memory['inheritability'] == 'delayed' and i < self.context_window_index(node)):
+                    if self.memory_active(node, memory):
                         memories.append(memory)
         return memories
 
@@ -1184,21 +1217,20 @@ class TreeModel:
 
     def update_tree_tag_changed(self, node, tag):
         update_scope = self.tag_scope(node, tag)
+        hidden_in_scope = [d for d in update_scope if not self.visible(self.node(d))]
+        visible_in_scope = [d for d in update_scope if self.visible(self.node(d))]
         if self.has_tag_attribute(node, tag):
             if self.tags[tag]['hide']:
-                self.tree_updated(delete=update_scope, override_visible=True)
+                self.tree_updated(delete=hidden_in_scope)
                 return
-            # elif self.tags[tag]['show_only']:
-            #     self.tree_updated(add=update_scope, override_visible=True)
-            #     return
         else:
             if self.tags[tag]['hide']:
-                self.tree_updated(add=update_scope, override_visible=True)
+                self.tree_updated(add=visible_in_scope)
                 return
             elif self.tags[tag]['show_only']:
-                self.tree_updated(delete=update_scope, override_visible=True)
+                self.tree_updated(delete=hidden_in_scope)
                 return
-        self.tree_updated(edit=update_scope, override_visible=True)
+        self.tree_updated(edit=update_scope)
 
 
     #################################
@@ -1247,6 +1279,11 @@ class TreeModel:
         self.tree_raw_data["preferences"] = {
             **DEFAULT_PREFERENCES.copy(),
             **self.tree_raw_data.get("preferences", {})
+        }
+
+        self.tree_raw_data["workspace"] = {
+            **DEFAULT_WORKSPACE.copy(),
+            **self.tree_raw_data.get("workspace", {})
         }
 
         self.tree_raw_data['tags'] = {

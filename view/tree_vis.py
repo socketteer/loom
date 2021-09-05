@@ -2,6 +2,7 @@ import tkinter
 import tkinter.font as tkf
 import json
 import math
+import copy
 from pprint import pprint
 from tkinter import ttk
 
@@ -11,7 +12,7 @@ from PIL import ImageTk, Image
 from view.colors import vis_bg_color, visited_node_bg_color, unvisited_node_bg_color,inactive_text_color,\
     active_text_color, selected_line_color, active_line_color, inactive_line_color, BLUE, expand_button_color, \
     edit_color
-
+from view.icons import Icons
 
 # TODO add to vis params
 fixed_level_width = False
@@ -72,9 +73,9 @@ class TreeVis:
         self.selected_node = None
         self.overflow_display = 'PAGE' #'FULL' or 'SCROLL' or 'PAGE'
 
-        self.icons = {}
+        self.icons = None
         self.resize_icon_events = []
-        self.old_icons = []
+        #self.old_icons = []
 
         self.text_hidden = False
         self.buttons_hidden = False
@@ -94,36 +95,39 @@ class TreeVis:
         self.bind_mouse_controls()
 
 
-    def init_icon(self, icon_name, filename, size=18):
-        self.icons[icon_name] = {}
-        self.icons[icon_name]["size"] = size
-        self.icons[icon_name]["img"] = (Image.open(f"./static/icons/{filename}"))
-        self.icons[icon_name]["icon"] = ImageTk.PhotoImage(self.icons[icon_name]["img"].resize((self.icons[icon_name]['size'],
-                                                                                                self.icons[icon_name]['size'])))
+    # def init_icon(self, icon_name, filename, size=18):
+    #     self.icons[icon_name] = {}
+    #     self.icons[icon_name]["size"] = size
+    #     self.icons[icon_name]["img"] = (Image.open(f"./static/icons/{filename}"))
+    #     self.icons[icon_name]["icon"] = ImageTk.PhotoImage(self.icons[icon_name]["img"].resize((self.icons[icon_name]['size'],
+    #                                                                                             self.icons[icon_name]['size'])))
+    #
+    # def init_icons(self):
+    #     self.init_icon("star", "star-48.png", 18)
+    #     self.init_icon("empty_star", "empty_star-gray-48.png", 18)
+    #     self.init_icon("children", "children-green-48.png", 18)
+    #     self.init_icon("subtree", "subtree-green-48.png", 18)
+    #     self.init_icon("ancestry", "ancestry-black-48.png", 18)
+    #     self.init_icon("edit", "tag_icons/edit-blue.png", 16)
+    #     self.init_icon("close", "minus-black-48.png", 14)
+    #     self.init_icon("collapse_subtree", "collapse-black-48.png", 16)
+    #     self.init_icon("collapse_children", "collapse-left-black-48.png", 14)
+    #     self.init_icon("merge_parent", "leftarrow-lightgray-48.png", 16)
+    #     self.init_icon("merge_children", "rightarrow-lightgray-48.png", 16)
+    #     self.init_icon("add_link", "add-link-lightgray-48.png", 16)
+    #     self.init_icon("change_link", "broken-link-lightgray-48.png", 16)
+    #     self.init_icon("read", "read-lightgrey-48.png", 16)
+    #     self.init_icon("info", "stats-lightgrey-48.png", 16)
+    #     self.init_icon("delete", "programdelete-red-48.png", 16)
+    #     self.init_icon("generate", "brain-blue-48.png", 18)
+    #     self.init_icon("memory", "memory-blue-48.png", 18)
+    #     self.init_icon("add_parent", "plus_left-blue-48.png", 16)
+    #     self.init_icon("add_child", "plus-blue-48.png", 16)
+    #     self.init_icon("shift_up", "up-lightgray-48.png", 16)
+    #     self.init_icon("shift_down", "down-lightgray-48.png", 16)
 
     def init_icons(self):
-        self.init_icon("star", "star-48.png", 18)
-        self.init_icon("empty_star", "empty_star-gray-48.png", 18)
-        self.init_icon("children", "children-green-48.png", 18)
-        self.init_icon("subtree", "subtree-green-48.png", 18)
-        self.init_icon("ancestry", "ancestry-black-48.png", 18)
-        self.init_icon("edit", "edit-blue-48.png", 16)
-        self.init_icon("close", "minus-black-48.png", 14)
-        self.init_icon("collapse_subtree", "collapse-black-48.png", 16)
-        self.init_icon("collapse_children", "collapse-left-black-48.png", 14)
-        self.init_icon("merge_parent", "leftarrow-lightgray-48.png", 16)
-        self.init_icon("merge_children", "rightarrow-lightgray-48.png", 16)
-        self.init_icon("add_link", "add-link-lightgray-48.png", 16)
-        self.init_icon("change_link", "broken-link-lightgray-48.png", 16)
-        self.init_icon("read", "read-lightgrey-48.png", 16)
-        self.init_icon("info", "stats-lightgrey-48.png", 16)
-        self.init_icon("delete", "delete-red-48.png", 16)
-        self.init_icon("generate", "brain-blue-48.png", 18)
-        self.init_icon("memory", "memory-blue-48.png", 18)
-        self.init_icon("add_parent", "plus_left-blue-48.png", 16)
-        self.init_icon("add_child", "plus-blue-48.png", 16)
-        self.init_icon("shift_up", "up-lightgray-48.png", 16)
-        self.init_icon("shift_down", "down-lightgray-48.png", 16)
+        self.icons = Icons()
 
     def build_canvas(self):
         self.frame = ttk.Frame(self.parent_frame)
@@ -232,10 +236,11 @@ class TreeVis:
                 self.buttons_hidden = False
                 for item in self.canvas.find_withtag("image"):
                     self.canvas.itemconfigure(item, state='normal')
-            for icon in self.icons:
+            # TODO too many icons - only resize ones that are used?
+            for icon in self.icons.icons:
                 new_size = math.floor(self.scroll_ratio * self.icons[icon]["size"])
-                self.old_icons.append(self.icons[icon]["icon"])
-                self.icons[icon]["icon"] = ImageTk.PhotoImage(self.icons[icon]["img"].resize((new_size, new_size)))
+                #self.old_icons.append(self.icons[icon]["icon"])
+                self.icons.icons[icon]["icon"] = ImageTk.PhotoImage(self.icons.icons[icon]["img"].resize((new_size, new_size)))
             for resize_event in self.resize_icon_events:
                 resize_event()
 
@@ -599,9 +604,9 @@ class TreeVis:
         if name is None:
             name = icon_name
         icon_id = self.canvas.create_image(x_pos, y_pos,
-                                           image=self.icons[icon_name]["icon"],
+                                           image=self.icons.icons[icon_name]["icon"],
                                            tags=[f'{name}-{node["id"]}', 'data', 'image'])
-        self.resize_icon_events.append(lambda: self.canvas.itemconfig(icon_id, image=self.icons[icon_name]["icon"]))
+        self.resize_icon_events.append(lambda: self.canvas.itemconfig(icon_id, image=self.icons.icons[icon_name]["icon"]))
         self.canvas.tag_bind(
             f'{name}-{node["id"]}', "<Button-1>", method)
         return icon_id
@@ -609,92 +614,92 @@ class TreeVis:
 
 
     def draw_read_button(self, node, box):
-        self.draw_icon(node, box[0] + (box[2] - box[0]) / 2 - 31, box[3] + 12, "read",
+        self.draw_icon(node, box[0] + (box[2] - box[0]) / 2 - 31, box[3] + 12, "book-lightgray",
                        method=lambda event, _node=node: self.read_mode(_node))
 
     def draw_info_button(self, node, box):
-        self.draw_icon(node, box[0] + (box[2] - box[0])/2 - 11, box[3] + 12, "info",
+        self.draw_icon(node, box[0] + (box[2] - box[0])/2 - 11, box[3] + 12, "stats-lightgray",
                        method=lambda event, _node=node: self.show_info(_node))
 
     def draw_edit_button(self, node, box):
-        self.draw_icon(node, box[0] + (box[2] - box[0])/2 + 11, box[3] + 12, "edit",
+        self.draw_icon(node, box[0] + (box[2] - box[0])/2 + 11, box[3] + 12, "edit-blue",
                        method=lambda event, _node_id=node['id']: self.textbox_events[node['id']](_node_id))
 
     def draw_delete_button(self, node, box):
-        self.draw_icon(node, box[0] + (box[2] - box[0])/2 + 31, box[3] + 12, "delete",
+        self.draw_icon(node, box[0] + (box[2] - box[0])/2 + 31, box[3] + 12, "trash-red",
                        method=lambda event, _node=node: self.delete_node(_node))
 
 
 
     def draw_newchild_button(self, node, box):
-        self.draw_icon(node, box[2] - 13, box[3] + 12, "add_child",
+        self.draw_icon(node, box[2] - 13, box[3] + 12, "plus-blue",
                        method=lambda event, _node=node: self.new_child(_node))
 
     def draw_generate_button(self, node, box):
-        self.draw_icon(node, box[2] - 36, box[3] + 12, "generate",
+        self.draw_icon(node, box[2] - 36, box[3] + 12, "brain-blue",
                        method=lambda event, _node=node: self.generate(_node))
 
     def draw_memory_button(self, node, box):
-        self.draw_icon(node, box[2] - 59, box[3] + 12, "memory",
+        self.draw_icon(node, box[2] - 59, box[3] + 12, "memory-blue",
                        method=lambda event, _node=node: self.memory(_node))
 
     def draw_collapse_button(self, node, box):
-        self.draw_icon(node, box[0] + 7, box[1] - 10, "close",
+        self.draw_icon(node, box[0] + 7, box[1] - 10, "minus-black",
                        method=lambda event, _node=node: self.collapse_node(_node))
 
     def draw_collapse_subtree_button(self, node, box):
-        self.draw_icon(node, box[0] + 27, box[1] - 10, "collapse_subtree",
+        self.draw_icon(node, box[0] + 27, box[1] - 10, "collapse-black",
                        method=lambda event, _node=node: self.collapse_node_subtree(_node))
 
     def draw_collapse_except_subtree_button(self, node, box):
-        self.draw_icon(node, box[0] + 50, box[1] - 10, "ancestry",
+        self.draw_icon(node, box[0] + 50, box[1] - 10, "ancestry-black",
                        method=lambda event, _node=node: self.collapse_except_subtree(_node))
 
     def draw_mergeparent_button(self, node, box):
-        self.draw_icon(node, box[0] + 72, box[1] - 10, "merge_parent",
+        self.draw_icon(node, box[0] + 72, box[1] - 10, "leftarrow-lightgray",
                        method=lambda event, _node=node: self.merge_parent(_node))
 
     def draw_changeparent_button(self, node, box):
-        self.draw_icon(node, box[0] + 94, box[1] - 10, "change_link",
+        self.draw_icon(node, box[0] + 94, box[1] - 10, "broken_link-lightgray",
                        method=lambda event, _node=node: self.change_parent(_node))
 
     def draw_addlink_button(self, node, box):
-        self.draw_icon(node, box[0] + 116, box[1] - 10, "add_link",
+        self.draw_icon(node, box[0] + 116, box[1] - 10, "add_link-lightgray",
                        method=lambda event, _node=node: self.new_ghostparent(_node))
 
     def draw_newparent_button(self, node, box):
-        self.draw_icon(node, box[0] + 138, box[1] - 10, "add_parent",
+        self.draw_icon(node, box[0] + 138, box[1] - 10, "plus_left-blue",
                        method=lambda event, _node=node: self.new_parent(_node))
 
     def draw_shiftup_button(self, node, box):
-        self.draw_icon(node, box[0] + 160, box[1] - 10, "shift_up",
+        self.draw_icon(node, box[0] + 160, box[1] - 10, "up-lightgray",
                        method=lambda event, _node=node: self.shift_up(_node))
 
     def draw_shiftdown_button(self, node, box):
-        self.draw_icon(node, box[0] + 182, box[1] - 10, "shift_down",
+        self.draw_icon(node, box[0] + 182, box[1] - 10, "down-lightgray",
                        method=lambda event, _node=node: self.shift_down(_node))
 
 
     def draw_mergechildren_button(self, node, box):
-        self.draw_icon(node, box[2] - 79, box[1] - 10, "merge_children",
+        self.draw_icon(node, box[2] - 79, box[1] - 10, "rightarrow-lightgray",
                        method=lambda event, _node=node: self.merge_children(_node))
 
     def draw_collapse_children_button(self, node, box):
-        self.draw_icon(node, box[2] - 57, box[1] - 10, "collapse_children",
+        self.draw_icon(node, box[2] - 57, box[1] - 10, "collapse_left-black",
                        method=lambda event, _node=node: self.collapse_children(_node))
 
     def draw_expand_subtree_button(self, node, box):
-        self.draw_icon(node, box[2] - 37, box[1] - 10, "subtree",
+        self.draw_icon(node, box[2] - 37, box[1] - 10, "subtree-green",
                        method=lambda event, _node=node: self.expand_node_subtree(_node))
 
     def draw_expand_children_button(self, node, box):
-        self.draw_icon(node, box[2] - 14, box[1] - 10,  "children",
+        self.draw_icon(node, box[2] - 14, box[1] - 10,  "children-green",
                        method=lambda event, _node=node: self.expand_children(_node))
 
 
     def draw_bookmark_star(self, node, box):
         self.draw_icon(node, box[0]-15, box[1] + (box[3] - box[1])/2,
-                       icon_name="star" if self.state.has_tag(node, "bookmark") else "empty_star",
+                       icon_name="star-black" if self.state.has_tag(node, "bookmark") else "empty_star-gray",
                        name="bookmark",
                        method=lambda event, _node=node: self.toggle_bookmark(_node))
 

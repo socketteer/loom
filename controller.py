@@ -24,13 +24,14 @@ from view.display import Display
 from view.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
     PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
-    RunDialog
+    RunDialog, WorkspaceDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
     node_index, nearest_common_ancestor, filtered_children
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
 from util.keybindings import tkinter_keybindings
+from view.icons import Icons
 
 
 def gated_call(f, condition):
@@ -54,11 +55,12 @@ class Controller:
         self.root = root
         self.state = TreeModel(self.root)
         self.display = Display(self.root, self.callbacks, self.state, self)
+        self.icons = Icons()
 
         self.register_model_callbacks()
         self.setup_key_bindings()
         self.build_menus()
-        self.ancestor_end_indices = None
+        #self.ancestor_end_indices = None
 
 
     #################################
@@ -101,7 +103,6 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.refresh_textbox)
         self.state.register_callback(self.state.selection_updated, self.refresh_alt_textbox)
         self.state.register_callback(self.state.selection_updated, self.refresh_vis_selection)
-        self.state.register_callback(self.state.selection_updated, self.refresh_notes)
         self.state.register_callback(self.state.selection_updated, self.refresh_counterfactual_meta)
         self.state.register_callback(self.state.selection_updated, self.refresh_display)
         self.state.register_callback(self.state.selection_updated, self.save_multi_edits)
@@ -110,48 +111,44 @@ class Controller:
         self.state.register_callback(self.state.io_update, self.update_dropdown)
 
 
-    def setup_key_bindings(self):
-        attrs = [getattr(self, f) for f in dir(self)]
-        funcs_with_keys = [f for f in attrs if callable(f) and hasattr(f, "meta") and "keys" in f.meta]
+    
 
+    def bind(self, tk_key, f):
         def in_edit():
             return self.display.mode in ["Edit", "Child Edit"] \
                    or (self.display.mode == "Visualize" and self.display.vis.textbox) \
                    or self.has_focus(self.display.input_box) or self.multi_text_has_focus() \
-                   or self.has_focus(self.display.search_box)
-
+                   or self.has_focus(self.display.search_box) or self.module_textbox_has_focus()
+        
         valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete"]
+
+        inside_edit = any(v in tk_key for v in valid_keys_outside_edit)
+
+        self.root.bind(tk_key, no_junk_args(f if inside_edit else gated_call(f, lambda: not in_edit())))
+
+
+    def setup_key_bindings(self):
+        attrs = [getattr(self, f) for f in dir(self)]
+        funcs_with_keys = [f for f in attrs if callable(f) and hasattr(f, "meta") and "keys" in f.meta]
+
         for f in funcs_with_keys:
             for tk_key in f.meta["keys"]:
-                inside_edit = any(v in tk_key for v in valid_keys_outside_edit)
-                self.root.bind(
-                    tk_key, no_junk_args(f if inside_edit else gated_call(f, lambda: not in_edit()))
-                )
+                self.bind(tk_key, f)
 
         # Numbers to select children
         # TODO fix this
         for i in range(1, 6):
             i = i % 10
             f = lambda _i=i: self.child(idx=_i-1)
-            self.root.bind(
-                f"<Key-{i}>", no_junk_args(gated_call(f, lambda: not in_edit()))
-            )
+            self.bind(f"<Key-{i}>", f)
 
     
     def setup_custom_key_bindings(self, **kwargs):
-        def in_edit():
-            return self.display.mode in ["Edit", "Child Edit"] \
-                   or (self.display.mode == "Visualize" and self.display.vis.textbox) \
-                   or self.has_focus(self.display.input_box) or self.multi_text_has_focus() \
-                   or self.has_focus(self.display.search_box)
-
         for tag, properties in self.state.tags.items():
             if properties['toggle_key'] != 'None':
                 f = lambda _tag=tag: self.toggle_tag(_tag)
-                self.root.bind(
-                    f"<{tkinter_keybindings(properties['toggle_key'])}>",
-                    no_junk_args(gated_call(f, lambda: not in_edit()))
-                )
+                tk_key = tkinter_keybindings(properties['toggle_key'])
+                self.bind(tk_key, f)
 
     def build_menus(self):
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
@@ -174,7 +171,9 @@ class Controller:
                 ('Unzip', '', None, no_junk_args(self.unzip_node)),
                 ('Zip chain', '', None, no_junk_args(self.zip_chain)),
                 ('Zip all', '', None, no_junk_args(self.zip_all_chains)),
-                ('Unzip all', '', None, no_junk_args(self.unzip_all))
+                ('Unzip all', '', None, no_junk_args(self.unzip_all)),
+                ('Show hidden children', '', None, no_junk_args(self.show_hidden_children)),
+                ('Hide invisible children', '', None, no_junk_args(self.hide_invisible_children)),
             ],
             "Edit": [
                 ('Edit mode', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
@@ -223,11 +222,6 @@ class Controller:
                 ("Configure tags", None, None, no_junk_args(self.configure_tags)),
                 ("Mark node visited", None, None, lambda: self.set_visited(True)),
                 ("Mark node unvisited", None, None, lambda: self.set_visited(False)),
-                #("Toggle canonical", "Ctrl+Shift+C", None, no_junk_args(self.toggle_canonical)),
-                #("Toggle archive", "!", None, no_junk_args(self.toggle_archived)),
-                #("Archive", None, None, no_junk_args(self.archive)),
-                #("Unarchive", None, None, no_junk_args(self.unarchive)),
-                #("Bookmark", "B", None, no_junk_args(self.bookmark)),
                 ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
 
             ],
@@ -235,13 +229,17 @@ class Controller:
                 ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences)),
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
+                ('Workspace settings', None, None, no_junk_args(self.workspace_dialog)),
+
+            ],
+            "Developer": [
+                ('Run code', 'Ctrl+Shift+B', None, no_junk_args(self.run)),
 
             ],
             "Info": [
                 ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
                 ('Multimedia', 'U', None, no_junk_args(self.multimedia_dialog)),
                 ('Node metadata', 'Ctrl+Shift+N', None, no_junk_args(self.node_info_dialogue)),
-                ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences))
             ],
         }
         return menu_list
@@ -661,13 +659,18 @@ class Controller:
         node = node if node else self.state.selected_node
         self.state.zip_chain(node, filter=self.in_nav, refresh_nav=True, update_selection=True)
 
+    @metadata(name="Unzip node")
+    def unzip_node(self, node=None):
+        node = node if node else self.state.selected_node
+        self.state.unzip(node, filter=self.state.visible)
+
     def zip_all_chains(self):
         self.state.zip_all_chains(filter=self.in_nav)
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
 
     def unzip_all(self):
-        self.state.unzip_all(filter=self.in_nav)
+        self.state.unzip_all(filter=self.state.visible)
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
 
@@ -1186,15 +1189,17 @@ class Controller:
     def preferences(self):
         #print(self.state.preferences)
         dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences, state=self.state)
-        self.state.tree_updated(rebuild=True)
-        self.state.selection_updated()
+        if dialog.result:
+            self.state.tree_updated(rebuild=True)
+            self.state.selection_updated()
 
     @metadata(name="Generation Settings", keys=["<Control-Shift-KeyPress-P>"], display_key="ctrl-p")
     def generation_settings_dialog(self):
         dialog = GenerationSettingsDialog(self.display.frame, self.state.generation_settings)
         if dialog.result:
             #self.save_tree(popup=False)
-            self.refresh_textbox()
+            self.state.tree_updated()
+            #self.refresh_textbox()
             pprint(self.state.generation_settings)
 
     @metadata(name="Visualization Settings", keys=["<Control-u>"], display_key="ctrl-u")
@@ -1205,6 +1210,12 @@ class Controller:
             #pprint(self.state.visualization_settings)
             self.refresh_visualization()
             # self.save_tree(popup=False)
+
+    def workspace_dialog(self):
+        dialog = WorkspaceDialog(self.display.frame, self.state.workspace)
+        if dialog.result:
+            self.refresh_workspace()
+
 
     @metadata(name="Show Info", keys=["<i>", "<Control-i>"], display_key="i")
     def info_dialog(self):
@@ -1291,7 +1302,7 @@ class Controller:
                 self.clear_search()
         self.search_textbox.meta['search_term'] = pattern
         self.search_textbox.meta['case_sensitive'] = case_sensitive
-        ancestry_text, _ = self.state.ancestry_text(self.state.selected_node)
+        ancestry_text = self.state.ancestry_text(self.state.selected_node)
         matches = []
         matches_iter = re.finditer(pattern, ancestry_text) if case_sensitive \
             else re.finditer(pattern, ancestry_text, re.IGNORECASE)
@@ -1345,8 +1356,8 @@ class Controller:
         return self.search_textbox.meta['matches'] is not None
 
     def toggle_search(self, toggle=None):
-        toggle = not self.state.state_preferences['show_search'] if not toggle else toggle
-        self.state.state_preferences['show_search'] = toggle
+        toggle = not self.state.workspace['show_search'] if not toggle else toggle
+        self.state.workspace['show_search'] = toggle
         if toggle:
             self.display.open_search()
         else:
@@ -1382,15 +1393,15 @@ class Controller:
     @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
     def toggle_input_box(self, toggle='either'):
         if self.display.mode == "Read":
-            if toggle == 'on' or (toggle == 'either' and not self.state.preferences['input_box']):
+            if toggle == 'on' or (toggle == 'either' and not self.state.workspace['input_box']):
                 self.open_bottom_frame('input_box')
             else:
                 self.close_bottom_frame()
-        elif self.display.mode == "Multiverse":
-            if toggle == 'on' or (toggle == 'either' and not self.state.preferences['past_box']):
-                self.open_bottom_frame('past_box')
-            else:
-                self.close_bottom_frame()
+        # elif self.display.mode == "Multiverse":
+        #     if toggle == 'on' or (toggle == 'either' and not self.state.workspace['past_box']):
+        #         self.open_bottom_frame('past_box')
+        #     else:
+        #         self.close_bottom_frame()
 
     @metadata(name="Submit", keys=[], display_key="")
     def submit(self):
@@ -1411,64 +1422,77 @@ class Controller:
 
     @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
     def toggle_debug_box(self, toggle='either'):
-        if toggle == 'on' or (toggle == 'either' and not self.state.preferences['debug_box']):
+        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['debug_box']):
             self.open_bottom_frame('debug_box')
         else:
             self.close_bottom_frame()
 
     @metadata(name="Children", keys=["<Alt-c>"], display_key="")
     def toggle_show_children(self, toggle='either'):
-        if toggle == 'on' or (toggle == 'either' and not self.state.preferences['show_children']):
-            self.state.preferences['show_children'] = True
-            self.show_children()
+        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['show_children']):
+            self.open_bottom_frame('show_children')
         else:
-            self.state.preferences['show_children'] = False
-            self.hide_children()
+            self.close_bottom_frame()
 
     def show_children(self, node=None, **kwargs):
         node = node if node else self.state.selected_node
-        if self.state.preferences['show_children'] and self.state.selected_node \
+        if self.state.workspace['show_children'] and self.state.selected_node \
                 and self.display.mode in ("Read", "Edit"):
             children = filtered_children(node, self.in_nav)
-            self.display.build_multi_frame(len(children))
-            self.display.populate_textboxes(children)
+            self.display.build_multi_frame(children)
             self.display.textbox.update_idletasks()
             self.display.textbox.see(tk.END)
 
-    def read_mode_refresh(self, **kwargs):
-        if self.state.preferences['coloring'] == 'read':
-            self.toggle_show_children(toggle=False)
-
     def update_children(self, **kwargs):
-        if self.state.preferences['show_children'] and self.display.mode in ("Read", "Edit"):
+        if self.state.workspace['show_children'] and self.display.mode in ("Read", "Edit"):
             if 'add' in kwargs:
                 self.display.update_children([self.state.node(node_id) for node_id in kwargs['add']
                                              if self.state.node(node_id)['parent_id'] == self.state.selected_node_id])
             if 'edit' in kwargs:
                 self.display.update_text()
 
+    def read_mode_refresh(self, **kwargs):
+        if self.state.preferences['coloring'] == 'read':
+            self.toggle_show_children(toggle=False)
 
-    def hide_children(self):
-        self.display.destroy_multi_frame()
+    @metadata(name="Show hidden children")
+    def show_hidden_children(self, node=None):
+        node = node if node else self.state.selected_node
+        self.state.tree_updated(add=[n['id'] for n in node['children'] if not self.in_nav(n)])
 
+    @metadata(name="Hide invisible children")
+    def hide_invisible_children(self, node=None):
+        node = node if node else self.state.selected_node
+        self.state.tree_updated(delete=[n['id'] for n in node['children'] if not self.state.visible(n)])
 
-    def open_bottom_frame(self, box_name):
-        self.close_bottom_frame()
-        self.state.preferences[box_name] = True
-        if box_name == 'input_box':
+    def open_bottom_frame(self, module_name):
+        self.display.destroy_bottom_frame()
+        self.state.workspace[module_name] = True
+        if module_name == 'input_box':
             self.display.build_input_box()
             self.update_dropdown()
             self.display.input_box.focus()
-        elif box_name == 'debug_box':
+        elif module_name == 'debug_box':
             self.display.build_debug_box()
-        elif box_name == 'past_box':
-            self.display.build_past_box()
+        elif module_name == 'show_children':
+            self.show_children()
 
     def close_bottom_frame(self):
         self.display.destroy_bottom_frame()
-        self.state.preferences['debug_box'] = False
-        self.state.preferences['input_box'] = False
-        self.state.preferences['past_box'] = False
+        self.state.workspace['debug_box'] = False
+        self.state.workspace['input_box'] = False
+        self.state.workspace['show_children'] = False
+
+    # def open_side_frame(self, module_name):
+    #     self.display.destroy_side()
+    #     self.state.workspace[module_name] = True
+    #     if module_name == 'notes':
+    #         self.display.open_notes()
+    #         self.load_notes()
+
+    # def close_side_frame(self):
+    #     self.display.destroy_side()
+    #     self.state.workspace['notes'] = False
 
     def update_dropdown(self):
         if self.display.mode_var:
@@ -1481,43 +1505,9 @@ class Controller:
             # TODO print to debug stream even if debug box is not active
             self.display.write_to_debug(message)
 
-
-    # @metadata(name="Update mode", keys=[], display_key="")
-    # def update_mode(self, *args):
-    #     self.state.preferences['gpt_mode'] = self.display.mode_var.get()
-
-
-    @metadata(name="Debug", keys=["<Control-Shift-KeyPress-B>"], display_key="")
-    def debug(self):
-        #self.setup_custom_key_bindings()
-        #self.state.reset_tags()
-        #self.state.turn_attributes_into_tags()
-        dialog = RunDialog(parent=self.display.frame, controller=self)
-        # constituents = self.state.constituents(self.state.selected_node)
-        # for c in constituents:
-        #     print(c['text'])
-        #print(self.state.summary_prompt(node=self.state.selected_node))
-        #print(self.state.custom_prompt(node=self.state.selected_node, filename='prose_to_script.txt'))
-        #TagsDialog(parent=self.display.frame, state=self.state)
-        #AddTagDialog(parent=self.display.frame, state=self.state)
-        #self.state.expand(self.state.selected_node)
-
-        # if self.display.alt_textbox:
-        #     self.close_alt_textbox()
-        # else:
-        #     self.open_alt_textbox()
-        #self.display.open_side()
-        #self.collapse_all_chains()
-        # node = self.state.selected_node
-        # parent = self.state.parent(node)
-        # grandparent = self.state.parent(parent)
-        # self.state.collapse(head=grandparent, tail=node)
-        #time.sleep(2)
-        #self.display.close_search()
-        #info_dict = {'name': 'created on or after',
-        #             'params': {'time': datetime.datetime(2022, 5, 3)}}
-        #print(self.state.construct_node_condition(info_dict)(self.state.selected_node))
-        #pass
+    @metadata(name="Run", keys=["<Control-Shift-KeyPress-B>"], display_key="", prev_cmd="")
+    def run(self):
+        dialog = RunDialog(parent=self.display.frame, callbacks=self.callbacks, init_text=self.callbacks["Run"]["prev_cmd"])
 
     def open_alt_textbox(self):
         if not self.display.alt_textbox:
@@ -1544,10 +1534,6 @@ class Controller:
         # for added_tag in modifications['add']:
         #     self.state.tag_scope_update(node, added_tag)
 
-    @metadata(name="Unzip node")
-    def unzip_node(self, node=None):
-        node = node if node else self.state.selected_node
-        self.state.unzip(node)
 
     @metadata(name="Insert summary")
     def insert_summary(self, index):
@@ -1721,6 +1707,12 @@ class Controller:
                     return True
         return False
 
+    # TODO test this
+    def module_textbox_has_focus(self):
+        if self.state.workspace['side_pane']['open']:
+            if self.display.panes['side_pane'].module.textbox_has_focus():
+                return True
+
     #################################
     #   Story frame TODO call set text, do this in display?
     #################################
@@ -1748,40 +1740,43 @@ class Controller:
             return
 
     def save_multi_edits(self, **kwargs):
-        if self.display.mode in ("Read", "Edit") and self.state.preferences['show_children']:
+        if self.display.mode in ("Read", "Edit") and self.state.workspace['show_children']:
             self.display.save_all()
 
-    def refresh_display(self, **kwargs):
 
+    def refresh_display(self, **kwargs):
         self.configure_buttons()
         self.configure_nav_tags()
-        if self.display.mode == 'Read':
-            if self.display.past_box:
-                self.display.destroy_bottom_frame()
+        self.refresh_workspace()
+        # refresh modules in side pane
+        # TODO make generic
+        if self.state.workspace['side_pane']['open']:
+            self.display.panes['side_pane'].module.refresh()
 
-            if not self.state.preferences['input_box'] and self.display.input_box:
-                self.display.destroy_bottom_frame()
-            if not self.state.preferences['debug_box'] and self.display.debug_box:
-                self.display.destroy_bottom_frame()
-            if not self.state.preferences['show_children'] and self.display.multi_scroll_frame:
-                self.display.destroy_multi_frame()
-
-            if self.state.preferences['input_box'] and not self.display.input_box:
-                self.display.build_input_box()
-            if self.state.preferences['debug_box'] and not self.display.debug_box:
-                self.display.build_debug_box()
-            if self.state.preferences['show_children'] and not self.display.multi_scroll_frame:
-                self.show_children()
-        else:
+    def refresh_workspace(self):
+        if not self.state.workspace['input_box'] and self.display.input_box:
             self.display.destroy_bottom_frame()
-            if not self.display.mode == 'Edit':
-                self.display.destroy_multi_frame()
-        if self.display.mode == 'Multiverse':
-            if self.state.preferences['past_box'] and not self.display.past_box:
-                self.display.build_past_box()
-            elif not self.state.preferences['past_box'] and self.display.past_box:
-                self.display.destroy_bottom_frame()
+        if not self.state.workspace['debug_box'] and self.display.debug_box:
+            self.display.destroy_bottom_frame()
+        if not self.state.workspace['show_children'] and self.display.multi_scroll_frame:
+            self.display.destroy_bottom_frame()
+        if not self.state.workspace['alt_textbox'] and self.display.alt_frame:
+            self.display.destroy_alt_textbox()
 
+        if not self.state.workspace['side_pane']['open'] and self.display.panes['side_pane']:
+            self.display.destroy_pane(self.display.panes['side_pane'])
+
+        if self.state.workspace['input_box'] and not self.display.input_box:
+            self.display.build_input_box()
+        if self.state.workspace['debug_box'] and not self.display.debug_box:
+            self.display.build_debug_box()
+        if self.state.workspace['show_children'] and not self.display.multi_scroll_frame:
+            self.show_children()
+        if self.state.workspace['alt_textbox'] and not self.display.alt_frame:
+            self.display.build_alt_textbox()
+
+        if self.state.workspace['side_pane']['open'] and not self.display.panes['side_pane']:
+            self.display.open_pane("side_pane", "vertical")
 
 
     def refresh_alt_textbox(self, **kwargs):
@@ -1878,7 +1873,7 @@ class Controller:
 
 
     def refresh_children(self):
-        if self.state.preferences['show_children']:
+        if self.state.workspace['show_children']:
             self.display.rebuild_multi_frame()
 
     # TODO nodes with mixed prompt/continuation
@@ -1936,31 +1931,41 @@ class Controller:
         if self.display.mode == 'Multiverse':
             self.display.multiverse.clear_multiverse()
 
-    def refresh_notes(self, **kwargs):
-        if not self.state.tree_raw_data or not self.state.selected_node or not self.state.preferences['side_pane']:
-            return
 
-        self.display.notes_textbox.configure(state="normal")
-        self.display.notes_textbox.delete("1.0", "end")
+    #################################
+    #   Modules
+    #################################
 
-        notes = self.state.selected_node.get("notes", None)
-        # active note = last active else first note
-        if notes:
-            # text = active['text']
-            # title = active['title']
-            # scope
-            # root
-            pass
+    @metadata(name="Toggle side pane", keys=["<Alt-p>"], display_key="")
+    def toggle_side(self, toggle='either'):
+        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['side_pane']['open']):
+            self.display.open_pane("side_pane", "vertical")
+        else:
+            self.display.destroy_pane(self.display.panes['side_pane'])
 
+    @metadata(name="Get floating notes")
+    def get_floating_notes(self, tag='note', node=None):
+        node = node if node else self.state.selected_node
+        ancestry = self.state.ancestry(node)
+        for ancestor in reversed(ancestry):
+            for child in ancestor['children']:
+                if self.state.has_tag(child, tag) and child != node:
+                    yield child
 
-        note = notes[0] if notes else ""
-        #print('note: ', note)
-        self.display.notes_textbox.insert("end-1c", note)
+    @metadata(name="New note")
+    def new_note(self, node=None):
+        node = node if node else self.state.selected_node
+        new_child = self.state.create_child(parent=node)
+        self.state.tag_node(new_child, 'note')
+        if self.state.visible(new_child):
+            self.state.tree_updated(add=[new_child['id']])
+        return new_child
 
-    # TODO When to call this?
-    def save_notes(self):
-        new_note_text = self.display.notes_textbox.get("1.0", 'end-1c')
-        self.state.update_note(self.state.selected_node, new_note_text)
+    @metadata(name="Prompt")
+    def prompt(self, node=None):
+        node = node if node else self.state.selected_node
+        return self.state.prompt(node)
+
 
     #################################
     #   Navtree
@@ -1985,28 +1990,22 @@ class Controller:
     def nav_icon(self, node):
         image = None
         if node == self.state.root():
-            image = self.display.icons['tree']['icon']
+            image = self.icons.get_icon('tree-lightblue')
         elif node['id'] == self.state.checkpoint:
-            image = self.display.marker_icon
+            image = self.icons.get_icon('tree_marker-black')
         elif self.state.is_compound(node):
-            image = self.display.icons['compound']['icon']
+            image = self.icons.get_icon('layers-black')
         elif 'multimedia' in node and len(node['multimedia']) > 0:
-            image = self.display.media_icon
+            image = self.icons.get_icon('media-white')
         for tag in self.state.tags:
             if self.state.has_tag_attribute(node, tag):
                 if self.state.tags[tag]['icon'] != 'None':
-                    image = self.display.icons[self.state.tags[tag]['icon']]["icon"]
+                    image = self.icons.get_icon(self.state.tags[tag]['icon'])
         if not image:
-            image = self.display.empty_icon
+            image = self.icons.get_icon('empty')
         return image
 
     def configure_nav_tags(self):
-        # if self.state.preferences.get('highlight_canonical', False):
-        #     self.display.nav_tree.tag_configure("canonical", foreground=text_color())
-        #     self.display.nav_tree.tag_configure("uncanonical", foreground=uncanonical_color())
-        # else:
-        #     self.display.nav_tree.tag_configure("canonical", foreground=text_color())
-        #     self.display.nav_tree.tag_configure("uncanonical", foreground=text_color())
         self.display.nav_tree.tag_configure("not visited", background=not_visited_color())
         self.display.nav_tree.tag_configure("visited", background=visited_color())
         self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())
@@ -2133,11 +2132,23 @@ class Controller:
         #         node["open"] = self.display.nav_tree.item(node["id"], "open")
 
         # Update tag of node based on visited status
-        d = self.state.selected_node
-        self.display.refresh_nav_node(d)
+        self.refresh_nav_node(self.state.selected_node)
 
         # Scroll to node, open it's parent nodes
         self.scroll_to_selected()
+
+    @metadata(name="Refresh nav node")
+    def refresh_nav_node(self, node):
+        if self.in_nav(node):
+            tags = self.state.get_node_tags(node)
+            image = self.nav_icon(node)
+            self.display.nav_tree.item(
+                node["id"],
+                text=self.nav_name(node),
+                open=node.get("open", False),
+                tags=tags,
+                **dict(image=image) if image else {})
+
 
     # add node and ancestry to open tree
     # TODO masked nodes
@@ -2275,6 +2286,7 @@ class Controller:
     #   Programmatic weaving
     #################################
 
+    @metadata(name="Eval")
     def eval_code(self, code_string):
         if code_string:
             try:

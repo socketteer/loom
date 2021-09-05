@@ -4,7 +4,7 @@ import uuid
 import openai
 from tkinter import ttk
 from decimal import *
-
+from util.custom_tks import TextAware
 from util.gpt_util import logprobs_to_probs
 from util.tokenizer import tokenize, token_to_word
 
@@ -14,41 +14,46 @@ rainbow_colors = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F0
 default_y_scale = 1
 
 class BlockMultiverse:
-    def __init__(self, parent_frame, set_past_box, write_to_debug):
+    def __init__(self, parent_frame):
         self.parent_frame = parent_frame
+
         self.frame = None
+        self.multiverse_frame = None
+        self.bottom_input_frame = None
+        self.past_box = None
         self.canvas = None
         self.wavefunction = None
         self.selected_id = None
-        self.set_past_box = set_past_box
         self.window_height = 1000
         self.node_info = {}
         self.build_canvas()
+        self.build_past_box()
         self.window_offset = (0, 0)
         self.y_scale = default_y_scale
         self.x_scale = 1
         self.bind_mouse_controls()
         self.prompt = None
-        self.write_to_debug = write_to_debug
 
     def clear_multiverse(self):
         self.wavefunction = None
         self.selected_id = None
         self.canvas.delete("all")
         self.node_info = {}
-        self.set_past_box('', '')
+        self.set_pastbox_text('', '')
         self.prompt = None
         self.reset_view()
 
     def build_canvas(self):
         self.frame = ttk.Frame(self.parent_frame)
-        self.canvas = tkinter.Canvas(self.frame, bg="#808080")
+        self.multiverse_frame = ttk.Frame(self.frame)
+        self.multiverse_frame.pack(expand=True, fill=tkinter.BOTH)
+        self.canvas = tkinter.Canvas(self.multiverse_frame, bg="#808080")
 
-        hbar = tkinter.Scrollbar(self.frame, orient=tkinter.HORIZONTAL)
+        hbar = tkinter.Scrollbar(self.multiverse_frame, orient=tkinter.HORIZONTAL)
         hbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
         hbar.config(command=self.canvas.xview)
 
-        vbar = tkinter.Scrollbar(self.frame, orient=tkinter.VERTICAL)
+        vbar = tkinter.Scrollbar(self.multiverse_frame, orient=tkinter.VERTICAL)
         vbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
         vbar.config(command=self.canvas.yview)
 
@@ -57,6 +62,28 @@ class BlockMultiverse:
             yscrollcommand=vbar.set
         )
         self.canvas.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+
+    def build_past_box(self):
+        self.bottom_input_frame = ttk.Frame(self.frame)
+        self.bottom_input_frame.pack(side="bottom", fill="both")
+        self.past_box = TextAware(self.bottom_input_frame, bd=3, height=3)
+        self.past_box.pack(expand=True, fill='x')
+        self.past_box.configure(
+            foreground='white',
+            background='black',
+            wrap="word",
+        )
+        self.past_box.tag_configure("prompt", foreground="gray")
+        self.past_box.configure(state="disabled")
+
+    def set_pastbox_text(self, prompt_text='', completion_text=''):
+        if self.past_box:
+            self.past_box.configure(state="normal")
+            self.past_box.delete('1.0', "end")
+            self.past_box.insert('1.0', prompt_text, "prompt")
+            self.past_box.insert("end-1c", completion_text)
+            self.past_box.configure(state="disabled")
+            self.past_box.see("end")
 
     def bind_mouse_controls(self):
         # FIXME
@@ -147,7 +174,7 @@ class BlockMultiverse:
         self.window_offset = (0, 0)
         self.fix_text_zoom()
         if self.prompt:
-            self.set_past_box(prompt_text=self.prompt)
+            self.set_pastbox_text(prompt_text=self.prompt)
 
     def active_wavefunction(self):
         return self.wavefunction and self.selected_id
@@ -160,14 +187,14 @@ class BlockMultiverse:
         #print(self.node_info[node_id]['token'])
         self.set_y_window(x0, y0, height)
         prefix_text = self.node_info[node_id]['prefix']
-        self.set_past_box(prompt_text=self.prompt if self.prompt else '', 
+        self.set_pastbox_text(prompt_text=self.prompt if self.prompt else '', 
                           completion_text=prefix_text)
 
     def draw_multiverse(self, multiverse, ground_truth='', block_width=150, start_position=(0, 0), color_index=0,
                         prefix='', show_text=True, show_probabilities=False, prompt=''):
         if not self.prompt:
             self.prompt = prompt
-        self.set_past_box(prompt_text=self.prompt)
+        self.set_pastbox_text(prompt_text=self.prompt)
         if not self.wavefunction:
             self.wavefunction = multiverse
         else:

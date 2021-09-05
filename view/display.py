@@ -1,6 +1,5 @@
 import tkinter as tk
 from tkinter import ttk
-from tkinter.font import Font
 
 import PIL
 
@@ -10,6 +9,11 @@ from util.custom_tks import TextAware, ScrollableFrame
 from view.colors import bg_color, text_color, edit_color, GREEN, BLUE
 from util.util import metadata
 from util.util_tree import num_descendents
+from util.panes import Pane, NestedPane
+from view.modules import *
+from view.icons import Icons
+from view.styles import textbox_config
+from tkinter.font import Font
 # from PIL import ImageTk, Image
 import uuid
 import time
@@ -43,7 +47,7 @@ class Display:
         self.chapter_nav_tree = None
         self.chapter_nav_scrollbarx = None
 
-        self.main_frame = None
+        self.main_pane = None
 
         self.alt_frame = None
         self.alt_textbox = None
@@ -61,35 +65,24 @@ class Display:
         self.multiverse_frame = None
         self.multiverse = None
 
-        self.side_frame = None
-
-        self.notes_frame = None
-        self.notes_textbox_frame = None
-        self.notes_textbox = None
-        self.notes_options_frame = None
-        self.notes_title = None
-        self.notes_select = None
-        self.scope_select = None
-        self.change_root_button = None
-        self.delete_note_button = None
+        self.panes = {'side_pane': None}
 
         self.bottom_frame = None
+        self.button_frame = None
         self.input_box = None
         self.input_frame = None
         self.mode_select = None
         self.submit_button = None
         self.mode_var = None
         self.debug_box = None
-        self.past_box = None
 
         self.multi_scroll_frame = None
         self.multi_textboxes = None
-        self.font = Font(family="Georgia", size=12)
         self.multi_pady = 8
         self.multi_padx = 2
         self.multi_default_height = 3
         self.multi_bd_width = 3
-        self.default_num_textbox = 4
+        self.default_num_textbox = 5
         self.button_height = 30
         self.add_child_button = None
         self.hidden_nodes_button = None
@@ -113,13 +106,17 @@ class Display:
         self.unhoist_button = None
         self.scroll_to_selected_button = None
 
-        self.icons = {}
+        self.font = Font(family='Georgia', size=12)
+
+        self.modules = {'notes': Notes,
+                        'texteditor': TextEditor,
+                        'prompt': Prompt,
+                        'run': Run,}
 
         # Build it!
-        self.build_static()
-        self.init_icons()
         self.build_display(self.frame)
         self.set_mode(self.mode)
+        self.icons = Icons()
 
     #################################
     #   Util
@@ -159,38 +156,6 @@ class Display:
             button.pack(**{**dict(side=side, fill="y"), **(pack_params if pack_params else {})})
         return button
 
-    def init_icon(self, icon_name, filename, size=18):
-        self.icons[icon_name] = {}
-        self.icons[icon_name]["size"] = size
-        self.icons[icon_name]["img"] = (PIL.Image.open(f"./static/icons/{filename}"))
-        self.icons[icon_name]["icon"] = PIL.ImageTk.PhotoImage(
-            self.icons[icon_name]["img"].resize((self.icons[icon_name]['size'],
-                                                 self.icons[icon_name]['size'])))
-
-    #################################
-    #   Display
-    #################################
-
-    def init_icons(self):
-        self.init_icon("edit", "edit-blue-48.png", 16)
-        self.init_icon("delete", "delete-red-48.png", 16)
-        self.init_icon("close", "close-window-48.png", 16)
-        self.init_icon("archive", "archive-2-48.png", 16)
-        self.init_icon("go", "arrow-green.png", 16)
-        self.init_icon("compound", "layers-2-48.png", 16)
-        self.init_icon("tree", "flow-chart-48.png", 16)
-        # automatically add all icons in tag_icons folder
-        for filename in os.listdir("./static/icons/tag_icons"):
-            icon_name = os.path.splitext(filename)[0]
-            self.init_icon(icon_name, 'tag_icons/' + filename, 16)
-
-    # TODO init with init_icons
-    def build_static(self):
-        #self.bookmark_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/star_small.png"))
-        self.marker_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/marker.png"))
-        self.media_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/media.png"))
-        self.empty_icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/icons/empty.png"))
-
     def build_display(self, frame):
         self.pane = ttk.PanedWindow(frame, orient=tk.HORIZONTAL)
         self.pane.pack(expand=True, fill="both")
@@ -201,25 +166,18 @@ class Display:
         self.build_main_frame(self.pane)
         self.pane.add(self.main_frame, weight=6)
 
-        # self.open_side()
-        if self.state.preferences["side_pane"]:
-            self.open_side()
-
-        # self.destroy_chapter_nav()
-
     #################################
     #   Main frame
     #################################
 
     def build_main_frame(self, frame):
-        self.main_frame = ttk.Frame(frame, width=500, height=500)
+        self.main_frame = ttk.Frame(frame)
+        self.main_pane = ttk.PanedWindow(self.main_frame, orient=tk.VERTICAL)
+        self.main_pane.pack(expand=True, fill="both")
 
-        # Alt textbox
-        self.alt_frame = ttk.Frame(self.main_frame, height=0)
-        
-        # Textbox
-        self.story_frame = ttk.Frame(self.main_frame)
-        self.story_frame.pack(expand=True, fill='both')
+
+        self.story_frame = ttk.Frame(self.main_pane)
+        self.main_pane.add(self.story_frame, weight=6)
 
         self.build_textboxes(self.story_frame)
         self.textbox_frame.pack(expand=True, fill="both")
@@ -227,51 +185,20 @@ class Display:
         self.vis = TreeVis(self.story_frame,
                            self.state, self.controller)
 
-        self.multiverse = BlockMultiverse(self.story_frame, self.set_pastbox_text, self.write_to_debug)
+        self.multiverse = BlockMultiverse(self.story_frame)
 
-        self.bottom_input_frame = ttk.Frame(self.main_frame)
-        self.bottom_input_frame.pack(side="bottom", fill="both")
-
-        self.bottom_frame = ttk.PanedWindow(self.main_frame, orient=tk.HORIZONTAL)  # ttk.Frame(self.main_frame)
-        self.bottom_frame.pack(side="bottom", fill="both")
-        # Button bar        self.input_frame.pack(side="bottom", fill="x")
-        self.build_main_buttons(self.bottom_frame)
+        self.button_frame = ttk.Frame(self.main_frame)
+        self.button_frame.pack(side="bottom", fill="both")
+        self.build_main_buttons(self.button_frame)
         self.button_bar.pack(side="top", fill="both")
 
-        self.search_frame = ttk.Frame(self.main_frame)
+        self.search_frame = ttk.Frame(self.main_pane, relief=tk.RAISED, borderwidth=2)
 
     def build_textboxes(self, frame):
         self._build_textbox(frame, "preview_textbox_frame", "preview_textbox", height=3)
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
         self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
-
-    def build_alt_textbox(self):
-        self.story_frame.pack_forget()
-        self.alt_frame.pack(expand=False, fill='x')
-        self.story_frame.pack(expand=True, fill='both')
-
-        self.alt_textbox = TextAware(self.alt_frame, height=3)
-        self.alt_textbox.pack(expand=False, fill='x')
-        self.alt_textbox.configure(
-            font=self.font,
-            spacing1=10,  # spacing between paragraphs
-            foreground=text_color(),
-            background=bg_color(),
-            padx=2,
-            pady=5,
-            spacing2=8,  # Spacing between lines
-            spacing3=5,
-            wrap="word",
-        )
-        self.alt_textbox.configure(state='disabled')
-
-
-    def destroy_alt_textbox(self):
-        self.alt_textbox.pack_forget()
-        self.alt_textbox = None
-        self.alt_frame.pack_forget()
-        self.textbox_frame.pack(expand=True, side="top", fill='both')
 
     def key_pressed(self, event=None):
         if event.keysym == 'Tab':
@@ -298,18 +225,7 @@ class Display:
         textbox.pack(expand=True, fill='both')
 
          # Other nice options: Helvetica, Arial, Georgia
-        textbox.configure(
-            font=self.font,
-            spacing1=10,  # spacing between paragraphs
-            foreground=text_color(),
-            background=bg_color(),
-            padx=2,
-            pady=5,
-            spacing2=8,  # Spacing between lines
-            spacing3=5,
-            wrap="word",
-        )
-
+        textbox.configure(**textbox_config())
 
 
     def edit_history(self, txt, event=None):
@@ -360,6 +276,35 @@ class Display:
 
         for btn in buttons:
             self.build_button(frame, *btn)
+
+    #################################
+    #   Alt Textbox
+    #################################
+
+    def build_alt_textbox(self):
+        if not self.alt_frame:
+            self.alt_frame = ttk.Frame(self.main_pane, height=500, width=400, relief='sunken', borderwidth=2)
+        self.main_pane.insert(self.story_frame, self.alt_frame, weight=1)
+        #self.pane.add(self.alt_frame, weight=1)
+        #self.story_frame.pack_forget()
+        #self.alt_frame.pack(expand=False, fill='x')
+       # self.story_frame.pack(expand=True, fill='both')
+
+        self.alt_textbox = TextAware(self.alt_frame, height=3)
+        self.alt_textbox.pack(expand=True, fill='both')
+        self.alt_textbox.configure(**textbox_config())
+        self.alt_textbox.configure(state='disabled')
+
+
+    def destroy_alt_textbox(self):
+        if self.alt_frame is not None:
+            self.main_pane.forget(self.alt_frame)
+            self.alt_frame.destroy()
+        if self.alt_textbox:
+            self.alt_textbox.pack_forget()
+        self.alt_textbox = None
+        #self.alt_frame.pack_forget()
+        #self.textbox_frame.pack(expand=True, side="top", fill='both')
 
     #################################
     #   Nav Panel
@@ -444,80 +389,41 @@ class Display:
             self.chapter_nav_tree = None
             self.chapter_nav_scrollbarx = None
 
-    def refresh_nav_node(self, node):
-        tags = self.state.get_node_tags(node)
-        self.nav_tree.item(
-            node["id"],
-            open=node.get("open", False),
-            tags=tags
-        )
+    # def refresh_nav_node(self, node):
+    #     tags = self.state.get_node_tags(node)
+    #     self.nav_tree.item(
+    #         node["id"],
+    #         open=node.get("open", False),
+    #         tags=tags
+    #     )
 
     #################################
-    #   Side panel
+    #   Panes
     #################################
 
-    def build_notes(self):
-        self.notes_options_frame = ttk.Frame(self.side_frame, height=200, width=300)
-        self.notes_options_frame.pack(fill='both')
+    def destroy_pane(self, pane):
+        pane.destroy()
+        self.panes['side_pane'] = None
+        self.state.workspace[pane.name]['open'] = False
 
-        tk.Label(self.notes_options_frame, text="Select note", bg=bg_color(), fg=text_color()).grid(column=0, row=0)
-        placeholder_options = ('aaaaa', 'bbbbbb', 'cccccc')
-        v = tk.StringVar()
-        v.set(placeholder_options[0])
+    def open_pane(self, name, orient):
+        self.state.workspace[name]['open'] = True
+        self.panes[name] = NestedPane(name, self.pane, orient=orient)
+        self.panes[name].build_pane()
+        self.panes[name].build_menu_frame(options=self.modules.keys(), selection_callback=self.module_selected, destroy_callback=self.destroy_pane)
+        self.panes[name].module_selection.set(self.state.workspace[name]['module'])
 
-        self.notes_select = tk.OptionMenu(self.notes_options_frame, v, *placeholder_options)
-        # self.notes_select['menu'].config(relief='raised')
-        self.notes_select.grid(column=1, row=0)
+    def open_module(self, pane, module):
+        pane.clear()
+        pane.module = module
+        module.build()
 
-        tk.Label(self.notes_options_frame,
-                 text="Scope",
-                 bg=bg_color(),
-                 fg=text_color()).grid(column=2, row=0, padx=5)
-
-        scope_options = ('node', 'subtree', 'global')
-        v = tk.StringVar()
-        v.set(scope_options[0])
-        self.scope_select = tk.OptionMenu(self.notes_options_frame, v, *scope_options)
-        self.scope_select.grid(column=3, row=0)
-
-        tk.Label(self.notes_options_frame, text="Note title", bg=bg_color(), fg=text_color()).grid(column=0, row=1)
-        self.notes_title = tk.Entry(self.notes_options_frame,
-                                    bg=bg_color(),
-                                    fg=text_color(),
-                                    relief='sunken')
-        self.notes_title.grid(column=1, row=1, padx=10)
-        tk.Label(self.notes_options_frame, text="Root node", bg=bg_color(), fg=text_color()).grid(column=2, row=1)
-        tk.Label(self.notes_options_frame, text="placeholder id ...", bg=bg_color(), fg='blue').grid(column=3, row=1)
-        self.change_root_button = tk.Button(self.notes_options_frame, text='Change', bg=bg_color(), fg=text_color())
-        self.change_root_button.grid(column=4, row=1)
-        self.change_root_button = tk.Button(self.notes_options_frame, text='Delete', bg=bg_color(), fg=text_color())
-        self.change_root_button.grid(column=5, row=1, padx=10)
-
-        self.notes_frame = ttk.Frame(self.side_frame)
-        self.notes_frame.pack(expand=True, fill='both')
-        self._build_textbox(self.notes_frame, "notes_textbox_frame", "notes_textbox", height=1)
-        self.notes_textbox_frame.pack(expand=True, fill="both")
-
-    def open_side(self):
-        if not self.side_frame:
-            self.side_frame = ttk.Frame(self.pane, height=500, width=300, relief='sunken', borderwidth=2)
-        self.pane.add(self.side_frame, weight=1)
-
-    def destroy_side(self):
-        if self.side_frame is not None:
-            self.side_frame.pack_forget()
-            # is this warranted?
-            self.side_frame.destroy()
-            self.destroy_notes()
-
-    def destroy_notes(self):
-        self.notes_frame = None
-        self.notes_options_frame = None
-        self.notes_select = None
-        self.notes_title = None
-        self.scope_select = None
-        self.change_root_button = None
-        self.delete_note_button = None
+    def module_selected(self, pane):
+        module_name = pane.module_selection.get()
+        #print(f'{module_name} selected')
+        self.state.workspace[pane.name]['module'] = module_name
+        module = self.modules[module_name](parent=pane, callbacks=self.callbacks, state=self.state)
+        self.open_module(pane, module)
 
 
     #################################
@@ -526,51 +432,30 @@ class Display:
 
     def rebuild_bottom_frame(self):
         self.destroy_bottom_frame()
-        self.bottom_frame.pack_forget()
-        self.bottom_input_frame.pack(side="bottom", fill="both")
-        self.bottom_frame.pack(side="bottom", fill="both")
+        if not self.bottom_frame:
+            self.bottom_frame = ttk.Frame(self.main_pane)
+        self.main_pane.add(self.bottom_frame, weight=1)
 
     def destroy_bottom_frame(self):
+        self.destroy_multi_frame()
+        self.destroy_debug_box()
+        self.destroy_input_box()
+
+        if self.bottom_frame:
+            self.main_pane.forget(self.bottom_frame)
+            self.bottom_frame.destroy()
+        self.bottom_frame = None
+
+    def destroy_debug_box(self):
         if self.debug_box is not None:
             self.debug_box.pack_forget()
             self.debug_box.destroy()
-        if self.input_frame is not None:
-            self.input_frame.pack_forget()
-            self.input_frame.destroy()
-        if self.past_box is not None:
-            self.past_box.pack_forget()
-            self.past_box.destroy()
         self.debug_box = None
-        self.input_box = None
-        self.past_box = None
-        self.submit_button = None
-        self.bottom_input_frame.pack_forget()
-
-    def build_past_box(self):
-        self.rebuild_bottom_frame()
-        self.past_box = TextAware(self.bottom_input_frame, bd=3, height=3)
-        self.past_box.pack(expand=True, fill='x')
-        self.past_box.configure(
-            foreground='white',
-            background='black',
-            wrap="word",
-        )
-        self.past_box.tag_configure("prompt", foreground="gray")
-        self.past_box.configure(state="disabled")
-
-    def set_pastbox_text(self, prompt_text='', completion_text=''):
-        if self.past_box:
-            self.past_box.configure(state="normal")
-            self.past_box.delete('1.0', "end")
-            self.past_box.insert('1.0', prompt_text, "prompt")
-            self.past_box.insert("end-1c", completion_text)
-            self.past_box.configure(state="disabled")
-            self.past_box.see(tk.END)
 
     def build_debug_box(self):
         self.rebuild_bottom_frame()
-        self.debug_box = TextAware(self.bottom_input_frame, bd=3, height=12)
-        self.debug_box.pack(expand=True, fill='x')
+        self.debug_box = TextAware(self.bottom_frame, bd=3, height=3)
+        self.debug_box.pack(expand=True, fill='both')
         self.debug_box.configure(
             foreground='white',
             background='black',
@@ -585,26 +470,19 @@ class Display:
             self.debug_box.insert("end-1c", message)
             self.debug_box.configure(state="disabled")
 
+    def destroy_input_box(self):
+        if self.input_frame is not None:
+            self.input_frame.pack_forget()
+            self.input_frame.destroy()
+        self.input_box = None
+        self.submit_button = None
+
     def build_input_box(self):
         self.rebuild_bottom_frame()
-        self.bottom_frame.pack_forget()
-        self.bottom_input_frame.pack_forget()
-        self.bottom_input_frame.pack(side="bottom", fill="both")
-        self.bottom_frame.pack(side="bottom", fill="both")
-        self.input_frame = ttk.Frame(self.bottom_input_frame, width=500, height=20)
-        self.input_box = TextAware(self.input_frame, bd=3, height=3, undo=True)
-        self.input_box.pack(expand=True, fill='x')
-        self.input_box.configure(
-            font=self.font,
-            spacing1=10,  # spacing between paragraphs
-            foreground=text_color(),
-            background=bg_color(),
-            padx=2,
-            pady=5,
-            spacing2=8,  # Spacing between lines
-            spacing3=5,
-            wrap="word",
-        )
+        self.input_frame = ttk.Frame(self.bottom_frame)
+        self.input_box = TextAware(self.input_frame, bd=3, height=2, undo=True)
+        self.input_box.pack(expand=True, fill='both')
+        self.input_box.configure(**textbox_config())
         self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
 
         # self.mode_var = tk.StringVar()
@@ -624,24 +502,38 @@ class Display:
     #   Show children
     #################################
 
-    def build_multi_frame(self, num_textboxes=3):
-        self.destroy_multi_frame()
+    def destroy_multi_frame(self):
+        self.clear_multi_frame()
+        self.multi_scroll_frame = None
+        self.multi_textboxes = None
+
+    def build_multi_frame(self, children):
+        #self.destroy_bottom_frame()
+        self.destroy_bottom_frame()
+        self.rebuild_bottom_frame()
+        num_textboxes = len(children)
         self.init_multi_frame(num_textboxes)
         self.multi_textboxes = {str(uuid.uuid1()): {'textbox': TextAware(self.multi_scroll_frame.scrollable_frame,
-                                                                         height=self.multi_default_height, bd=self.multi_bd_width,
+                                                                         height=self.multi_default_height,
+                                                                         bd=self.multi_bd_width,
                                                                          relief=tk.RAISED)} for i in
                                 range(num_textboxes)}
         self.place_textboxes()
+        self.populate_textboxes(children)
 
     def init_multi_frame(self, num_textboxes):
+        self.multi_scroll_frame = ScrollableFrame(self.bottom_frame)#, height=self.multi_textbox_frame_height(num_textboxes))
+        self.multi_scroll_frame.pack(expand=True, fill="both", side=tk.BOTTOM)
+        #self.main_pane.sash_place(index=0, x=0, y=self.multi_textbox_frame_height(num_textboxes))
+        #self.bottom_frame.configure(height=self.multi_textbox_frame_height(num_textboxes))
 
+    def multi_textbox_frame_height(self, num_textboxes=None):
+        num_textboxes = num_textboxes if num_textboxes is not None else len(self.multi_textboxes.items())
         font_height = tk.font.Font(font=self.font).metrics('linespace')
-        # TODO max height
-        textbox_height = self.multi_default_height * (font_height) + self.multi_pady * 2 + self.multi_bd_width * 2 + 2
-        height = min(num_textboxes, self.default_num_textbox) * textbox_height
+        textbox_height = self.multi_default_height * font_height + self.multi_pady * 2 + self.multi_bd_width * 2 + 2
 
-        self.multi_scroll_frame = ScrollableFrame(self.story_frame, height=height)
-        self.multi_scroll_frame.pack(expand=False, fill="both", side=tk.BOTTOM)
+        height = min(num_textboxes, self.default_num_textbox) * textbox_height
+        return height
 
     def place_textboxes(self):
         row = 0
@@ -729,8 +621,8 @@ class Display:
     # clears tkinter widgets but doesn't clear multi_textboxes info
     def clear_multi_frame(self):
         if self.multi_textboxes:
-            for tb_item in self.multi_textboxes.values():
-                self.forget_row(tb_item)
+            for tb in self.multi_textboxes.values():
+                self.forget_row(tb)
             if self.add_child_button:
                 self.add_child_button.grid_forget()
                 self.add_child_button = None
@@ -740,14 +632,12 @@ class Display:
         if self.multi_scroll_frame:
             self.multi_scroll_frame.pack_forget()
 
-    def destroy_multi_frame(self):
-        self.clear_multi_frame()
-        self.multi_scroll_frame = None
-        self.multi_textboxes = None
 
     # adds text of children into textboxes
     # creates icons/labels and binds functions
     def populate_textboxes(self, children):
+        if not children:
+            return
         children = children if not self.state.preferences.get("reverse", False) else children[::-1]
         for i, (tb_id, tb_item) in enumerate(self.multi_textboxes.items()):
             child = children[i]
@@ -758,18 +648,18 @@ class Display:
             tb.configure(state='disabled')
             tb_item['node'] = child
             tb_item['num_lines'] = max(child["text"].count("\n"), int(tb.index('end').split('.')[0]))
-            height = self.textbox_height(tb_id)
+            height = self.multi_default_height#self.textbox_height(tb_id)
             tb.configure(height=height)
 
             tb.bind("<Button-1>", lambda event, _textbox_id=tb_id: self.textbox_clicked(_textbox_id))
 
             if self.state.preferences['coloring'] != 'read':
-                self.make_button('go', self.goto_child, i, 2, tb_id, tb_item)
-                self.make_button('close', self.dismiss_textbox, i, 3, tb_id, tb_item)
+                self.make_button('arrow-green', self.goto_child, i, 2, tb_id, tb_item)
+                self.make_button('x-lightgray', self.dismiss_textbox, i, 3, tb_id, tb_item)
                 if self.state.is_mutable(child):
-                    self.make_button('edit', self.toggle_editable, i, 4, tb_id, tb_item)
-                self.make_button('archive', self.archive_child, i, 5, tb_id, tb_item)
-                self.make_button('delete', self.delete_child, i, 6, tb_id, tb_item)
+                    self.make_button('edit-blue', self.toggle_editable, i, 4, tb_id, tb_item)
+                self.make_button('archive-yellow', self.archive_child, i, 5, tb_id, tb_item)
+                self.make_button('trash-red', self.delete_child, i, 6, tb_id, tb_item)
                 # TODO only create label if node has descendents
                 descendents = num_descendents(child) - 1
                 if descendents != 0:
@@ -783,23 +673,18 @@ class Display:
                     label.grid(row=i * 2 + 1, column=2, columnspan=5)
                     tb_item['descendents_label'] = label
 
-        # if self.state.preferences['coloring'] != 'read':
-        #     num_hidden = 5
-        #     # self.hidden_nodes_button = tk.Button(self.multi_scroll_frame.scrollable_frame,
-        #     #                                      text=f"Show {num_hidden} hidden children",
-        #     #                                      command=lambda event: self.show_hidden, width=20, background=BLUE,
-        #     #                                      foreground=text_color())
-        #     # self.hidden_nodes_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=1)
-        #
-        #     self.add_child_button = tk.Button(self.multi_scroll_frame.scrollable_frame, text="New child",
-        #                                       command=self.add_child, width=10, background=GREEN,
-        #                                       foreground=text_color())
-        #     self.add_child_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=2,
-        #                                columnspan=4)
+        if self.state.preferences['coloring'] != 'read':
+            all_siblings = self.state.parent(children[0])['children']
+            num_hidden = len(all_siblings) - len(children)
+            if num_hidden > 0:
+                self.hidden_nodes_button = ttk.Button(self.multi_scroll_frame.scrollable_frame,
+                                                     text=f"Show {num_hidden} hidden children",
+                                                     command=self.show_hidden, width=20)#, background=BLUE,
+                                                     #foreground=text_color())
+                self.hidden_nodes_button.grid(row=self.multi_scroll_frame.scrollable_frame.grid_size()[1], column=1)
 
     def make_button(self, name, function, row, column, tb_id, tb_item):
-        button = tk.Label(self.multi_scroll_frame.scrollable_frame, image=self.icons[name]['icon'], bg=bg_color())
-        #button.image = self.icons['archive']
+        button = tk.Label(self.multi_scroll_frame.scrollable_frame, image=self.icons.get_icon(name), bg=bg_color(), cursor='hand2')
         button.grid(row=row * 2, column=column, padx=5)
         button.bind("<Button-1>", lambda event, _textbox_id=tb_id: function(_textbox_id))
         tb_item[name] = button
@@ -809,17 +694,16 @@ class Display:
         return min(self.multi_textboxes[tb_id]['num_lines'],
                    self.multi_default_height) if adaptive_height else self.multi_default_height
 
-    def dismiss_textbox(self, textbox_id):
-        # self.clear_multi_frame()
-        self.forget_row(self.multi_textboxes[textbox_id])
-        self.multi_textboxes.pop(textbox_id)
-        # self.refresh_multi_frame()
-        #self.rebuild_multi_frame()
+    def dismiss_textbox(self, tb_id):
+        self.forget_row(self.multi_textboxes[tb_id])
+        self.multi_textboxes.pop(tb_id)
+        if len(self.multi_textboxes.items()) < self.default_num_textbox:
+            self.rebuild_multi_frame()
+
 
     # when editing is enabled, textbox height expands to show all text
     # when editing is disabled, height defaults to self.multi_default_height
     def toggle_editable(self, textbox_id):
-        print(self.multi_textboxes[textbox_id]['textbox'].cget('state'))
         if self.multi_textboxes[textbox_id]['textbox'].cget('state') == 'disabled':
             self.edit_on(textbox_id)
         else:
@@ -832,16 +716,17 @@ class Display:
             pass
         else:
             
-            edit_height = min(self.multi_default_height, self.multi_textboxes[textbox_id]['num_lines'] + 2)
+            edit_height = self.multi_default_height#min(self.multi_default_height, self.multi_textboxes[textbox_id]['num_lines'] + 2)
             self.multi_textboxes[textbox_id]['textbox'].configure(state='normal', background=edit_color(),
                                                                   relief=tk.SUNKEN,
                                                                   height=edit_height)
             self.multi_textboxes[textbox_id]['textbox'].focus()
             self.multi_textboxes[textbox_id]["node"]["visited"] = True
-            self.refresh_nav_node(self.multi_textboxes[textbox_id]["node"])
+            self.callbacks['Refresh nav node']['callback'](node=self.multi_textboxes[textbox_id]["node"])
+            #self.refresh_nav_node(self.multi_textboxes[textbox_id]["node"])
 
     def edit_off(self, textbox_id):
-        height = self.textbox_height(textbox_id)
+        height = self.multi_default_height#self.textbox_height(textbox_id)
         self.multi_textboxes[textbox_id]['textbox'].configure(state='disabled', background=bg_color(),
                                                               relief=tk.RAISED, height=height)
         self.save_edits(textbox_id)
@@ -877,8 +762,8 @@ class Display:
                                                             toggle_edit=False)
         self.edit_on(self.tb_id_from_node(new_child))
 
-    def show_hidden(self):
-        pass
+    def show_hidden(self, *args):
+        self.callbacks["Show hidden children"]["callback"]()
 
     def delete_child(self, textbox_id):
         ask = True if 'descendents_label' in self.multi_textboxes[textbox_id] else False
@@ -888,8 +773,13 @@ class Display:
             self.dismiss_textbox(textbox_id)
 
     def archive_child(self, textbox_id):
-        self.callbacks["Archive"]["callback"](node=self.multi_textboxes[textbox_id]["node"])
+        #self.callbacks["Archive"]["callback"](node=self.multi_textboxes[textbox_id]["node"])
+        node = self.multi_textboxes[textbox_id]["node"]
+        self.state.tag_node(node, 'archived')
+        #TODO
         self.dismiss_textbox(textbox_id)
+        self.state.tree_updated(delete=[node['id']])
+
 
     # called when:
     # edit mode toggled
@@ -898,7 +788,8 @@ class Display:
         node = self.multi_textboxes[textbox_id]['node']
         if node['id'] in self.state.tree_node_dict:
             new_text = self.multi_textboxes[textbox_id]['textbox'].get("1.0", 'end-1c')
-            self.state.update_text(node=node, text=new_text)
+            self.state.update_text(node=node, text=new_text, refresh_nav=True)
+            #self.callbacks['Refresh nav node']['callback'](node=node)
 
     def save_all(self):
         if self.multi_textboxes:
@@ -971,10 +862,10 @@ class Display:
         self.search_frame.pack(side='bottom', expand=False, fill='x')
 
         self.search_label = tk.Label(self.search_frame, text='Search:', bg=bg_color(), fg=text_color())
-        self.search_label.pack(side='left', expand=False)
+        self.search_label.pack(side='left', expand=True)
 
         self.search_box = TextAware(self.search_frame, bd=2, height=1)
-        self.search_box.pack(side='left', expand=False, fill='x', padx=5)
+        self.search_box.pack(side='left', expand=True, fill='x', padx=5)
         self.search_box.configure(
             font=self.font,
             foreground=text_color(),
@@ -984,10 +875,12 @@ class Display:
             self.case_sensitive = tk.BooleanVar(value=0)
         self.case_sensitive_checkbox = ttk.Checkbutton(self.search_frame, text='Aa', variable=self.case_sensitive, 
                                                        )
-        self.case_sensitive_checkbox.pack(side='left', expand=False, padx=5)
+        self.case_sensitive_checkbox.pack(side='left', expand=True, padx=5)
 
-        self.search_close_button = ttk.Button(self.search_frame, text='[x]', command=self.exit_search, width=2.5)
-        self.search_close_button.pack(side='left', expand=False, padx=5)
+        #self.search_close_button = ttk.Button(self.search_frame, text='[x]', command=self.exit_search, width=2.5)
+        self.search_close_button =tk.Label(self.search_frame, text='⨯', font=("Arial", 12), fg=text_color(), bg=bg_color(), cursor='hand2')
+        self.search_close_button.bind('<Button-1>', self.exit_search)
+        self.search_close_button.pack(side='left', expand=True, padx=2)
 
         self.search_box.focus()
 
@@ -1020,7 +913,7 @@ class Display:
         elif event.keysym == 'Escape':
             self.exit_search()
 
-    def exit_search(self):
+    def exit_search(self, *args):
         self.callbacks["Clear search"]["callback"]()
         self.textbox.focus()
         self.close_search()
