@@ -21,6 +21,15 @@ import os
 from pprint import pformat
 
 
+modules = {'notes': Notes,
+           'texteditor': TextEditor,
+           'prompt': Prompt,
+           'run': Run,
+           'minimap': MiniMap,
+           'children': Children,
+           'debug': DebugConsole,
+           'input': Input,}
+
 class Display:
 
     def __init__(self, root, callbacks, state, controller):
@@ -87,12 +96,7 @@ class Display:
 
         self.font = Font(family='Georgia', size=12)
 
-        self.modules = {'notes': Notes,
-                        'texteditor': TextEditor,
-                        'prompt': Prompt,
-                        'run': Run,
-                        'minimap': MiniMap,
-                        'children': Children}
+        self.modules = {}
 
         # Build it!
         self.build_display(self.frame)
@@ -394,12 +398,13 @@ class Display:
             parent = self.main_pane
         self.panes[pane_name] = NestedPane(pane_name, parent, orient='vertical')
         self.panes[pane_name].build_pane()
-        self.panes[pane_name].build_menu_frame(options=self.modules.keys(), selection_callback=self.module_selected, destroy_callback=self.destroy_pane)
+        self.panes[pane_name].build_menu_frame(options=modules.keys(), selection_callback=self.module_selected, destroy_callback=self.destroy_pane)
         self.panes[pane_name].module_selection.set(self.state.workspace[pane_name]['module'])
 
     def open_module(self, pane, module):
         pane.clear()
         pane.module = module
+        self.modules[module.name] = module
         module.build()
 
     def module_selected(self, pane_name):
@@ -407,64 +412,9 @@ class Display:
         module_name = pane.module_selection.get()
         #print(f'{module_name} selected')
         self.state.workspace[pane_name]['module'] = module_name
-        module = self.modules[module_name](parent=pane, callbacks=self.callbacks, state=self.state)
+        module = modules[module_name](parent=pane, callbacks=self.callbacks, state=self.state)
         self.open_module(pane, module)
 
-    #################################
-    #   Bottom frame
-    #################################
-
-    # def destroy_debug_box(self):
-    #     if self.debug_box is not None:
-    #         self.debug_box.pack_forget()
-    #         self.debug_box.destroy()
-    #     self.debug_box = None
-    #
-    # def build_debug_box(self):
-    #     self.rebuild_bottom_frame()
-    #     self.debug_box = TextAware(self.bottom_frame, bd=3, height=3)
-    #     self.debug_box.pack(expand=True, fill='both')
-    #     self.debug_box.configure(
-    #         foreground='white',
-    #         background='black',
-    #         wrap="word",
-    #     )
-    #     self.debug_box.configure(state="disabled")
-    #
-    # def write_to_debug(self, message):
-    #     if self.debug_box:
-    #         self.debug_box.configure(state="normal")
-    #         self.debug_box.insert("end-1c", '\n')
-    #         self.debug_box.insert("end-1c", pformat(message))
-    #         self.debug_box.configure(state="disabled")
-    #
-    # def destroy_input_box(self):
-    #     if self.input_frame is not None:
-    #         self.input_frame.pack_forget()
-    #         self.input_frame.destroy()
-    #     self.input_box = None
-    #     self.submit_button = None
-    #
-    # def build_input_box(self):
-    #     self.rebuild_bottom_frame()
-    #     self.input_frame = ttk.Frame(self.bottom_frame)
-    #     self.input_box = TextAware(self.input_frame, bd=3, height=2, undo=True)
-    #     self.input_box.pack(expand=True, fill='both')
-    #     self.input_box.configure(**textbox_config())
-    #     self.input_box.bind("<Key>", lambda event: self.key_pressed(event))
-
-        # self.mode_var = tk.StringVar()
-        # choices = ('default', 'chat', 'dialogue', 'antisummary')
-        # self.mode_select = tk.OptionMenu(self.input_frame, self.mode_var, *choices)
-        # self.mode_var.trace('w', self.callbacks["Update mode"]["callback"])
-
-        # tk.Label(self.input_frame, text="Mode", bg=bg_color(), fg=text_color()).pack(side='left')
-        # self.mode_select.pack(side='left')
-
-        # self.submit_button = ttk.Button(self.input_frame, text="Submit",
-        #                                 command=self.callbacks["Submit"]["callback"], width=10)
-        # self.submit_button.pack(side='right')
-        # self.input_frame.pack(side="bottom", expand=True, fill="both")
 
     #################################
     #   Edit mode

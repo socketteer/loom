@@ -774,7 +774,7 @@ class SummaryDialog(Dialog):
         self.summary_textbox.insert(tk.INSERT, self.init_text)
         self.summary_textbox.focus()
         self.referent_textbox = ScrolledText(master, height=6)
-        self.referent_textbox.configure(**textbox_config)
+        self.referent_textbox.configure(**textbox_config())
         row = master.grid_size()[1]
         self.referent_textbox.grid(row=row, column=0, columnspan=2, rowspan=4)
         self.refresh_referent()

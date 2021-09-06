@@ -131,11 +131,14 @@ class Windows:
         self.windows[window_id]['textbox'].configure(state='disabled', 
                                                      background=bg_color(),
                                                      relief=tk.RAISED)
+        self.save_edits(window_id)
 
     def edit_on(self, window_id):
         self.windows[window_id]['textbox'].configure(state='normal', 
                                                      background=edit_color(),
                                                      relief=tk.SUNKEN)
+        # focus on textbox
+        self.windows[window_id]['textbox'].focus_set()
 
     def toggle_edit(self, window_id):
         if self.windows[window_id]['textbox'].cget('state') == 'disabled':

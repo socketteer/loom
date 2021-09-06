@@ -8,6 +8,7 @@ from view.icons import Icons
 from view.styles import textbox_config
 from view.templates import *
 from view.tree_vis import round_rectangle
+from pprint import pformat
 import uuid
 
 icons = Icons()
@@ -106,7 +107,8 @@ class Children(Module):
         self.tree_updated()
 
     def add_child(self, *args):
-        child = self.callbacks["New note"]["callback"]()
+        child = self.callbacks["New Child"]["callback"](update_selection=False)
+        self.windows.edit_on(child['id'])
 
     def toggle_hidden(self, *args):
         self.show_hidden = not self.show_hidden
@@ -371,3 +373,49 @@ class MiniMap(Module):
 
     def select_node(self, node_id):
         self.callbacks["Nav Select"]["callback"](node_id=node_id)
+
+
+class DebugConsole(Module):
+    def __init__(self, parent, callbacks, state):
+        Module.__init__(self, "debug", parent, callbacks, state)
+
+    def build(self):
+        Module.build(self)
+        self.debug_box = TextAware(self.frame, bd=3, height=3)
+        self.debug_box.pack(expand=True, fill='both')
+        self.debug_box.configure(
+            foreground='white',
+            background='black',
+            wrap="word",
+        )
+        self.debug_box.configure(state="disabled")
+
+    def write(self, message):
+        self.debug_box.configure(state="normal")
+        self.debug_box.insert("end-1c", '\n')
+        self.debug_box.insert("end-1c", pformat(message))
+        self.debug_box.configure(state="disabled")
+
+
+class Input(Module):
+    def __init__(self, parent, callbacks, state):
+        Module.__init__(self, "input", parent, callbacks, state)
+        self.button_frame = None
+        self.submit_button = None
+
+    def build(self):
+        Module.build(self)
+        self.input_box = TextAware(self.frame, bd=3, height=3)
+        self.input_box.pack(expand=True, fill='both')
+        self.input_box.configure(**textbox_config(bg=edit_color()))
+        self.input_box.focus()
+        self.textboxes.append(self.input_box)
+        self.button_frame = ttk.Frame(self.frame)
+        self.button_frame.pack(side='bottom', fill='x')
+        self.submit_button = ttk.Button(self.button_frame, text="Submit", command=self.submit)
+        self.submit_button.pack(side='right', expand=True)
+
+    def submit(self):
+        self.callbacks["Submit"]["callback"](text=self.input_box.get("1.0", "end-1c"))
+        self.input_box.delete("1.0", "end")
+

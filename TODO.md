@@ -112,16 +112,31 @@
 - make an arbitrary number of sidebars / panes and open arbitrary modules in them
     - abstract functionality of dialogs and make non dialog versions that can be put into panes
     
-- make modules
+- make everything a module
+    - story textbox
+    - nav and chapter trees
     - debug
     - input box
     - multimedia
-    
-- notes
-    - make scrollable frame        
-    - implement button functionality in notes
-        - archived - don't show archived notes
-        - remove floating tag button
+    - other dialogs
+    - playground
+        - save as tree
+    - module preferences
+    - edit note attributes
+        - tags
+        - alt text
+        - display text
+        - nav preview text
+
+- notes 
+    - pin note
+
+- windows
+    - make scrollable
+    - hide buttons preference
+    - no show hidden option preference
+    - display tags
+    - bind edit hotkey
         
 - nav history
 
@@ -148,25 +163,45 @@
 - modules should have separate methods that react to tree_updated and selection_updated
 
 - implement reactive updating for all components and refactor tree_updated callback
+    - vis
+    - nav tree
 
-- run should use exec instead of eval?
-- interpreter
+- eval
+    - run should use exec instead of eval?
+    - interpreter
 
 - make add and remove tag methods in controller
-
-- windows 
-    - scrollable
-    - hide window frame buttons option
     
 - workspace / preferences presets
     - read mode
         - text highlight
         - no icons in show children
         - minimap
+    - edit mode
+        - text highlight
+        - notes
+    - chat/play mode
+        - gpt preset
+        - input box
+        - hide nav tree
+        - automatically go to first generation after generating
+        
+- text highlighting
+    - keyboard
+    - mouse
+    
+- insertion cursor
+    - emacs-like commands
 
 - tabs for suggested modules and dropdown for all
 
 - minimap detect size of frame
+
+- visible nodes tree object
+    - locality / pruning
+    - hoisting
+    - masks
+    - source of truth for nav, visible
 
 ## Other TODO
 

@@ -403,7 +403,7 @@ class Controller:
         return filtered_children(node, self.in_nav)
 
     @metadata(name="Hidden children")
-    def hidden_children(self, node=None):
+    def get_hidden_children(self, node=None):
         node = node if node else self.state.selected_node
         return [n for n in node['children'] if not self.state.visible(n)]
 
@@ -411,6 +411,22 @@ class Controller:
     def get_text(self, node_id=None):
         node_id = node_id if node_id else self.state.selected_node_id
         return self.state.node(node_id)['text']
+
+    @metadata(name="Get floating notes")
+    def get_floating_notes(self, tag='note', node=None):
+        node = node if node else self.state.selected_node
+        ancestry = self.state.ancestry(node)
+        notes = []
+        for ancestor in reversed(ancestry):
+            for child in ancestor['children']:
+                if self.state.has_tag(child, tag) and child != node:
+                    notes.append(child)
+        return notes
+
+    @metadata(name="Prompt")
+    def prompt(self, node=None):
+        node = node if node else self.state.selected_node
+        return self.state.prompt(node)
 
     #################################
     #   Node operations
@@ -425,10 +441,11 @@ class Controller:
         node = node if node else self.state.selected_node
         new_child = self.state.create_child(parent=node)
         self.state.tree_updated(add=[new_child['id']])
-        self.select_node(new_child, ask_reveal=False)
         self.state.node_creation_metadata(new_child, source='prompt')
-        if self.display.mode == "Read" and toggle_edit:
-            self.toggle_edit_mode()
+        if update_selection:
+            self.select_node(new_child, ask_reveal=False)
+            if self.display.mode == "Read" and toggle_edit:
+                self.toggle_edit_mode()
         return new_child
 
     @metadata(name="New Sibling", keys=["<Alt-Down>"], display_key="alt-down")
@@ -450,6 +467,16 @@ class Controller:
         self.state.tree_updated(add=[n['id'] for n in subtree_list(new_parent, filter=self.in_nav)])
         self.state.node_creation_metadata(new_parent, source='prompt')
         return new_parent
+
+    @metadata(name="New note")
+    def new_note(self, node=None):
+        node = node if node else self.state.selected_node
+        new_child = self.state.create_child(parent=node)
+        self.state.tag_node(new_child, 'note')
+        if self.state.visible(new_child):
+            self.state.tree_updated(add=[new_child['id']])
+        return new_child
+
 
     @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None, click_mode=False)
     def change_parent(self, node=None, click_mode=False):
@@ -812,8 +839,8 @@ class Controller:
                             self.edit_history.meta["persistent_id"] = None
                         self.display.set_mode("Read")
                     self.refresh_textbox()
-                else:
-                    self.display.all_edit_off()
+                # else:
+                #     self.display.all_edit_off()
 
             else:
                 if self.display.vis.textbox is None:
@@ -1350,55 +1377,45 @@ class Controller:
     #################################
     #   Frames
     #################################
-    #
-    # @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
-    # def toggle_input_box(self, toggle='either'):
-    #     if self.display.mode == "Read":
-    #         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['input_box']):
-    #             self.open_bottom_frame('input_box')
-    #         else:
-    #             self.close_bottom_frame()
-    #     # elif self.display.mode == "Multiverse":
-    #     #     if toggle == 'on' or (toggle == 'either' and not self.state.workspace['past_box']):
-    #     #         self.open_bottom_frame('past_box')
-    #     #     else:
-    #     #         self.close_bottom_frame()
 
     @metadata(name="Submit", keys=[], display_key="")
-    def submit(self):
-        input_text = self.display.input_box.get("1.0", 'end-1c')
-        if input_text:
-            new_text = self.state.submit_modifications(input_text)
+    def submit(self, text):
+        if text:
+            new_text = self.state.submit_modifications(text)
             new_child = self.create_child(toggle_edit=False)
             new_child['text'] = new_text
             self.state.tree_updated(add=[new_child['id']])
-        self.display.input_box.delete("1.0", "end")
-
-
-        # if input_text and self.state.preferences['gpt_mode'] == 'antisummary':
-        #     self.generate(summary=input_text)
         
         if self.state.preferences['auto_response']:
             self.generate()
 
+    @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
+    def toggle_input_box(self):
+        self.toggle_module("bottom_pane", "input")
     
-    # @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
-    # def toggle_debug_box(self, toggle='either'):
-    #     if toggle == 'on' or (toggle == 'either' and not self.state.workspace['debug_box']):
-    #         self.open_bottom_frame('debug_box')
-    #     else:
-    #         self.close_bottom_frame()
+    @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
+    def toggle_debug_box(self):
+        self.toggle_module("bottom_pane", "debug")
 
     @metadata(name="Toggle children", keys=["<Alt-c>"], display_key="")
     def toggle_show_children(self, toggle='either'):
-        if self.state.workspace['bottom_pane']['open'] and self.state.workspace['bottom_pane']['module'] == 'children':
-            self.state.workspace['bottom_pane']['open'] = False
-        else:
-            self.state.workspace['bottom_pane']['open'] = True
-            self.state.workspace['bottom_pane']['module'] = 'children'
+        self.toggle_module("bottom_pane", "children")
+
+    def open_module(self, pane_name, module_name):
+        self.state.workspace[pane_name]['open'] = True
+        self.state.workspace[pane_name]['module'] = module_name
         self.refresh_display()
 
+    def close_pane(self, pane_name):
+        self.state.workspace[pane_name]['open'] = False
+        self.refresh_display()
 
+    def toggle_module(self, pane_name, module_name):
+        if self.state.workspace[pane_name]['open'] and self.state.workspace[pane_name]['module'] == module_name:
+            self.close_pane(pane_name)
+        else:
+            self.open_module(pane_name, module_name)
+        self.refresh_display()
 
     @metadata(name="Show hidden children")
     def show_hidden_children(self, node=None):
@@ -1412,9 +1429,9 @@ class Controller:
 
     def print_to_debug(self, message):
         if message:
-            self.toggle_debug_box(toggle='on')
+            self.open_module("bottom_pane", "debug")
             # TODO print to debug stream even if debug box is not active
-            self.display.write_to_debug(message)
+            self.display.modules['debug'].write(message)
 
     @metadata(name="Run", keys=["<Control-Shift-KeyPress-B>"], display_key="", prev_cmd="")
     def run(self):
@@ -1618,11 +1635,11 @@ class Controller:
                     return True
         return False
 
-    # TODO test this
     def module_textbox_has_focus(self):
-        if self.state.workspace['side_pane']['open']:
-            if self.display.panes['side_pane'].module.textbox_has_focus():
-                return True
+        for pane in self.display.panes:
+            if self.state.workspace[pane]['open']:
+                if self.display.panes[pane].module.textbox_has_focus():
+                    return True
         return False
 
     #################################
@@ -1639,10 +1656,6 @@ class Controller:
             new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
             self.state.update_text(self.state.selected_node, new_text, new_active_text, log_diff=self.state.preferences['log_diff'])
 
-        # if self.display.mode in ("Read", "Edit") and self.state.preferences['show_children']:
-        #     self.display.save_all()
-
-
         elif self.display.mode == "Visualize":
             if self.display.vis.textbox:
                 new_text = self.display.vis.textbox.get("1.0", 'end-1c')
@@ -1650,10 +1663,6 @@ class Controller:
 
         else:
             return
-
-    # def save_multi_edits(self, **kwargs):
-    #     if self.display.mode in ("Read", "Edit") and self.state.workspace['show_children']:
-    #         self.display.save_all()
 
 
     def modules_tree_updated(self, **kwargs):
@@ -1672,7 +1681,6 @@ class Controller:
         self.configure_nav_tags()
         self.refresh_workspace()
 
-
     def refresh_workspace(self):
         if not self.state.workspace['side_pane']['open'] and self.display.panes['side_pane']:
             self.display.destroy_pane('side_pane')
@@ -1682,7 +1690,6 @@ class Controller:
             self.display.destroy_pane('bottom_pane')
         elif self.state.workspace['bottom_pane']['open'] and not self.display.panes['bottom_pane']:
             self.display.open_pane("bottom_pane", "vertical")
-
 
 
     def refresh_alt_textbox(self, **kwargs):
@@ -1858,32 +1865,6 @@ class Controller:
         else:
             self.display.destroy_pane('bottom_pane')
 
-    @metadata(name="Get floating notes")
-    def get_floating_notes(self, tag='note', node=None):
-        node = node if node else self.state.selected_node
-        ancestry = self.state.ancestry(node)
-        notes = []
-        for ancestor in reversed(ancestry):
-            for child in ancestor['children']:
-                if self.state.has_tag(child, tag) and child != node:
-                    notes.append(child)
-        return notes
-
-    @metadata(name="New note")
-    def new_note(self, node=None):
-        node = node if node else self.state.selected_node
-        new_child = self.state.create_child(parent=node)
-        self.state.tag_node(new_child, 'note')
-        if self.state.visible(new_child):
-            self.state.tree_updated(add=[new_child['id']])
-        return new_child
-
-    @metadata(name="Prompt")
-    def prompt(self, node=None):
-        node = node if node else self.state.selected_node
-        return self.state.prompt(node)
-
-
     #################################
     #   Navtree
     #################################
@@ -1896,9 +1877,9 @@ class Controller:
                 text = node['nav_display_text'].replace('\n', '\\n')
             else:
                 node_text = node['text']
-                text = node_text.strip()[:30].replace('\n', '\\n')
+                text = node_text.strip()[:25].replace('\n', '\\n')
                 text = text if text else "EMPTY"
-                text = text + "..." if len(node_text) > 30 else text
+                text = text + "..." if len(node_text) > 25 else text
             #text = '~' + text if self.state.has_tag(node, "archived") else text
         if 'chapter_id' in node:
             text = f"{text} | {self.state.chapter_title(node)}"

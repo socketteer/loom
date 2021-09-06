@@ -110,7 +110,10 @@ class Module:
         self.frame.destroy()
         self.frame = None
     
-    def refresh(self):
+    def tree_updated(self):
+        pass
+
+    def selection_updated(self):
         pass
 
     # returns true if any of the module's textboxes are enabled and have focus
