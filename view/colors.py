@@ -8,6 +8,7 @@ PALE_BLUE = '#b7d2ed'
 RED = '#dc3246'
 YELLOW = '#e3e307'
 LIGHT_YELLOW = '#e4e4d2'
+LIGHT_GRAY = '#e4e4e4'
 
 PROB_1 = "#d3facc"
 PROB_2 = "#eaf4c2"

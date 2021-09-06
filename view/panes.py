@@ -61,7 +61,7 @@ class NestedPane(Pane):
         self.module_selection.set('None')
         self.module_menu = tk.OptionMenu(self.menu_frame, self.module_selection, *options)
         self.module_menu.pack(side='left', expand=True, padx=20)
-        self.module_selection.trace('w', lambda a, b, c, _pane=self: selection_callback(pane=_pane))
+        self.module_selection.trace('w', lambda a, b, c, pane_name=self.name: selection_callback(pane_name=pane_name))
         
         # self.add_module_button = tk.Button(self.menu_frame, text='Add Module', fg=text_color(), bg=bg_color(), cursor='hand2')
         # self.add_module_button.pack(side='left', padx=20)
@@ -70,7 +70,7 @@ class NestedPane(Pane):
         self.close_icon = icons.get_icon('x-lightgray')
         self.x_button = tk.Label(self.menu_frame, text='⨯', fg=text_color(), bg=bg_color(), cursor='hand2')
         self.x_button.pack(side='left', padx=20)
-        self.x_button.bind('<Button-1>', lambda event, _pane=self: destroy_callback(pane=_pane))
+        self.x_button.bind('<Button-1>', lambda event, pane_name=self.name: destroy_callback(pane_name=pane_name))
 
 
 

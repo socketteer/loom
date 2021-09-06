@@ -8,7 +8,7 @@ from gpt import POSSIBLE_MODELS
 from util.custom_tks import Dialog, TextAware
 from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
 from util.util_tree import search, node_ancestry
-from util.keybindings import tkinter_keybindings
+from util.keybindings import tkinter_keybindings, special_keybindings
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 from view.styles import textbox_config
 from view.templates import *
@@ -18,6 +18,9 @@ import codecs
 from copy import deepcopy
 import pprint
 import PIL
+from view.icons import Icons
+
+icons = Icons()
 
 class InfoDialog(Dialog):
     def __init__(self, parent, data_dict):
@@ -380,7 +383,7 @@ class AddTagDialog(Dialog):
         self.configure_checkbuttons()
         for var in self.vars.values():
             var.trace('w', self.configure_checkbuttons)
-        keybinding_options = ('None', '6', '7', '8', '9', '0', '@', '#', '$', '%', '^', '&', '*', '(', ')')
+        keybinding_options = special_keybindings.keys()
         self.vars['toggle_key'].set('None')
         create_side_label(master, "Toggle key")
         self.toggle_key_dropdown = tk.OptionMenu(master, self.vars['toggle_key'], *keybinding_options)
@@ -397,7 +400,7 @@ class AddTagDialog(Dialog):
         if self.icon_name == "None":
             self.icon = tk.Label(self.master, text="None", fg=text_color(), bg=bg_color())
         else:
-            icon = PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_name}.png")).resize((20, 20)))
+            icon = icons.get_icon(self.icon_name)
             self.icon = tk.Label(self.master, bg=bg_color())
             self.icon.image = icon
             self.icon.configure(image=icon)
@@ -466,7 +469,7 @@ class TagsDialog(Dialog):
 
     def add_row(self, tag, properties):
         scope_options = ('node', 'ancestry', 'subtree')
-        keybinding_options = ('None', '6', '7', '8', '9', '0', '@', '#', '$', '%', '^', '&', '*', '(', ')')
+        keybinding_options = special_keybindings.keys()
         self.vars[tag] = {
                 'scope': tk.StringVar,
                 'hide': tk.BooleanVar,
@@ -509,7 +512,7 @@ class TagsDialog(Dialog):
         if self.icon_names[tag] == 'None':
             self.widgets[tag]['icon'] = tk.Label(self.master, text='None', bg=bg_color(), fg=text_color())
         else:
-            icon = PIL.ImageTk.PhotoImage((PIL.Image.open(f"static/icons/tag_icons/{self.icon_names[tag]}.png")).resize((20, 20)))
+            icon = icons.get_icon(self.icon_names[tag])
             self.widgets[tag]['icon'] = tk.Label(self.master, bg=bg_color())
             self.widgets[tag]['icon'].image = icon
             self.widgets[tag]['icon'].configure(image=icon)
@@ -1440,12 +1443,11 @@ class MultimediaDialog(Dialog):
 
 class RunDialog(Dialog):
     def __init__(self, parent, callbacks, init_text=''):
-        run_init(self, init_text)
-        self.callbacks = callbacks
+        self.eval_code = EvalCode(init_text, callbacks)
         Dialog.__init__(self, parent, title="Run code", enter_to_apply=False)
 
     def body(self, master):
-        run_body(self, master)
+        self.eval_code.body(master)
 
     def apply(self):
-        run_apply(self)
+        self.eval_code.apply()

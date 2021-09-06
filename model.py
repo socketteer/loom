@@ -62,9 +62,11 @@ DEFAULT_PREFERENCES = {
 DEFAULT_WORKSPACE = {
     'side_pane': {'open': False, 
                   'module': 'notes'},
-    'input_box': False,
-    'debug_box': False,
-    'show_children': False,
+    'bottom_pane': {'open': False, 
+                    'module': 'children'},
+    # 'input_box': False,
+    # 'debug_box': False,
+    # 'show_children': False,
     'alt_textbox': False,
     'show_search': False
 }
@@ -125,7 +127,7 @@ DEFAULT_TAGS = {
         "hide": False,
         "show_only": False,
         "toggle_key": "b",
-        "icon": "star-black",
+        "icon": "bookmark-black",
     },
     "canonical": { 
         "name": "canonical", 
@@ -141,7 +143,7 @@ DEFAULT_TAGS = {
         "hide": True,
         "show_only": False,
         "toggle_key": "!",
-        "icon": "None",
+        "icon": "archive-yellow",
     },
     "note": { 
         "name": "note", 
@@ -1728,7 +1730,7 @@ class TreeModel:
             child["text"] = "\n\n** Generating **"
         # for grandchild in grandchildren:
         #     grandchild["text"] = "\n\n** Generating **"
-        self.tree_updated(edit=new_nodes, override_visible=True)
+        self.tree_updated(edit=new_nodes)
         if update_selection:
             self.select_node(children[0]["id"])
 
@@ -2048,4 +2050,17 @@ class TreeModel:
         for child in root['children']:
             self.clear_old_generation_metadata(child)
 
-    
+
+    def backup_and_delete_model_response_data(self, root=None):
+        root = root if root else self.root()
+        print('backing up model response data')
+        # Fancy platform independent os.path
+        save_dir = os.path.dirname(self.tree_filename)
+        backup_dir = os.path.join(save_dir, "backups")
+        if not os.path.exists(backup_dir):
+            os.mkdir(backup_dir)
+        json_create(os.path.join(backup_dir, f"model_responses-{timestamp()}.json"), self.tree_raw_data['model_responses'])
+        self.tree_raw_data['model_responses'] = {}
+
+        
+        

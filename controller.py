@@ -85,13 +85,14 @@ class Controller:
         self.state.register_callback(self.state.tree_updated, self.update_chapter_nav_tree_selected)
         # TODO save_edits causes tree_updated...
         self.state.register_callback(self.state.tree_updated, self.save_edits)
-        self.state.register_callback(self.state.tree_updated, self.update_children)
         self.state.register_callback(self.state.tree_updated, self.refresh_textbox)
         self.state.register_callback(self.state.tree_updated, self.refresh_visualization)
         self.state.register_callback(self.state.tree_updated, self.refresh_display)
         self.state.register_callback(self.state.tree_updated, self.setup_custom_key_bindings)
+        self.state.register_callback(self.state.tree_updated, self.modules_tree_updated)
         # TODO autosaving takes too long for a big tree
-        self.state.register_callback(self.state.tree_updated, lambda **kwargs: self.save_tree(popup=False, autosave=True))
+        self.state.register_callback(self.state.tree_updated, lambda **kwargs: self.save_tree(popup=False,
+                                                                                              autosave=True))
 
         # Before the selection is updated, save edits
         self.state.register_callback(self.state.pre_selection_updated, self.save_edits)
@@ -105,19 +106,13 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.refresh_vis_selection)
         self.state.register_callback(self.state.selection_updated, self.refresh_counterfactual_meta)
         self.state.register_callback(self.state.selection_updated, self.refresh_display)
-        self.state.register_callback(self.state.selection_updated, self.save_multi_edits)
-        self.state.register_callback(self.state.selection_updated, self.read_mode_refresh)
-        self.state.register_callback(self.state.selection_updated, self.show_children)
-        self.state.register_callback(self.state.io_update, self.update_dropdown)
+        self.state.register_callback(self.state.selection_updated, self.modules_selection_updated)
 
-
-    
 
     def bind(self, tk_key, f):
         def in_edit():
             return self.display.mode in ["Edit", "Child Edit"] \
                    or (self.display.mode == "Visualize" and self.display.vis.textbox) \
-                   or self.has_focus(self.display.input_box) or self.multi_text_has_focus() \
                    or self.has_focus(self.display.search_box) or self.module_textbox_has_focus()
         
         valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete"]
@@ -323,56 +318,16 @@ class Controller:
         self.select_node(node=self.state.node(node_id))
 
     # figure out scope and whether should add, edit, delete
+    @metadata(name="Tag")
     def toggle_tag(self, tag, node=None):
         node = node if node else self.state.selected_node
         self.state.toggle_tag(node, tag)
         self.state.update_tree_tag_changed(node, tag)
 
-    # @metadata(name="Bookmark", keys=["<Key-b>", "<Control-b>"], display_key="b")
-    # def bookmark(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.toggle_tag(node, "bookmark")
-    #     update_scope = self.state.tag_scope(node, "bookmark")
-    #     self.state.tree_updated(edit=update_scope)
-
-    # @metadata(name="Toggle canonical", keys=["<Control-Shift-KeyPress-C>"], display_key="ctrl+shift+C")
-    # def toggle_canonical(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.toggle_tag(node, "canonical")
-    #     update_scope = self.state.tag_scope(node, "canonical")
-    #     self.state.tree_updated(edit=update_scope)
-
-    # @metadata(name="Toggle archived", keys=["<exclam>"], display_key="")
-    # def toggle_archived(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.toggle_tag(node, "archived")
-    #     update_scope = self.state.tag_scope(node, "archived")
-    #     if self.state.has_tag(node, "archived") and self.state.preferences['hide_archived']:
-    #         self.state.tree_updated(delete=update_scope)
-    #     else:
-    #         self.state.tree_updated(edit=update_scope)
-
     @metadata(name="Toggle prompt", keys=["<asterisk>"], display_key="")
     def toggle_prompt(self, node=None):
         self.state.preferences['show_prompt'] = not self.state.preferences['show_prompt']
         self.refresh_textbox()
-
-    # @metadata(name="Archive")
-    # def archive(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.tag_node(node, "archived")
-    #     if self.state.preferences['hide_archived']:
-    #         self.state.tree_updated(delete=[node['id']])
-    #     else:
-    #         self.state.tree_updated(edit=[node['id']])
-
-    # def unarchive(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.untag_node(node, "archived")
-    #     if self.state.preferences['hide_archived']:
-    #         self.state.tree_updated(add=[node['id']])
-    #     else:
-    #         self.state.tree_updated(edit=[node['id']])
 
     def next_tag(self, tag, node=None):
         node = node if node else self.state.selected_node
@@ -424,14 +379,7 @@ class Controller:
             else:
                 self.reveal_node(node)
         if self.state.preferences['coloring'] == 'read':
-            # if only one visible child, go straight to child
             old_node = self.state.selected_node
-            # TODO this doesn't work
-            # visible_children = self.state.visible_children(node)
-            # if len(visible_children) == 1:
-            #     self.select_node(visible_children[0], noscroll=True)
-            #     if not noscroll:
-            #         self.update_read_color(old_node, node)
             self.state.select_node(node['id'], noscroll=True)
             if old_node:
                 self.update_read_color(old_node, node)
@@ -439,13 +387,30 @@ class Controller:
         else:
             self.state.select_node(node['id'])
 
+    @metadata(name="Update text")
+    def update_text(self, text, node=None):
+        node = node if node else self.state.selected_node
+        self.state.update_text(node, text)
 
 
     #################################
-    #   Nav update
+    #   Node information
     #################################
 
+    @metadata(name="Children")
+    def get_children(self, node=None):
+        node = node if node else self.state.selected_node
+        return filtered_children(node, self.in_nav)
 
+    @metadata(name="Hidden children")
+    def hidden_children(self, node=None):
+        node = node if node else self.state.selected_node
+        return [n for n in node['children'] if not self.state.visible(n)]
+
+    @metadata(name="Text")
+    def get_text(self, node_id=None):
+        node_id = node_id if node_id else self.state.selected_node_id
+        return self.state.node(node_id)['text']
 
     #################################
     #   Node operations
@@ -605,7 +570,10 @@ class Controller:
         self.state.delete_node(node=node, reassign_children=reassign_children)
         if self.state.selected_node_id == node['id']:
             self.select_node(next_sibling)
-        self.state.tree_updated(delete=[node['id']], override_visible=True)
+        if self.in_nav(node):
+            self.state.tree_updated(delete=[node['id']])
+        else:
+            self.state.tree_updated()
         return True
 
     @metadata(name="Delete and reassign children")
@@ -853,14 +821,6 @@ class Controller:
                 else:
                     self.display.vis.delete_textbox()
 
-
-
-    @metadata(name="Show children", keys=[], display_key="c")
-    def toggle_child_edit_mode(self, to_edit_mode=None):
-        self.save_edits()
-        to_edit_mode = to_edit_mode if to_edit_mode is not None else not self.display.mode == "Multi Edit"
-        self.display.set_mode("Multi Edit" if to_edit_mode else "Read")
-        self.refresh_textbox()
 
 
     @metadata(name="Visualize", keys=["<Key-j>", "<Control-j>"], display_key="j")
@@ -1367,16 +1327,16 @@ class Controller:
     #################################
     #   Filtering
     #################################
-
-    @metadata(name="Toggle hide archived", keys=[], display_key="")
-    def toggle_hide_archived(self, toggle=None):
-        self.state.tags['archived']['hide'] = not self.state.tags['archived']['hide']
-        self.state.tree_updated(rebuild=True)
-
-    @metadata(name="Toggle canonical only", keys=[], display_key="")
-    def toggle_canonical_only(self, toggle=None):
-        self.state.tags['canonical']['show_only'] = not self.state.tags['canonical']['show_only']
-        self.state.tree_updated(rebuild=True)
+    #
+    # @metadata(name="Toggle hide archived", keys=[], display_key="")
+    # def toggle_hide_archived(self, toggle=None):
+    #     self.state.tags['archived']['hide'] = not self.state.tags['archived']['hide']
+    #     self.state.tree_updated(rebuild=True)
+    #
+    # @metadata(name="Toggle canonical only", keys=[], display_key="")
+    # def toggle_canonical_only(self, toggle=None):
+    #     self.state.tags['canonical']['show_only'] = not self.state.tags['canonical']['show_only']
+    #     self.state.tree_updated(rebuild=True)
 
     # @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-alt-m")
     # def ancestry_semantic_search(self, node=None):
@@ -1390,19 +1350,19 @@ class Controller:
     #################################
     #   Frames
     #################################
-
-    @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
-    def toggle_input_box(self, toggle='either'):
-        if self.display.mode == "Read":
-            if toggle == 'on' or (toggle == 'either' and not self.state.workspace['input_box']):
-                self.open_bottom_frame('input_box')
-            else:
-                self.close_bottom_frame()
-        # elif self.display.mode == "Multiverse":
-        #     if toggle == 'on' or (toggle == 'either' and not self.state.workspace['past_box']):
-        #         self.open_bottom_frame('past_box')
-        #     else:
-        #         self.close_bottom_frame()
+    #
+    # @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
+    # def toggle_input_box(self, toggle='either'):
+    #     if self.display.mode == "Read":
+    #         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['input_box']):
+    #             self.open_bottom_frame('input_box')
+    #         else:
+    #             self.close_bottom_frame()
+    #     # elif self.display.mode == "Multiverse":
+    #     #     if toggle == 'on' or (toggle == 'either' and not self.state.workspace['past_box']):
+    #     #         self.open_bottom_frame('past_box')
+    #     #     else:
+    #     #         self.close_bottom_frame()
 
     @metadata(name="Submit", keys=[], display_key="")
     def submit(self):
@@ -1421,40 +1381,24 @@ class Controller:
         if self.state.preferences['auto_response']:
             self.generate()
 
-    @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
-    def toggle_debug_box(self, toggle='either'):
-        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['debug_box']):
-            self.open_bottom_frame('debug_box')
-        else:
-            self.close_bottom_frame()
+    
+    # @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
+    # def toggle_debug_box(self, toggle='either'):
+    #     if toggle == 'on' or (toggle == 'either' and not self.state.workspace['debug_box']):
+    #         self.open_bottom_frame('debug_box')
+    #     else:
+    #         self.close_bottom_frame()
 
-    @metadata(name="Children", keys=["<Alt-c>"], display_key="")
+    @metadata(name="Toggle children", keys=["<Alt-c>"], display_key="")
     def toggle_show_children(self, toggle='either'):
-        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['show_children']):
-            self.open_bottom_frame('show_children')
+        if self.state.workspace['bottom_pane']['open'] and self.state.workspace['bottom_pane']['module'] == 'children':
+            self.state.workspace['bottom_pane']['open'] = False
         else:
-            self.close_bottom_frame()
+            self.state.workspace['bottom_pane']['open'] = True
+            self.state.workspace['bottom_pane']['module'] = 'children'
+        self.refresh_display()
 
-    def show_children(self, node=None, **kwargs):
-        node = node if node else self.state.selected_node
-        if self.state.workspace['show_children'] and self.state.selected_node \
-                and self.display.mode in ("Read", "Edit"):
-            children = filtered_children(node, self.in_nav)
-            self.display.build_multi_frame(children)
-            self.display.textbox.update_idletasks()
-            self.display.textbox.see(tk.END)
 
-    def update_children(self, **kwargs):
-        if self.state.workspace['show_children'] and self.display.mode in ("Read", "Edit"):
-            if 'add' in kwargs:
-                self.display.update_children([self.state.node(node_id) for node_id in kwargs['add']
-                                             if self.state.node(node_id)['parent_id'] == self.state.selected_node_id])
-            if 'edit' in kwargs:
-                self.display.update_text()
-
-    def read_mode_refresh(self, **kwargs):
-        if self.state.preferences['coloring'] == 'read':
-            self.toggle_show_children(toggle=False)
 
     @metadata(name="Show hidden children")
     def show_hidden_children(self, node=None):
@@ -1465,40 +1409,6 @@ class Controller:
     def hide_invisible_children(self, node=None):
         node = node if node else self.state.selected_node
         self.state.tree_updated(delete=[n['id'] for n in node['children'] if not self.state.visible(n)])
-
-    def open_bottom_frame(self, module_name):
-        self.display.destroy_bottom_frame()
-        self.state.workspace[module_name] = True
-        if module_name == 'input_box':
-            self.display.build_input_box()
-            self.update_dropdown()
-            self.display.input_box.focus()
-        elif module_name == 'debug_box':
-            self.display.build_debug_box()
-        elif module_name == 'show_children':
-            self.show_children()
-
-    def close_bottom_frame(self):
-        self.display.destroy_bottom_frame()
-        self.state.workspace['debug_box'] = False
-        self.state.workspace['input_box'] = False
-        self.state.workspace['show_children'] = False
-
-    # def open_side_frame(self, module_name):
-    #     self.display.destroy_side()
-    #     self.state.workspace[module_name] = True
-    #     if module_name == 'notes':
-    #         self.display.open_notes()
-    #         self.load_notes()
-
-    # def close_side_frame(self):
-    #     self.display.destroy_side()
-    #     self.state.workspace['notes'] = False
-
-    def update_dropdown(self):
-        if self.display.mode_var:
-            pass
-            #self.display.mode_var.set(self.state.preferences['gpt_mode'])
 
     def print_to_debug(self, message):
         if message:
@@ -1569,76 +1479,76 @@ class Controller:
     #   Autocomplete
     #################################
 
-    @metadata(name="Autocomplete", keys=["<Alt_L>"], display_key="", in_autocomplete=False, autocomplete_range=None,
-              input_range=None, possible_tokens=None, matched_tokens=None, token_index=None, filter_chars='', leading_space=False)
-    def autocomplete(self):
+    # @metadata(name="Autocomplete", keys=["<Alt_L>"], display_key="", in_autocomplete=False, autocomplete_range=None,
+    #           input_range=None, possible_tokens=None, matched_tokens=None, token_index=None, filter_chars='', leading_space=False)
+    # def autocomplete(self):
+    #
+    #     # TODO determine whether in edit mode, input box, or vis textbox
+    #
+    #     if self.has_focus(self.display.input_box):
+    #         self.display.input_box.tag_config('autocomplete', background="blue")
+    #         if not self.autocomplete.meta["in_autocomplete"]:
+    #             self.autocomplete.meta["possible_tokens"] = self.state.autocomplete_generate(self.display.input_box.get("1.0", tk.INSERT), engine='curie')
+    #             self.autocomplete.meta["matched_tokens"] = self.autocomplete.meta["possible_tokens"]
+    #             self.autocomplete.meta["token_index"] = 0
+    #             self.autocomplete.meta["in_autocomplete"] = True
+    #             self.insert_autocomplete()
+    #         else:
+    #             self.scroll_autocomplete(1)
 
-        # TODO determine whether in edit mode, input box, or vis textbox
 
-        if self.has_focus(self.display.input_box):
-            self.display.input_box.tag_config('autocomplete', background="blue")
-            if not self.autocomplete.meta["in_autocomplete"]:
-                self.autocomplete.meta["possible_tokens"] = self.state.autocomplete_generate(self.display.input_box.get("1.0", tk.INSERT), engine='curie')
-                self.autocomplete.meta["matched_tokens"] = self.autocomplete.meta["possible_tokens"]
-                self.autocomplete.meta["token_index"] = 0
-                self.autocomplete.meta["in_autocomplete"] = True
-                self.insert_autocomplete()
-            else:
-                self.scroll_autocomplete(1)
-
-
-    # autocomplete_range is full range of suggested token regardless of user input
-    def insert_autocomplete(self, offset=0):
-        # todo remove leading space
-
-        insert = self.display.input_box.index(tk.INSERT)
-        #print(f'text box contents: [{self.display.input_box.get("1.0", "end-1c")}]')
-
-        start_position = self.autocomplete.meta["autocomplete_range"][0] if self.autocomplete.meta["autocomplete_range"] else insert
-        # TODO if run out of suggested tokens
-        suggested_token = self.autocomplete.meta["matched_tokens"][self.autocomplete.meta["token_index"]][0]
-        # if self.autocomplete.meta['leading_space'] and offset == 0 and not disable_effects and suggested_token[0] == ' ':
-        #     print('drop leading space')
-        #     suggested_token = suggested_token[1:]
-        #     self.autocomplete.meta['leading_space'] = False
-        self.autocomplete.meta["autocomplete_range"] = (start_position, f'{start_position} + {str(len(suggested_token))} chars') #(start_position, f'{insert} + {str(len(suggested_token) - offset)} chars') #
-
-        #self.display.input_box.insert(start_position, suggested_token[:offset])
-        #self.display.input_box.insert(f'{start_position} + {offset} chars', suggested_token[offset:], "autocomplete")
-        self.display.input_box.insert(insert, suggested_token[offset:], "autocomplete")
-        if suggested_token[0] == ' ' and offset == 1:
-            self.display.input_box.delete(start_position, f'{start_position} + 1 char')
-            self.display.input_box.insert(start_position, ' ')
-            self.display.input_box.mark_set(tk.INSERT, f'{start_position} + 1 char')
-            self.autocomplete.meta["filter_chars"] = ' ' + self.autocomplete.meta["filter_chars"]
-        else:
-            self.display.input_box.mark_set(tk.INSERT, insert)
+    # # autocomplete_range is full range of suggested token regardless of user input
+    # def insert_autocomplete(self, offset=0):
+    #     # todo remove leading space
+    #
+    #     insert = self.display.input_box.index(tk.INSERT)
+    #     #print(f'text box contents: [{self.display.input_box.get("1.0", "end-1c")}]')
+    #
+    #     start_position = self.autocomplete.meta["autocomplete_range"][0] if self.autocomplete.meta["autocomplete_range"] else insert
+    #     # TODO if run out of suggested tokens
+    #     suggested_token = self.autocomplete.meta["matched_tokens"][self.autocomplete.meta["token_index"]][0]
+    #     # if self.autocomplete.meta['leading_space'] and offset == 0 and not disable_effects and suggested_token[0] == ' ':
+    #     #     print('drop leading space')
+    #     #     suggested_token = suggested_token[1:]
+    #     #     self.autocomplete.meta['leading_space'] = False
+    #     self.autocomplete.meta["autocomplete_range"] = (start_position, f'{start_position} + {str(len(suggested_token))} chars') #(start_position, f'{insert} + {str(len(suggested_token) - offset)} chars') #
+    #
+    #     #self.display.input_box.insert(start_position, suggested_token[:offset])
+    #     #self.display.input_box.insert(f'{start_position} + {offset} chars', suggested_token[offset:], "autocomplete")
+    #     self.display.input_box.insert(insert, suggested_token[offset:], "autocomplete")
+    #     if suggested_token[0] == ' ' and offset == 1:
+    #         self.display.input_box.delete(start_position, f'{start_position} + 1 char')
+    #         self.display.input_box.insert(start_position, ' ')
+    #         self.display.input_box.mark_set(tk.INSERT, f'{start_position} + 1 char')
+    #         self.autocomplete.meta["filter_chars"] = ' ' + self.autocomplete.meta["filter_chars"]
+    #     else:
+    #         self.display.input_box.mark_set(tk.INSERT, insert)
 
     # TODO <Right> doesn't work
     # TODO test
-    @metadata(name="Apply Autocomplete", keys=["<Alt_R>", "<Right>"], display_key="")
-    def apply_autocomplete(self, auto=True):
-        if self.has_focus(self.display.input_box) and self.autocomplete.meta["in_autocomplete"]:
-            self.delete_autocomplete()
-            self.insert_autocomplete()
-            self.display.input_box.tag_delete("autocomplete")
-            self.display.input_box.mark_set(tk.INSERT, f'{self.autocomplete.meta["autocomplete_range"][1]} + 1 chars')
-            self.exit_autocomplete()
-            if auto:
-                self.autocomplete()
+    # @metadata(name="Apply Autocomplete", keys=["<Alt_R>", "<Right>"], display_key="")
+    # def apply_autocomplete(self, auto=True):
+    #     if self.has_focus(self.display.input_box) and self.autocomplete.meta["in_autocomplete"]:
+    #         self.delete_autocomplete()
+    #         self.insert_autocomplete()
+    #         self.display.input_box.tag_delete("autocomplete")
+    #         self.display.input_box.mark_set(tk.INSERT, f'{self.autocomplete.meta["autocomplete_range"][1]} + 1 chars')
+    #         self.exit_autocomplete()
+    #         if auto:
+    #             self.autocomplete()
 
-    @metadata(name="Rewind Autocomplete", keys=["<Control_L>"], display_key="")
-    def rewind_autocomplete(self):
-        if self.has_focus(self.display.input_box) and self.autocomplete.meta["in_autocomplete"]:
-            self.scroll_autocomplete(-1)
+    # @metadata(name="Rewind Autocomplete", keys=["<Control_L>"], display_key="")
+    # def rewind_autocomplete(self):
+    #     if self.has_focus(self.display.input_box) and self.autocomplete.meta["in_autocomplete"]:
+    #         self.scroll_autocomplete(-1)
 
-    def scroll_autocomplete(self, step=1):
-        new_index = self.autocomplete.meta["token_index"] + step
-        if 0 <= new_index < 100:
-            self.autocomplete.meta["token_index"] = new_index
-            self.display.input_box.delete(*self.autocomplete.meta[
-                "autocomplete_range"])
-            self.insert_autocomplete()
+    # def scroll_autocomplete(self, step=1):
+    #     new_index = self.autocomplete.meta["token_index"] + step
+    #     if 0 <= new_index < 100:
+    #         self.autocomplete.meta["token_index"] = new_index
+    #         self.display.input_box.delete(*self.autocomplete.meta[
+    #             "autocomplete_range"])
+    #         self.insert_autocomplete()
 
 
     @metadata(name="Key Pressed", keys=[], display_key="")
@@ -1713,6 +1623,7 @@ class Controller:
         if self.state.workspace['side_pane']['open']:
             if self.display.panes['side_pane'].module.textbox_has_focus():
                 return True
+        return False
 
     #################################
     #   Story frame TODO call set text, do this in display?
@@ -1740,44 +1651,38 @@ class Controller:
         else:
             return
 
-    def save_multi_edits(self, **kwargs):
-        if self.display.mode in ("Read", "Edit") and self.state.workspace['show_children']:
-            self.display.save_all()
+    # def save_multi_edits(self, **kwargs):
+    #     if self.display.mode in ("Read", "Edit") and self.state.workspace['show_children']:
+    #         self.display.save_all()
 
+
+    def modules_tree_updated(self, **kwargs):
+        for pane in self.display.panes:
+            if self.state.workspace[pane]['open']:
+                self.display.panes[pane].module.tree_updated()
+
+    def modules_selection_updated(self, **kwargs):
+        for pane in self.display.panes:
+            if self.state.workspace[pane]['open']:
+                self.display.panes[pane].module.selection_updated()
+        
 
     def refresh_display(self, **kwargs):
         self.configure_buttons()
         self.configure_nav_tags()
         self.refresh_workspace()
-        # refresh modules in side pane
-        # TODO make generic
-        if self.state.workspace['side_pane']['open']:
-            self.display.panes['side_pane'].module.refresh()
+
 
     def refresh_workspace(self):
-        if not self.state.workspace['input_box'] and self.display.input_box:
-            self.display.destroy_bottom_frame()
-        if not self.state.workspace['debug_box'] and self.display.debug_box:
-            self.display.destroy_bottom_frame()
-        if not self.state.workspace['show_children'] and self.display.multi_scroll_frame:
-            self.display.destroy_bottom_frame()
-        if not self.state.workspace['alt_textbox'] and self.display.alt_frame:
-            self.display.destroy_alt_textbox()
-
         if not self.state.workspace['side_pane']['open'] and self.display.panes['side_pane']:
-            self.display.destroy_pane(self.display.panes['side_pane'])
+            self.display.destroy_pane('side_pane')
+        elif self.state.workspace['side_pane']['open'] and not self.display.panes['side_pane']:
+            self.display.open_pane("side_pane", "horizontal")
+        if not self.state.workspace['bottom_pane']['open'] and self.display.panes['bottom_pane']:
+            self.display.destroy_pane('bottom_pane')
+        elif self.state.workspace['bottom_pane']['open'] and not self.display.panes['bottom_pane']:
+            self.display.open_pane("bottom_pane", "vertical")
 
-        if self.state.workspace['input_box'] and not self.display.input_box:
-            self.display.build_input_box()
-        if self.state.workspace['debug_box'] and not self.display.debug_box:
-            self.display.build_debug_box()
-        if self.state.workspace['show_children'] and not self.display.multi_scroll_frame:
-            self.show_children()
-        if self.state.workspace['alt_textbox'] and not self.display.alt_frame:
-            self.display.build_alt_textbox()
-
-        if self.state.workspace['side_pane']['open'] and not self.display.panes['side_pane']:
-            self.display.open_pane("side_pane", "vertical")
 
 
     def refresh_alt_textbox(self, **kwargs):
@@ -1873,9 +1778,9 @@ class Controller:
             self.display.textbox.focus()
 
 
-    def refresh_children(self):
-        if self.state.workspace['show_children']:
-            self.display.rebuild_multi_frame()
+    # def refresh_children(self):
+    #     if self.state.workspace['show_children']:
+    #         self.display.rebuild_multi_frame()
 
     # TODO nodes with mixed prompt/continuation
     def tag_prompts(self):
@@ -1942,18 +1847,27 @@ class Controller:
     @metadata(name="Toggle side pane", keys=["<Alt-p>"], display_key="")
     def toggle_side(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['side_pane']['open']):
-            self.display.open_pane("side_pane", "vertical")
+            self.display.open_pane("side_pane", "horizontal")
         else:
-            self.display.destroy_pane(self.display.panes['side_pane'])
+            self.display.destroy_pane('side_pane')
+
+    @metadata(name="Toggle bottom pane", keys=["<Alt-b>"], display_key="")
+    def toggle_bottom(self, toggle='either'):
+        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['bottom_pane']['open']):
+            self.display.open_pane("bottom_pane", "vertical")
+        else:
+            self.display.destroy_pane('bottom_pane')
 
     @metadata(name="Get floating notes")
     def get_floating_notes(self, tag='note', node=None):
         node = node if node else self.state.selected_node
         ancestry = self.state.ancestry(node)
+        notes = []
         for ancestor in reversed(ancestry):
             for child in ancestor['children']:
                 if self.state.has_tag(child, tag) and child != node:
-                    yield child
+                    notes.append(child)
+        return notes
 
     @metadata(name="New note")
     def new_note(self, node=None):
@@ -1985,7 +1899,7 @@ class Controller:
                 text = node_text.strip()[:30].replace('\n', '\\n')
                 text = text if text else "EMPTY"
                 text = text + "..." if len(node_text) > 30 else text
-            text = '~' + text if self.state.has_tag(node, "archived") else text
+            #text = '~' + text if self.state.has_tag(node, "archived") else text
         if 'chapter_id' in node:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
@@ -1995,11 +1909,11 @@ class Controller:
         if node == self.state.root():
             image = self.icons.get_icon('tree-lightblue')
         elif node['id'] == self.state.checkpoint:
-            image = self.icons.get_icon('tree_marker-black')
+            image = self.icons.get_icon('marker-black')
         elif self.state.is_compound(node):
             image = self.icons.get_icon('layers-black')
         elif 'multimedia' in node and len(node['multimedia']) > 0:
-            image = self.icons.get_icon('media-white')
+            image = self.get_icon('media-white')
         for tag in self.state.tags:
             if self.state.has_tag_attribute(node, tag):
                 if self.state.tags[tag]['icon'] != 'None':

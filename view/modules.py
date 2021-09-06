@@ -1,4 +1,4 @@
-from util.panes import Module
+from view.panes import Module
 import tkinter as tk
 from tkinter import ttk
 from view.colors import text_color, bg_color, edit_color, vis_bg_color
@@ -13,110 +13,107 @@ import uuid
 icons = Icons()
 
 
+
 class Notes(Module):
     def __init__(self, parent, callbacks, state):
         self.menu_frame = None
         self.new_note_button = None
-        self.notes = {}
-        self.notes_pane = None
+        self.windows = Windows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'])
         Module.__init__(self, 'notes', parent, callbacks, state)
 
     def build(self):
         Module.build(self)
         self.menu_frame = ttk.Frame(self.frame)
         self.menu_frame.pack(side='top')
-        self.new_note_button = ttk.Button(self.menu_frame, text='New note', width=10, command=self.new_note)
+        self.new_note_button = tk.Label(self.menu_frame, image=icons.get_icon("plus-lightgray"), bg=bg_color(), cursor='hand2')
+        self.new_note_button.bind("<Button-1>", self.new_note)
+        #ttk.Button(self.menu_frame, text='New note', width=10, command=self.new_note)
         self.new_note_button.pack(side='left')
-        self.notes_pane = ttk.PanedWindow(self.frame, orient='vertical')
-        self.notes_pane.pack(side='top', fill='both', expand=True)
-        self.refresh()
+        self.windows.body(self.frame)
+        self.tree_updated()
 
-    def clear_notes(self):
-        for note_id, note in self.notes.items():
-            self.notes_pane.forget(note['frame'])
-            #note['frame'].pack_forget()
-            note['frame'].destroy()
-            note['textbox'].pack_forget()
-            note['textbox'].destroy()
-            note['go_button'].pack_forget()
-            note['go_button'].destroy()
-            note['close_button'].pack_forget()
-            note['close_button'].destroy()
-            note['delete_button'].pack_forget()
-            note['delete_button'].destroy()
+    # called by controller events
+    def tree_updated(self):
+        floating_notes = self.callbacks["Get floating notes"]["callback"]()
+        self.windows.update_windows(floating_notes)
+        self.windows.update_text()
+        #self.windows.save_windows()
+        self.textboxes = [window['textbox'] for window in self.windows.windows.values()]
 
-        self.notes = {}
-        self.textboxes = []
-
-    # check if note is already in notes
-    def note_open(self, note):
-        for note_id, note_data in self.notes.items():
-            if note_data['node'] == note:
-                return True
-        return False
-
-    def open_note(self, node):
-        if self.note_open(node):
-            return
-        note_id = self.add_note_frame()
-        self.notes[note_id]['node'] = node
-        self.notes[note_id]['textbox'].insert("1.0", node["text"])
-
-        self.notes[note_id]['go_button'] = tk.Label(self.notes[note_id]['frame'], image=icons.get_icon('arrow-green'), bg=bg_color(), cursor='hand2')
-        self.notes[note_id]['go_button'].grid(row=1, column=2, padx=5)
-        self.notes[note_id]['go_button'].bind("<Button-1>", lambda event, _node=node: self.goto_node(_node))
-
-        self.notes[note_id]['close_button'] = tk.Label(self.notes[note_id]['frame'], image=icons.get_icon('x-white'), bg=bg_color(), cursor='hand2')
-        self.notes[note_id]['close_button'].grid(row=2, column=2, padx=5)
-        #button.bind("<Button-1>", lambda event, _note_id=note_id: function(_note_id))
-
-        self.notes[note_id]['delete_button'] = tk.Label(self.notes[note_id]['frame'], image=icons.get_icon('trash-red'), bg=bg_color(), cursor='hand2')
-        self.notes[note_id]['delete_button'].grid(row=3, column=2, padx=5)
-
-    def add_note_frame(self):
-        note_id = str(uuid.uuid1())
-        self.notes[note_id] = {'frame': ttk.Frame(self.notes_pane, borderwidth=1)}
-        tk.Grid.columnconfigure(self.notes[note_id]['frame'], 1, weight=1)
-        tk.Grid.rowconfigure(self.notes[note_id]['frame'], 1, weight=1)
-        tk.Grid.rowconfigure(self.notes[note_id]['frame'], 2, weight=1)
-        tk.Grid.rowconfigure(self.notes[note_id]['frame'], 3, weight=1)
-
-        self.notes_pane.add(self.notes[note_id]['frame'], weight=1)
-        #self.notes[note_id]['frame'].pack(side="top", fill="both")
-        self.notes[note_id]['textbox'] = TextAware(self.notes[note_id]['frame'], bd=2, undo=True)
-        self.textboxes.append(self.notes[note_id]['textbox'])
-        self.notes[note_id]['textbox'].grid(row=1, column=1, rowspan=3, pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
-        self.notes[note_id]['textbox'].configure(**textbox_config(bg=edit_color()))
-        self.notes[note_id]['textbox'].bind("<FocusOut>", lambda event, _id=note_id: self.save_note_edits(_id))
-        return note_id
-
-    def goto_node(self, node):
-        self.callbacks["Select node"]["callback"](node=node)
+    def selection_updated(self):
+        self.windows.save_windows()
+        self.tree_updated()
 
     def new_note(self, *args):
         new_note = self.callbacks["New note"]["callback"]()
-        self.open_note(new_note)
-
-    def save_notes(self):
-        for note_id in self.notes:
-            self.save_note_edits(note_id)
-
-    def save_note_edits(self, note_id):
-        node = self.notes[note_id]['node']
-        if node['id'] in self.state.tree_node_dict:
-            new_text = self.notes[note_id]['textbox'].get("1.0", 'end-1c')
-            self.state.update_text(node=node, text=new_text, refresh_nav=False)
-            self.callbacks['Refresh nav node']['callback'](node=node)
-
-    # called by controller events
-    def refresh(self):
-        self.save_notes()
-        self.clear_notes()
-        floating_notes = self.callbacks["Get floating notes"]["callback"]()
-        for note in floating_notes:
-            self.open_note(note)
+        #self.open_note(new_note)
 
 
+class Children(Module):
+    def __init__(self, parent, callbacks, state):
+        self.menu_frame = None
+        self.windows = Windows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'], 
+                               buttons_visible=True, 
+                               editable=False)
+        self.add_child_button = None
+        self.toggle_hidden_button = None
+        self.show_hidden = False
+        Module.__init__(self, 'children', parent, callbacks, state)
+ 
+    def build(self):
+        Module.build(self)
+        self.windows.body(self.frame)
+        self.menu_frame = ttk.Frame(self.frame)
+        self.menu_frame.pack(side='bottom')
+        self.add_child_button = tk.Label(self.menu_frame, image=icons.get_icon("plus-lightgray"), bg=bg_color(), cursor='hand2')
+        self.add_child_button.bind("<Button-1>", self.add_child)
+        self.add_child_button.pack(side='left', padx=20)
+        self.tree_updated()
+
+    def destroy_show_hidden_button(self):
+        if self.toggle_hidden_button:
+            self.toggle_hidden_button.pack_forget()
+            self.toggle_hidden_button.destroy()
+        self.toggle_hidden_button = None
+
+    def create_show_hidden_button(self):
+        self.toggle_hidden_button = tk.Label(self.menu_frame, bg=bg_color(), fg=text_color(), cursor='hand2')
+        self.toggle_hidden_button.bind("<Button-1>", self.toggle_hidden)
+        self.toggle_hidden_button.pack(side='left', padx=20)
+        self.toggle_hidden_button["compound"] = tk.LEFT
+
+    def tree_updated(self):
+        children = self.callbacks["Children"]["callback"]()
+        self.windows.update_windows(children)
+        self.windows.update_text()
+        num_hidden = len(self.callbacks["Hidden children"]["callback"]())
+        self.textboxes = [window['textbox'] for window in self.windows.windows.values()]
+
+        if not self.toggle_hidden_button:
+            self.create_show_hidden_button()
+        if not self.show_hidden:
+            if num_hidden > 0:
+                self.toggle_hidden_button['image'] = icons.get_icon("visible-lightgray")
+                self.toggle_hidden_button['text'] = f' reveal {num_hidden} hidden children'
+            else:
+                self.destroy_show_hidden_button()
+        else:
+            self.toggle_hidden_button['image'] = icons.get_icon("invisible-lightgray")
+            self.toggle_hidden_button['text'] = f' hide {num_hidden} hidden children'
+            
+    def selection_updated(self):
+        self.windows.save_windows()
+        self.tree_updated()
+
+    def add_child(self, *args):
+        child = self.callbacks["New note"]["callback"]()
+
+    def toggle_hidden(self, *args):
+        self.show_hidden = not self.show_hidden
+        if self.show_hidden:
+            self.callbacks["Show hidden children"]["callback"]()
+        else:
+            self.callbacks["Hide invisible children"]["callback"]()
 
 class TextEditor(Module):
     def __init__(self, parent, callbacks, state):
@@ -164,7 +161,10 @@ class TextEditor(Module):
     def save_text(self):
         self.text = self.textbox.get("1.0", 'end-1c')
 
-    def refresh(self):
+    def tree_updated(self):
+        pass
+
+    def selection_updated(self):
         pass
 
 
@@ -186,31 +186,33 @@ class Prompt(Module):
         self.button_frame.pack(side='bottom', fill='x')
         self.edit_button = ttk.Button(self.button_frame, text='Edit', command=self.edit)
         self.edit_button.pack(side='left', padx=5)
-        self.refresh()
+        self.tree_updated()
 
     def edit(self, *args):
         pass
 
-    def refresh(self):
+    def tree_updated(self):
         prompt = self.callbacks["Prompt"]["callback"]()
         self.textbox.configure(state='normal')
         self.textbox.delete("1.0", "end")
         self.textbox.insert("end", prompt)
         self.textbox.configure(state='disabled')
 
+    def selection_updated(self):
+        self.tree_updated()
 
 class Run(Module):
     def __init__(self, parent, callbacks, state):
         Module.__init__(self, 'run', parent, callbacks, state)
-        run_init(self, self.callbacks["Run"]['prev_cmd'])
+        self.eval_code = EvalCode(self.callbacks["Run"]['prev_cmd'], callbacks)
         self.run_button = None
         self.clear_button = None
         self.button_frame = None
 
     def build(self):
         Module.build(self)
-        run_body(self, self.frame)
-        self.textboxes.append(self.code_textbox)
+        self.eval_code.body(self.frame)
+        self.textboxes.append(self.eval_code.code_textbox)
         self.button_frame = ttk.Frame(self.frame)
         self.button_frame.pack(side='bottom', fill='x')
         self.clear_button = ttk.Button(self.button_frame, text='Clear', command=self.clear)
@@ -219,10 +221,10 @@ class Run(Module):
         self.run_button.pack(side='left', padx=5, expand=True)
 
     def run(self, *args):
-        run_apply(self)
+        self.eval_code.apply()
 
     def clear(self, *args):
-        self.code_textbox.delete("1.0", "end")
+        self.eval_code.code_textbox.delete("1.0", "end")
 
 
 class MiniMap(Module):
@@ -239,6 +241,12 @@ class MiniMap(Module):
         self.canvas = tk.Canvas(self.frame, bg=vis_bg_color())
         self.canvas.pack(side='top', fill='both', expand=True)
         self.bind_mouse_events()
+        self.refresh()
+    
+    def tree_updated(self):
+        self.refresh()
+
+    def selection_updated(self):
         self.refresh()
 
     def bind_mouse_events(self):
@@ -264,7 +272,7 @@ class MiniMap(Module):
         root = self.state.root()
         filtered_tree = tree_subset(root, filter=lambda node:self.callbacks["In nav"]["callback"](node=node))
         ancestry = self.state.ancestry(selected_node)
-        pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=3)
+        pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=7)
         self.compute_tree_coordinates(pruned_tree, 200, 400, level=0)
         self.center_about_ancestry(ancestry, x_align=200)
         self.center_y(selected_node, 400)
@@ -302,7 +310,7 @@ class MiniMap(Module):
 
         for child in root['children']:
             child_x, child_y = self.node_coords[child["id"]]
-            self.draw_connector(child['id'], root_x, root_y, child_x, child_y, fill='#000000', width=1, 
+            self.draw_connector(child['id'], root_x, root_y, child_x, child_y, fill='#000000', width=2, 
                                 offset=30, 
                                 connections='vertical')
             self.draw_precomputed_tree(child)
@@ -357,7 +365,7 @@ class MiniMap(Module):
         ancestry = self.state.ancestry(selected_node)
         # color all ancestry nodes blue
         for node in ancestry:
-            self.canvas.itemconfig(self.nodes[node['id']], fill="blue")
+            self.canvas.itemconfig(self.nodes[node['id']], fill="blue", outline="blue",)
             if node['id'] in self.lines:
                 self.canvas.itemconfig(self.lines[node['id']], fill="blue", width=3)
 

@@ -51,28 +51,16 @@
 
 - floating nodes/subtrees
     - pinned tag
-    - update events janky
-    - updating note won't update child edit text
-    - some way to hide notes without deleting them
     
 - adopt grandparent hotkey
 - make top level sibling hotkey
 - move to chapter head hotkey
-
-- general purpose side frame
-    - make dialogs capable of being frames in side frame
-    - for floating notes
-    - for reading / editing arbitrary nodes
 
 - export visible tree / prune hidden nodes
 
 - edit textbox directly causes branch from nearest unmodified ancestor?
     - compare verbatim text
     - ask whether to create new branch or overwrite old
- 
-
-- only show visible nodes in vis mode
-- archive button in vis mode
 
 - bring selected node out of Model
     - should be with Display?
@@ -85,8 +73,6 @@
     - also reverse nav direction when nav tree is reversed
     - changing reverse in preferences doesn't cause update to nav tree
 
-- reinstate mode dropdown
-
 - templates which take user input
 
 - summaries 
@@ -96,11 +82,10 @@
 
 - icons showing up for ancestry scope?
 
-- scroll to beginning of node text when navigating
+- scroll to beginning of node text when navigating?
 
 - refactor generate edit stack
     - when nodes fail to generate somehow, this sometimes messes up future generations
-
 
 - test suite
 
@@ -127,8 +112,10 @@
 - make an arbitrary number of sidebars / panes and open arbitrary modules in them
     - abstract functionality of dialogs and make non dialog versions that can be put into panes
     
-- make show_children, debug, and input into modules
-    - make bottom_frame into a generic frame
+- make modules
+    - debug
+    - input box
+    - multimedia
     
 - notes
     - make scrollable frame        
@@ -153,11 +140,33 @@
         - save old version as duplicate (new one inherits children)
             - ghostparent connection
             
- 
-- vis 
-    - horizontal and vertical
-    - center ancestry 
- 
+- preference for whether to navigate to next node or parent
+
+- floating notes should survive when their parent is deleted - move to grandparent?
+    - ok if parent is archived though
+
+- modules should have separate methods that react to tree_updated and selection_updated
+
+- implement reactive updating for all components and refactor tree_updated callback
+
+- run should use exec instead of eval?
+- interpreter
+
+- make add and remove tag methods in controller
+
+- windows 
+    - scrollable
+    - hide window frame buttons option
+    
+- workspace / preferences presets
+    - read mode
+        - text highlight
+        - no icons in show children
+        - minimap
+
+- tabs for suggested modules and dropdown for all
+
+- minimap detect size of frame
 
 ## Other TODO
 
