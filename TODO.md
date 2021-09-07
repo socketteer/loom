@@ -49,9 +49,6 @@
 
 - substitute (node)
 
-- floating nodes/subtrees
-    - pinned tag
-    
 - adopt grandparent hotkey
 - make top level sibling hotkey
 - move to chapter head hotkey
@@ -115,18 +112,18 @@
 - make everything a module
     - story textbox
     - nav and chapter trees
-    - debug
-    - input box
     - multimedia
     - other dialogs
     - playground
         - save as tree
-    - module preferences
     - edit note attributes
         - tags
         - alt text
         - display text
         - nav preview text
+        
+- module preferences
+
 
 - notes 
     - pin note
@@ -135,11 +132,8 @@
     - make scrollable
     - hide buttons preference
     - no show hidden option preference
-    - display tags
     - bind edit hotkey
-        
-- nav history
-
+       
 - scripts to fix old workspace preferences
 
 - generations data options
@@ -177,6 +171,7 @@
         - text highlight
         - no icons in show children
         - minimap
+        - hide nav tree?
     - edit mode
         - text highlight
         - notes
@@ -189,13 +184,17 @@
 - text highlighting
     - keyboard
     - mouse
-    
 - insertion cursor
     - emacs-like commands
 
 - tabs for suggested modules and dropdown for all
 
-- minimap detect size of frame
+- minimap 
+    - detect size of frame
+    - preview text
+    - right click
+    - node/subtree color / tag display
+    - reactive updating
 
 - visible nodes tree object
     - locality / pruning

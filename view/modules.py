@@ -8,7 +8,7 @@ from view.icons import Icons
 from view.styles import textbox_config
 from view.templates import *
 from view.tree_vis import round_rectangle
-from pprint import pformat
+from pprint import pformat, pprint
 import uuid
 
 icons = Icons()
@@ -19,7 +19,10 @@ class Notes(Module):
     def __init__(self, parent, callbacks, state):
         self.menu_frame = None
         self.new_note_button = None
-        self.windows = Windows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'])
+        self.pinned_frame = None
+        self.notes_frame = None
+        self.pinned = Windows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], init_height=1)
+        self.notes = Windows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], init_height=1)
         Module.__init__(self, 'notes', parent, callbacks, state)
 
     def build(self):
@@ -30,19 +33,27 @@ class Notes(Module):
         self.new_note_button.bind("<Button-1>", self.new_note)
         #ttk.Button(self.menu_frame, text='New note', width=10, command=self.new_note)
         self.new_note_button.pack(side='left')
-        self.windows.body(self.frame)
+        self.pinned_frame = ttk.Frame(self.frame)
+        self.notes_frame = ttk.Frame(self.frame)
+        self.pinned_frame.pack(side='top', fill='both', expand=True)
+        self.notes_frame.pack(side='top', fill='both', expand=True)
+        self.pinned.body(self.pinned_frame)
+        self.notes.body(self.notes_frame)
         self.tree_updated()
 
     # called by controller events
     def tree_updated(self):
+        pinned_notes = self.callbacks["Pinned"]["callback"]()
+        self.pinned.update_windows(pinned_notes)
         floating_notes = self.callbacks["Get floating notes"]["callback"]()
-        self.windows.update_windows(floating_notes)
-        self.windows.update_text()
+        self.notes.update_windows(floating_notes)
+        self.notes.update_text()
         #self.windows.save_windows()
-        self.textboxes = [window['textbox'] for window in self.windows.windows.values()]
+        self.textboxes = [window['textbox'] for window in self.notes.windows.values()]
 
     def selection_updated(self):
-        self.windows.save_windows()
+        self.pinned.save_windows()
+        self.notes.save_windows()
         self.tree_updated()
 
     def new_note(self, *args):
@@ -53,9 +64,10 @@ class Notes(Module):
 class Children(Module):
     def __init__(self, parent, callbacks, state):
         self.menu_frame = None
-        self.windows = Windows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'], 
+        self.children = Windows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'], 
                                buttons_visible=True, 
-                               editable=False)
+                               editable=False,
+                               init_height=100)
         self.add_child_button = None
         self.toggle_hidden_button = None
         self.show_hidden = False
@@ -63,7 +75,7 @@ class Children(Module):
  
     def build(self):
         Module.build(self)
-        self.windows.body(self.frame)
+        self.children.body(self.frame)
         self.menu_frame = ttk.Frame(self.frame)
         self.menu_frame.pack(side='bottom')
         self.add_child_button = tk.Label(self.menu_frame, image=icons.get_icon("plus-lightgray"), bg=bg_color(), cursor='hand2')
@@ -85,10 +97,10 @@ class Children(Module):
 
     def tree_updated(self):
         children = self.callbacks["Children"]["callback"]()
-        self.windows.update_windows(children)
-        self.windows.update_text()
+        self.children.update_windows(children)
+        self.children.update_text()
         num_hidden = len(self.callbacks["Hidden children"]["callback"]())
-        self.textboxes = [window['textbox'] for window in self.windows.windows.values()]
+        self.textboxes = [window['textbox'] for window in self.children.windows.values()]
 
         if not self.toggle_hidden_button:
             self.create_show_hidden_button()
@@ -103,12 +115,14 @@ class Children(Module):
             self.toggle_hidden_button['text'] = f' hide {num_hidden} hidden children'
             
     def selection_updated(self):
-        self.windows.save_windows()
+        self.children.save_windows()
         self.tree_updated()
 
     def add_child(self, *args):
         child = self.callbacks["New Child"]["callback"](update_selection=False)
-        self.windows.edit_on(child['id'])
+        #pprint(self.children.windows)
+        self.children.edit_on(child['id'])
+        self.children.focus_textbox(child['id'])
 
     def toggle_hidden(self, *args):
         self.show_hidden = not self.show_hidden

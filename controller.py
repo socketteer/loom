@@ -61,6 +61,8 @@ class Controller:
         self.setup_key_bindings()
         self.build_menus()
         #self.ancestor_end_indices = None
+        self.nav_history = []
+        self.undo_history = []
 
 
     #################################
@@ -373,6 +375,10 @@ class Controller:
 
     @metadata(name="Select node")
     def select_node(self, node, noscroll=False, ask_reveal=True):
+        if node == self.state.selected_node:
+            return
+        self.nav_history.append(self.state.selected_node_id)
+        self.undo_history = []
         if not self.in_nav(node):
             if ask_reveal:
                 self.ask_reveal(node)
@@ -393,8 +399,20 @@ class Controller:
         self.state.update_text(node, text)
 
 
+    @metadata(name="<", keys=["<Alt-minus>"])
+    def prev_selection(self):
+        if self.nav_history:
+            self.undo_history.append(self.state.selected_node_id)
+            self.state.select_node(self.nav_history.pop())
+
+    @metadata(name=">", keys=["<Alt-equal>"])
+    def next_selection(self):
+        if self.undo_history:
+            self.nav_history.append(self.state.selected_node_id)
+            self.state.select_node(self.undo_history.pop())
+
     #################################
-    #   Node information
+    #   Getters
     #################################
 
     @metadata(name="Children")
@@ -422,6 +440,12 @@ class Controller:
                 if self.state.has_tag(child, tag) and child != node:
                     notes.append(child)
         return notes
+
+    @metadata(name="Pinned")
+    def get_pinned(self):
+        pinned = self.state.tagged_nodes(tag='pinned')
+        return pinned
+
 
     @metadata(name="Prompt")
     def prompt(self, node=None):
@@ -1404,18 +1428,18 @@ class Controller:
     def open_module(self, pane_name, module_name):
         self.state.workspace[pane_name]['open'] = True
         self.state.workspace[pane_name]['module'] = module_name
-        self.refresh_display()
+        self.refresh_workspace()
 
     def close_pane(self, pane_name):
         self.state.workspace[pane_name]['open'] = False
-        self.refresh_display()
+        self.refresh_workspace()
 
     def toggle_module(self, pane_name, module_name):
         if self.state.workspace[pane_name]['open'] and self.state.workspace[pane_name]['module'] == module_name:
             self.close_pane(pane_name)
         else:
             self.open_module(pane_name, module_name)
-        self.refresh_display()
+        self.refresh_workspace()
 
     @metadata(name="Show hidden children")
     def show_hidden_children(self, node=None):
@@ -1674,7 +1698,6 @@ class Controller:
         for pane in self.display.panes:
             if self.state.workspace[pane]['open']:
                 self.display.panes[pane].module.selection_updated()
-        
 
     def refresh_display(self, **kwargs):
         self.configure_buttons()
@@ -1682,15 +1705,12 @@ class Controller:
         self.refresh_workspace()
 
     def refresh_workspace(self):
-        if not self.state.workspace['side_pane']['open'] and self.display.panes['side_pane']:
-            self.display.destroy_pane('side_pane')
-        elif self.state.workspace['side_pane']['open'] and not self.display.panes['side_pane']:
-            self.display.open_pane("side_pane", "horizontal")
-        if not self.state.workspace['bottom_pane']['open'] and self.display.panes['bottom_pane']:
-            self.display.destroy_pane('bottom_pane')
-        elif self.state.workspace['bottom_pane']['open'] and not self.display.panes['bottom_pane']:
-            self.display.open_pane("bottom_pane", "vertical")
-
+        for pane in self.display.panes:
+            if self.state.workspace[pane]["open"]:
+                self.display.open_pane(pane)
+                self.display.set_module(pane)
+            else:
+                self.display.destroy_pane(pane)
 
     def refresh_alt_textbox(self, **kwargs):
         # open alt textbox if node has "alt" attribute
@@ -1854,14 +1874,14 @@ class Controller:
     @metadata(name="Toggle side pane", keys=["<Alt-p>"], display_key="")
     def toggle_side(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['side_pane']['open']):
-            self.display.open_pane("side_pane", "horizontal")
+            self.display.open_pane("side_pane")
         else:
             self.display.destroy_pane('side_pane')
 
     @metadata(name="Toggle bottom pane", keys=["<Alt-b>"], display_key="")
     def toggle_bottom(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['bottom_pane']['open']):
-            self.display.open_pane("bottom_pane", "vertical")
+            self.display.open_pane("bottom_pane")
         else:
             self.display.destroy_pane('bottom_pane')
 
@@ -1885,6 +1905,7 @@ class Controller:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
 
+    @metadata(name="Nav icon")
     def nav_icon(self, node):
         image = None
         if node == self.state.root():
@@ -2063,7 +2084,7 @@ class Controller:
         if result == 'yes':
             self.reveal_node(node)
 
-    @metadata(name="Scroll to selected", keys=[], display_key="")
+    @metadata(name="Center", keys=[], display_key="")
     def scroll_to_selected(self):
         self.display.nav_tree.see(self.state.selected_node_id)
         self.set_nav_scrollbars()
@@ -2172,6 +2193,15 @@ class Controller:
             self.display.unhoist_button.configure(state='normal')
         else:
             self.display.unhoist_button.configure(state='disabled')
+
+        if self.nav_history:
+            self.display.back_button.configure(state='normal')
+        else:
+            self.display.back_button.configure(state='disabled')
+        if self.undo_history:
+            self.display.forward_button.configure(state='normal')
+        else:
+            self.display.forward_button.configure(state='disabled')
 
     def fix_selection(self, **kwargs):
         if not self.state.selected_node:

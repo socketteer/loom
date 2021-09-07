@@ -6,6 +6,7 @@ from util.react import *
 from tkinter.scrolledtext import ScrolledText
 from view.styles import textbox_config
 from view.icons import Icons
+import time
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
@@ -40,7 +41,7 @@ class EvalCode:
 
 
 class Windows:
-    def __init__(self, callbacks, buttons, buttons_visible=True, editable=True):
+    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, init_height=1):
         self.callbacks = callbacks
         self.scroll_frame = None
         self.windows_pane = None
@@ -50,13 +51,15 @@ class Windows:
         self.blacklist = []
         self.whitelist = []
         self.buttons_visible = buttons_visible
+        self.nav_icons_visible = nav_icons_visible
         self.editable = editable
+        self.init_height = init_height
 
     def body(self, master):
         self.master = master
         # self.scroll_frame = ScrollableFrame(self.master)
         # self.scroll_frame.pack(expand=True, fill="both")
-        self.windows_pane = ttk.PanedWindow(master, orient='vertical', height=300)
+        self.windows_pane = ttk.PanedWindow(master, orient='vertical', height=self.init_height)
         self.windows_pane.pack(side='top', fill='both', expand=True)
 
     def open_window(self, node):
@@ -64,15 +67,19 @@ class Windows:
             return
         self.windows[node['id']] = {'frame': ttk.Frame(self.windows_pane, borderwidth=1)}
         self.windows[node['id']]['node'] = node
-        tk.Grid.columnconfigure(self.windows[node['id']]['frame'], 0, weight=1)
+        tk.Grid.columnconfigure(self.windows[node['id']]['frame'], 1, weight=1)
         for i in range(len(self.buttons)):
             tk.Grid.rowconfigure(self.windows[node['id']]['frame'], i, weight=1)
         self.windows_pane.add(self.windows[node['id']]['frame'], weight=1)
         self.windows[node['id']]['textbox'] = TextAware(self.windows[node['id']]['frame'], bd=3, undo=True)
-        self.windows[node['id']]['textbox'].grid(row=0, column=0, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+        self.windows[node['id']]['textbox'].grid(row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
         self.windows[node['id']]['textbox'].configure(**textbox_config(bg=edit_color()))
-        self.windows[node['id']]['textbox'].bind("<FocusOut>", lambda event, _id=node['id']: self.save_edits(_id))
+        # bind click event to goto node
         self.windows[node['id']]['textbox'].insert("1.0", node["text"])
+
+        self.windows[node['id']]['textbox'].bind("<FocusOut>", lambda event, _id=node['id']: self.save_edits(_id))
+        self.windows[node['id']]['textbox'].bind("<Button-1>", lambda event, _id=node['id']: self.window_clicked(_id))
+
         if not self.editable:
             self.edit_off(node['id'])
         else:
@@ -80,20 +87,27 @@ class Windows:
         if self.buttons_visible:
             for i, button in enumerate(self.buttons):
                 self.draw_button(i, node['id'], button)
+        if self.nav_icons_visible:
+            self.draw_nav_icon(node['id'])
+
+    def draw_nav_icon(self, window_id):
+        icon = self.callbacks["Nav icon"]["callback"](node=self.windows[window_id]['node'])
+        self.windows[window_id]['icon'] = tk.Label(self.windows[window_id]['frame'], image=icon, bg=bg_color())
+        self.windows[window_id]['icon'].grid(row=0, column=0, rowspan=len(self.buttons))
 
     def draw_button(self, row, window_id, button):
         self.windows[window_id][button] = tk.Label(self.windows[window_id]['frame'], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor='hand2')
-        self.windows[window_id][button].grid(row=row, column=1, padx=5)
+        self.windows[window_id][button].grid(row=row, column=2, padx=5)
         if button == 'go':
-            self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.goto_node(_node))
+            self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.goto_node(_id))
         elif button == 'edit':
-            self.windows[window_id][button].bind("<Button-1>", lambda event, window_id=window_id: self.toggle_edit(window_id))
+            self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.toggle_edit(_id))
         elif button == 'attach':
             self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.attach_node(_node))
         elif button == 'archive':
             self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.archive_node(_node))
         elif button == 'close':
-            self.windows[window_id][button].bind("<Button-1>", lambda event, window_id=window_id: self.close_window(window_id))
+            self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.close_window(_id))
         elif button == 'delete':
             self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.delete_node(_node))
 
@@ -115,10 +129,16 @@ class Windows:
         for window in self.windows:
             self.remove_window(window)
 
-    def goto_node(self, node):
+    def window_clicked(self, window_id):
+        if self.windows[window_id]['textbox'].cget("state") == 'disabled':
+            self.goto_node(window_id)
+
+    def goto_node(self, node_id):
+        node = self.windows[node_id]['node']
         self.callbacks["Select node"]["callback"](node=node)
 
     def save_edits(self, window_id):
+        # why does this cause all windows to reload?
         node = self.windows[window_id]['node']
         new_text = self.windows[window_id]['textbox'].get("1.0", 'end-1c')
         self.callbacks["Update text"]["callback"](node=node, text=new_text)
@@ -128,23 +148,27 @@ class Windows:
             self.save_edits(window_id)
 
     def edit_off(self, window_id):
-        self.windows[window_id]['textbox'].configure(state='disabled', 
-                                                     background=bg_color(),
-                                                     relief=tk.RAISED)
-        self.save_edits(window_id)
+        if self.windows[window_id]['textbox'].cget("state") == "normal":
+            self.windows[window_id]['textbox'].configure(state='disabled', 
+                                                        background=bg_color(),
+                                                        relief=tk.RAISED)
+            self.save_edits(window_id)
 
     def edit_on(self, window_id):
-        self.windows[window_id]['textbox'].configure(state='normal', 
-                                                     background=edit_color(),
-                                                     relief=tk.SUNKEN)
-        # focus on textbox
-        self.windows[window_id]['textbox'].focus_set()
+        if self.windows[window_id]['textbox'].cget("state") == "disabled":
+            self.windows[window_id]['textbox'].configure(state='normal', 
+                                                         background=edit_color(),
+                                                         relief=tk.SUNKEN)
+        
 
     def toggle_edit(self, window_id):
         if self.windows[window_id]['textbox'].cget('state') == 'disabled':
             self.edit_on(window_id)
         else:
             self.edit_off(window_id)
+
+    def focus_textbox(self, window_id):
+        self.windows[window_id]['textbox'].focus_set()
 
     def attach_node(self, node):
         pass

@@ -196,9 +196,7 @@ class TextAware(tk.Text):
         try:
             result = self.tk.call(cmd)
         except tk.TclError as e:
-            print(e)
-            print(self.get("1.0", 'end-1c'))
-            exit(0)
+            return
 
         if command in ("insert", "delete", "replace"):
             self.event_generate("<<TextModified>>")

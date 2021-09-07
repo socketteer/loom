@@ -30,6 +30,9 @@ modules = {'notes': Notes,
            'debug': DebugConsole,
            'input': Input,}
 
+orients = {'side_pane': "horizontal",
+           "bottom_pane": "vertical"}
+
 class Display:
 
     def __init__(self, root, callbacks, state, controller):
@@ -90,8 +93,11 @@ class Display:
         self.button_bar = None
         self.edit_button = None
 
+        self.back_button = None
+        self.forward_button = None
         self.hoist_button = None
         self.unhoist_button = None
+        self.nav_button_frame = None
         self.scroll_to_selected_button = None
 
         self.font = Font(family='Georgia', size=12)
@@ -296,9 +302,13 @@ class Display:
     def build_nav(self, frame):
         self.nav_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
         # Nav controls
-        self.hoist_button = self.build_button(self.nav_frame, "Hoist", dict(width=15), dict(fill="x"), side="top")
-        self.unhoist_button = self.build_button(self.nav_frame, "Unhoist", dict(width=15), dict(fill="x"), side="top")
-        self.scroll_to_selected_button = self.build_button(self.nav_frame, "Scroll to selected", dict(width=15), dict(fill="x"), side="top")
+        self.nav_button_frame = ttk.Frame(self.nav_frame)
+        self.nav_button_frame.pack(side='top', fill='x')
+        self.back_button = self.build_button(self.nav_button_frame, "<", dict(width=2), side="left")
+        self.forward_button = self.build_button(self.nav_button_frame, ">", dict(width=2), side="left")
+        self.hoist_button = self.build_button(self.nav_button_frame, "Hoist", dict(width=5), side="left")
+        self.unhoist_button = self.build_button(self.nav_button_frame, "Unhoist", dict(width=7),side="left")
+        self.scroll_to_selected_button = self.build_button(self.nav_button_frame, "Center", dict(width=6), side="left")
         # buttons = [
         #     # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
         #     ["Hoist", dict(width=15), dict(fill="x")],
@@ -386,19 +396,25 @@ class Display:
 
     def destroy_pane(self, pane_name):
         if self.panes[pane_name]:
-            self.panes[pane_name].destroy()
+            if self.panes[pane_name]:
+                self.panes[pane_name].destroy()
         self.panes[pane_name] = None
         self.state.workspace[pane_name]['open'] = False
 
-    def open_pane(self, pane_name, orient):
-        self.state.workspace[pane_name]['open'] = True
-        if orient == 'horizontal':
-            parent = self.pane
-        else:
-            parent = self.main_pane
-        self.panes[pane_name] = NestedPane(pane_name, parent, orient='vertical')
-        self.panes[pane_name].build_pane()
-        self.panes[pane_name].build_menu_frame(options=modules.keys(), selection_callback=self.module_selected, destroy_callback=self.destroy_pane)
+    def open_pane(self, pane_name):
+        if not self.panes[pane_name]:
+            self.state.workspace[pane_name]['open'] = True
+            orient = orients[pane_name]
+            if orient == 'horizontal':
+                parent = self.pane
+            else:
+                parent = self.main_pane
+            self.panes[pane_name] = NestedPane(pane_name, parent, orient='vertical')
+            self.panes[pane_name].build_pane()
+            self.panes[pane_name].build_menu_frame(options=modules.keys(), selection_callback=self.module_selected, destroy_callback=self.destroy_pane)
+            self.set_module(pane_name)
+
+    def set_module(self, pane_name):
         self.panes[pane_name].module_selection.set(self.state.workspace[pane_name]['module'])
 
     def open_module(self, pane, module):
@@ -410,10 +426,10 @@ class Display:
     def module_selected(self, pane_name):
         pane = self.panes[pane_name]
         module_name = pane.module_selection.get()
-        #print(f'{module_name} selected')
-        self.state.workspace[pane_name]['module'] = module_name
-        module = modules[module_name](parent=pane, callbacks=self.callbacks, state=self.state)
-        self.open_module(pane, module)
+        if self.state.workspace[pane_name]['module'] != module_name or not self.panes[pane_name].module:
+            self.state.workspace[pane_name]['module'] = module_name
+            module = modules[module_name](parent=pane, callbacks=self.callbacks, state=self.state)
+            self.open_module(pane, module)
 
 
     #################################
