@@ -246,6 +246,7 @@ class Display:
         self.build_button(frame, "Children")
         self.build_button(frame, "Visualize")
         self.build_button(frame, "Wavefunction")
+        self.build_button(frame, "Side pane")
 
         # Button name, button params, pack params
         buttons = [

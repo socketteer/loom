@@ -1879,7 +1879,7 @@ class Controller:
     #   Modules
     #################################
 
-    @metadata(name="Toggle side pane", keys=["<Alt-p>"], display_key="")
+    @metadata(name="Side pane", keys=["<Alt-p>"], display_key="")
     def toggle_side(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['side_pane']['open']):
             self.display.open_pane("side_pane")

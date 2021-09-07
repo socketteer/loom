@@ -230,6 +230,7 @@
 
 - prevent opening copies of a module
     - trying to open a copy just moves the module
+        - don't rebuild
 
 - expand / contract note scope
 
