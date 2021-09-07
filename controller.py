@@ -1439,7 +1439,7 @@ class Controller:
         self.refresh_workspace()
 
     def toggle_module(self, pane_name, module_name):
-        if self.state.workspace[pane_name]['open'] and self.state.workspace[pane_name]['module'] == module_name:
+        if self.state.workspace[pane_name]['open'] and module_name in self.state.workspace[pane_name]['module']:
             self.close_pane(pane_name)
         else:
             self.open_module(pane_name, module_name)
@@ -2228,10 +2228,10 @@ class Controller:
         if code_string:
             try:
                 result = eval(code_string)
-                self.print_to_debug(message=result)
+                #self.print_to_debug(message=result)
                 print(result)
             except Exception as e:
-                self.print_to_debug(message=e)
+                #self.print_to_debug(message=e)
                 print(e)
 
 

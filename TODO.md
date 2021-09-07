@@ -26,6 +26,7 @@
     - search tags
     - redistribute tags when merging nodes
     - transform one tag into another
+    - clear tags
     - delete all with tag 
     - *new* tags of zipped node (or same rules as split)
         - should these tags be assigned at tagging time?
@@ -105,9 +106,6 @@
     
     
 - archiving/deleting children textboxes sometimes causes crash with bad text index "tk::anchor1" or anchor3
-
-- make an arbitrary number of sidebars / panes and open arbitrary modules in them
-    - abstract functionality of dialogs and make non dialog versions that can be put into panes
     
 - make everything a module
     - story textbox
@@ -231,8 +229,13 @@
 - code to be executed upon navigating to node
 
 - prevent opening copies of a module
+    - trying to open a copy just moves the module
 
 - expand / contract note scope
+
+- don't change selection when unhoisting from root node
+
+- tagging a node which was just split results in tagging multiple nodes (revealed or done only when navigating to node - why?)
 
 ## Other TODO
 
