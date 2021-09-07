@@ -415,7 +415,7 @@ class Controller:
     #   Getters
     #################################
 
-    @metadata(name="Children")
+    @metadata(name="Get children")
     def get_children(self, node=None):
         node = node if node else self.state.selected_node
         return filtered_children(node, self.in_nav)
@@ -1421,7 +1421,7 @@ class Controller:
     def toggle_debug_box(self):
         self.toggle_module("bottom_pane", "debug")
 
-    @metadata(name="Toggle children", keys=["<Alt-c>"], display_key="")
+    @metadata(name="Children", keys=["<Alt-c>"], display_key="")
     def toggle_show_children(self, toggle='either'):
         self.toggle_module("bottom_pane", "children")
 

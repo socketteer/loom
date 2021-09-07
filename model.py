@@ -1720,9 +1720,6 @@ class TreeModel:
         #self.reveal_nodes(children + grandchildren)
         prompt = self.prompt(node=node)
 
-        # if 'summary' in kwargs:
-        #     threading.Thread(target=self.antisummary_generate, args=(prompt, children, kwargs['summary'])).start()
-        # else:
         threading.Thread(target=self.default_generate, args=(prompt, children)).start()
 
         # After asking for the generation, set loading text

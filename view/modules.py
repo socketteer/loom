@@ -96,7 +96,7 @@ class Children(Module):
         self.toggle_hidden_button["compound"] = tk.LEFT
 
     def tree_updated(self):
-        children = self.callbacks["Children"]["callback"]()
+        children = self.callbacks["Get children"]["callback"]()
         self.children.update_windows(children)
         self.children.update_text()
         num_hidden = len(self.callbacks["Hidden children"]["callback"]())
@@ -246,16 +246,27 @@ class Run(Module):
 class MiniMap(Module):
     def __init__(self, parent, callbacks, state):
         Module.__init__(self, 'minimap', parent, callbacks, state)
+        self.minimap_pane = None
         self.canvas = None 
         self.node_coords = {}
         self.levels = {}
         self.nodes = {}
         self.lines = {}
+        self.preview_textbox = None
 
     def build(self):
         Module.build(self)
-        self.canvas = tk.Canvas(self.frame, bg=vis_bg_color())
-        self.canvas.pack(side='top', fill='both', expand=True)
+        self.minimap_pane = ttk.PanedWindow(self.frame, orient='vertical')
+        self.minimap_pane.pack(side='left', fill='both', expand=True)
+        self.canvas = tk.Canvas(self.minimap_pane, bg=vis_bg_color())
+        self.minimap_pane.add(self.canvas, weight=5)
+        #self.canvas.pack(side='top', fill='both', expand=True)
+        self.preview_textbox = TextAware(self.minimap_pane, bd=3, height=2)
+        self.textboxes.append(self.preview_textbox)
+        self.minimap_pane.add(self.preview_textbox, weight=1)
+        #self.preview_textbox.pack(side='top', fill='both', expand=True)
+        self.preview_textbox.configure(**textbox_config())
+        self.preview_textbox.configure(state='disabled', relief='raised')
         self.bind_mouse_events()
         self.refresh()
     
@@ -356,7 +367,7 @@ class MiniMap(Module):
             self.node_coords[node_id] = (self.node_coords[node_id][0], self.node_coords[node_id][1] - offset)
 
     def draw_circle(self, radius, x, y):
-        return self.canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill="black", activefill="white")
+        return self.canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill="black", activefill="white", activeoutline="white")
 
     def draw_connector(self, child_id, x1, y1, x2, y2, fill, width=1, activefill=None, offset=0, smooth=True, connections='horizontal'):
         if connections=='horizontal':
@@ -376,6 +387,20 @@ class MiniMap(Module):
         node = self.draw_circle(radius, x, y)
         self.nodes[node_id] = node
         self.canvas.tag_bind(node, "<Button-1>", lambda event, node_id=node_id: self.select_node(node_id))
+        self.canvas.tag_bind(node, "<Enter>", lambda event, node_id=node_id: self.display_text(node_id))
+        self.canvas.tag_bind(node, "<Leave>", self.clear_text)
+
+    def display_text(self, node_id):
+        text = self.callbacks["Text"]["callback"](node_id=node_id)
+        self.preview_textbox.configure(state="normal")
+        self.preview_textbox.delete(1.0, "end")
+        self.preview_textbox.insert(1.0, text)
+        self.preview_textbox.configure(state="disabled")
+
+    def clear_text(self, *args):
+        self.preview_textbox.configure(state="normal")
+        self.preview_textbox.delete(1.0, "end")
+        self.preview_textbox.configure(state="disabled")
 
     def color_selection(self, selected_node):
         ancestry = self.state.ancestry(selected_node)
