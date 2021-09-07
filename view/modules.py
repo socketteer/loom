@@ -21,7 +21,6 @@ class Notes(Module):
         self.new_note_button = None
         self.pinned_frame = None
         self.notes_frame = None
-        self.pinned = Windows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], init_height=1)
         self.notes = Windows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], init_height=1)
         Module.__init__(self, 'notes', parent, callbacks, state)
 
@@ -31,34 +30,28 @@ class Notes(Module):
         self.menu_frame.pack(side='top')
         self.new_note_button = tk.Label(self.menu_frame, image=icons.get_icon("plus-lightgray"), bg=bg_color(), cursor='hand2')
         self.new_note_button.bind("<Button-1>", self.new_note)
-        #ttk.Button(self.menu_frame, text='New note', width=10, command=self.new_note)
-        self.new_note_button.pack(side='left')
+        self.new_note_button.pack(side='right')
         self.pinned_frame = ttk.Frame(self.frame)
         self.notes_frame = ttk.Frame(self.frame)
-        self.pinned_frame.pack(side='top', fill='both', expand=True)
         self.notes_frame.pack(side='top', fill='both', expand=True)
-        self.pinned.body(self.pinned_frame)
         self.notes.body(self.notes_frame)
         self.tree_updated()
 
     # called by controller events
     def tree_updated(self):
         pinned_notes = self.callbacks["Pinned"]["callback"]()
-        self.pinned.update_windows(pinned_notes)
         floating_notes = self.callbacks["Get floating notes"]["callback"]()
-        self.notes.update_windows(floating_notes)
+        self.notes.update_windows(pinned_notes + floating_notes)
+        #self.notes.update_windows(pinned_notes + floating_notes, insert='front')
         self.notes.update_text()
-        #self.windows.save_windows()
         self.textboxes = [window['textbox'] for window in self.notes.windows.values()]
 
     def selection_updated(self):
-        self.pinned.save_windows()
         self.notes.save_windows()
         self.tree_updated()
 
     def new_note(self, *args):
         new_note = self.callbacks["New note"]["callback"]()
-        #self.open_note(new_note)
 
 
 class Children(Module):
@@ -299,7 +292,7 @@ class MiniMap(Module):
         root = self.state.root()
         filtered_tree = tree_subset(root, filter=lambda node:self.callbacks["In nav"]["callback"](node=node))
         ancestry = self.state.ancestry(selected_node)
-        pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=7)
+        pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=12)
         self.compute_tree_coordinates(pruned_tree, 200, 400, level=0)
         self.center_about_ancestry(ancestry, x_align=200)
         self.center_y(selected_node, 400)

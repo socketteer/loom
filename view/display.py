@@ -396,10 +396,11 @@ class Display:
 
     def destroy_pane(self, pane_name):
         if self.panes[pane_name]:
-            if self.panes[pane_name]:
-                self.panes[pane_name].destroy()
+            self.panes[pane_name].destroy()
         self.panes[pane_name] = None
         self.state.workspace[pane_name]['open'] = False
+        for module in self.state.workspace[pane_name]['modules']:
+            self.modules[module] = None
 
     def open_pane(self, pane_name):
         if not self.panes[pane_name]:
@@ -409,27 +410,58 @@ class Display:
                 parent = self.pane
             else:
                 parent = self.main_pane
-            self.panes[pane_name] = NestedPane(pane_name, parent, orient='vertical')
-            self.panes[pane_name].build_pane()
-            self.panes[pane_name].build_menu_frame(options=modules.keys(), selection_callback=self.module_selected, destroy_callback=self.destroy_pane)
-            self.set_module(pane_name)
+            self.panes[pane_name] = NestedPane(pane_name, parent, orient='horizontal' if orient == 'vertical' else 'vertical', 
+                                               module_options=modules.keys(),
+                                               module_selection_callback=self.module_selected,
+                                               module_window_destroy_callback=self.module_window_closed)
+            self.panes[pane_name].build_pane(weight=1, destroy_callback=self.destroy_pane)
+            #self.panes[pane_name].build_menu_frame(destroy_callback=self.destroy_pane)
+            self.build_modules(pane_name)
+            #self.set_module(pane_name)
+        
 
-    def set_module(self, pane_name):
-        self.panes[pane_name].module_selection.set(self.state.workspace[pane_name]['module'])
+    def build_modules(self, pane_name):
+        pane = self.panes[pane_name]
+        for i, module_name in enumerate(self.state.workspace[pane_name]['modules']):
+            module_window = pane.add_module_window()
+            #module_window.build(options=modules.keys(), selection_callback=self.module_selected, destroy_callback=self.module_window_closed)
+            self.set_module(pane_name, i)
 
-    def open_module(self, pane, module):
-        pane.clear()
-        pane.module = module
+    def set_module(self, pane_name, window_idx):
+        pane = self.panes[pane_name]
+        module_name = self.state.workspace[pane_name]['modules'][window_idx]
+        pane.module_windows[window_idx].set_selection(module_name)
+
+    def open_module(self, window, module):
+        window.clear()
+        window.module = module
         self.modules[module.name] = module
         module.build()
 
-    def module_selected(self, pane_name):
+    def module_selected(self, pane_name, module_window):
+        #print('module selected')
         pane = self.panes[pane_name]
-        module_name = pane.module_selection.get()
-        if self.state.workspace[pane_name]['module'] != module_name or not self.panes[pane_name].module:
-            self.state.workspace[pane_name]['module'] = module_name
-            module = modules[module_name](parent=pane, callbacks=self.callbacks, state=self.state)
-            self.open_module(pane, module)
+        module_name = module_window.module_selection.get()
+        if len(pane.module_windows) > len(self.state.workspace[pane_name]['modules']):
+            self.state.workspace[pane_name]['modules'].append(module_name)
+        module_window_index = pane.module_windows.index(module_window)
+        if self.state.workspace[pane_name]['modules'][module_window_index] != module_name or module_name not in self.modules or not self.modules[module_name]:
+            self.state.workspace[pane_name]['modules'][module_window_index] = module_name
+            module = modules[module_name](parent=module_window, callbacks=self.callbacks, state=self.state)
+            self.open_module(module_window, module)
+
+        # if self.state.workspace[pane_name]['module'] != module_name or not self.panes[pane_name].module:
+        #     self.state.workspace[pane_name]['module'] = module_name
+        #     module = modules[module_name](parent=pane, callbacks=self.callbacks, state=self.state)
+        #     self.open_module(pane, module)
+
+    def module_window_closed(self, pane_name, module_window):
+        if module_window.module:
+            module_name = module_window.module.name
+            module_window_index = self.state.workspace[pane_name]['modules'].index(module_name)
+            self.state.workspace[pane_name]['modules'].pop(module_window_index)
+            self.modules[module_name] = None
+        module_window.destroy()
 
 
     #################################

@@ -322,6 +322,7 @@ class Controller:
     # figure out scope and whether should add, edit, delete
     @metadata(name="Tag")
     def toggle_tag(self, tag, node=None):
+        print('toggle tag')
         node = node if node else self.state.selected_node
         self.state.toggle_tag(node, tag)
         self.state.update_tree_tag_changed(node, tag)
@@ -499,6 +500,8 @@ class Controller:
         self.state.tag_node(new_child, 'note')
         if self.state.visible(new_child):
             self.state.tree_updated(add=[new_child['id']])
+        else:
+            self.state.tree_updated()
         return new_child
 
 
@@ -1427,7 +1430,8 @@ class Controller:
 
     def open_module(self, pane_name, module_name):
         self.state.workspace[pane_name]['open'] = True
-        self.state.workspace[pane_name]['module'] = module_name
+        if module_name not in self.state.workspace[pane_name]['modules']:
+            self.state.workspace[pane_name]['modules'].append(module_name)
         self.refresh_workspace()
 
     def close_pane(self, pane_name):
@@ -1662,8 +1666,9 @@ class Controller:
     def module_textbox_has_focus(self):
         for pane in self.display.panes:
             if self.state.workspace[pane]['open']:
-                if self.display.panes[pane].module.textbox_has_focus():
-                    return True
+                for module in self.state.workspace[pane]['modules']:
+                    if self.display.modules[module].textbox_has_focus():
+                        return True
         return False
 
     #################################
@@ -1692,12 +1697,14 @@ class Controller:
     def modules_tree_updated(self, **kwargs):
         for pane in self.display.panes:
             if self.state.workspace[pane]['open']:
-                self.display.panes[pane].module.tree_updated()
+                for module in self.state.workspace[pane]['modules']:
+                    self.display.modules[module].tree_updated()
 
     def modules_selection_updated(self, **kwargs):
         for pane in self.display.panes:
             if self.state.workspace[pane]['open']:
-                self.display.panes[pane].module.selection_updated()
+                for module in self.state.workspace[pane]['modules']:
+                    self.display.modules[module].selection_updated()
 
     def refresh_display(self, **kwargs):
         self.configure_buttons()
@@ -1708,7 +1715,8 @@ class Controller:
         for pane in self.display.panes:
             if self.state.workspace[pane]["open"]:
                 self.display.open_pane(pane)
-                self.display.set_module(pane)
+                for i in range(len(self.state.workspace[pane]['modules'])):
+                    self.display.set_module(pane, i)
             else:
                 self.display.destroy_pane(pane)
 
@@ -1981,7 +1989,8 @@ class Controller:
             #visible = lambda _node: all(condition(_node) for condition in self.state.generate_visible_conditions())
             #visible = self.state.id_visible
             delete_items = [i for i in kwargs['delete']] if 'delete' in kwargs else []
-            edit_items = [i for i in kwargs['edit'] if i in self.state.tree_node_dict] if 'edit' in kwargs else []
+            edit_items = [i for i in kwargs['edit'] if (i in self.state.tree_node_dict
+                          and self.in_nav(node=self.state.node(i)))] if 'edit' in kwargs else []
             add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict] if 'add' in kwargs else []
 
         self.display.nav_tree.delete(*delete_items)
@@ -2218,9 +2227,12 @@ class Controller:
     def eval_code(self, code_string):
         if code_string:
             try:
-                self.print_to_debug(message=eval(code_string))
+                result = eval(code_string)
+                self.print_to_debug(message=result)
+                print(result)
             except Exception as e:
                 self.print_to_debug(message=e)
+                print(e)
 
 
 

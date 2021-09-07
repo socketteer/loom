@@ -191,7 +191,6 @@
 
 - minimap 
     - detect size of frame
-    - preview text
     - right click
     - node/subtree color / tag display
     - reactive updating
@@ -201,6 +200,39 @@
     - hoisting
     - masks
     - source of truth for nav, visible
+    
+    
+- right click dropdowns
+    - nav tree
+        - edit
+        - delete
+        - hoist
+        - *zip chain
+        - *unzip
+        - pin
+        - *turn into note
+        - tag...
+        - expand subtree
+        - collapse subtree
+    - story textbox
+        - go
+        - edit
+        - split
+        - add...
+    - minimap
+        - edit (in preview textbox)
+        - color node / subtree
+        - expand / collapse
+        - hoist
+        - tag...
+        
+- general 'get prompt' method for various modules / textboxes
+
+- code to be executed upon navigating to node
+
+- prevent opening copies of a module
+
+- expand / contract note scope
 
 ## Other TODO
 

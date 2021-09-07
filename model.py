@@ -61,9 +61,9 @@ DEFAULT_PREFERENCES = {
 
 DEFAULT_WORKSPACE = {
     'side_pane': {'open': False, 
-                  'module': 'notes'},
+                  'modules': ['notes']},
     'bottom_pane': {'open': False, 
-                    'module': 'children'},
+                    'modules': ['children']},
     # 'input_box': False,
     # 'debug_box': False,
     # 'show_children': False,
@@ -747,7 +747,7 @@ class TreeModel:
                     # node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
                     #                               'revision timestamp': timestamp()})
             if refresh_nav:
-                self.tree_updated(edit=[node['id']], override_visible=True)
+                self.tree_updated(edit=[node['id']])
             else:
                 self.rebuild_tree()
 
@@ -2060,4 +2060,7 @@ class TreeModel:
         self.tree_raw_data['model_responses'] = {}
 
         
+    def reset_workspace(self):
+        self.tree_raw_data['workspace'] = DEFAULT_WORKSPACE
+        self.tree_updated()
         

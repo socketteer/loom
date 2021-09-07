@@ -62,7 +62,7 @@ class Windows:
         self.windows_pane = ttk.PanedWindow(master, orient='vertical', height=self.init_height)
         self.windows_pane.pack(side='top', fill='both', expand=True)
 
-    def open_window(self, node):
+    def open_window(self, node, insert='end'):
         if node['id'] in self.windows:
             return
         self.windows[node['id']] = {'frame': ttk.Frame(self.windows_pane, borderwidth=1)}
@@ -71,6 +71,10 @@ class Windows:
         for i in range(len(self.buttons)):
             tk.Grid.rowconfigure(self.windows[node['id']]['frame'], i, weight=1)
         self.windows_pane.add(self.windows[node['id']]['frame'], weight=1)
+        # if insert == 'end':
+        #     self.windows_pane.add(self.windows[node['id']]['frame'], weight=1)
+        # else:
+        #     self.windows_pane.insert(0, self.windows[node['id']]['frame'], weight=1)
         self.windows[node['id']]['textbox'] = TextAware(self.windows[node['id']]['frame'], bd=3, undo=True)
         self.windows[node['id']]['textbox'].grid(row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
         self.windows[node['id']]['textbox'].configure(**textbox_config(bg=edit_color()))
@@ -180,13 +184,13 @@ class Windows:
         #self.remove_window(node['id'])
         self.callbacks["Delete"]["callback"](node=node)
 
-    def update_windows(self, nodes):
+    def update_windows(self, nodes, insert='end'):
         new_windows, deleted_windows = react_changes(old_components=self.windows.keys(), new_components=[node['id'] for node in nodes])
         for window_id in deleted_windows:
             self.remove_window(window_id)
         new_nodes = [node for node in nodes if node['id'] in new_windows and node['id'] not in self.blacklist]
         for node in new_nodes:
-            self.open_window(node)
+            self.open_window(node, insert=insert)
 
     def update_text(self):
         for window_id in self.windows:
