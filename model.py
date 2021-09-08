@@ -17,8 +17,8 @@ from gpt import openAI_generate, search, generate
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, generate_conditional_tree, filtered_children, \
-    new_node, add_immutable_root, make_simple_tree, fix_tree, ancestry_in_range, ancestry_plaintext, ancestry_text_list, \
-    node_index
+    new_node, add_immutable_root, make_simple_tree, fix_tree, ancestry_in_range, ancestry_plaintext, ancestor_text_indices, \
+    node_index, ancestor_text_list
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs, parse_logit_bias, parse_stop
 from util.multiverse_util import greedy_word_multiverse
 from util.node_conditions import conditions, condition_lambda
@@ -71,7 +71,6 @@ DEFAULT_WORKSPACE = {
     'show_search': False
 }
 
-
 DEFAULT_GENERATION_SETTINGS = {
     'num_continuations': 4,
     'temperature': 0.9,
@@ -84,12 +83,31 @@ DEFAULT_GENERATION_SETTINGS = {
     "stop": '',  # separated by '|'
     "start": '',
     "restart": '',
-    'preset': 'Default',  # 'chat', 'dialogue', 'antisummary'
+    'preset': 'Default',
     'global_context': '',
     'logit_bias': '',
     'template': 'Default',
     'post_template': 'Default'
 }
+
+DEFAULT_INLINE_GENERATION_SETTINGS = {
+    "model": "curie",
+    "num_continuations": 4,
+    "temperature": 0.9,
+    "top_p": 1,
+    "response_length": 50,
+    "prompt_length": 6000,
+    "logprobs": 0,
+    "stop": "\\n|.|?|!",
+    "start": "",
+    "restart": "",
+    "preset": "Single Line",
+    "global_context": "",
+    "logit_bias": "",
+    "template": "Default",
+    "post_template": "Default"
+}
+
 
 DEFAULT_VISUALIZATION_SETTINGS = {
     'text_width': 450,
@@ -205,6 +223,12 @@ class TreeModel:
             else DEFAULT_GENERATION_SETTINGS
 
     @property
+    def inline_generation_settings(self):
+        return self.tree_raw_data.get("inline_generation_settings") \
+            if self.tree_raw_data and "inline_generation_settings" in self.tree_raw_data \
+            else DEFAULT_INLINE_GENERATION_SETTINGS
+
+    @property
     def preferences(self):
         return self.tree_raw_data.get("preferences") \
             if self.tree_raw_data and "preferences" in self.tree_raw_data \
@@ -299,21 +323,10 @@ class TreeModel:
     def nodes(self):
         return list(self.tree_node_dict.values()) if self.tree_node_dict else None
 
-    # @property
-    # def visible_nodes(self):
-    #     return [n for n in list(self.tree_node_dict.values()) if self.visible(n)] if self.tree_node_dict else None
-
-    # @property
-    # def visible_node_dict(self):
-    #     return {d['id']: d for d in self.visible_nodes}
 
     @property
     def tree_traversal_idx(self):
         return self.nodes.index(self.selected_node)
-
-    # @property
-    # def visible_traversal_idx(self):
-    #     return self.visible_nodes.index(self.selected_node)
 
 
     def nodes_list(self, filter=None):
@@ -383,10 +396,21 @@ class TreeModel:
         ancestry = self.ancestry(node, root)
         return ancestry_plaintext(ancestry)
 
-    def ancestry_text_list(self, node, root=None):
+    def ancestor_text_list(self, node, root=None):
         ancestry = self.ancestry(node, root)
-        return ancestry_text_list(ancestry)
+        return ancestor_text_list(ancestry)
 
+    def ancestor_text_indices(self, node, root=None):
+        ancestry = self.ancestry(node, root)
+        return ancestor_text_indices(ancestry)
+
+    def chain_uninterrupted(self, start, end):
+        # returns true if chain of nodes has no other siblings
+        chain = ancestry_in_range(start, end, self.tree_node_dict)
+        for ancestor in chain[:-1]:
+            if len(ancestor["children"]) > 1:
+                return False
+        return True
 
     #################################
     #   Traversal
@@ -889,7 +913,8 @@ class TreeModel:
                 tail = filtered_children(tail, filter)[0]
         if not (head == node and tail == node):
             zipped = self.zip(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
-            zipped['tags'] = self.get_constituents_tags(zipped)
+            zipped['tags'] = self.get_constituents_attribute(zipped, "tags")
+            zipped['memories'] = self.get_constituents_attribute(zipped, "memories")
             return zipped
         else:
             return node
@@ -924,12 +949,12 @@ class TreeModel:
         tail = head_dict[mask['tail_id']]
         return node_ancestry(tail, head_dict)
 
-    def get_constituents_tags(self, mask):
-        tags = []
+    def get_constituents_attribute(self, mask, attribute):
+        attributes = []
         for node in self.constituents(mask):
-            tags.extend(node.get('tags', []))
-        tags = list(set(tags))
-        return tags
+            attributes.extend(node.get(attribute, []))
+        attributes = list(set(attributes))
+        return attributes
 
     def tag_constituents(self, mask):
         pass
@@ -1003,7 +1028,7 @@ class TreeModel:
     def create_memory_entry(self, node, text, inheritability='none'):
         new_memory = {
             "id": str(uuid.uuid1()),
-            "root_id": node["id"],
+            #"root_id": node["id"],
             "text": text,
             "inheritability": inheritability,
             "enabled": True,
@@ -1077,8 +1102,8 @@ class TreeModel:
 
     # returns first node that is fully contained in the context window
     def context_window_index(self, node):
-        _, indices = ancestry_text_list(self.ancestry(node))
-        first_in_context_index = indices[-1] - self.generation_settings['prompt_length']
+        indices = self.ancestor_text_indices(node)
+        first_in_context_index = indices[-1][1] - self.generation_settings['prompt_length']
         if first_in_context_index < 0:
             return 0
         context_node_index = bisect.bisect_left(indices, first_in_context_index) + 1
@@ -1480,23 +1505,27 @@ class TreeModel:
     #   Generation
     #################################
 
-    def gen(self, prompt, n):
-        if self.generation_settings["stop"]:
-            stop = parse_stop(self.generation_settings["stop"])
+    def gen(self, prompt, n, inline=False):
+        if inline:
+            settings = self.inline_generation_settings
+        else:
+            settings = self.generation_settings
+        if settings["stop"]:
+            stop = parse_stop(settings["stop"])
         else:
             stop = None
-        if self.generation_settings["logit_bias"]:
-            logit_bias = parse_logit_bias(self.generation_settings["logit_bias"])
+        if settings["logit_bias"]:
+            logit_bias = parse_logit_bias(settings["logit_bias"])
         else:
             logit_bias = None
         try:
             results, error = generate(prompt=prompt,
-                                      length=self.generation_settings['response_length'],
+                                      length=settings['response_length'],
                                       num_continuations=n,
-                                      temperature=self.generation_settings['temperature'],
-                                      logprobs=self.generation_settings['logprobs'],
-                                      top_p=self.generation_settings['top_p'],
-                                      model=self.generation_settings['model'],
+                                      temperature=settings['temperature'],
+                                      logprobs=settings['logprobs'],
+                                      top_p=settings['top_p'],
+                                      model=settings['model'],
                                       stop=stop,
                                       logit_bias=logit_bias,
                                       )

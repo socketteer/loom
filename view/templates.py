@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+import uuid
 from view.colors import text_color, bg_color, edit_color, default_color
 from util.custom_tks import TextAware, ScrollableFrame
 from util.react import *
@@ -10,10 +11,11 @@ import time
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
-           'attach': 'link-black',
+           'attach': 'leftarrow-lightgray',
            'archive': 'archive-yellow',
            'close': 'minus-lightgray',
-           'delete': 'trash-red',}
+           'delete': 'trash-red',
+           'append': 'up-lightgray'}
 
 icons = Icons()
 
@@ -40,27 +42,68 @@ class EvalCode:
         self.callbacks["Eval"]["callback"](code_string=code)
 
 
-class Windows:
-    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, init_height=1):
-        self.callbacks = callbacks
-        self.scroll_frame = None
+class Windows():
+    def __init__(self, buttons):
         self.windows_pane = None
         self.windows = {}
         self.master = None
         self.buttons = buttons
+
+    def body(self, master):
+        self.master = master
+        # self.scroll_frame = ScrollableFrame(self.master)
+        # self.scroll_frame.pack(expand=True, fill="both")
+        self.windows_pane = ttk.PanedWindow(master, orient='vertical', height=1)
+        self.windows_pane.pack(side='top', fill='both', expand=True)
+
+    def open_window(self, text):
+        window_id = str(uuid.uuid1())
+        self.windows[window_id] = {'frame': ttk.Frame(self.windows_pane, borderwidth=1)}
+        tk.Grid.columnconfigure(self.windows[window_id]['frame'], 1, weight=1)
+        for i in range(len(self.buttons)):
+            tk.Grid.rowconfigure(self.windows[window_id]['frame'], i, weight=1)
+        self.windows_pane.add(self.windows[window_id]['frame'], weight=1)
+        self.windows[window_id]['textbox'] = TextAware(self.windows[window_id]['frame'], bd=3, undo=True)
+        self.windows[window_id]['textbox'].grid(row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
+        self.windows[window_id]['textbox'].configure(**textbox_config(bg=edit_color(), pady=1, spacing2=3, spacing1=4))
+        self.windows[window_id]['textbox'].insert("1.0", text)
+
+        for i, button in enumerate(self.buttons):
+             self.draw_button(i, window_id, button)
+
+    def draw_button(self, row, window_id, button):
+        self.windows[window_id][button] = tk.Label(self.windows[window_id]['frame'], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor='hand2')
+        self.windows[window_id][button].grid(row=row, column=2, padx=5)
+        if button == 'close':
+            self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.close_window(_id))
+
+    def close_window(self, window_id):
+        self.remove_window(window_id)
+
+    def remove_window(self, window_id):
+        self.windows_pane.forget(self.windows[window_id]['frame'])
+        self.windows[window_id]['frame'].destroy()
+        del self.windows[window_id]
+    
+    def clear_windows(self):
+        for window in self.windows:
+            self.remove_window(window)
+
+class NodeWindows(Windows):
+    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, init_height=1):
+        self.callbacks = callbacks
+        self.scroll_frame = None
+        #self.windows_pane = None
+        #self.windows = {}
+        #self.master = None
+        #self.buttons = buttons
         self.blacklist = []
         self.whitelist = []
         self.buttons_visible = buttons_visible
         self.nav_icons_visible = nav_icons_visible
         self.editable = editable
         self.init_height = init_height
-
-    def body(self, master):
-        self.master = master
-        # self.scroll_frame = ScrollableFrame(self.master)
-        # self.scroll_frame.pack(expand=True, fill="both")
-        self.windows_pane = ttk.PanedWindow(master, orient='vertical', height=self.init_height)
-        self.windows_pane.pack(side='top', fill='both', expand=True)
+        Windows.__init__(self, buttons)
 
     def open_window(self, node, insert='end'):
         if node['id'] in self.windows:
@@ -121,17 +164,8 @@ class Windows:
                 self.windows[window_id][button].grid_remove()
 
     def close_window(self, window_id):
-        self.remove_window(window_id)
+        Windows.close_window()
         self.blacklist.append(window_id)
-
-    def remove_window(self, window_id):
-        self.windows_pane.forget(self.windows[window_id]['frame'])
-        self.windows[window_id]['frame'].destroy()
-        del self.windows[window_id]
-    
-    def clear_windows(self):
-        for window in self.windows:
-            self.remove_window(window)
 
     def window_clicked(self, window_id):
         if self.windows[window_id]['textbox'].cget("state") == 'disabled':
@@ -202,3 +236,7 @@ class Windows:
             self.windows[window_id]['textbox'].insert("1.0", self.callbacks["Text"]["callback"](node_id=window_id))
             if changed_edit:
                 self.windows[window_id]['textbox'].configure(state='disabled')
+
+
+
+        

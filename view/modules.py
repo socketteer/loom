@@ -9,7 +9,9 @@ from view.styles import textbox_config
 from view.templates import *
 from view.tree_vis import round_rectangle
 from pprint import pformat, pprint
+from gpt import completions_text
 import uuid
+import threading
 
 icons = Icons()
 
@@ -21,7 +23,7 @@ class Notes(Module):
         self.new_note_button = None
         self.pinned_frame = None
         self.notes_frame = None
-        self.notes = Windows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], init_height=1)
+        self.notes = NodeWindows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], init_height=1)
         Module.__init__(self, 'notes', parent, callbacks, state)
 
     def build(self):
@@ -57,7 +59,7 @@ class Notes(Module):
 class Children(Module):
     def __init__(self, parent, callbacks, state):
         self.menu_frame = None
-        self.children = Windows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'], 
+        self.children = NodeWindows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'], 
                                buttons_visible=True, 
                                editable=False,
                                init_height=100)
@@ -123,6 +125,121 @@ class Children(Module):
             self.callbacks["Show hidden children"]["callback"]()
         else:
             self.callbacks["Hide invisible children"]["callback"]()
+
+class JanusPlayground(Module):
+    def __init__(self, parent, callbacks, state):
+        self.pane = None
+        self.textbox_frame = None
+        self.menu_frame = None
+        self.insert_prompt_button = None
+        self.generate_button = None
+        self.export_button = None
+        self.settings_button = None
+        self.completions_frame = None
+        self.completion_windows = Windows(buttons=['close', 'append', 'attach'])
+        self.inline_completions = None
+        self.completion_index = 0
+        self.inserted_range = None
+        Module.__init__(self, 'janus/playground', parent, callbacks, state)
+
+
+    def build(self):
+        Module.build(self)
+        self.pane = ttk.Panedwindow(self.frame, orient='vertical')
+        self.pane.pack(side='top', fill='both', expand=True)
+        self.textbox_frame = ttk.Frame(self.pane)
+        self.pane.add(self.textbox_frame, weight=4)
+        self.textbox = TextAware(self.textbox_frame, bd=2, height=3, undo=True)
+        self.textbox.pack(side='top', fill='both', expand=True)
+        self.textboxes.append(self.textbox)
+        self.textbox.configure(**textbox_config(bg=edit_color()))
+        self.textbox.tag_config("sel", background="black", foreground="white")
+        self.textbox.tag_config("generated", font=('Georgia', self.state.preferences['font_size'], 'bold'))
+        self.textbox.bind("<Key>", self.key_pressed)
+        self.textbox.bind("<Alt-g>", self.inline_generate)
+        self.textbox.bind("<Alt-period>", self.insert_inline_completion)
+        self.textbox.focus()
+        self.button_frame = ttk.Frame(self.textbox_frame)
+        self.button_frame.pack(side='bottom', fill='x')
+        self.generate_button = ttk.Button(self.button_frame, text='Insert prompt', image=icons.get_icon("rightarrow-lightgray"),
+                                          cursor='hand2', command=self.insert_prompt, compound='left')
+        self.generate_button.pack(side='left', expand=True)
+        self.generate_button = ttk.Button(self.button_frame, text='Generate', image=icons.get_icon("brain-blue"),
+                                          cursor='hand2', command=self.generate, compound='left')
+        self.generate_button.pack(side='left', expand=True)
+        self.export_button = ttk.Button(self.button_frame, text='Export', cursor='hand2',
+                                        command=self.export)
+        self.export_button.pack(side='left', expand=True)
+        self.settings_button = tk.Label(self.button_frame, image=icons.get_icon("settings-lightgray"), bg=bg_color(),
+                                        cursor='hand2')
+        self.settings_button.bind("<Button-1>", self.settings)
+        self.settings_button.pack(side='left', expand=True)
+        self.completions_frame = ttk.Frame(self.pane)
+        self.pane.add(self.completions_frame, weight=1)
+        self.completion_windows.body(self.completions_frame)
+
+    def inline_generate(self, *args):
+        # get text up to cursor
+        prompt = self.textbox.get("1.0", "insert")
+        n = self.state.inline_generation_settings["num_continuations"]
+        threading.Thread(target=self.call_model_inline, args=(prompt, n)).start()
+
+    def generate(self, *args):
+        prompt = self.textbox.get("1.0", "end-1c")
+        n = self.state.generation_settings["num_continuations"]
+        threading.Thread(target=self.call_model, args=(prompt, n)).start()
+
+    def call_model_inline(self, prompt, n):
+        response, error = self.state.gen(prompt, n, inline=True)
+        response_text_list = completions_text(response)
+        self.inline_completions = [completion for completion in response_text_list if completion] + [""]
+        print(self.inline_completions)
+        self.inserted_range = None
+        self.insert_inline_completion()
+
+    def call_model(self, prompt, n):
+        response, error = self.state.gen(prompt, n)
+        response_text_list = completions_text(response)
+        for completion in response_text_list:
+            self.completion_windows.open_window(completion)
+
+    def key_pressed(self, event):
+        if event.keysym == "Alt_L":
+            return
+        # else:
+        #     self.accept_completion()
+
+    def accept_completion(self):
+        # untag generated text
+        print('accept completion')
+        #self.textbox.tag_remove("generated", "1.0", "end")
+        self.inserted_range = None
+
+    def insert_inline_completion(self, *args):
+        if self.inline_completions:
+            # delete text with generated tag
+            #self.textbox.tag_delete("generated")
+            if self.inserted_range: 
+                self.textbox.delete(self.inserted_range[0], self.inserted_range[1])
+            completion = self.inline_completions[self.completion_index % len(self.inline_completions)]
+            self.textbox.insert("insert", completion)
+            self.textbox.tag_add("generated", "insert - %d chars" % len(completion), "insert")
+            self.inserted_range = (self.textbox.index("insert - %d chars" % len(completion)), self.textbox.index("insert"))
+            self.completion_index += 1
+
+    def export(self, *args):
+        pass
+
+    def settings(self, *args):
+        pass
+
+    def insert_prompt(self, *args):
+        prompt = self.callbacks["Prompt"]["callback"]()
+        self.textbox.delete("1.0", "end")
+        self.textbox.insert("1.0", prompt)
+
+
+
 
 class TextEditor(Module):
     def __init__(self, parent, callbacks, state):
@@ -360,7 +477,7 @@ class MiniMap(Module):
             self.node_coords[node_id] = (self.node_coords[node_id][0], self.node_coords[node_id][1] - offset)
 
     def draw_circle(self, radius, x, y):
-        return self.canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill="black", activefill="white", activeoutline="white")
+        return self.canvas.create_oval(x - radius, y - radius, x + radius, y + radius, fill="black", activefill="white", activeoutline="white", outline="black")
 
     def draw_connector(self, child_id, x1, y1, x2, y2, fill, width=1, activefill=None, offset=0, smooth=True, connections='horizontal'):
         if connections=='horizontal':
@@ -421,6 +538,7 @@ class DebugConsole(Module):
             wrap="word",
         )
         self.debug_box.configure(state="disabled")
+        self.debug_box.bind("<Button>", lambda event: self.debug_box.focus_set())
 
     def write(self, message):
         self.debug_box.configure(state="normal")

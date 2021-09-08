@@ -27,7 +27,7 @@ from view.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, Visual
     RunDialog, WorkspaceDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff
-from util.util_tree import depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
+from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
     node_index, nearest_common_ancestor, filtered_children
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
 from util.keybindings import tkinter_keybindings
@@ -60,7 +60,7 @@ class Controller:
         self.register_model_callbacks()
         self.setup_key_bindings()
         self.build_menus()
-        #self.ancestor_end_indices = None
+        self.ancestor_end_indices = None
         self.nav_history = []
         self.undo_history = []
 
@@ -1743,6 +1743,8 @@ class Controller:
 
         # Fill textbox with text history, disable editing
         if self.display.mode == "Read":
+            self.display.textbox.tag_config("sel", background="black", foreground=text_color())
+
             self.display.textbox.configure(state="normal")
             self.display.textbox.delete("1.0", "end")
 
@@ -1757,10 +1759,10 @@ class Controller:
                     self.display.textbox.tag_config('history', foreground=text_color())
 
                 # TODO bad color for lightmode
-                self.display.textbox.tag_config("selected", background="black", foreground=text_color())
+                #self.display.textbox.tag_config("selected", background="black", foreground=text_color())
                 self.display.textbox.tag_config("modified", background="blue", foreground=text_color())
-                ancestry, indices = self.state.ancestry_text_list(self.state.selected_node)
-                self.ancestor_end_indices = indices
+                ancestry = self.state.ancestor_text_list(self.state.selected_node)
+                #self.ancestor_end_indices = indices
                 history = ''
                 for node_text in ancestry[:-1]:
                     # "end" includes the automatically inserted new line
@@ -1776,18 +1778,8 @@ class Controller:
                 self.display.textbox.insert("end-1c", in_context, "history")
 
                 history_end = self.display.textbox.index(tk.END)
-                #self.display.textbox.see(tk.END)
-
                 self.display.textbox.insert("end-1c", selected_text)
-                #self.display.textbox.see(end)
                 self.display.textbox.insert("end-1c", self.state.selected_node.get("active_text", ""))
-
-                # TODO Not quite right. We may need to compare the actual text content? Hmm...
-                # num_lines = int(self.display.textbox.index('end-1c').split('.')[0])
-                # while num_lines < self.refresh_textbox.meta["last_num_lines"]:
-                #     self.display.textbox.insert("end-1c", "\n")
-                #     num_lines = int(self.display.textbox.index('end-1c').split('.')[0])
-                # self.refresh_textbox.meta["last_num_lines"] = num_lines
 
                 self.tag_prompts()
                 if not kwargs.get('noscroll', False):
@@ -1797,9 +1789,6 @@ class Controller:
 
             # makes text copyable
             self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
-
-
-
 
         # Textbox to edit mode, fill with single node
         elif self.display.mode == "Edit":
@@ -1812,10 +1801,84 @@ class Controller:
             self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
             self.display.textbox.focus()
 
+    def select_range(self, start, end):
+        self.display.textbox.tag_config("sel", background="black", foreground=text_color())
+        self.display.textbox.tag_remove("sel", "1.0", tk.END)
+        self.display.textbox.tag_add("sel", f"1.0 + {start} chars", f"1.0 + {end} chars")
 
-    # def refresh_children(self):
-    #     if self.state.workspace['show_children']:
-    #         self.display.rebuild_multi_frame()
+    def select_endpoints_range(self, start_endpoint, end_endpoint):
+        start_text_index, end_text_index = self.endpoints_to_range(start_endpoint, end_endpoint)
+        self.select_range(start_text_index, end_text_index)
+
+    def get_selected_text(self):
+        # get text with "sel" tag
+        return self.display.textbox.get("sel.first", "sel.last")
+
+    def replace_selected_text(self, text):
+        self.display.textbox.configure(state="normal")
+        selected_text = self.get_selected_text()
+        start_pos = self.display.textbox.index("sel.first")
+        start_index = len(self.display.textbox.get("1.0", start_pos))
+        end_index = start_index + len(selected_text)
+        start_endpoint, end_endpoint = self.range_to_endpoints(start_index, end_index)
+        if self.path_uninterrupted(start_endpoint, end_endpoint):
+            self.replace_trajectory(start_endpoint, end_endpoint, text)
+        else:
+            # TODO open warning dialog to ask user to confirm
+            pass
+
+    def replace_trajectory(self, start_endpoint, end_endpoint, text):
+        # replace text along a trajectory. This will put all the new text in the end endpoint, and result
+        # in empty nodes if the chain is greater than two nodes long
+        start_node = self.state.node(start_endpoint[0])
+        end_node = self.state.node(end_endpoint[0])
+        node_path = ancestry_in_range(start_node, end_node, self.state.tree_node_dict)
+        if start_node == end_node:
+            # substitute the text range in the node
+            new_text = start_node['text'][:start_endpoint[1]] + text + start_node['text'][end_endpoint[1]:]
+            self.state.update_text(start_node, new_text)
+        else:
+            for node in node_path:
+                if node == start_node:
+                    new_text = node['text'][:start_endpoint[1]]
+                    self.state.update_text(node, new_text)
+                elif node == end_node: 
+                    new_text = text + node['text'][end_endpoint[1]:]
+                    self.state.update_text(node, new_text)
+                else:
+                    self.state.update_text(node, "")
+
+    def path_uninterrupted(self, start_endpoint, end_endpoint):
+        # returns true if any nodes between start_endpoint and end_endpoint have siblings
+        start_node = self.state.node(start_endpoint[0])
+        end_node = self.state.node(end_endpoint[0])
+        return self.state.chain_uninterrupted(start_node, end_node)
+
+    def endpoints_to_range(self, start, end):
+        ancestor_text_indices = self.state.ancestor_text_indices(self.state.selected_node)
+        # ancestor_text_indices is a list of types (start, end) for nodes in ancestry
+        # endpoints are ({start_node_id: text_index}, {end_node_id: text_index})
+        start_node_index = node_index(self.state.node(start[0]), self.state.tree_node_dict)
+        end_node_index = node_index(self.state.node(end[0]), self.state.tree_node_dict)
+        start_node_text_index = ancestor_text_indices[start_node_index][0]
+        end_node_text_index = ancestor_text_indices[end_node_index][0]
+        start_text_index = start_node_text_index + start[1]
+        end_text_index = end_node_text_index + end[1]
+        return start_text_index, end_text_index
+
+    def range_to_endpoints(self, start, end):
+        ancestry = self.state.ancestry(self.state.selected_node)
+        ancestor_text_indices = self.state.ancestor_text_indices(self.state.selected_node)
+        start_indices = [i[0] for i in ancestor_text_indices]
+        # use bisect to find the index of the start and end node
+        start_node_index = bisect.bisect_right(start_indices, start) - 1
+        end_node_index = bisect.bisect_right(start_indices, end) - 1
+        start_text_index = start - start_indices[start_node_index]
+        end_text_index = end - start_indices[end_node_index]
+        start_node = ancestry[start_node_index]
+        end_node = ancestry[end_node_index]
+        return (start_node['id'], start_text_index), (end_node['id'], end_text_index)
+
 
     # TODO nodes with mixed prompt/continuation
     def tag_prompts(self):
@@ -1824,12 +1887,14 @@ class Controller:
         else:
             self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size']))
         self.display.textbox.tag_remove("prompt", "1.0", 'end')
-        ancestry_text, indices = self.state.ancestry_text_list(self.state.selected_node)
-        start_index = 0
+        #ancestry_text = self.state.ancestry_text(self.state.selected_node)
+        indices = self.state.ancestor_text_indices(self.state.selected_node)
+        #start_index = 0
         for i, ancestor in enumerate(self.state.ancestry(self.state.selected_node)):
             if 'meta' in ancestor and 'source' in ancestor['meta']:
                 if not (ancestor['meta']['source'] == 'AI' or ancestor['meta']['source'] == 'mixed'):
-                    self.display.textbox.tag_add("prompt", f"1.0 + {start_index} chars", f"1.0 + {indices[i]} chars")
+                    self.display.textbox.tag_add("prompt", f"1.0 + {indices[i][0]} chars",
+                                                 f"1.0 + {indices[i][1]} chars")
                 elif ancestor['meta']['source'] == 'mixed':
                     if 'diffs' in ancestor['meta']:
                         # TODO multiple diffs in sequence
@@ -1838,9 +1903,9 @@ class Controller:
                         current_tokens = ancestor['meta']['diffs'][-1]['diff']['new']
                         total_diff = diff(original_tokens, current_tokens)
                         for addition in total_diff['added']:
-                            self.display.textbox.tag_add("prompt", f"1.0 + {start_index + addition['indices'][0]} chars",
-                                                         f"1.0 + {start_index + addition['indices'][1]} chars")
-            start_index = indices[i]
+                            self.display.textbox.tag_add("prompt", f"1.0 + {indices[i][0] + addition['indices'][0]} chars",
+                                                         f"1.0 + {indices[i][0] + addition['indices'][1]} chars")
+            #start_index = indices[i][1]
 
 
     def refresh_visualization(self, center=False, **kwargs):
@@ -2226,13 +2291,15 @@ class Controller:
     @metadata(name="Eval")
     def eval_code(self, code_string):
         if code_string:
-            try:
-                result = eval(code_string)
-                #self.print_to_debug(message=result)
-                print(result)
-            except Exception as e:
-                #self.print_to_debug(message=e)
-                print(e)
+            result = eval(code_string)
+            self.print_to_debug(result)
+            # try:
+            #     result = eval(code_string)
+            #     self.print_to_debug(message=result)
+            #     print(result)
+            # except Exception as e:
+            #     self.print_to_debug(message=e)
+            #     print(e)
 
 
 

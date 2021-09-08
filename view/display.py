@@ -28,7 +28,8 @@ modules = {'notes': Notes,
            'minimap': MiniMap,
            'children': Children,
            'debug': DebugConsole,
-           'input': Input,}
+           'input': Input,
+           'janus/playground': JanusPlayground}
 
 orients = {'side_pane': "horizontal",
            "bottom_pane": "vertical"}

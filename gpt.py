@@ -62,6 +62,9 @@ def generate(**kwargs):
         response, error = openAI_generate(**kwargs)
         return format_openAI_response(response, kwargs['prompt'], False), error
 
+def completions_text(response):
+    return [completion['text'] for completion in response['completions']]
+
 #################################
 #   Janus
 #################################

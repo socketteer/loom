@@ -140,18 +140,21 @@ def ancestry_in_range(root, node, node_dict):
         i += 1
     return ancestry[i:]
 
-def ancestry_text_list(ancestry=None):
-    text = []
-    end_indices = []
-    index = 0
+def ancestor_text_indices(ancestry=None):
+    indices = []
+    #end_indices = []
+    start_index = 0
     for node in ancestry:
-        text.append(node["text"])
-        index += len(node["text"])
-        end_indices.append(index)
-    return text, end_indices
+        #text.append(node["text"])
+        indices.append((start_index, start_index + len(node["text"])))
+        start_index += len(node["text"])
+    return indices
+
+def ancestor_text_list(ancestry):
+    return [node['text'] for node in ancestry]
 
 def ancestry_plaintext(ancestry):
-    return ''.join(node['text'] for node in ancestry)
+    return ''.join(ancestor_text_list(ancestry))
 
 def nearest_common_ancestor(node_a, node_b, node_dict):
     ancestry_a = node_ancestry(node_a, node_dict)
@@ -170,9 +173,6 @@ def nearest_common_ancestor(node_a, node_b, node_dict):
 def in_ancestry(a, b, node_dict):
     ancestry = node_ancestry(b, node_dict)
     return a in ancestry
-
-
-
 
 
 def node_index(node, node_dict):

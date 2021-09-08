@@ -1,6 +1,4 @@
 ## Priority
-- alt textbox
-    - editable
 
 - node can "conceal" ancestry (to reader and/or language model) 
 
@@ -30,7 +28,7 @@
     - delete all with tag 
     - *new* tags of zipped node (or same rules as split)
         - should these tags be assigned at tagging time?
-
+    - no deleting program tags (archive, pin, notes, visited, AI/prompt, edited)
 - fix everything that uses old data format
     - wavefunction
     - autocomplete
@@ -217,6 +215,11 @@
         - edit
         - split
         - add...
+        - inline generation
+        - if region selected
+            - use as input to program
+            - save summary
+            - save as...
     - minimap
         - edit (in preview textbox)
         - color node / subtree
@@ -237,6 +240,13 @@
 - don't change selection when unhoisting from root node
 
 - tagging a node which was just split results in tagging multiple nodes (revealed or done only when navigating to node - why?)
+
+- toggle multiple choice or inline (end) in playground
+
+- abstract inline generation
+    - any key should "accept" completion and clear list
+- inline generation in story textbox
+    - hotkey to split node after generation
 
 ## Other TODO
 
