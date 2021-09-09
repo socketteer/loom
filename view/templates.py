@@ -164,7 +164,7 @@ class NodeWindows(Windows):
                 self.windows[window_id][button].grid_remove()
 
     def close_window(self, window_id):
-        Windows.close_window()
+        Windows.close_window(self, window_id)
         self.blacklist.append(window_id)
 
     def window_clicked(self, window_id):
