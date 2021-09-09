@@ -120,10 +120,6 @@
         
 - module preferences
 
-
-- notes 
-    - pin note
-
 - windows
     - make scrollable
     - hide buttons preference
@@ -189,7 +185,11 @@
     - detect size of frame
     - right click
     - node/subtree color / tag display
+        - color according to tag
     - reactive updating
+    - selected node highlighted by default; show preview text in textbox
+    - export image of minimap
+    - auto color by curation metrics
 
 - visible nodes tree object
     - locality / pruning
@@ -234,6 +234,7 @@
 - prevent opening copies of a module
     - trying to open a copy just moves the module
         - don't rebuild
+    - some modules are ok to have copies (text editor etc)
 
 - expand / contract note scope
 
@@ -241,12 +242,18 @@
 
 - tagging a node which was just split results in tagging multiple nodes (revealed or done only when navigating to node - why?)
 
-- toggle multiple choice or inline (end) in playground
+- playground
+    - toggle multiple choice or inline (end)
+    - integrate with tree
 
 - abstract inline generation
     - any key should "accept" completion and clear list
 - inline generation in story textbox
     - hotkey to split node after generation
+
+- abstract right click menus for textboxes
+
+
 
 ## Other TODO
 

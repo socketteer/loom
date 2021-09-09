@@ -178,6 +178,13 @@ class JanusPlayground(Module):
         self.pane.add(self.completions_frame, weight=1)
         self.completion_windows.body(self.completions_frame)
 
+    def replace_selected_text(self, text):
+        #selected_text = self.textbox.get("sel.first", "sel.last")
+        sel_first = self.textbox.index("sel.first")
+        self.textbox.delete("sel.first", "sel.last")
+        self.textbox.insert(sel_first, text)
+        
+
     def inline_generate(self, *args):
         # get text up to cursor
         prompt = self.textbox.get("1.0", "insert")
@@ -193,7 +200,6 @@ class JanusPlayground(Module):
         response, error = self.state.gen(prompt, n, inline=True)
         response_text_list = completions_text(response)
         self.inline_completions = [completion for completion in response_text_list if completion] + [""]
-        print(self.inline_completions)
         self.inserted_range = None
         self.insert_inline_completion()
 
@@ -222,7 +228,10 @@ class JanusPlayground(Module):
             if self.inserted_range: 
                 self.textbox.delete(self.inserted_range[0], self.inserted_range[1])
             completion = self.inline_completions[self.completion_index % len(self.inline_completions)]
-            self.textbox.insert("insert", completion)
+            if self.textbox.tag_ranges("sel"):
+                self.replace_selected_text(completion)
+            else:
+                self.textbox.insert("insert", completion)
             self.textbox.tag_add("generated", "insert - %d chars" % len(completion), "insert")
             self.inserted_range = (self.textbox.index("insert - %d chars" % len(completion)), self.textbox.index("insert"))
             self.completion_index += 1

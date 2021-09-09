@@ -665,7 +665,8 @@ class Controller:
     def split_node(self, index, change_selection=True):
         if self.display.mode == "Read":
             ancestor_index, selected_ancestor = self.index_to_ancestor(index)
-            negative_offset = self.ancestor_end_indices[ancestor_index] - index
+            ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(self.state.selected_node)]
+            negative_offset = ancestor_end_indices[ancestor_index] - index
             split_index = len(selected_ancestor['text']) - negative_offset
             new_parent, _ = self.state.split_node(selected_ancestor, split_index)
             self.state.tree_updated(add=[new_parent['id']])
@@ -675,7 +676,8 @@ class Controller:
             # TODO deal with metadata
 
     def index_to_ancestor(self, index):
-        ancestor_index = bisect.bisect_left(self.ancestor_end_indices, index)
+        ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(self.state.selected_node)]
+        ancestor_index = bisect.bisect_left(ancestor_end_indices, index)
         return ancestor_index, node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
 
     def zip_chain(self, node=None):
@@ -1988,7 +1990,7 @@ class Controller:
         elif self.state.is_compound(node):
             image = self.icons.get_icon('layers-black')
         elif 'multimedia' in node and len(node['multimedia']) > 0:
-            image = self.get_icon('media-white')
+            image = self.icons.get_icon('media-white')
         for tag in self.state.tags:
             if self.state.has_tag_attribute(node, tag):
                 if self.state.tags[tag]['icon'] != 'None':

@@ -209,9 +209,10 @@ class Display:
         # TODO move this out
         textbox.bind("<Control-Button-1>", lambda event: self.edit_history(txt=textbox))
         textbox.bind("<Control-Shift-Button-1>", lambda event: self.goto_history(txt=textbox))
-        textbox.bind("<Control-Alt-Button-1>", lambda event: self.split_node(txt=textbox))
-        textbox.bind("<Alt-Button-1>", lambda event: self.select_token(txt=textbox))
-        textbox.bind("<Button-3>", lambda event: self.add_summary(txt=textbox))
+        textbox.bind("<Alt-Button-1>", lambda event: self.split_node(txt=textbox))
+        textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
+        #textbox.bind("<Alt_L><Button-1>", lambda event: self.select_token(txt=textbox))
+        #textbox.bind("<Button-3>", lambda event: self.add_summary(txt=textbox))
         textbox.pack(expand=True, fill='both')
 
          # Other nice options: Helvetica, Arial, Georgia
