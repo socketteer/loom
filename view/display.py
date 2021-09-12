@@ -22,14 +22,16 @@ from pprint import pformat
 
 
 modules = {'notes': Notes,
+           'minimap': MiniMap,
            'texteditor': TextEditor,
            'prompt': Prompt,
-           'run': Run,
-           'minimap': MiniMap,
            'children': Children,
+           'run': Run,
            'debug': DebugConsole,
            'input': Input,
-           'janus/playground': JanusPlayground}
+           'janus/playground': JanusPlayground,
+           'media': Media,
+           'paint': Paint}
 
 orients = {'side_pane': "horizontal",
            "bottom_pane": "vertical"}
@@ -210,7 +212,7 @@ class Display:
         textbox.bind("<Control-Button-1>", lambda event: self.edit_history(txt=textbox))
         textbox.bind("<Control-Shift-Button-1>", lambda event: self.goto_history(txt=textbox))
         textbox.bind("<Alt-Button-1>", lambda event: self.split_node(txt=textbox))
-        textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
+        #textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
         #textbox.bind("<Alt_L><Button-1>", lambda event: self.select_token(txt=textbox))
         #textbox.bind("<Button-3>", lambda event: self.add_summary(txt=textbox))
         textbox.pack(expand=True, fill='both')

@@ -151,10 +151,10 @@ class Controller:
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
         menu_list = {
             "View": [
-                ('Toggle children', 'Command-C', None, no_junk_args(self.toggle_show_children)),
+                ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
-                ('Hoist subtree', 'Command-H', None, no_junk_args(self.hoist)),
-                ('Unhoist subtree', 'Command-Shift-H', None, no_junk_args(self.unhoist)),
+                ('Hoist subtree', 'Alt-H', None, no_junk_args(self.hoist)),
+                ('Unhoist subtree', 'Alt-Shift-H', None, no_junk_args(self.unhoist)),
                 ('Unhoist all', '', None, no_junk_args(self.unhoist_all)),
                 ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
                 ('Collapse subtree', 'Ctrl-minus', None, no_junk_args(self.collapse_subtree)),
@@ -175,7 +175,7 @@ class Controller:
             "Edit": [
                 ('Edit mode', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
                 ("New root child", 'Ctrl+Shift+H', None, no_junk_args(self.create_root_child)),
-                ("Create parent", 'Command-Left', None, no_junk_args(self.create_parent)),
+                ("Create parent", 'Alt-Left', None, no_junk_args(self.create_parent)),
                 ("Change parent", 'Shift-P', None, no_junk_args(self.change_parent)),
                 ("New child", 'H, Ctrl+H, Alt+Right', None, no_junk_args(self.create_child)),
                 ("New sibling", 'Alt+Down', None, no_junk_args(self.create_sibling)),
@@ -399,13 +399,13 @@ class Controller:
         self.state.update_text(node, text)
 
 
-    @metadata(name="<", keys=["<Command-minus>", "<Option-minus>"])
+    @metadata(name="<", keys=["<Command-minus>", "<Alt-minus>"])
     def prev_selection(self):
         if self.nav_history:
             self.undo_history.append(self.state.selected_node_id)
             self.state.select_node(self.nav_history.pop())
 
-    @metadata(name=">", keys=["<Command-equal>", "<Option-equal>"])
+    @metadata(name=">", keys=["<Command-equal>", "<Alt-equal>"])
     def next_selection(self):
         if self.undo_history:
             self.nav_history.append(self.state.selected_node_id)
@@ -460,7 +460,7 @@ class Controller:
     def create_root_child(self):
         self.create_child(node=self.state.root())
 
-    @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Command-Right>", "<Option-Right>"], display_key="h",)
+    @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Command-Right>", "<Alt-Right>"], display_key="h",)
     def create_child(self, node=None, update_selection=True, toggle_edit=True):
         node = node if node else self.state.selected_node
         new_child = self.state.create_child(parent=node)
@@ -472,7 +472,7 @@ class Controller:
                 self.toggle_edit_mode()
         return new_child
 
-    @metadata(name="New Sibling", keys=["<Command-Down>", "<Option-Down>"], display_key="Command-down")
+    @metadata(name="New Sibling", keys=["<Command-Down>", "<Alt-Down>"], display_key="Command-down")
     def create_sibling(self, node=None):
         node = node if node else self.state.selected_node
         new_sibling = self.state.create_sibling(node=node)
@@ -483,7 +483,7 @@ class Controller:
             self.toggle_edit_mode()
         return new_sibling
 
-    @metadata(name="New Parent", keys=["<Command-Left>", "<Option-Left>"], display_key="Command-left")
+    @metadata(name="New Parent", keys=["<Command-Left>", "<Alt-Left>"], display_key="Command-left")
     def create_parent(self, node=None):
         node = node if node else self.state.selected_node
         new_parent = self.state.create_parent(node=node)
@@ -957,6 +957,21 @@ class Controller:
                 self.state.update_text(node, text)
 
 
+    @metadata(name="Add multimedia")
+    def add_multimedia(self, filenames, node=None):
+        node = node if node else self.state.selected_node
+        if 'multimedia' not in self.state.selected_node:
+            self.state.selected_node['multimedia'] = []
+        added_file = False
+        for filename in filenames:
+            # check if filename is already in multimedia
+            old_filenames = [x['file'] for x in self.state.selected_node['multimedia']]
+            if filename not in old_filenames:
+                self.state.selected_node['multimedia'].append({'file': filename, 'caption': ''})
+                added_file = True
+        if added_file:
+            self.state.tree_updated()
+
     #################################
     #   Collapsing
     #################################
@@ -1088,11 +1103,11 @@ class Controller:
     def new_from_node(self):
         self.state.open_node_as_root()
 
-    @metadata(name="Hoist", keys=["<Command-h>", "<Option-h>"], display_key="")
+    @metadata(name="Hoist", keys=["<Command-h>", "<Alt-h>"], display_key="")
     def hoist(self):
         self.state.hoist()
 
-    @metadata(name="Unhoist", keys=["<Command-Shift-KeyPress-H>", "<Option-Shift-KeyPress-H>"], display_key="")
+    @metadata(name="Unhoist", keys=["<Command-Shift-KeyPress-H>", "<Control-Shift-KeyPress-H>"], display_key="")
     def unhoist(self):
         self.state.unhoist()
 
@@ -1114,7 +1129,7 @@ class Controller:
         except Exception as e:
             messagebox.showerror(title="Error", message=f"Failed to Save!\n{str(e)}")
 
-    @metadata(name="Save as sibling", keys=["<Command-e>", "<Option-e>"], display_key="Command-e")
+    @metadata(name="Save as sibling", keys=["<Command-e>", "<Alt-e>"], display_key="Command-e")
     def save_as_sibling(self):
         # TODO fails on root node
         if self.display.mode == "Edit":
@@ -1126,7 +1141,7 @@ class Controller:
             self.state.update_text(sibling, new_text, new_active_text)
 
     # Exports subtree as a loom json
-    @metadata(name="Export subtree", keys=["<Control-Command-KeyPress-X>", "<Control-Option-KeyPress-X>"], display_key="Ctrl-Command-X")
+    @metadata(name="Export subtree", keys=["<Control-Command-KeyPress-X>", "<Control-Alt-KeyPress-X>"], display_key="Ctrl-Command-X")
     def export_subtree(self, node=None):
         node = node if node else self.state.selected_node
         filename = self.state.tree_filename if self.state.tree_filename \
@@ -1269,8 +1284,7 @@ class Controller:
     def multimedia_dialog(self, node=None):
         if node is None:
             node = self.state.selected_node
-        dialog = MultimediaDialog(parent=self.display.frame, node=node,
-                                  refresh_event=lambda node_id=node['id']: self.state.tree_updated(edit=[node_id]))
+        dialog = MultimediaDialog(parent=self.display.frame, callbacks=self.callbacks, state=self.state)
 
     @metadata(name="Memory dialogue", keys=["<Control-Shift-KeyPress-M>"], display_key="Control-shift-m")
     def ai_memory(self, node=None):
@@ -1279,7 +1293,7 @@ class Controller:
         dialog = AIMemory(parent=self.display.frame, node=node, state=self.state)
         self.refresh_textbox()
 
-    @metadata(name="Node memory", keys=["<Command-m>", "<Option-m>"], display_key="Command-m")
+    @metadata(name="Node memory", keys=["<Command-m>", "<Alt-m>"], display_key="Command-m")
     def node_memory(self, node=None):
         if node is None:
             node = self.state.selected_node
@@ -1425,7 +1439,7 @@ class Controller:
     def toggle_debug_box(self):
         self.toggle_module("bottom_pane", "debug")
 
-    @metadata(name="Children", keys=["<Command-c>", "<Option-c>"], display_key="")
+    @metadata(name="Children", keys=["<Command-c>", "<Alt-c>"], display_key="")
     def toggle_show_children(self, toggle='either'):
         self.toggle_module("bottom_pane", "children")
 
@@ -1935,7 +1949,7 @@ class Controller:
         elif self.display.mode == 'Multiverse':
             self.display.multiverse.reset_view()
 
-    @metadata(name="Clear multiverse", keys=["<Command-0>", "<Option-0>"], display_key="Command-0")
+    @metadata(name="Clear multiverse", keys=["<Command-0>", "<Alt-0>"], display_key="Command-0")
     def reset_multiverse(self):
         if self.display.mode == 'Multiverse':
             self.display.multiverse.clear_multiverse()
@@ -1945,14 +1959,14 @@ class Controller:
     #   Modules
     #################################
 
-    @metadata(name="Side pane", keys=["<Command-p>", "<Option-p>"], display_key="")
+    @metadata(name="Side pane", keys=["<Command-p>", "<Alt-p>"], display_key="")
     def toggle_side(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['side_pane']['open']):
             self.display.open_pane("side_pane")
         else:
             self.display.destroy_pane('side_pane')
 
-    @metadata(name="Toggle bottom pane", keys=["<Command-b>", "<Option-b>"], display_key="")
+    @metadata(name="Toggle bottom pane", keys=["<Command-b>", "<Alt-b>"], display_key="")
     def toggle_bottom(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['bottom_pane']['open']):
             self.display.open_pane("bottom_pane")

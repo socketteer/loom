@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import ttk
+from tkinter import ttk, filedialog
 import uuid
 from view.colors import text_color, bg_color, edit_color, default_color
 from util.custom_tks import TextAware, ScrollableFrame
@@ -8,6 +8,9 @@ from tkinter.scrolledtext import ScrolledText
 from view.styles import textbox_config
 from view.icons import Icons
 import time
+from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
+import os
+from PIL import Image, ImageTk
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
@@ -47,13 +50,14 @@ class Windows():
         self.windows_pane = None
         self.windows = {}
         self.master = None
+        self.scroll_frame = None
         self.buttons = buttons
 
     def body(self, master):
         self.master = master
-        # self.scroll_frame = ScrollableFrame(self.master)
-        # self.scroll_frame.pack(expand=True, fill="both")
-        self.windows_pane = ttk.PanedWindow(master, orient='vertical', height=1)
+        self.scroll_frame = ScrollableFrame(self.master)
+        self.scroll_frame.pack(expand=True, fill="both")
+        self.windows_pane = tk.PanedWindow(self.scroll_frame.scrollable_frame, orient='vertical')
         self.windows_pane.pack(side='top', fill='both', expand=True)
 
     def open_window(self, text):
@@ -62,7 +66,7 @@ class Windows():
         tk.Grid.columnconfigure(self.windows[window_id]['frame'], 1, weight=1)
         for i in range(len(self.buttons)):
             tk.Grid.rowconfigure(self.windows[window_id]['frame'], i, weight=1)
-        self.windows_pane.add(self.windows[window_id]['frame'], weight=1)
+        self.windows_pane.add(self.windows[window_id]['frame'], height=100)
         self.windows[window_id]['textbox'] = TextAware(self.windows[window_id]['frame'], bd=3, undo=True)
         self.windows[window_id]['textbox'].grid(row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
         self.windows[window_id]['textbox'].configure(**textbox_config(bg=edit_color(), pady=1, spacing2=3, spacing1=4))
@@ -86,17 +90,17 @@ class Windows():
         del self.windows[window_id]
     
     def clear_windows(self):
+        # self.windows_pane.pack_forget()
+        # self.windows_pane.destroy()
+        # self.windows_pane = tk.PanedWindow(self.scroll_frame.scrollable_frame, orient='vertical')
+        # self.windows_pane.pack(side='top', fill='both', expand=True)
+        # self.windows = {}
         for window in self.windows:
             self.remove_window(window)
 
 class NodeWindows(Windows):
     def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, init_height=1):
         self.callbacks = callbacks
-        self.scroll_frame = None
-        #self.windows_pane = None
-        #self.windows = {}
-        #self.master = None
-        #self.buttons = buttons
         self.blacklist = []
         self.whitelist = []
         self.buttons_visible = buttons_visible
@@ -113,7 +117,9 @@ class NodeWindows(Windows):
         tk.Grid.columnconfigure(self.windows[node['id']]['frame'], 1, weight=1)
         for i in range(len(self.buttons)):
             tk.Grid.rowconfigure(self.windows[node['id']]['frame'], i, weight=1)
-        self.windows_pane.add(self.windows[node['id']]['frame'], weight=1)
+        # TODO adaptive init height
+        self.windows_pane.add(self.windows[node['id']]['frame'], height=100)
+        #self.windows_pane.paneconfig(self.windows[node['id']]['frame'])
         # if insert == 'end':
         #     self.windows_pane.add(self.windows[node['id']]['frame'], weight=1)
         # else:
@@ -136,6 +142,11 @@ class NodeWindows(Windows):
                 self.draw_button(i, node['id'], button)
         if self.nav_icons_visible:
             self.draw_nav_icon(node['id'])
+
+    def fix_heights(self):
+        for i in range(len(self.windows) - 1):
+            self.windows_pane.update_idletasks()
+            self.windows_pane.sashpos(i, 100 * (i+1))
 
     def draw_nav_icon(self, window_id):
         icon = self.callbacks["Nav icon"]["callback"](node=self.windows[window_id]['node'])
@@ -225,6 +236,7 @@ class NodeWindows(Windows):
         new_nodes = [node for node in nodes if node['id'] in new_windows and node['id'] not in self.blacklist]
         for node in new_nodes:
             self.open_window(node, insert=insert)
+        #self.fix_heights()
 
     def update_text(self):
         for window_id in self.windows:
@@ -238,5 +250,264 @@ class NodeWindows(Windows):
                 self.windows[window_id]['textbox'].configure(state='disabled')
 
 
+class Thumbnails:
+    def __init__(self, selection_callback):
+        self.selection_callback = selection_callback
+        self.thumbnails = {}
+        self.scroll_frame = None
+        self.master = None
+        self.selected_file = None
 
+    def body(self, master, height=400):
+        self.master = master
+        self.scroll_frame = ScrollableFrame(master, width=110, height=height)
+        self.scroll_frame.pack(side='top', fill='both', expand=True)
+
+    def get_thumbnail(self, filename):
+        # open image
+        img = Image.open(filename)
+        # resize
+        img.thumbnail((100, 100), Image.ANTIALIAS)
+        # convert to tkinter image
+        img = ImageTk.PhotoImage(img)
+        return img
+
+    def add_thumbnail(self, filename):
+        if filename not in self.thumbnails:
+            image = self.get_thumbnail(filename)
+            self.thumbnails[filename] = tk.Label(self.scroll_frame.scrollable_frame, image=image,
+                                                 bg="white", cursor='hand2', width=100, bd=5)
+            self.thumbnails[filename].image = image
+            self.thumbnails[filename].bind("<Button-1>", lambda event, filename=filename: self.select(filename=filename))
+            self.thumbnails[filename].pack(side='top', pady=5, padx=5)
+    
+    def remove_thumbnail(self, filename):
+        if filename in self.thumbnails:
+            self.thumbnails[filename].destroy()
+            del self.thumbnails[filename]
+
+    def clear(self):
+        for filename in self.thumbnails:
+            self.thumbnails[filename].destroy()
+        self.thumbnails = {}
+
+    def update_thumbnails(self, image_files):
+        new_windows, deleted_windows = react_changes(old_components=self.thumbnails.keys(), new_components=image_files)
+        for filename in deleted_windows:
+            self.remove_thumbnail(filename)
+        for filename in new_windows:
+            self.add_thumbnail(filename)
+        self.selected_file = list(self.thumbnails.keys())[-1]
+
+    def select(self, filename, *args):
+        self.set_selection(filename)
+        self.selection_callback(filename=filename)
+
+    def set_selection(self, filename):
+        self.thumbnails[self.selected_file].configure(relief="flat")
+        self.selected_file = filename
+        self.thumbnails[filename].configure(relief="sunken")
+
+    def scroll_to_selected(self):
+        pass
+
+    def scroll_to_end(self):
+        pass
+
+
+class Multimedia:
+    def __init__(self, callbacks, state):
+        self.img = None
+        self.state = state
+        self.caption = None
+        self.viewing = None
+        self.master = None
+        self.selected_node_text = None
+        self.next_button = None
+        self.prev_button = None
+        self.move_up_button = None
+        self.move_down_button = None
+        self.delete_button = None
+        self.caption_button = None
+        self.n = 0
+        self.thumbnails = None
+        self.thumbnails_frame = None
+        self.callbacks = callbacks
+        self.state = state
+    
+    def body(self, master):
+        self.master = master
+        #button = create_button(master, "Add media", self.add_media)
+        #button.grid(row=1, column=1, sticky='w')
+        #tk.Grid.rowconfigure(master, 0, weight=1)
+        tk.Grid.rowconfigure(master, 2, weight=1)
+        tk.Grid.columnconfigure(master, 1, weight=1)
+        self.thumbnails_frame = tk.Frame(self.master)
+        self.thumbnails_frame.grid(row=0, column=3)
+        self.thumbnails = Thumbnails(selection_callback=self.select_file)
+        self.thumbnails.body(self.thumbnails_frame)
+        self.populate_thumbnails()
+        self.create_image()
+        self.create_buttons()
+        self.refresh()
+
+    def refresh(self):
+        self.populate_thumbnails()
+        self.display_image()
+        self.set_buttons()
+        self.set_node_text()
+
+    def populate_thumbnails(self):
+        self.thumbnails.clear()
+        if 'multimedia' in self.state.selected_node:
+            self.thumbnails.update_thumbnails([media['file'] for media in self.state.selected_node['multimedia']])
+
+    def num_media(self):
+        if 'multimedia' in self.state.selected_node:
+            return len(self.state.selected_node['multimedia'])
+        else:
+            return 0
+
+    def create_image(self):
+        img = tk.PhotoImage(file='static/media/black.png')
+        self.img = tk.Label(self.master, image=img, bg="white")
+        self.img.grid(row=0, column=1)
+        self.caption = tk.Label(self.master, text='', bg=default_color())
+        self.caption.grid(row=1, column=0, columnspan=3)
+        self.selected_node_text = TextAware(self.master)
+        self.selected_node_text.config(state='disabled', **textbox_config())
+        self.selected_node_text.grid(row=2, column=0, columnspan=4)
+        #self.viewing = tk.Label(self.master, text=f"{self.n + 1} / {self.num_media()}", bg=default_color())
+        #self.viewing.grid(row=3, column=1)
+
+    def create_buttons(self):
+        self.prev_button = tk.Label(self.master, image=icons.get_icon("left-white", size=25), bg=bg_color(), cursor="hand2")
+        self.prev_button.grid(row=0, column=0)
+        self.prev_button.bind("<Button-1>", lambda event: self.traverse(1))
+        self.next_button = tk.Label(self.master, image=icons.get_icon("right-white", size=25), bg=bg_color(), cursor="hand2")
+        self.next_button.grid(row=0, column=2)
+        self.next_button.bind("<Button-1>", lambda event: self.traverse(-1))
+        # self.next_button = create_button(self.master, "Next", lambda: self.traverse(1))
+        # self.next_button.grid(row=4, column=1, sticky='e')
+        # self.prev_button = create_button(self.master, "Prev", lambda: self.traverse(-1))
+        # self.prev_button.grid(row=4, column=1, sticky='w')
+        # self.move_up_button = create_button(self.master, "Move >", lambda: self.shift(1))
+        # self.move_up_button.grid(row=5, column=1, sticky='e')
+        # self.move_down_button = create_button(self.master, "< Move", lambda: self.shift(-1))
+        # self.move_down_button.grid(row=5, column=1, sticky='w')
+        # self.caption_button = create_button(self.master, "Change caption", self.change_caption)
+        # self.caption_button.grid(row=5, column=1)
+        # self.caption_button.config(width=15)
+        # self.delete_button = create_button(self.master, "Delete", self.delete_media)
+        # self.delete_button.grid(row=1, column=1, sticky='e')
+
+    def set_buttons(self):
+        if not self.next_button:
+            self.create_buttons()
+        if self.num_media() > 0:
+            self.next_button.grid()
+            self.prev_button.grid()
+            # self.next_button["state"] = "normal"
+            # self.prev_button["state"] = "normal"
+            # self.move_up_button["state"] = "normal"
+            # self.move_down_button["state"] = "normal"
+            # self.delete_button["state"] = "normal"
+            # self.caption_button["state"] = "normal"
+        else:
+            self.next_button.grid_remove()
+            self.prev_button.grid_remove()
+            # self.next_button["state"] = "disabled"
+            # self.prev_button["state"] = "disabled"
+            # self.move_up_button["state"] = "disabled"
+            # self.move_down_button["state"] = "disabled"
+            # self.delete_button["state"] = "disabled"
+            # self.caption_button["state"] = "disabled"
+
+    def set_node_text(self):
+        self.selected_node_text.config(state='normal')
+        self.selected_node_text.delete("1.0", "end")
+        self.selected_node_text.insert("1.0", self.callbacks["Text"]["callback"](node_id=self.state.selected_node_id))
+        self.selected_node_text.config(state='disabled')
+
+    def change_caption(self):
+        if self.num_media() > 0:
+            self.state.selected_node['multimedia'][self.n]['caption'] = 'new caption'
+            self.display_image()
+
+    # def repair_type(self):
+    #     if self.num_media() > 0:
+    #         new_multimedia = []
+    #         for media in self.state.selected_node['multimedia']:
+    #             if isinstance(media, str):
+    #                 new_multimedia.append({'file': media, 'caption': ''})
+    #             elif isinstance(media, dict):
+    #                 new_multimedia.append(media)
+    #             else:
+    #                 print('error invalid type')
+    #         self.state.selected_node['multimedia'] = new_multimedia
+
+    def display_image(self):
+        if not self.img:
+            self.create_image()
+        if self.num_media() > 0:
+            try:
+                #self.repair_type()
+                img = tk.PhotoImage(file=self.state.selected_node['multimedia'][self.n]['file'])
+                caption = self.state.selected_node['multimedia'][self.n]['caption']
+            except tk.TclError:
+                return
+            self.img.configure(image=img)
+            self.img.image = img
+            self.caption.configure(text=caption)
+            #self.viewing.configure(text=f"{self.n + 1} / {self.num_media()}")
+        else:
+            try:
+                self.img.image.blank()
+                self.img.image = None
+                self.caption.configure(text='')
+            except AttributeError:
+                return
+
+    def add_media(self):
+        tree_dir = self.state.tree_dir()
+        # if media folder not in tree directory, create it
+        if not os.path.isdir(tree_dir + '/media'):
+            os.mkdir(tree_dir + '/media')
+        options = {
+            'initialdir': tree_dir + '/media',
+        }
+        filenames = filedialog.askopenfilenames(**options)
+        if not filenames:
+            return
+        self.callbacks["Add multimedia"]["callback"](filenames=filenames)
+        self.n = self.num_media() - 1
+        self.display_image()
+        self.set_buttons()
+
+    def delete_media(self):
+        del self.state.selected_node['multimedia'][self.n]
+        if self.n != 0:
+            self.n -= 1
+        self.populate_thumbnails()
+        self.display_image()
+        self.set_buttons()
+
+    def traverse(self, interval):
+        self.n = (self.n + interval) % self.num_media()
+        self.display_image()
+        self.set_buttons()
+
+    def shift(self, interval):
+        new_index = (self.n + interval) % self.num_media()
+        self.state.selected_node['multimedia'][self.n], self.state.selected_node['multimedia'][new_index] = self.state.selected_node['multimedia'][new_index],\
+                                                                              self.state.selected_node['multimedia'][self.n]
+        self.n = new_index
+        self.display_image()
+        self.set_buttons()
+
+    def select_file(self, filename, *args):
+        filename_list = [media['file'] for media in self.state.selected_node['multimedia']]
+        self.n = filename_list.index(filename)
+        self.display_image()
+        self.set_buttons()
         

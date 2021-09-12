@@ -197,7 +197,6 @@
     - masks
     - source of truth for nav, visible
     
-    
 - right click dropdowns
     - nav tree
         - edit
@@ -253,7 +252,23 @@
 
 - abstract right click menus for textboxes
 
+- ghostchildren and portals
+    - ghostchildren have hysteresis: navigating to ghostchild keeps current ancestry
+        - how to prevent cycles / duplicates?
+            - not a problem if nav render distance is limited?
+    - portals just teleport you to another part of the tree
 
+- read mode preview text
+
+- text attributes
+    - nav preview text
+    - read preview text
+    - alt text
+- node attribute editor
+
+- walk - option to loop to start if no children
+
+- "hidden children" should include blacklisted windows
 
 ## Other TODO
 

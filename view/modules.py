@@ -1,6 +1,6 @@
 from view.panes import Module
 import tkinter as tk
-from tkinter import ttk
+from tkinter import Canvas, ttk
 from view.colors import text_color, bg_color, edit_color, vis_bg_color
 from util.custom_tks import TextAware
 from util.util_tree import tree_subset, limited_branching_tree
@@ -12,9 +12,422 @@ from pprint import pformat, pprint
 from gpt import completions_text
 import uuid
 import threading
+from tkinter.colorchooser import askcolor
+from PIL import Image, ImageTk
+import os
+
 
 icons = Icons()
 
+
+
+class Paint(Module):
+
+    DEFAULT_PEN_SIZE = 5.0
+    DEFAULT_COLOR = 'black'
+
+
+    def __init__(self, parent, callbacks, state):
+        self.root = None
+        self.undo_button = None
+        self.redo_button = None
+        self.pen_button = None
+        self.brush_button = None
+        self.eraser_button = None
+        self.size_slider = None
+        self.current_color = None
+        self.past_opacity_slider = None
+        self.add_layer_button = None
+        self.clear_button = None
+        self.add_media_button = None
+        self.save_button = None
+        self.save_as_button = None
+        self.open_button = None
+        self.selected_tool = None
+        self.past_veil_opacity = None
+        self.future_veil_opacity = None
+        self.past_recursive_veil_opacity = tk.DoubleVar()
+        self.future_recursive_veil_opacity = None
+        self.layer_index = None
+        self.c = None
+        self.current_line = []
+        self.lines = []
+        self.undo_lines = []
+        self.layers = []
+        self.thumbnails = None
+        self.layers_frame = None
+        working_dir = str(os.getcwd())
+        self.blank_file = os.path.join(working_dir, "static/media/blank.png")
+        Module.__init__(self, 'paint', parent, callbacks, state)
+
+    def build(self):
+        Module.build(self)
+        self.root = tk.Frame(self.frame, bg=bg_color())
+        self.root.pack(side="left", fill="both", expand=True)
+
+        tk.Grid.rowconfigure(self.root, 1, weight=1)
+        # for i in range(6):
+        #     tk.Grid.columnconfigure(self.root, i, weight=1)
+
+        self.undo_button = tk.Label(self.root, image=icons.get_icon("undo-white", size=20), bg=bg_color(), cursor="hand2")
+        self.undo_button.grid(row=0, column=0)
+        self.undo_button.bind("<Button-1>", self.undo)
+
+        #self.redo_button = tk.Label(self.root, image=icons.get_icon("right-white", size=20), bg=bg_color(), cursor="hand2")
+        #self.redo_button.grid(row=0, column=1)
+        #self.redo_button.bind("<Button-1>", self.redo)
+
+
+        self.brush_button = tk.Label(self.root, image=icons.get_icon("brush-white", size=20), bg=bg_color(), cursor="hand2")
+        self.brush_button.grid(row=0, column=1)
+        self.brush_button.bind('<Button-1>', self.use_brush)
+
+        self.eraser_button = tk.Label(self.root, image=icons.get_icon("eraser-white", size=20), bg=bg_color(), cursor="hand2")
+        self.eraser_button.grid(row=0, column=2)
+        self.eraser_button.bind('<Button-1>', self.use_eraser)
+
+        self.current_color = tk.Label(self.root, image=icons.get_icon("eyedropper-white"), fg=text_color(), cursor='hand2', bd=3)
+        self.current_color.grid(row=0, column=3)
+        self.current_color.bind('<Button-1>', self.choose_color)
+
+
+        self.size_slider = tk.Scale(self.root, from_=1, to=10, orient="horizontal")
+        self.size_slider.grid(row=0, column=4)
+        self.size_slider.set(3)
+
+        self.past_opacity_slider = tk.Scale(self.root, from_=0, to=1, orient="horizontal", resolution=0.1,
+                                            variable=self.past_recursive_veil_opacity)
+        self.past_opacity_slider.grid(row=0, column=7)
+        self.past_opacity_slider.set(0.2)
+        self.past_recursive_veil_opacity.trace('w', self.update_past_veil_opacity)
+
+        self.c = tk.Canvas(self.root, bg='white', width=600, height=600)
+        self.c.grid(row=1, columnspan=6)
+        self.clear_button = ttk.Button(self.root, text='clear', command=self.clear_canvas)
+        self.clear_button.grid(row=2, column=0)
+
+        self.add_media_button = ttk.Button(self.root, text='add node media', command=self.add_node_media)
+        self.add_media_button.grid(row=2, column=1)
+
+        self.save_button = ttk.Button(self.root, text='save', command=self.save_as_png)
+        self.save_button.grid(row=2, column=2)
+
+        self.save_as_button = ttk.Button(self.root, text='save as', command=self.save_as)
+        self.save_as_button.grid(row=2, column=3)
+
+        self.open_button = ttk.Button(self.root, text='open', command=self.open)
+        self.open_button.grid(row=2, column=4)
+
+        self.layers_frame = tk.Frame(self.root, bg=bg_color())
+        self.layers_frame.grid(row=0, column=7, rowspan=3)
+        self.thumbnails = Thumbnails(selection_callback=self.select_layer)
+        self.thumbnails.body(self.layers_frame, height=450)
+
+        self.add_layer_button = tk.Label(self.layers_frame, image=icons.get_icon("plus-lightgray", size=20), bg=bg_color(), cursor="hand2")
+        self.add_layer_button.pack()
+        self.add_layer_button.bind('<Button-1>', self.add_layer)
+
+
+        self.setup()
+        #self.root.mainloop()
+
+    def populate_thumbnails(self):
+        self.thumbnails.clear()
+        self.thumbnails.update_thumbnails([layer['filename'] for layer in self.layers])
+        # if 'multimedia' in self.state.selected_node:
+        #     self.thumbnails.update_thumbnails([media['file'] for media in self.state.selected_node['multimedia']])
+
+    def setup(self):
+        self.clear_canvas()
+        self.past_veil_opacity = 1
+        self.future_veil_opacity = 1
+        #self.past_recursive_veil_opacity = 0
+        self.future_recursive_veil_opacity = 0
+        #self.layer_index = 0
+        self.current_line = []
+        self.lines = []
+        self.undo_lines = []
+        self.layers = []
+        self.old_x = None
+        self.old_y = None
+        self.line_width = self.size_slider.get()
+        self.color = self.DEFAULT_COLOR
+        #self.eraser_on = False
+        #self.active_button = self.pen_button
+        self.selected_tool = 'brush'
+        self.refresh_color()
+        self.refresh_buttons()
+        self.open_multimedia()
+        self.add_layer()
+        self.populate_thumbnails()
+        self.change_layer(len(self.layers) - 1)
+        self.c.bind('<B1-Motion>', self.paint)
+        self.c.bind('<ButtonRelease-1>', self.reset)
+
+    def make_transparent(self, img, opacity=0):
+        opacity = int(round(opacity * 255))
+        datas = img.getdata()
+        newData = []
+        for item in datas:
+            if item[0] == 255 and item[1] == 255 and item[2] == 255:
+                newData.append((255, 255, 255, opacity))
+            else:
+                newData.append(item)
+        img.putdata(newData)
+
+    # TODO max visible layers
+    def update_past_veil_opacity(self, *args):
+        past_veil_opacity = self.past_recursive_veil_opacity.get()
+        for layer in self.layers:
+            self.update_layer_transparency(layer, past_veil_opacity)
+            #threading.Thread(target=self.update_layer_transparency, args=(layer, past_veil_opacity)).start()
+
+    def update_layer_transparency(self, layer, opacity):
+        img = Image.open(layer['filename'])
+        self.make_transparent(img, opacity)
+        self.update_layer_image(layer, img)
+
+    def open_multimedia(self):
+        if 'multimedia' in self.state.selected_node:
+            self.open_layers([media['file'] for media in self.state.selected_node['multimedia']])
+
+    def open(self, transparent=True, *args):
+        directory = self.state.tree_dir()
+        media_dir = os.path.join(directory, "media")
+        filename = filedialog.askopenfilename(initialdir=media_dir, title="Select file",
+                                              filetypes=(("png files", "*.png"), ("all files", "*.*")))
+        if filename:
+            #print(filename)
+            self.open_layer(filename, transparent)
+            #self.refresh_buttons()
+
+    def add_layer(self):
+        # add new blank layer
+
+        self.open_layer(self.blank_file)
+        #self.layers.append({'filename': filename, 'img': None, 'canvas_img': None})
+        #self.layer_index = len(self.layers) - 1
+
+    def open_layer(self, filename, transparent=True):
+        img = Image.open(filename)
+        if transparent:
+            self.make_transparent(img, opacity=self.past_recursive_veil_opacity.get())
+        img = ImageTk.PhotoImage(img)
+        new_layer = {'img': img, 'filename': filename}
+        # draw layer
+        canvas_img = self.c.create_image(0, 0, image=img, anchor=tk.NW)
+        new_layer['canvas_img'] = canvas_img
+        # add layer to list
+        self.layers.append(new_layer)
+
+        #self.change_layer(len(self.layers) - 1)
+        #self.layer_index = len(self.layers) - 1
+        # move lines in front of layer
+        # for line in self.lines:
+        #     self.c.lift(line)
+
+    def open_layers(self, filenames):
+        for filename in filenames:
+            self.open_layer(filename)
+
+    def update_layer_image(self, layer, img):
+        img = ImageTk.PhotoImage(img)
+        layer['img'] = img
+        self.c.itemconfig(layer['canvas_img'], image=img)
+
+    def refresh_layer_image(self, layer, transparent=True):
+        filename = layer['filename']
+        img = Image.open(filename)
+        if transparent:
+            self.make_transparent(img, opacity=self.past_recursive_veil_opacity.get())
+        self.update_layer_image(layer, img)
+
+    def change_layer(self, idx):
+        # TODO keep future layers
+        self.merge_png()
+        # show all layers beneath or at idx
+        for i in range(0, idx + 1):
+            self.c.itemconfigure(self.layers[i]['canvas_img'], state='normal')
+        # hide all layers above idx
+        for i in range(idx + 1, len(self.layers)):
+            self.c.itemconfigure(self.layers[i]['canvas_img'], state='hidden')
+        self.layer_index = idx
+        self.thumbnails.set_selection(self.layers[idx]['filename'])
+
+    def select_layer(self, filename, *args):
+        filename_list = [media['file'] for media in self.state.selected_node['multimedia']]
+        if filename in filename_list:
+            idx = filename_list.index(filename)
+        elif filename == self.blank_file:
+            idx = len(self.layers) - 1
+        self.change_layer(idx)
+
+    def hide_layer(self, layer=None):
+        if layer is None:
+            layer = self.layers[self.layer_index]
+        self.c.itemconfigure(layer['canvas_img'], state='hidden')
+
+    def show_layer(self, layer=None):
+        if layer is None:
+            layer = self.layers[self.layer_index]
+        self.c.itemconfigure(layer['canvas_img'], state='normal')
+
+    def merge_png(self, layer=None):
+        # merges lines with image of current layer and deletes lines from canvas
+        if layer is None:
+            layer = self.layers[self.layer_index]
+        if layer['filename']:
+            layer_filename = layer['filename']
+            if layer_filename == self.blank_file:
+                filename = None
+            else:
+                filename = layer_filename
+            filename = self.save_as_png(filename)
+            self.clear_canvas()
+            layer['filename'] = filename
+            self.refresh_layer_image(layer)
+
+    def pop_layer(self):
+        # merges lines with image of current layer, saves, and deletes layer
+        pass
+
+    def delete_layer(self, layer=None):
+        # deletes layer without saving
+        if layer is None:
+            layer = self.layers[self.layer_index]
+        self.c.delete(layer['canvas_img'])
+        self.layers.pop(self.layer_index)
+
+    def clear_layers(self):
+        # deletes all layers
+        for layer in self.layers:
+            self.c.delete(layer['canvas_img'])
+        self.layers = []
+
+    def save_as_png(self, transparent=True, filename=None, *args):
+        self.c.update()
+        directory = self.state.tree_dir()
+        media_dir = os.path.join(directory, "media")
+        # if "media" folder doesn't exist in directory, create it
+        if not os.path.exists(media_dir):
+            os.makedirs(media_dir)
+        # TODO only save lines and current layer file
+        self.c.postscript(file='tmp.ps', colormode='color')
+        img = Image.open('tmp.ps')
+        img = img.convert('RGBA')
+        if transparent:
+            self.make_transparent(img)
+        if not filename:
+            filename = str(uuid.uuid1()) + '.png'
+        filename = os.path.join(media_dir, filename)
+        img.save(filename, 'png')
+        os.remove('tmp.ps')
+        return filename            
+
+    def save_as(self):
+        # open dialog asking for filename
+        directory = self.state.tree_dir()
+        media_dir = os.path.join(directory, "media")
+        filename = filedialog.asksaveasfilename(initialdir=media_dir, title="Select file",
+                                                filetypes=(("png files", "*.png"), ("all files", "*.*")))
+        if filename:
+            self.save_as_png(filename=filename)
+
+    def add_node_media(self, layer=None, *args):
+        # add layer to node media list
+        layer = layer if layer else self.layer_index
+        # if current layer has a background image, merge with canvas
+        if self.layers[self.layer_index]['filename']:
+            filename = self.merge_png()
+        else:
+            filename = self.save_as_png(transparent=True)
+        self.callbacks["Add multimedia"]['callback'](filenames=[filename])
+        
+    def refresh_cursor(self):
+        # change cursor icon to correspond to selected tool
+        if self.selected_tool == 'pen':
+            self.c.config(cursor="pencil")
+        elif self.selected_tool == 'brush':
+            self.c.config(cursor="pencil")
+        elif self.selected_tool == 'eraser':
+            self.c.config(cursor="dot")
+
+    def refresh_color(self):
+        self.current_color.config(bg=self.color)
+
+    def use_pen(self, event):
+        self.selected_tool = 'pen'
+        self.refresh_buttons()
+
+    def use_brush(self, event):
+        #self.activate_button(self.brush_button)
+        self.selected_tool = 'brush'
+        self.refresh_buttons()
+
+    def choose_color(self, event):
+        self.eraser_on = False
+        self.color = askcolor(color=self.color)[1]
+        self.refresh_color()
+
+    def use_eraser(self, event):
+        self.selected_tool = 'eraser'
+        self.refresh_buttons()
+
+    def refresh_buttons(self):
+        if self.selected_tool == 'pen':
+            #self.pen_button.config(relief='sunken')
+            self.brush_button.config(relief='raised')
+            self.eraser_button.config(relief='raised')
+        elif self.selected_tool == 'brush':
+            #self.pen_button.config(relief='raised')
+            self.brush_button.config(relief='sunken')
+            self.eraser_button.config(relief='raised')
+        else:
+            #self.pen_button.config(relief='raised')
+            self.brush_button.config(relief='raised')
+            self.eraser_button.config(relief='sunken')
+        self.refresh_cursor()
+
+    def paint(self, event):
+        self.line_width = self.size_slider.get()
+        paint_color = 'white' if self.selected_tool == 'eraser' else self.color
+        if self.old_x and self.old_y:
+            self.current_line.append(self.c.create_line(self.old_x, self.old_y, event.x, event.y,
+                               width=self.line_width, fill=paint_color,
+                               capstyle="round", smooth=True, splinesteps=36))
+        self.old_x = event.x
+        self.old_y = event.y
+
+    def undo(self, event):
+        if len(self.lines) > 0:
+            line_arr = self.lines.pop()
+            for line in line_arr:
+                # save line options
+                self.c.delete(line)
+            self.undo_lines.append(line_arr)
+    
+    def redo(self, event):
+        if len(self.undo_lines) > 0:
+            line_arr = self.undo_lines.pop()
+            for line in line_arr:
+                self.c.create_line(line)
+            self.lines.append(line_arr)
+
+    def reset(self, event):
+        self.lines.append(self.current_line)
+        self.current_line = []
+        self.old_x, self.old_y = None, None
+
+    def clear_canvas(self, *args):
+        self.c.delete("all")
+
+    def tree_updated(self):
+        self.open_multimedia()
+        self.add_layer()
+        self.populate_thumbnails()
+
+    def selection_updated(self):
+        self.setup()
 
 
 class Notes(Module):
@@ -91,6 +504,8 @@ class Children(Module):
         self.toggle_hidden_button["compound"] = tk.LEFT
 
     def tree_updated(self):
+        if not self.children.windows_pane:
+            self.build()
         children = self.callbacks["Get children"]["callback"]()
         self.children.update_windows(children)
         self.children.update_text()
@@ -580,3 +995,20 @@ class Input(Module):
         self.callbacks["Submit"]["callback"](text=self.input_box.get("1.0", "end-1c"))
         self.input_box.delete("1.0", "end")
 
+
+class Media(Module):
+    def __init__(self, parent, callbacks, state):
+        Module.__init__(self, "media", parent, callbacks, state)
+        self.multimedia = Multimedia(callbacks, state)
+
+    def build(self):
+        Module.build(self)
+        self.multimedia.body(self.frame)
+
+    def tree_updated(self):
+        if self.multimedia.master:# and self.multimedia.viewing:
+            self.multimedia.refresh()
+
+    def selection_updated(self):
+        if self.multimedia.master:# and self.multimedia.viewing:
+            self.multimedia.refresh()

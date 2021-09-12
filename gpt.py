@@ -9,15 +9,6 @@ from util.util import retry, timestamp
 import requests
 
 
-# token data dictionary type
-'''
-{
-    'generatedToken': {'logprob': float,
-                       'token': string}
-    'position': {'end': int, 'start': int}
-    ? 'counterfactuals': [{'token': float)}]  
-
-'''
 
 # response dictionary type
 '''
@@ -33,6 +24,23 @@ import requests
     "model": string
     "timestamp": timestamp
 }
+'''
+
+# token data dictionary type
+'''
+{
+    'generatedToken': {'logprob': float,
+                       'token': string}
+    'position': {'end': int, 'start': int}
+    ? 'counterfactuals': [{'token': float)}]  
+
+'''
+
+
+# finishReason
+'''
+"finishReason": {"reason": "stop" | "length", 
+                 ? "sequence": string }
 '''
 
 POSSIBLE_MODELS = [

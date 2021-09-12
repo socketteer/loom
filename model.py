@@ -1488,6 +1488,9 @@ class TreeModel:
         self.io_update()
         return True
 
+    def tree_dir(self):
+        return os.path.dirname(self.tree_filename)
+
     def save_simple_tree(self, save_filename, subtree=None):
         subtree = subtree if subtree else self.tree_raw_data
         simple_tree = make_simple_tree(subtree)
