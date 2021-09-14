@@ -806,7 +806,7 @@ class Controller:
             self.display.textbox.configure(state="disabled")
 
             # makes text copyable
-            self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+            #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
 
         # Textbox to edit mode, fill with single node
         elif self.display.mode == "Edit":
@@ -819,28 +819,13 @@ class Controller:
             # self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
             self.display.textbox.focus()
 
-    def select_range(self, start, end):
-        #self.display.textbox.tag_config("sel", background="black", foreground=text_color())
-        self.display.textbox.tag_remove("sel", "1.0", tk.END)
-        self.display.textbox.tag_add("sel", f"1.0 + {start} chars", f"1.0 + {end} chars")
 
     def select_endpoints_range(self, start_endpoint, end_endpoint):
         start_text_index, end_text_index = self.endpoints_to_range(start_endpoint, end_endpoint)
-        self.select_range(start_text_index, end_text_index)
-
-    def get_selected_text(self):
-        # get text with "sel" tag
-        return self.display.textbox.get("sel.first", "sel.last")
-
-    def get_selected_inputs(self):
-        inputs = {}
-        inputs['past_context'] = self.display.textbox.get("1.0", "sel.first")
-        inputs['input'] = self.get_selected_text()
-        inputs['future_context'] = self.display.textbox.get("sel.last", "end")
-        return inputs
+        self.display.textbox.select_range(start_text_index, end_text_index)
 
     def open_selection_in_transformer(self, template=None):
-        inputs = self.get_selected_inputs()
+        inputs = self.display.textbox.selected_inputs()
         self.open_in_transformer(inputs, template)
 
     def replace_selected_text(self, text):
@@ -1996,7 +1981,7 @@ class Controller:
             if self.state.workspace[pane]["open"]:
                 self.display.open_pane(pane)
                 for i in range(len(self.state.workspace[pane]['modules'])):
-                    self.display.set_module(pane, i)
+                    self.display.set_module(pane, i, self.state.workspace[pane]['modules'][i])
             else:
                 self.display.destroy_pane(pane)
 
@@ -2400,6 +2385,7 @@ class Controller:
     def eval_code(self, code_string):
         if code_string:
             result = eval(code_string)
+            print(result)
             self.print_to_debug(result)
             # try:
             #     result = eval(code_string)

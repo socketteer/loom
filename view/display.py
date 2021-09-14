@@ -11,6 +11,7 @@ from util.util import metadata
 from util.util_tree import num_descendents
 from view.panes import Pane, NestedPane
 from components.modules import *
+from components.templates import SmartText
 from view.icons import Icons
 from view.styles import textbox_config
 from tkinter.font import Font
@@ -209,7 +210,7 @@ class Display:
 
         scrollbar = ttk.Scrollbar(textbox_frame, command=lambda *args: self.__getattribute__(textbox_attr).yview(*args))
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        textbox = TextAware(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
+        textbox = SmartText(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
         self.__setattr__(textbox_attr + "_scrollbar", scrollbar)
         self.__setattr__(textbox_attr, textbox)
         # TODO move this out
@@ -236,14 +237,12 @@ class Display:
         textbox.tag_configure("modified", background="blue", foreground=text_color())
         textbox.tag_configure('match', background='blue', foreground=text_color())
         textbox.tag_configure('active_match', background='black', foreground='white')
-        textbox.tag_configure("sel", background="black", foreground="white")
-        textbox.tag_configure("insert", background="black", foreground="white")
         textbox.tag_raise("sel")
         textbox.tag_raise("insert")
 
     def clear_selection_tags(self, textbox):
         #self.display.textbox.tag_remove("sel", "1.0", "end")
-        textbox.tag_remove("insert", "1.0", "end")
+        #textbox.tag_remove("insert", "1.0", "end")
         textbox.tag_remove("node_select", "1.0", "end")
 
     def button_pressed(self, event):
@@ -518,11 +517,17 @@ class Display:
         for i, module_name in enumerate(self.state.workspace[pane_name]['modules']):
             module_window = pane.add_module_window()
             #module_window.build(options=modules.keys(), selection_callback=self.module_selected, destroy_callback=self.module_window_closed)
-            self.set_module(pane_name, i)
+            self.set_module(pane_name, i, module_name)
 
-    def set_module(self, pane_name, window_idx):
+    def set_module(self, pane_name, window_idx, module_name):
         pane = self.panes[pane_name]
-        module_name = self.state.workspace[pane_name]['modules'][window_idx]
+        #module_name = self.state.workspace[pane_name]['modules'][window_idx]
+        if len(pane.module_windows) == window_idx:
+            # if one less window than needed, create a new window
+            module_window = pane.add_module_window()
+        elif len(pane.module_windows) < window_idx:
+            print('error: not enough windows!')
+            return
         pane.module_windows[window_idx].set_selection(module_name)
 
     def open_module(self, window, module):

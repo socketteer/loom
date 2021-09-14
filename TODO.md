@@ -112,16 +112,10 @@
     - other dialogs
     - playground
         - save as tree
-    - edit note attributes
-        - tags
-        - alt text
-        - display text
-        - nav preview text
         
 - module preferences
 
 - windows
-    - make scrollable
     - hide buttons preference
     - no show hidden option preference
     - bind edit hotkey
@@ -145,9 +139,7 @@
 
 - floating notes should survive when their parent is deleted - move to grandparent?
     - ok if parent is archived though
-
-- modules should have separate methods that react to tree_updated and selection_updated
-
+    
 - implement reactive updating for all components and refactor tree_updated callback
     - vis
     - nav tree
@@ -198,20 +190,6 @@
     - source of truth for nav, visible
     
 - right click dropdowns
-    - nav tree
-        - indicate identity of node
-        - callbacks
-        - conditional items
-    - story textbox
-        - go
-        - edit
-        - split
-        - add...
-        - inline generation
-        - if region selected
-            - use as input to program
-            - save summary
-            - save as...
     - minimap
         - edit (in preview textbox)
         - color node / subtree
@@ -291,8 +269,6 @@
 - zip chain (but not zip all) broken
 
 - override even meta hotkeys in modules
-
-- abstract 'generation settings' template
 
 ## Other TODO
 

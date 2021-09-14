@@ -601,7 +601,8 @@ class JanusPlayground(Module):
         self.completion_windows = Windows(buttons=['close', 'append', 'attach'])
         self.inline_completions = None
         self.completion_index = 0
-        self.inserted_range = None
+        self.model_response = None
+        #self.inserted_range = None
         Module.__init__(self, 'janus/playground', parent, callbacks, state)
 
 
@@ -615,17 +616,21 @@ class JanusPlayground(Module):
         self.pane.pack(side='top', fill='both', expand=True)
         self.textbox_frame = ttk.Frame(self.pane)
         self.pane.add(self.textbox_frame, weight=4)
-        self.textbox = TextAware(self.textbox_frame, bd=2, height=3, undo=True)
+
+        self.textbox = SmartText(self.textbox_frame, bd=2, height=3, undo=True)
         self.textbox.pack(side='top', fill='both', expand=True)
         self.textboxes.append(self.textbox)
         self.textbox.configure(**textbox_config(bg=edit_color()))
-        self.textbox.tag_config("sel", background="black", foreground="white")
-        self.textbox.tag_config("generated", font=('Georgia', self.state.preferences['font_size'], 'bold'))
+        #self.textbox.tag_config("generated", font=('Georgia', self.state.preferences['font_size'], 'bold'))
+        
         self.textbox.bind("<Key>", self.key_pressed)
         self.textbox.bind("<Alt-g>", self.inline_generate)
         self.textbox.bind("<Command-g>", self.inline_generate)
         self.textbox.bind("<Alt-period>", self.insert_inline_completion)
         self.textbox.bind("<Command-period>", self.insert_inline_completion)
+        self.textbox.bind("<Button-2>", self.open_counterfactuals)
+        self.textbox.bind("<Button-3>", self.open_counterfactuals)
+
         self.textbox.focus()
         self.button_frame = ttk.Frame(self.textbox_frame)
         self.button_frame.pack(side='bottom', fill='x')
@@ -646,34 +651,57 @@ class JanusPlayground(Module):
         self.pane.add(self.completions_frame, weight=1)
         self.completion_windows.body(self.completions_frame)
 
-    def replace_selected_text(self, text):
-        sel_first = self.textbox.index("sel.first")
-        self.textbox.delete("sel.first", "sel.last")
-        self.textbox.insert(sel_first, text)
+    # def replace_selected_text(self, text):
+    #     sel_first = self.textbox.index("sel.first")
+    #     self.textbox.delete("sel.first", "sel.last")
+    #     self.textbox.insert(sel_first, text)
 
     def inline_generate(self, *args):
         # get text up to cursor
         prompt = self.textbox.get("1.0", "insert")
+        selected_range = self.textbox.selected_range()
+        if selected_range[0] == 'None':
+            selected_range = [len(prompt), len(prompt)]
         settings = self.state.inline_generation_settings
-        threading.Thread(target=self.call_model_inline, args=(prompt, settings)).start()
+        threading.Thread(target=self.call_model_inline, args=(prompt, settings, selected_range)).start()
 
     def generate(self, *args):
         prompt = self.textbox.get("1.0", "end-1c")
         settings = self.state.generation_settings
         threading.Thread(target=self.call_model, args=(prompt, settings)).start()
 
-    def call_model_inline(self, prompt, settings):
+    def call_model_inline(self, prompt, settings, selected_range):
         response, error = gen(prompt, settings)
         response_text_list = completions_text(response)
-        self.inline_completions = [completion for completion in response_text_list if completion] + [""]
-        self.inserted_range = None
+        self.textbox.alternatives = []
+        inline_completions = [completion for completion in response_text_list if completion]
+        completions_dict = {'alts': [{'text': completion} for completion in inline_completions],
+                            'replace_range': selected_range}
+        self.textbox.alternatives.append(completions_dict)
+        self.inline_completions = completions_dict
+        #self.inserted_range = None
+        self.textbox.tag_remove("alternate", "1.0", tk.END)
         self.insert_inline_completion()
 
     def call_model(self, prompt, settings):
         response, error = gen(prompt, settings)
+        self.model_response = response
+        self.process_logprobs()
         response_text_list = completions_text(response)
         for completion in response_text_list:
             self.completion_windows.open_window(completion)
+
+    def process_logprobs(self):
+        # TODO when prompt length is shorter
+        self.textbox.alternatives = []
+        if "tokens" in self.model_response['prompt']:
+            for token_data in self.model_response['prompt']['tokens']:
+                if 'counterfactuals' in token_data and token_data['counterfactuals']:
+                    alt_dict = {'alts': [],
+                                'replace_range': [token_data['position']['start'], token_data['position']['end']],}
+                    for token, prob in token_data['counterfactuals'].items():
+                        alt_dict['alts'].append({'text': token, 'prob': prob})
+                    self.textbox.alternatives.append(alt_dict)
 
     def key_pressed(self, event):
         if event.keysym == "Alt_L":
@@ -685,22 +713,26 @@ class JanusPlayground(Module):
         # untag generated text
         print('accept completion')
         #self.textbox.tag_remove("generated", "1.0", "end")
-        self.inserted_range = None
+        #self.inserted_range = None
 
     def insert_inline_completion(self, *args):
         if self.inline_completions:
-            # delete text with generated tag
-            #self.textbox.tag_delete("generated")
-            if self.inserted_range: 
-                self.textbox.delete(self.inserted_range[0], self.inserted_range[1])
-            completion = self.inline_completions[self.completion_index % len(self.inline_completions)]
-            if self.textbox.tag_ranges("sel"):
-                self.replace_selected_text(completion)
-            else:
-                self.textbox.insert("insert", completion)
-            self.textbox.tag_add("generated", "insert - %d chars" % len(completion), "insert")
-            self.inserted_range = (self.textbox.index("insert - %d chars" % len(completion)), self.textbox.index("insert"))
+            completion = self.inline_completions['alts'][self.completion_index % len(self.inline_completions['alts'])]['text']
+            repl = self.inline_completions['replace_range']
+            print(repl)
+            self.textbox.replace_range(repl[0], repl[1], completion, "alternate")
+            # if self.textbox.tag_ranges("sel"):
+            #     self.inline_completions.append(self.textbox.selected_text())
+            #     self.textbox.replace_selected(completion, "alternate")
+            # elif self.textbox.tag_ranges("alternate"):
+            #     self.textbox.replace_tag(completion, "alternate", "alternate")
+            # else:
+            #     self.textbox.insert("insert", completion, "alternate")
             self.completion_index += 1
+
+    def open_counterfactuals(self, event):
+        self.textbox.open_alt_dropdown(event)
+
 
     def export(self, *args):
         pass
@@ -1264,6 +1296,7 @@ class Edit(Module):
 
 
 # TODO make adjustable pane
+# TODO show past and future inputs but hide by default if not used by template
 class Transformers(Module):
     def __init__(self, parent, callbacks, state):
         self.scroll_frame = None
@@ -1296,9 +1329,9 @@ class Transformers(Module):
         self.generation_settings = self.state.generation_settings
         self.buttons_frame = tk.Frame(self.frame, bg=bg_color())
         self.buttons_frame.pack(side='top', fill='x', expand=False)
-        self.load_template_button = tk.Button(self.buttons_frame, text="Load template", command=self.load_template)
+        self.load_template_button = ttk.Button(self.buttons_frame, text="Load template", command=self.load_template)
         self.load_template_button.pack(side='left')
-        self.save_template_button = tk.Button(self.buttons_frame, text="Save template", command=self.save_template)
+        self.save_template_button = ttk.Button(self.buttons_frame, text="Save template", command=self.save_template)
         self.save_template_button.pack(side='left')
 
         self.inputs_frame = tk.Frame(self.frame, bg=bg_color())
@@ -1326,7 +1359,7 @@ class Transformers(Module):
         self.generation_settings_dashboard.body(self.generation_settings_frame.collapsable_frame)
         self.generation_settings_frame.pack(side='top', fill='both', expand=True)
 
-        self.generate_button = tk.Button(self.frame, text="Generate", command=self.generate)
+        self.generate_button = ttk.Button(self.frame, text="Generate", image=icons.get_icon('brain-blue'), compound='left', command=self.generate)
         self.generate_button.pack(side='top', expand=False)
         
         self.completions_frame = CollapsableFrame(self.frame, title='Completions', bg=bg_color())
@@ -1349,9 +1382,8 @@ class Transformers(Module):
         self.open_template(default_tempate)
 
     def reset(self):
-        for input in self.inputs:
+        for input in self.input_editors:
             self.input_editors[input].destroy()
-            self.template['inputs'].remove(input)
         self.inputs = {}
         self.input_editors = {}
         self.template = None
@@ -1492,7 +1524,7 @@ class Transformers(Module):
         threading.Thread(target=self.call_model, args=(prompt, n)).start()
 
     def call_model(self, prompt, n):
-        response, error = self.state.gen(prompt, n)
+        response, error = gen(prompt, self.generation_settings)
         response_text_list = completions_text(response)
         self.completions_frame.show()
         for completion in response_text_list:

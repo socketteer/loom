@@ -127,34 +127,52 @@ openai.api_key = os.environ.get("OPENAI_API_KEY", None)
 # pprint([d["id"] for d in openai.Engine.list()["data"]])
 
 
-def openAI_token_position(token, text_offset, prompt):
-    text_offset = text_offset - len(prompt)
+def openAI_token_position(token, text_offset):
+    text_offset = text_offset# - len(prompt)
     return {'start': text_offset,
             'end': text_offset + len(token)}
 
 
-def format_openAI_completion(completion, prompt):
-    completion_dict = {'text': completion['text'],
+def format_openAI_completion(completion, prompt, prompt_end_index):
+    completion_dict = {'text': completion['text'][len(prompt):],
                        'finishReason': completion['finish_reason'],
                        'tokens': []}
-    for i, token in enumerate(completion['logprobs']['tokens']):
+    for i, token in enumerate(completion['logprobs']['tokens'][prompt_end_index:]):
+        j = i + prompt_end_index
         token_dict = {'generatedToken': {'token': token,
-                                         'logprob': completion['logprobs']['token_logprobs'][i]},
-                      'position': openAI_token_position(token, completion['logprobs']['text_offset'][i], prompt)}
+                                         'logprob': completion['logprobs']['token_logprobs'][j]},
+                      'position': openAI_token_position(token, completion['logprobs']['text_offset'][j])}
         if completion['logprobs']['top_logprobs']:
-            token_dict['counterfactuals'] = completion['logprobs']['top_logprobs'][i]
+            token_dict['counterfactuals'] = completion['logprobs']['top_logprobs'][j]
         completion_dict['tokens'].append(token_dict)
     return completion_dict
 
+def format_openAI_prompt(completion, prompt):
+    prompt_dict = {'text': prompt, 'tokens': []}
+    # loop over tokens until offset >= prompt length
+    for i, token in enumerate(completion['logprobs']['tokens']):
+        if completion['logprobs']['text_offset'][i] >= len(prompt):
+            prompt_end_index = i
+            break
+        token_dict = {'generatedToken': {'token': token,
+                                         'logprob': completion['logprobs']['token_logprobs'][i]},
+                      'position': openAI_token_position(token, completion['logprobs']['text_offset'][i])}
+        if completion['logprobs']['top_logprobs']:
+            token_dict['counterfactuals'] = completion['logprobs']['top_logprobs'][i]
+        prompt_dict['tokens'].append(token_dict)
 
-# TODO handle echo=True
+    return prompt_dict, prompt_end_index
+
+
 def format_openAI_response(response, prompt, echo):
     response_dict = {}
     if echo:
         pass
     else:
-        response_dict = {'completions': [format_openAI_completion(completion, prompt) for completion in response['choices']],
-                         'prompt': {'text': prompt},
+        prompt_dict, prompt_end_index = format_openAI_prompt(response['choices'][0], prompt)
+
+        response_dict = {'completions': [format_openAI_completion(completion, prompt, prompt_end_index) for completion in response['choices']],
+                         'prompt': prompt_dict,
                          'id': response['id'],
                          'model': response['model'],
                          'timestamp': timestamp()}
@@ -172,6 +190,7 @@ def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temper
         temperature=temperature,
         max_tokens=length,
         top_p=top_p,
+        echo=True,
         logprobs=logprobs,
         logit_bias=logit_bias,
         n=num_continuations,

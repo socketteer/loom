@@ -869,4 +869,159 @@ class FullGenerationSettings(GenerationSettings):
         with open('./config/custom_presets.json', 'w') as f:
             json.dump(custom_dict, f)
 
+
+class SmartText(TextAware):
+    """
+    alternatives:
+    {
+        alts : [{'text': string, ?'probability': float}],
+        replace_range: [start, end]
+    }
+    """
+    def __init__(self, *args, **kwargs):
+        TextAware.__init__(self, *args, **kwargs)
+        
+        self.bind("<Key>", self.key_pressed)
+        self.bind("<Button>", lambda event: self.focus_set())
+        self.bind("<Button>", self.button_pressed)
+        #self.bind("<Button-1>", lambda event: self.clear_temp_tags())
+        self.tag_configure("sel", background="black", foreground="white")
+        self.tag_configure("insert", background="black", foreground="white")
+        self.tag_configure("alternate", background="#222222", font=('Georgia', 12, 'italic'))
+        self.tag_raise("sel")
+        self.tag_raise("insert")
+        self.alternatives = []
+
+    def key_pressed(self, event):
+        pass
+
+    def button_pressed(self, event):
+        pass
     
+    def clear_temp_tags(self):
+        self.tag_remove("insert", "1.0", "end")
+        self.tag_remove("alternate", "1.0", "end")
+
+    def select_range(self, start, end):
+        self.tag_range("sel", start, end)
+    
+    def tag_range(self, tag, start, end):
+        self.tag_remove(tag, "1.0", tk.END)
+        self.tag_add(tag, f"1.0 + {start} chars", f"1.0 + {end} chars")
+        self.tag_raise(tag)
+
+    def selected_text(self):
+        return self.get("sel.first", "sel.last")
+
+    def selected_range(self):
+        return self.index("sel.first"), self.index("sel.last")
+
+    def replace_selected(self, new_text, tag=None):
+        # if textbox is disabled, configure it to be enabled
+        start, end = self.selected_range()
+        self.replace_range(start, end, new_text, tag=tag)
+
+    def replace_tag(self, new_text, old_tag, new_tag=None):
+        ranges = self.tag_ranges(old_tag)
+        start = ranges[0]
+        end = ranges[1]
+        self.replace_range_tk(start, end, new_text, tag=new_tag)
+
+    def replace_range_tk(self, start_idx, end_idx, new_text, tag=None):
+        changed_state = False
+        if self.cget("state") == "disabled":
+            self.configure(state="normal")
+            changed_state = True
+        self.delete(start_idx, end_idx)
+        if tag:
+            self.insert(start_idx, new_text, tag)
+        else:
+            self.insert(start_idx, new_text)
+        if changed_state:
+            self.configure(state="disabled")
+
+    def replace_range(self, start, end, new_text, tag=None):
+        changed_state = False
+        if self.cget("state") == "disabled":
+            self.configure(state="normal")
+            changed_state = True
+        self.delete(f"1.0 + {start} chars", f"1.0 + {end} chars")
+        if tag:
+            self.insert(f"1.0 + {start} chars", new_text, tag)
+        else:
+            self.insert(f"1.0 + {start} chars", new_text)
+        if changed_state:
+            self.configure(state="disabled")
+        self.fix_ranges(start=start, old_end=end, new_end=start+len(new_text))
+
+    def selected_inputs(self):
+        inputs = {}
+        inputs['past_context'] = self.get("1.0", "sel.first")
+        inputs['input'] = self.selected_text()
+        inputs['future_context'] = self.get("sel.last", "end")
+        return inputs
+
+    def alt_dropdown(self, alt_dict, show_probs=True):
+        start_pos = alt_dict['replace_range'][0]
+        end_pos = alt_dict['replace_range'][1]
+        # select range
+        #self.select_range(start_pos, end_pos)
+        self.tag_range("alternate", start_pos, end_pos)
+        # get x y coordinates of start_pos
+        start_index = self.index(f"1.0 + {start_pos} chars")
+        x, y = self.count("1.0", start_index, "xpixels", "ypixels")
+        # TODO adjust based on font size
+        x = x + self.winfo_rootx() + 5
+        y = y + self.winfo_rooty() + 45
+        # get Text scroll position
+        scroll_pos = self.yview()[0]
+        # get Text height
+        text_height = self.winfo_height()
+        scroll_offset = int(round(scroll_pos * text_height))
+
+        y = y - scroll_offset
+
+        # create dropdown menu
+        menu = tk.Menu(self, tearoff=0)
+
+        current_text = self.get(f"1.0 + {start_pos} chars", f"1.0 + {end_pos} chars")
+        
+        for alt in alt_dict['alts']:
+            text = alt['text']
+            color = "blue" if text == current_text else "white"
+            if 'prob' in alt and show_probs:
+                text += f" ({alt['prob']})"
+            menu.add_command(label=text, foreground=color, 
+                             command=lambda alt=alt: self.replace_range(start_pos, 
+                                                                        end_pos, 
+                                                                        alt['text'],
+                                                                        tag="alternate"))
+
+        menu.add_separator()
+        # display current text
+
+        menu.tk_popup(x, y)
+    
+    def fix_ranges(self, start, old_end, new_end):
+        """
+        fix text ranges for alternatives after a substitution.
+        """
+        shift = new_end - old_end
+        for alt in self.alternatives:
+            if alt['replace_range'][0] > start:
+                alt['replace_range'][0] += shift
+            if alt['replace_range'][1] >= start:
+                alt['replace_range'][1] += shift
+
+
+    def get_alt_dict(self, position):
+        for alt_dict in self.alternatives:
+            if alt_dict['replace_range'][0] <= position <= alt_dict['replace_range'][1]:
+                return alt_dict
+        return None
+
+    def open_alt_dropdown(self, event):
+        position = len(self.get("1.0", tk.CURRENT))
+        alt_dict = self.get_alt_dict(position)
+        if alt_dict:
+            self.alt_dropdown(alt_dict)
