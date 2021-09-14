@@ -147,6 +147,7 @@ class Module:
         self.callbacks = callbacks
         self.state = state
         self.textboxes = []
+        self.settings = self.state.module_settings[name] if name in self.state.module_settings else {}
 
     def build(self):
         self.frame = ttk.Frame(self.parent.frame, borderwidth=2)#, background="red")

@@ -21,15 +21,18 @@ import os
 from pprint import pformat
 
 
-modules = {'notes': Notes,
+modules = {'edit': Edit,
+           'notes': Notes,
            'minimap': MiniMap,
            'texteditor': TextEditor,
            'prompt': Prompt,
            'children': Children,
+           'read children': ReadChildren,
            'run': Run,
            'debug': DebugConsole,
            'input': Input,
            'janus/playground': JanusPlayground,
+           'transformers': Transformers,
            'media': Media,
            'paint': Paint}
 
@@ -45,7 +48,7 @@ class Display:
         self.state = state
         self.controller = controller
 
-        self.modes = {"Read", "Edit", "Multi Edit", "Visualize", "Multiverse"}
+        self.modes = {"Read", "Edit", "Visualize", "Multiverse"}
         self.mode = "Read"
 
         self.frame = ttk.Frame(self.root)
@@ -71,10 +74,10 @@ class Display:
         self.story_frame = None
         self.textbox_frame = None
         self.textbox = None
-        self.secondary_textbox_frame = None
-        self.secondary_textbox = None
-        self.preview_textbox_frame = None
-        self.preview_textbox = None
+        # self.secondary_textbox_frame = None
+        # self.secondary_textbox = None
+        # self.preview_textbox_frame = None
+        # self.preview_textbox = None
         self.vis_frame = None
         self.vis = None
 
@@ -104,6 +107,7 @@ class Display:
         self.scroll_to_selected_button = None
 
         self.font = Font(family='Georgia', size=12)
+        self.font_bold = Font(family='Georgia', size=12, weight='bold')
 
         self.modules = {}
 
@@ -187,9 +191,9 @@ class Display:
         self.search_frame = ttk.Frame(self.main_pane, relief=tk.RAISED, borderwidth=2)
 
     def build_textboxes(self, frame):
-        self._build_textbox(frame, "preview_textbox_frame", "preview_textbox", height=3)
+        #self._build_textbox(frame, "preview_textbox_frame", "preview_textbox", height=3)
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
-        self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
+        #self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
 
     def key_pressed(self, event=None):
@@ -214,12 +218,38 @@ class Display:
         textbox.bind("<Alt-Button-1>", lambda event: self.split_node(txt=textbox))
         #textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
         #textbox.bind("<Alt_L><Button-1>", lambda event: self.select_token(txt=textbox))
-        #textbox.bind("<Button-3>", lambda event: self.add_summary(txt=textbox))
+        textbox.bind("<Button-3>", lambda event: self.open_menu(txt=textbox, event=event))
+        textbox.bind("<Button-1>", lambda event: self.clear_selection_tags(textbox=textbox))
+        textbox.bind("<Button-1>", lambda event: textbox.focus_set())
         textbox.pack(expand=True, fill='both')
 
-         # Other nice options: Helvetica, Arial, Georgia
+
+        self.setup_textbox_tags(textbox)
+
         textbox.configure(**textbox_config())
 
+    def setup_textbox_tags(self, textbox):
+        #textbox.tag_configure("bold", font=self.font_bold)
+        textbox.tag_configure("node_select", background=edit_color())
+        textbox.tag_configure("modified", background="blue", foreground=text_color())
+        textbox.tag_configure('match', background='blue', foreground=text_color())
+        textbox.tag_configure('active_match', background='black', foreground='white')
+        textbox.tag_configure("sel", background="black", foreground="white")
+        textbox.tag_configure("insert", background="black", foreground="white")
+        textbox.tag_raise("sel")
+        textbox.tag_raise("insert")
+
+
+    def clear_selection_tags(self, textbox):
+        #self.display.textbox.tag_remove("sel", "1.0", "end")
+        textbox.tag_remove("insert", "1.0", "end")
+        textbox.tag_remove("node_select", "1.0", "end")
+
+    def open_menu(self, txt, event):
+        txt.tag_remove("insert", "1.0", "end")
+        txt.tag_add("insert", txt.index(tk.CURRENT), txt.index(tk.CURRENT) + "+1c")
+        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        self.callbacks["Textbox menu"]["callback"](char_index=char_index, tk_current=txt.index(tk.CURRENT), e=event)
 
     def edit_history(self, txt, event=None):
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
@@ -344,6 +374,9 @@ class Display:
             "<Button-1>", lambda event: f(node_id=self.chapter_nav_tree.identify('item', event.x, event.y))
         )
 
+        # bind right click to context menu
+        self.nav_tree.bind("<Button-3>", self.nav_tree_context_menu)
+
         # File controls
         buttons = [
             # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
@@ -352,6 +385,57 @@ class Display:
         ]
         for btn in buttons:
             self.build_button(self.nav_frame, *btn)
+
+    def nav_tree_context_menu(self, event):
+        # get the item the mouse is over
+        item = self.nav_tree.identify('item', event.x, event.y)
+        if item:
+            # create a menu
+            menu = tk.Menu(self.nav_tree, tearoff=0)
+            # add a command to the menu
+            menu.add_command(label="Go", command=lambda id=item: self.callbacks["Select node"]["callback"](node=self.state.node(id)))
+            menu.add_command(label="Edit", command=lambda id=item: self.callbacks["Edit in module"]["callback"](node=self.state.node(id)))
+            menu.add_command(label="Copy")
+            menu.add_command(label="Copy id")
+            menu.add_command(label="Duplicate")
+            menu.add_command(label="Delete")
+            menu.add_command(label="Move...")
+
+            view_menu = tk.Menu(menu, tearoff=0)
+
+            view_menu.add_command(label="Hide")
+            view_menu.add_command(label="Hoist")
+            view_menu.add_command(label="Zip")
+            view_menu.add_command(label="Unzip")
+            view_menu.add_command(label="Expand subtree")
+            view_menu.add_command(label="Collapse subtree")
+
+            menu.add_cascade(label="View", menu=view_menu)
+
+            add_menu = tk.Menu(menu, tearoff=0)
+            add_menu.add_command(label="Add child")
+            add_menu.add_command(label="Add sibling")
+            add_menu.add_command(label="Add parent")
+            add_menu.add_command(label="Add ghostchild")
+            add_menu.add_command(label="Add ghostparent")
+            add_menu.add_command(label="Add portal")
+
+            menu.add_cascade(label="Add", menu=add_menu)
+
+            tag_menu = tk.Menu(menu, tearoff=0)
+
+            tag_menu.add_command(label="Pin")
+            tag_menu.add_command(label="Archive")
+            tag_menu.add_command(label="Turn into note")
+            tag_menu.add_command(label="Tag...")
+            
+            menu.add_cascade(label="Tag", menu=tag_menu)
+            
+            menu.add_command(label="Edit chapter")
+            menu.add_command(label="Info")
+
+            # display the menu
+            menu.tk_popup(event.x_root, event.y_root)
 
     def build_chapter_nav(self):
         self._build_treeview(self.nav_frame, "chapter_nav_tree")
@@ -443,6 +527,32 @@ class Display:
         self.modules[module.name] = module
         module.build()
 
+    def module_open(self, module_name):
+        return module_name in self.modules and self.modules[module_name]
+
+    # def show_module(self, module_name, **kwargs):
+    #     # check if module is already in a pane
+    #     pane = None
+    #     for module in self.state.workspace['side_pane']:
+    #         if module == module_name:
+    #             pane = 'side_pane'
+    #             break
+    #     for module in self.state.workspace['bottom_pane']:
+    #         if module == module_name:
+    #             pane = 'bottom_pane'
+    #             break
+    #     # check if pane is already open
+    #     if pane and self.state.workspace[pane]['open']:
+    #         # do nothing
+    #         return
+    #     elif pane:
+    #         # open pane
+    #         self.open_pane(pane)
+    #     else:
+    #         # open module in side pane
+
+        
+
     def module_selected(self, pane_name, module_window):
         #print('module selected')
         pane = self.panes[pane_name]
@@ -494,8 +604,8 @@ class Display:
             self.textbox_frame.pack(expand=True, side="top", fill='both')
             self.textbox.config(foreground=text_color(), background=edit_color())
             #self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
-            self.secondary_textbox.config(foreground=text_color(), background=edit_color())
-            self.preview_textbox.config(foreground=text_color(), background=edit_color())
+            #self.secondary_textbox.config(foreground=text_color(), background=edit_color())
+            #self.preview_textbox.config(foreground=text_color(), background=edit_color())
 
         elif self.mode == "Visualize":
             self.vis.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
@@ -509,21 +619,21 @@ class Display:
     def clear_story_frame(self):
         # self.destroy_multi_edit()
         self.textbox_frame.pack_forget()
-        self.secondary_textbox_frame.pack_forget()
+        #self.secondary_textbox_frame.pack_forget()
         self.vis.frame.pack_forget()
         self.multiverse.frame.pack_forget()
 
-    def close_secondary_textbox(self):
-        self.secondary_textbox_frame.pack_forget()
+    # def close_secondary_textbox(self):
+    #     self.secondary_textbox_frame.pack_forget()
 
-    def open_secondary_textbox(self):
-        self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
+    # def open_secondary_textbox(self):
+    #     self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
 
-    def close_preview_textbox(self):
-        self.preview_textbox_frame.pack_forget()
+    # def close_preview_textbox(self):
+    #     self.preview_textbox_frame.pack_forget()
 
-    def open_preview_textbox(self):
-        self.preview_textbox_frame.pack(expand=False, side="top", fill='both')
+    # def open_preview_textbox(self):
+    #     self.preview_textbox_frame.pack(expand=False, side="top", fill='both')
 
     #################################
     #   Search

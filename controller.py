@@ -446,11 +446,15 @@ class Controller:
         pinned = self.state.tagged_nodes(tag='pinned')
         return pinned
 
-
     @metadata(name="Prompt")
     def prompt(self, node=None):
         node = node if node else self.state.selected_node
         return self.state.prompt(node)
+
+    @metadata(name="Get text attribute")
+    def get_text_attribute(self, attribute, node=None):
+        node = node if node else self.state.selected_node
+        return self.state.get_text_attribute(node, attribute)
 
     #################################
     #   Node operations
@@ -674,10 +678,7 @@ class Controller:
                 self.nav_select(node_id=new_parent["id"])
             # TODO deal with metadata
 
-    def index_to_ancestor(self, index):
-        ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(self.state.selected_node)]
-        ancestor_index = bisect.bisect_left(ancestor_end_indices, index)
-        return ancestor_index, node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
+
 
     def zip_chain(self, node=None):
         node = node if node else self.state.selected_node
@@ -697,6 +698,337 @@ class Controller:
         self.state.unzip_all(filter=self.state.visible)
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
+
+    #################################
+    #   Textbox
+    #################################
+
+
+    @metadata(name="Textbox menu")
+    def textbox_menu(self, char_index, tk_current, e):
+        _, clicked_node = self.index_to_ancestor(char_index)
+        node_range = self.node_range(clicked_node)
+        self.display.textbox.tag_add("node_select", f"1.0 + {node_range[0]} chars", f"1.0 + {node_range[1]} chars")
+        
+        menu = tk.Menu(self.display.vis.textbox, tearoff=0)
+        menu.add_command(label="Go", command=lambda: self.select_node(clicked_node))
+        menu.add_command(label="Edit", command=lambda: self.edit_in_module(clicked_node))
+        menu.add_command(label="Split", command=lambda: self.split_node(char_index, change_selection=True))
+        menu.add_command(label="Generate")
+        
+        # if there is text selected
+        if self.display.textbox.tag_ranges("sel"):
+            selection_menu = tk.Menu(menu, tearoff=0)
+            selection_menu.add_command(label="Save")
+            selection_menu.add_command(label="Save memory")
+            selection_menu.add_command(label="Substitute")
+            transform_menu = tk.Menu(menu, tearoff=0)
+            transform_menu.add_command(label="Prose to script", command=lambda: self.open_selection_in_transformer(template='./config/transformers/prose_to_script.json'))
+            selection_menu.add_cascade(label="Transform", menu=transform_menu)
+            
+            #selection_menu.add_command(label="Transform", command=lambda: self.open_selection_in_transformer())
+            selection_menu.add_command(label="Link")
+            selection_menu.add_command(label="Annotate")
+            selection_menu.add_command(label="Add summary")
+            selection_menu.add_command(label="Delete")
+
+            menu.add_cascade(label="Selection", menu=selection_menu)
+
+        tag_menu = tk.Menu(menu, tearoff=0)
+
+        tag_menu.add_command(label="Pin")
+        tag_menu.add_command(label="Tag...")
+        
+        menu.add_cascade(label="Tag", menu=tag_menu)
+        menu.add_command(label="Copy node")
+        menu.add_command(label="Copy id")
+
+        menu.tk_popup(e.x_root, e.y_root + 8)
+
+
+    def refresh_textbox(self, **kwargs):
+        #print('refresh textbox')
+        if not self.state.tree_raw_data or not self.state.selected_node:
+            return
+        self.display.clear_selection_tags(self.display.textbox)
+        self.display.textbox.configure(font=Font(family="Georgia", size=self.state.preferences['font_size']),
+                                       spacing1=self.state.preferences['paragraph_spacing'],
+                                       spacing2=self.state.preferences['line_spacing'])
+        #self.display.textbox.tag_config("node_select", font=Font(family="Georgia", size=self.state.preferences['font_size'], weight="bold"))
+
+        # Fill textbox with text history, disable editing
+        if self.display.mode == "Read":
+            #self.display.textbox.tag_config("sel", background="black", foreground=text_color())
+
+            self.display.textbox.configure(state="normal")
+            self.display.textbox.delete("1.0", "end")
+
+            # if self.state.preferences.get('show_prompt', False):
+            #     self.display.textbox.insert("end-1c", self.state.prompt(self.state.selected_node))
+            # else:
+            if self.state.preferences['coloring'] == 'edit':
+                self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
+                self.display.textbox.tag_config('history', foreground=history_color())
+            else:
+                self.display.textbox.tag_config('ooc_history', foreground=text_color())
+                self.display.textbox.tag_config('history', foreground=text_color())
+
+            ancestry = self.state.ancestor_text_list(self.state.selected_node)
+            #self.ancestor_end_indices = indices
+            history = ''
+            for node_text in ancestry[:-1]:
+                # "end" includes the automatically inserted new line
+                history += node_text
+            selected_text = self.state.selected_node["text"]
+            prompt_length = self.state.generation_settings['prompt_length'] - len(selected_text)
+
+            in_context = history[-prompt_length:]
+            if prompt_length < len(history):
+                out_context = history[:len(history)-prompt_length]
+                self.display.textbox.insert("end-1c", out_context, "ooc_history")
+            self.display.textbox.insert("end-1c", in_context, "history")
+
+            history_end = self.display.textbox.index(tk.END)
+            self.display.textbox.insert("end-1c", selected_text)
+
+            active_append_text = self.state.get_text_attribute(self.state.selected_node, 'active_append')
+            if active_append_text:
+                self.display.textbox.insert("end-1c", active_append_text)
+
+            self.tag_prompts()
+            if not kwargs.get('noscroll', False):
+                self.display.textbox.update_idletasks()
+                if self.state.preferences['coloring'] == 'edit':
+                    self.display.textbox.see(tk.END)
+                else:
+                    self.display.textbox.see(history_end)
+            self.display.textbox.configure(state="disabled")
+
+            # makes text copyable
+            self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+
+        # Textbox to edit mode, fill with single node
+        elif self.display.mode == "Edit":
+            self.display.textbox.configure(state="normal")
+            self.display.textbox.delete("1.0", "end")
+            self.display.textbox.insert("1.0", self.state.selected_node["text"])
+            self.display.textbox.see(tk.END)
+
+            # self.display.secondary_textbox.delete("1.0", "end")
+            # self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
+            self.display.textbox.focus()
+
+    def select_range(self, start, end):
+        #self.display.textbox.tag_config("sel", background="black", foreground=text_color())
+        self.display.textbox.tag_remove("sel", "1.0", tk.END)
+        self.display.textbox.tag_add("sel", f"1.0 + {start} chars", f"1.0 + {end} chars")
+
+    def select_endpoints_range(self, start_endpoint, end_endpoint):
+        start_text_index, end_text_index = self.endpoints_to_range(start_endpoint, end_endpoint)
+        self.select_range(start_text_index, end_text_index)
+
+    def get_selected_text(self):
+        # get text with "sel" tag
+        return self.display.textbox.get("sel.first", "sel.last")
+
+    def get_selected_inputs(self):
+        inputs = {}
+        inputs['past_context'] = self.display.textbox.get("1.0", "sel.first")
+        inputs['input'] = self.get_selected_text()
+        inputs['future_context'] = self.display.textbox.get("sel.last", "end")
+        return inputs
+
+    def open_selection_in_transformer(self, template=None):
+        inputs = self.get_selected_inputs()
+        self.open_in_transformer(inputs, template)
+
+    def replace_selected_text(self, text):
+        self.display.textbox.configure(state="normal")
+        selected_text = self.get_selected_text()
+        start_pos = self.display.textbox.index("sel.first")
+        start_index = len(self.display.textbox.get("1.0", start_pos))
+        end_index = start_index + len(selected_text)
+        start_endpoint, end_endpoint = self.range_to_endpoints(start_index, end_index)
+        if self.path_uninterrupted(start_endpoint, end_endpoint):
+            self.replace_trajectory(start_endpoint, end_endpoint, text)
+        else:
+            # TODO open warning dialog to ask user to confirm
+            pass
+
+    def replace_trajectory(self, start_endpoint, end_endpoint, text):
+        # replace text along a trajectory. This will put all the new text in the end endpoint, and result
+        # in empty nodes if the chain is greater than two nodes long
+        start_node = self.state.node(start_endpoint[0])
+        end_node = self.state.node(end_endpoint[0])
+        node_path = ancestry_in_range(start_node, end_node, self.state.tree_node_dict)
+        if start_node == end_node:
+            # substitute the text range in the node
+            new_text = start_node['text'][:start_endpoint[1]] + text + start_node['text'][end_endpoint[1]:]
+            self.state.update_text(start_node, new_text)
+        else:
+            for node in node_path:
+                if node == start_node:
+                    new_text = node['text'][:start_endpoint[1]]
+                    self.state.update_text(node, new_text)
+                elif node == end_node: 
+                    new_text = text + node['text'][end_endpoint[1]:]
+                    self.state.update_text(node, new_text)
+                else:
+                    self.state.update_text(node, "")
+
+    def path_uninterrupted(self, start_endpoint, end_endpoint):
+        # returns true if any nodes between start_endpoint and end_endpoint have siblings
+        start_node = self.state.node(start_endpoint[0])
+        end_node = self.state.node(end_endpoint[0])
+        return self.state.chain_uninterrupted(start_node, end_node)
+
+    def endpoints_to_range(self, start, end):
+        ancestor_text_indices = self.state.ancestor_text_indices(self.state.selected_node)
+        # ancestor_text_indices is a list of types (start, end) for nodes in ancestry
+        # endpoints are ({start_node_id: text_index}, {end_node_id: text_index})
+        start_node_index = node_index(self.state.node(start[0]), self.state.tree_node_dict)
+        end_node_index = node_index(self.state.node(end[0]), self.state.tree_node_dict)
+        start_node_text_index = ancestor_text_indices[start_node_index][0]
+        end_node_text_index = ancestor_text_indices[end_node_index][0]
+        start_text_index = start_node_text_index + start[1]
+        end_text_index = end_node_text_index + end[1]
+        return start_text_index, end_text_index
+
+    def range_to_endpoints(self, start, end):
+        ancestry = self.state.ancestry(self.state.selected_node)
+        ancestor_text_indices = self.state.ancestor_text_indices(self.state.selected_node)
+        start_indices = [i[0] for i in ancestor_text_indices]
+        # use bisect to find the index of the start and end node
+        start_node_index = bisect.bisect_right(start_indices, start) - 1
+        end_node_index = bisect.bisect_right(start_indices, end) - 1
+        start_text_index = start - start_indices[start_node_index]
+        end_text_index = end - start_indices[end_node_index]
+        start_node = ancestry[start_node_index]
+        end_node = ancestry[end_node_index]
+        return (start_node['id'], start_text_index), (end_node['id'], end_text_index)
+
+    def node_range(self, node):
+        ancestor_text_indices = self.state.ancestor_text_indices(node)
+        idx = node_index(node, self.state.tree_node_dict)
+        return ancestor_text_indices[idx]
+
+    def index_to_ancestor(self, index):
+        ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(self.state.selected_node)]
+        ancestor_index = bisect.bisect_left(ancestor_end_indices, index)
+        return ancestor_index, node_ancestry(self.state.selected_node, self.state.tree_node_dict)[ancestor_index]
+
+    # TODO nodes with mixed prompt/continuation
+    def tag_prompts(self):
+        if self.state.preferences['bold_prompt']:
+            self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size'], 'bold'))
+        else:
+            self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size']))
+        self.display.textbox.tag_remove("prompt", "1.0", 'end')
+        #ancestry_text = self.state.ancestry_text(self.state.selected_node)
+        indices = self.state.ancestor_text_indices(self.state.selected_node)
+        #start_index = 0
+        for i, ancestor in enumerate(self.state.ancestry(self.state.selected_node)):
+            if 'meta' in ancestor and 'source' in ancestor['meta']:
+                if not (ancestor['meta']['source'] == 'AI' or ancestor['meta']['source'] == 'mixed'):
+                    self.display.textbox.tag_add("prompt", f"1.0 + {indices[i][0]} chars",
+                                                 f"1.0 + {indices[i][1]} chars")
+                elif ancestor['meta']['source'] == 'mixed':
+                    if 'diffs' in ancestor['meta']:
+                        # TODO multiple diffs in sequence
+                        original_tokens = ancestor['meta']['diffs'][0]['diff']['old']
+
+                        current_tokens = ancestor['meta']['diffs'][-1]['diff']['new']
+                        total_diff = diff(original_tokens, current_tokens)
+                        for addition in total_diff['added']:
+                            self.display.textbox.tag_add("prompt", f"1.0 + {indices[i][0] + addition['indices'][0]} chars",
+                                                         f"1.0 + {indices[i][0] + addition['indices'][1]} chars")
+            #start_index = indices[i][1]
+
+    #################################
+    #   Search
+    #################################
+
+    @metadata(name="Search", keys=["<Control-Shift-KeyPress-F>"], display_key="ctrl-shift-f")
+    def search(self):
+        dialog = SearchDialog(parent=self.display.frame, state=self.state, goto=self.nav_select)
+        self.refresh_textbox()
+
+    @metadata(name="Search ancestry", keys=["<Control-f>"], display_key="ctrl-f")
+    def search_ancestry(self):
+        self.toggle_search()
+
+    @metadata(name="Search textbox", matches=None, match_index=None, search_term=None, case_sensitive=None)
+    def search_textbox(self, pattern, case_sensitive=False):
+        if self.search_textbox.meta['matches'] is not None:
+            if self.search_textbox.meta['search_term'] == pattern \
+                    and self.search_textbox.meta['case_sensitive'] == case_sensitive:
+                self.next_match()
+                return
+            else:
+                self.clear_search()
+        self.search_textbox.meta['search_term'] = pattern
+        self.search_textbox.meta['case_sensitive'] = case_sensitive
+        ancestry_text = self.state.ancestry_text(self.state.selected_node)
+        matches = []
+        matches_iter = re.finditer(pattern, ancestry_text) if case_sensitive \
+            else re.finditer(pattern, ancestry_text, re.IGNORECASE)
+        for match in matches_iter:
+            matches.append({'span': match.span(),
+                            'match': match.group()})
+        self.search_textbox.meta['matches'] = matches
+        if not matches:
+            self.display.update_search_results(num_matches=0)
+            self.clear_search()
+            return
+        for match in matches:
+            self.display.textbox.tag_add("match",
+                                         f"1.0 + {match['span'][0]} chars",
+                                         f"1.0 + {match['span'][1]} chars")
+        self.next_match()
+
+    @metadata(name="Clear search")
+    def clear_search(self):
+        self.search_textbox.meta['search_term'] = None
+        self.search_textbox.meta['matches'] = None
+        self.search_textbox.meta['match_index'] = None
+        self.search_textbox.meta['case_sensitive'] = None
+        self.display.textbox.tag_delete("match")
+        self.display.textbox.tag_delete("active_match")
+
+    @metadata(name="Next match")
+    def next_match(self):
+        if self.search_textbox.meta['matches'] is None:
+            return
+        if self.search_textbox.meta['match_index'] is None:
+            self.search_textbox.meta['match_index'] = 0
+        else:
+            self.search_textbox.meta['match_index'] += 1
+        if self.search_textbox.meta['match_index'] >= len(self.search_textbox.meta['matches']):
+            self.search_textbox.meta['match_index'] = 0
+        active_match = self.search_textbox.meta['matches'][self.search_textbox.meta['match_index']]
+        
+        self.display.update_search_results(num_matches=len(self.search_textbox.meta['matches']), 
+                                           active_index=self.search_textbox.meta['match_index'])
+        self.display.textbox.tag_delete("active_match")
+        self.display.textbox.tag_add("active_match",
+                                     f"1.0 + {active_match['span'][0]} chars",
+                                     f"1.0 + {active_match['span'][1]} chars")
+        # scroll to active match
+        self.display.textbox.see(f"1.0 + {active_match['span'][0]} chars")
+
+    def in_search(self):
+        return self.search_textbox.meta['matches'] is not None
+
+    def toggle_search(self, toggle=None):
+        toggle = not self.state.workspace['show_search'] if not toggle else toggle
+        self.state.workspace['show_search'] = toggle
+        if toggle:
+            self.display.open_search()
+        else:
+            self.display.exit_search()
+
+
+
 
     #################################
     #   Token manipulation
@@ -876,6 +1208,22 @@ class Controller:
                 else:
                     self.display.vis.delete_textbox()
 
+    @metadata(name="Edit in module")
+    def edit_in_module(self, node):
+        self.state.module_settings['edit']['node_id'] = node['id']
+        # TODO if already open, refresh selection
+        if self.display.module_open("edit"):
+            self.display.modules['edit'].rebuild_textboxes()
+        else:
+            self.open_module("side_pane", "edit")
+
+    @metadata(name="Open in transformer")
+    def open_in_transformer(self, inputs, template=None):
+        if not self.display.module_open('transformers'):
+            self.open_module('side_pane', 'transformers')
+        if template:
+            self.display.modules['transformers'].open_template_file(template)
+        self.display.modules['transformers'].open_inputs(inputs)
 
 
     @metadata(name="Visualize", keys=["<Key-j>", "<Control-j>"], display_key="j")
@@ -1134,11 +1482,11 @@ class Controller:
         # TODO fails on root node
         if self.display.mode == "Edit":
             new_text = self.display.textbox.get("1.0", 'end-1c')
-            new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
+            #new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
             self.escape()
             sibling = self.state.create_sibling()
             self.nav_select(node_id=sibling['id'])
-            self.state.update_text(sibling, new_text, new_active_text)
+            self.state.update_text(sibling, new_text)
 
     # Exports subtree as a loom json
     @metadata(name="Export subtree", keys=["<Control-Command-KeyPress-X>", "<Control-Alt-KeyPress-X>"], display_key="Ctrl-Command-X")
@@ -1308,90 +1656,6 @@ class Controller:
         self.refresh_textbox()
 
 
-    #################################
-    #   Search
-    #################################
-
-    @metadata(name="Search", keys=["<Control-Shift-KeyPress-F>"], display_key="ctrl-shift-f")
-    def search(self):
-        dialog = SearchDialog(parent=self.display.frame, state=self.state, goto=self.nav_select)
-        self.refresh_textbox()
-
-    @metadata(name="Search ancestry", keys=["<Control-f>"], display_key="ctrl-f")
-    def search_ancestry(self):
-        self.toggle_search()
-
-    @metadata(name="Search textbox", matches=None, match_index=None, search_term=None, case_sensitive=None)
-    def search_textbox(self, pattern, case_sensitive=False):
-        if self.search_textbox.meta['matches'] is not None:
-            if self.search_textbox.meta['search_term'] == pattern \
-                    and self.search_textbox.meta['case_sensitive'] == case_sensitive:
-                self.next_match()
-                return
-            else:
-                self.clear_search()
-        self.search_textbox.meta['search_term'] = pattern
-        self.search_textbox.meta['case_sensitive'] = case_sensitive
-        ancestry_text = self.state.ancestry_text(self.state.selected_node)
-        matches = []
-        matches_iter = re.finditer(pattern, ancestry_text) if case_sensitive \
-            else re.finditer(pattern, ancestry_text, re.IGNORECASE)
-        for match in matches_iter:
-            matches.append({'span': match.span(),
-                            'match': match.group()})
-        self.search_textbox.meta['matches'] = matches
-        if not matches:
-            self.display.update_search_results(num_matches=0)
-            self.clear_search()
-            return
-        self.display.textbox.tag_config('match', background='blue')
-        for match in matches:
-            self.display.textbox.tag_add("match",
-                                         f"1.0 + {match['span'][0]} chars",
-                                         f"1.0 + {match['span'][1]} chars")
-        self.next_match()
-
-    @metadata(name="Clear search")
-    def clear_search(self):
-        self.search_textbox.meta['search_term'] = None
-        self.search_textbox.meta['matches'] = None
-        self.search_textbox.meta['match_index'] = None
-        self.search_textbox.meta['case_sensitive'] = None
-        self.display.textbox.tag_delete("match")
-        self.display.textbox.tag_delete("active_match")
-
-    @metadata(name="Next match")
-    def next_match(self):
-        if self.search_textbox.meta['matches'] is None:
-            return
-        if self.search_textbox.meta['match_index'] is None:
-            self.search_textbox.meta['match_index'] = 0
-        else:
-            self.search_textbox.meta['match_index'] += 1
-        if self.search_textbox.meta['match_index'] >= len(self.search_textbox.meta['matches']):
-            self.search_textbox.meta['match_index'] = 0
-        active_match = self.search_textbox.meta['matches'][self.search_textbox.meta['match_index']]
-        
-        self.display.update_search_results(num_matches=len(self.search_textbox.meta['matches']), 
-                                           active_index=self.search_textbox.meta['match_index'])
-        self.display.textbox.tag_delete("active_match")
-        self.display.textbox.tag_config('active_match', background='black')
-        self.display.textbox.tag_add("active_match",
-                                     f"1.0 + {active_match['span'][0]} chars",
-                                     f"1.0 + {active_match['span'][1]} chars")
-        # scroll to active match
-        self.display.textbox.see(f"1.0 + {active_match['span'][0]} chars")
-
-    def in_search(self):
-        return self.search_textbox.meta['matches'] is not None
-
-    def toggle_search(self, toggle=None):
-        toggle = not self.state.workspace['show_search'] if not toggle else toggle
-        self.state.workspace['show_search'] = toggle
-        if toggle:
-            self.display.open_search()
-        else:
-            self.display.exit_search()
 
     #################################
     #   Filtering
@@ -1697,8 +1961,8 @@ class Controller:
 
         if self.display.mode == "Edit":
             new_text = self.display.textbox.get("1.0", 'end-1c')
-            new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
-            self.state.update_text(self.state.selected_node, new_text, new_active_text, log_diff=self.state.preferences['log_diff'])
+            #new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
+            self.state.update_text(self.state.selected_node, new_text, log_diff=self.state.preferences['log_diff'])
 
         elif self.display.mode == "Visualize":
             if self.display.vis.textbox:
@@ -1738,189 +2002,16 @@ class Controller:
     def refresh_alt_textbox(self, **kwargs):
         # open alt textbox if node has "alt" attribute
         if self.display.mode == 'Read':
-            if 'alt' in self.state.selected_node:
+            alt_text = self.state.get_text_attribute(self.state.selected_node, 'alt_text')
+            if alt_text:
                 self.open_alt_textbox()
                 # insert alt text into textbox
                 self.display.alt_textbox.configure(state='normal')
                 self.display.alt_textbox.delete('1.0', 'end')
-                self.display.alt_textbox.insert('1.0', self.state.selected_node['alt'])
+                self.display.alt_textbox.insert('1.0', alt_text)
                 self.display.alt_textbox.configure(state='disabled')
             else:
                 self.close_alt_textbox()
-
-    def refresh_textbox(self, **kwargs):
-        if not self.state.tree_raw_data or not self.state.selected_node:
-            return
-
-        self.display.textbox.configure(font=Font(family="Georgia", size=self.state.preferences['font_size']),
-                                       spacing1=self.state.preferences['paragraph_spacing'],
-                                       spacing2=self.state.preferences['line_spacing'])
-
-        # Fill textbox with text history, disable editing
-        if self.display.mode == "Read":
-            self.display.textbox.tag_config("sel", background="black", foreground=text_color())
-
-            self.display.textbox.configure(state="normal")
-            self.display.textbox.delete("1.0", "end")
-
-            if self.state.preferences.get('show_prompt', False):
-                self.display.textbox.insert("end-1c", self.state.prompt(self.state.selected_node))
-            else:
-                if self.state.preferences['coloring'] == 'edit':
-                    self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
-                    self.display.textbox.tag_config('history', foreground=history_color())
-                else:
-                    self.display.textbox.tag_config('ooc_history', foreground=text_color())
-                    self.display.textbox.tag_config('history', foreground=text_color())
-
-                # TODO bad color for lightmode
-                #self.display.textbox.tag_config("selected", background="black", foreground=text_color())
-                self.display.textbox.tag_config("modified", background="blue", foreground=text_color())
-                ancestry = self.state.ancestor_text_list(self.state.selected_node)
-                #self.ancestor_end_indices = indices
-                history = ''
-                for node_text in ancestry[:-1]:
-                    # "end" includes the automatically inserted new line
-                    history += node_text
-                    #self.display.textbox.insert("end-1c", node_text, "history")
-                selected_text = self.state.selected_node["text"]
-                prompt_length = self.state.generation_settings['prompt_length'] - len(selected_text)
-
-                in_context = history[-prompt_length:]
-                if prompt_length < len(history):
-                    out_context = history[:len(history)-prompt_length]
-                    self.display.textbox.insert("end-1c", out_context, "ooc_history")
-                self.display.textbox.insert("end-1c", in_context, "history")
-
-                history_end = self.display.textbox.index(tk.END)
-                self.display.textbox.insert("end-1c", selected_text)
-                self.display.textbox.insert("end-1c", self.state.selected_node.get("active_text", ""))
-
-                self.tag_prompts()
-                if not kwargs.get('noscroll', False):
-                    self.display.textbox.update_idletasks()
-                    self.display.textbox.see(history_end)
-            self.display.textbox.configure(state="disabled")
-
-            # makes text copyable
-            self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
-
-        # Textbox to edit mode, fill with single node
-        elif self.display.mode == "Edit":
-            self.display.textbox.configure(state="normal")
-            self.display.textbox.delete("1.0", "end")
-            self.display.textbox.insert("1.0", self.state.selected_node["text"])
-            self.display.textbox.see(tk.END)
-
-            self.display.secondary_textbox.delete("1.0", "end")
-            self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
-            self.display.textbox.focus()
-
-    def select_range(self, start, end):
-        self.display.textbox.tag_config("sel", background="black", foreground=text_color())
-        self.display.textbox.tag_remove("sel", "1.0", tk.END)
-        self.display.textbox.tag_add("sel", f"1.0 + {start} chars", f"1.0 + {end} chars")
-
-    def select_endpoints_range(self, start_endpoint, end_endpoint):
-        start_text_index, end_text_index = self.endpoints_to_range(start_endpoint, end_endpoint)
-        self.select_range(start_text_index, end_text_index)
-
-    def get_selected_text(self):
-        # get text with "sel" tag
-        return self.display.textbox.get("sel.first", "sel.last")
-
-    def replace_selected_text(self, text):
-        self.display.textbox.configure(state="normal")
-        selected_text = self.get_selected_text()
-        start_pos = self.display.textbox.index("sel.first")
-        start_index = len(self.display.textbox.get("1.0", start_pos))
-        end_index = start_index + len(selected_text)
-        start_endpoint, end_endpoint = self.range_to_endpoints(start_index, end_index)
-        if self.path_uninterrupted(start_endpoint, end_endpoint):
-            self.replace_trajectory(start_endpoint, end_endpoint, text)
-        else:
-            # TODO open warning dialog to ask user to confirm
-            pass
-
-    def replace_trajectory(self, start_endpoint, end_endpoint, text):
-        # replace text along a trajectory. This will put all the new text in the end endpoint, and result
-        # in empty nodes if the chain is greater than two nodes long
-        start_node = self.state.node(start_endpoint[0])
-        end_node = self.state.node(end_endpoint[0])
-        node_path = ancestry_in_range(start_node, end_node, self.state.tree_node_dict)
-        if start_node == end_node:
-            # substitute the text range in the node
-            new_text = start_node['text'][:start_endpoint[1]] + text + start_node['text'][end_endpoint[1]:]
-            self.state.update_text(start_node, new_text)
-        else:
-            for node in node_path:
-                if node == start_node:
-                    new_text = node['text'][:start_endpoint[1]]
-                    self.state.update_text(node, new_text)
-                elif node == end_node: 
-                    new_text = text + node['text'][end_endpoint[1]:]
-                    self.state.update_text(node, new_text)
-                else:
-                    self.state.update_text(node, "")
-
-    def path_uninterrupted(self, start_endpoint, end_endpoint):
-        # returns true if any nodes between start_endpoint and end_endpoint have siblings
-        start_node = self.state.node(start_endpoint[0])
-        end_node = self.state.node(end_endpoint[0])
-        return self.state.chain_uninterrupted(start_node, end_node)
-
-    def endpoints_to_range(self, start, end):
-        ancestor_text_indices = self.state.ancestor_text_indices(self.state.selected_node)
-        # ancestor_text_indices is a list of types (start, end) for nodes in ancestry
-        # endpoints are ({start_node_id: text_index}, {end_node_id: text_index})
-        start_node_index = node_index(self.state.node(start[0]), self.state.tree_node_dict)
-        end_node_index = node_index(self.state.node(end[0]), self.state.tree_node_dict)
-        start_node_text_index = ancestor_text_indices[start_node_index][0]
-        end_node_text_index = ancestor_text_indices[end_node_index][0]
-        start_text_index = start_node_text_index + start[1]
-        end_text_index = end_node_text_index + end[1]
-        return start_text_index, end_text_index
-
-    def range_to_endpoints(self, start, end):
-        ancestry = self.state.ancestry(self.state.selected_node)
-        ancestor_text_indices = self.state.ancestor_text_indices(self.state.selected_node)
-        start_indices = [i[0] for i in ancestor_text_indices]
-        # use bisect to find the index of the start and end node
-        start_node_index = bisect.bisect_right(start_indices, start) - 1
-        end_node_index = bisect.bisect_right(start_indices, end) - 1
-        start_text_index = start - start_indices[start_node_index]
-        end_text_index = end - start_indices[end_node_index]
-        start_node = ancestry[start_node_index]
-        end_node = ancestry[end_node_index]
-        return (start_node['id'], start_text_index), (end_node['id'], end_text_index)
-
-
-    # TODO nodes with mixed prompt/continuation
-    def tag_prompts(self):
-        if self.state.preferences['bold_prompt']:
-            self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size'], 'bold'))
-        else:
-            self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size']))
-        self.display.textbox.tag_remove("prompt", "1.0", 'end')
-        #ancestry_text = self.state.ancestry_text(self.state.selected_node)
-        indices = self.state.ancestor_text_indices(self.state.selected_node)
-        #start_index = 0
-        for i, ancestor in enumerate(self.state.ancestry(self.state.selected_node)):
-            if 'meta' in ancestor and 'source' in ancestor['meta']:
-                if not (ancestor['meta']['source'] == 'AI' or ancestor['meta']['source'] == 'mixed'):
-                    self.display.textbox.tag_add("prompt", f"1.0 + {indices[i][0]} chars",
-                                                 f"1.0 + {indices[i][1]} chars")
-                elif ancestor['meta']['source'] == 'mixed':
-                    if 'diffs' in ancestor['meta']:
-                        # TODO multiple diffs in sequence
-                        original_tokens = ancestor['meta']['diffs'][0]['diff']['old']
-
-                        current_tokens = ancestor['meta']['diffs'][-1]['diff']['new']
-                        total_diff = diff(original_tokens, current_tokens)
-                        for addition in total_diff['added']:
-                            self.display.textbox.tag_add("prompt", f"1.0 + {indices[i][0] + addition['indices'][0]} chars",
-                                                         f"1.0 + {indices[i][0] + addition['indices'][1]} chars")
-            #start_index = indices[i][1]
 
 
     def refresh_visualization(self, center=False, **kwargs):
@@ -1981,8 +2072,9 @@ class Controller:
         if self.state.is_root(node) and not self.state.is_compound(node):
             text = self.state.name()
         else:
-            if 'nav_display_text' in node:
-                text = node['nav_display_text'].replace('\n', '\\n')
+            nav_preview = self.state.get_text_attribute(node, 'nav_preview')
+            if nav_preview:
+                text = nav_preview.replace('\n', '\\n')
             else:
                 node_text = node['text']
                 text = node_text.strip()[:25].replace('\n', '\\n')

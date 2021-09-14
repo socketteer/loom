@@ -13,6 +13,10 @@ def react_changes(old_components, new_components):
             deleted_ids.append(old_id)
     return added_ids, deleted_ids
 
+# returns components which are in both old_components and new_components
+def unchanged(old_components, new_components):
+    return [id for id in old_components if id in new_components]
+
 
 # for id in node_ids, check if the result of f(node_id) for f in functions
 # has changed. Functions is dictionary of the form 

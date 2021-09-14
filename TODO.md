@@ -199,16 +199,9 @@
     
 - right click dropdowns
     - nav tree
-        - edit
-        - delete
-        - hoist
-        - *zip chain
-        - *unzip
-        - pin
-        - *turn into note
-        - tag...
-        - expand subtree
-        - collapse subtree
+        - indicate identity of node
+        - callbacks
+        - conditional items
     - story textbox
         - go
         - edit
@@ -228,6 +221,8 @@
         
 - general 'get prompt' method for various modules / textboxes
 
+- show alt completions inline or in menu
+
 - code to be executed upon navigating to node
 
 - prevent opening copies of a module
@@ -244,6 +239,7 @@
 - playground
     - toggle multiple choice or inline (end)
     - integrate with tree
+    - view counterfactuals with dropdown menu
 
 - abstract inline generation
     - any key should "accept" completion and clear list
@@ -258,17 +254,45 @@
             - not a problem if nav render distance is limited?
     - portals just teleport you to another part of the tree
 
-- read mode preview text
-
-- text attributes
-    - nav preview text
-    - read preview text
-    - alt text
-- node attribute editor
-
 - walk - option to loop to start if no children
 
-- "hidden children" should include blacklisted windows
+- children
+    - "hidden children" should include blacklisted windows
+    - fast version for read mode
+
+- pane with no modules should automatically close
+
+- edit
+    - refresh selection on edit action
+    - done closes window
+    - attribute templates
+    - tags
+    - goto and unpin if pinned node
+    
+- modules come in two types, ones which can be duplicated (and should have their own settings) and ones which shouldnt
+    - ok instances
+        - text editor
+        - edit
+        - playground
+        - run
+    - not ok
+        - notes
+        - paint
+        - media
+        - input
+        - children
+        - prompt
+        - debug
+    - ?
+        - minimap
+
+- fullscreen / minimize
+
+- zip chain (but not zip all) broken
+
+- override even meta hotkeys in modules
+
+- abstract 'generation settings' template
 
 ## Other TODO
 

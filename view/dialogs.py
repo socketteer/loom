@@ -982,7 +982,7 @@ class PreferencesDialog(Dialog):
         self.vars = {
             "bold_prompt": tk.BooleanVar,
             "auto_response": tk.BooleanVar,
-            "show_prompt": tk.BooleanVar,
+            #"show_prompt": tk.BooleanVar,
             "autosave": tk.BooleanVar,
             "save_counterfactuals": tk.BooleanVar,
             "prob": tk.BooleanVar,
@@ -1011,7 +1011,7 @@ class PreferencesDialog(Dialog):
 
         create_label(master, "Story frame")
         create_checkbutton(master, "Bold prompt", "bold_prompt", self.vars)
-        create_checkbutton(master, "Show literal prompt", "show_prompt", self.vars)
+        # create_checkbutton(master, "Show literal prompt", "show_prompt", self.vars)
 
         create_label(master, "Saving")
         create_checkbutton(master, "Autosave", "autosave", self.vars)
@@ -1023,7 +1023,7 @@ class PreferencesDialog(Dialog):
 
         row = master.grid_size()[1]
         create_side_label(master, "Display mode", row)
-        mode_options = ['edit', 'read', 'none']
+        mode_options = ['edit', 'read']
         dropdown = tk.OptionMenu(master, self.vars["coloring"], *mode_options)
         dropdown.grid(row=row, column=1, pady=3)
 
@@ -1282,7 +1282,6 @@ class VisualizationSettingsDialog(Dialog):
         for key, var in self.vars.items():
             self.orig_params[key] = var.get()
         self.result = self.orig_params
-
 
 
 

@@ -1,9 +1,11 @@
 from view.panes import Module
 import tkinter as tk
-from tkinter import Canvas, ttk
+from tkinter import Canvas, ttk, simpledialog, messagebox
 from view.colors import text_color, bg_color, edit_color, vis_bg_color
 from util.custom_tks import TextAware
 from util.util_tree import tree_subset, limited_branching_tree
+from util.react import react_changes, unchanged
+from util.canvas_util import move_object
 from view.icons import Icons
 from view.styles import textbox_config
 from view.templates import *
@@ -15,7 +17,7 @@ import threading
 from tkinter.colorchooser import askcolor
 from PIL import Image, ImageTk
 import os
-
+import json
 
 icons = Icons()
 
@@ -244,7 +246,7 @@ class Paint(Module):
 
     def change_layer(self, idx):
         # TODO keep future layers
-        self.merge_png()
+       #self.merge_png()
         # show all layers beneath or at idx
         for i in range(0, idx + 1):
             self.c.itemconfigure(self.layers[i]['canvas_img'], state='normal')
@@ -541,6 +543,47 @@ class Children(Module):
         else:
             self.callbacks["Hide invisible children"]["callback"]()
 
+
+class ReadChildren(Module):
+    def __init__(self, parent, callbacks, state):
+        self.children = []
+        self.scroll_frame = None
+        Module.__init__(self, 'read children', parent, callbacks, state)
+    
+    def build(self):
+        Module.build(self)
+        self.scroll_frame = ScrollableFrame(self.frame)
+        self.scroll_frame.pack(side='top', fill='both', expand=True)
+        self.refresh()
+
+    def add_child(self, node):
+        child_text = self.state.get_text_attribute(node, 'child_preview')
+        child_text = child_text if child_text else node['text'][:100]
+        child_label = tk.Label(self.scroll_frame.scrollable_frame, text=child_text, bg=bg_color(), fg=text_color(), cursor='hand2', 
+                               anchor='w', justify='left', font=('Georgia', 12),
+                               image=icons.get_icon('arrow-white', 18), compound=tk.LEFT, padx=10)
+        child_label.bind("<Button-1>", lambda event, node=node: self.callbacks["Select node"]["callback"](node=node))
+        child_label.pack(side='top', fill='x', expand=True, pady=10)
+        self.children.append(child_label)
+
+    def refresh(self):
+        if self.scroll_frame:
+            children = self.callbacks["Get children"]["callback"]()
+            for child in self.children:
+                child.pack_forget()
+            self.children = []
+            for child in children:
+                self.add_child(child)
+        
+    def selection_updated(self):
+        self.refresh()
+    
+    def tree_updated(self):
+        # self.refresh()
+        pass
+
+
+
 class JanusPlayground(Module):
     def __init__(self, parent, callbacks, state):
         self.pane = None
@@ -788,7 +831,9 @@ class MiniMap(Module):
         self.levels = {}
         self.nodes = {}
         self.lines = {}
+        self.old_node_coords = {}
         self.preview_textbox = None
+        self.selected_node = None
 
     def build(self):
         Module.build(self)
@@ -822,26 +867,43 @@ class MiniMap(Module):
         self.canvas.bind("<ButtonPress-1>", scroll_start)
         self.canvas.bind("<B1-Motion>", scroll_move)
 
+    def cache(self):
+        self.old_node_coords = self.node_coords
+        self.old_selected_node = self.selected_node
+
     def clear(self):
         self.canvas.delete('all')
-        self.node_coords = {}
-        self.levels = {}
         self.nodes = {}
         self.lines = {}
+        self.reset()
+    
+    def reset(self):
+        self.node_coords = {}
+        self.levels = {}
+
 
     def refresh(self):
+        self.selected_node = self.state.selected_node
+        # self.cache()
+        # if self.old_selected_node != self.selected_node:
+        #     self.clear()
+        # self.reset()
         self.clear()
-        selected_node = self.state.selected_node
         root = self.state.root()
         filtered_tree = tree_subset(root, filter=lambda node:self.callbacks["In nav"]["callback"](node=node))
-        ancestry = self.state.ancestry(selected_node)
+        ancestry = self.state.ancestry(self.selected_node)
         pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=12)
         self.compute_tree_coordinates(pruned_tree, 200, 400, level=0)
         self.center_about_ancestry(ancestry, x_align=200)
-        self.center_y(selected_node, 400)
+        self.center_y(self.selected_node, 400)
         #self.fix_orientation()
+        # if self.old_node_coords and self.old_selected_node == self.selected_node:
+        #     print('moving nodes')
+        #     self.move_nodes()
+        # else:
+        #     print('draw precomputed')
         self.draw_precomputed_tree(pruned_tree)
-        self.color_selection(selected_node)
+        self.color_selection(self.selected_node)
 
     def compute_tree_coordinates(self, root, x, y, level=0):
         self.node_coords[root["id"]] = (x, y)
@@ -877,6 +939,18 @@ class MiniMap(Module):
                                 offset=30, 
                                 connections='vertical')
             self.draw_precomputed_tree(child)
+
+    def move_nodes(self):
+        added_ids, deleted_ids = react_changes(old_components=self.old_node_coords.keys(), new_components=self.node_coords.keys())
+        persisting_ids = unchanged(old_components=self.old_node_coords.keys(), new_components=self.node_coords.keys())
+        for node_id in persisting_ids:
+            old_x, old_y = self.old_node_coords[node_id]
+            new_x, new_y = self.node_coords[node_id]
+            #dy = new_y - old_y
+            #dx = new_x - old_x
+            #self.canvas.move(self.nodes[node_id], dx, dy)
+            move_object(self.canvas, self.nodes[node_id], (new_x, new_y))
+
 
     def center_about_ancestry(self, ancestry, x_align, level=0):
         if level >= len(ancestry):
@@ -1012,3 +1086,412 @@ class Media(Module):
     def selection_updated(self):
         if self.multimedia.master:# and self.multimedia.viewing:
             self.multimedia.refresh()
+
+
+# TODO unpin edit node id when edit closed
+class Edit(Module):
+    def __init__(self, parent, callbacks, state):
+        Module.__init__(self, "edit", parent, callbacks, state)
+        self.node_label = None
+        self.text = {}
+        self.text_attributes = {}
+        self.add_text_attribute_button = None
+        self.textboxes_frame = None
+        self.buttons_frame = None
+        self.node = None
+        self.done_editing_button = None
+
+    def build(self):
+        Module.build(self)
+        self.node_label = ttk.Label(self.frame)
+        self.node_label.pack(side='top', pady=10)
+        self.node_label.configure(cursor="hand2")
+        self.node_label.bind("<Button-1>", self.toggle_pin)
+
+        self.buttons_frame = ttk.Frame(self.frame)
+        self.buttons_frame.pack(side='top', fill='x')
+
+        self.textboxes_frame = ttk.Frame(self.frame)
+        self.textboxes_frame.pack(side='top', fill='both', expand=True)
+
+        self.add_text_attribute_button = tk.Label(self.frame, text="Add Text Attribute", cursor="hand2", fg=text_color(), bg=bg_color(), relief="raised")
+
+        self.add_text_attribute_button.pack(side='bottom', pady=10)
+        self.add_text_attribute_button.bind("<Button-1>", lambda event: self.add_text_attribute(event))
+        # self.done_editing_button = ttk.Button(self.buttons_frame, text="Done Editing", command=self.done_editing)
+        # self.done_editing_button.pack(side='bottom', expand=True, pady=10)
+        self.rebuild_textboxes()
+
+    def toggle_pin(self, *args):
+        if self.settings['node_id']:
+            if self.settings['node_id'] != self.state.selected_node_id:
+                self.done_editing()
+            else:
+                self.settings['node_id'] = None
+                self.node_label.configure(image="")
+        else:
+            self.settings['node_id'] = self.state.selected_node['id']
+            self.node_label.configure(image=icons.get_icon('pin-red'), compound="left")
+
+    def done_editing(self):
+        self.save_all()
+        # unpin edit node id
+        self.settings['node_id'] = None
+        self.rebuild_textboxes()
+        # TODO close pane
+
+    def rebuild_textboxes(self):
+        if self.text_attributes:
+            for text_attribute in self.text_attributes:
+                self.state.remove_text_attribute(self.node, text_attribute)
+                self.text_attributes[text_attribute].destroy()
+        self.text_attributes = {}
+        self.textboxes = []
+
+        self.node = self.state.node(self.settings['node_id']) if self.settings['node_id'] else self.state.selected_node
+        self.node_label.configure(text=f"editing node: {self.node['id']}")
+        pinned = self.settings['node_id'] is not None
+        if pinned: 
+            self.node_label.configure(image=icons.get_icon('pin-red'), compound="left")
+        else:
+            self.node_label.configure(image='')
+
+        
+
+        self.text_attributes['text'] = TextAttribute(master=self.textboxes_frame, attribute_name="text", 
+                                                     read_callback=lambda: self.callbacks["Text"]["callback"](node_id=self.node['id']),
+                                                     write_callback=self.save_text,
+                                                     expand=True,
+                                                     parent_module=self)
+        self.text_attributes['text'].pack(side='top', fill='both', expand=True, pady=10)
+        #self.text_attributes['text'].update()
+
+        if 'text_attributes' in self.node:
+            for attribute in self.node['text_attributes']:
+                self.text_attributes[attribute] = TextAttribute(master=self.textboxes_frame, attribute_name=attribute, 
+                                                                read_callback=lambda: self.callbacks["Get text attribute"]["callback"](attribute=attribute, node=self.node),
+                                                                write_callback=lambda text, attribute=attribute: self.save_text_attribute(attribute_name=attribute, text=text),
+                                                                delete_callback=lambda attribute=attribute: self.delete_text_attribute(attribute),
+                                                                expand=True,
+                                                                parent_module=self)
+                self.text_attributes[attribute].pack(side='top', fill='both', expand=True, pady=10)
+                #self.text_attributes[attribute].update()
+        self.update()
+
+
+    def update(self):
+        for text_attribute in self.text_attributes:
+            self.text_attributes[text_attribute].read()
+
+    def save_all(self):
+        for text_attribute in self.text_attributes:
+            self.text_attributes[text_attribute].write()
+
+    def delete_text_attribute(self, attribute_name):
+        self.state.remove_text_attribute(self.node, attribute_name)
+        self.text_attributes[attribute_name].destroy()
+        del self.text_attributes[attribute_name]
+
+    def add_text_attribute(self, event):
+        # presets:
+        # active_append: shows in story frame when node is selected after node text
+        # nav_preview: preview text shown in nav tree
+        # child_preview: text shown in child preview in read mode
+        # active_template: f string template applied to text only when node is active
+        # template: f string template always applied to text (but not sent to language model)
+        # alt_text: text which displays in alt textbox when node is active
+        # custom
+        
+        # open menu to select attribute type
+        menu = tk.Menu(self.frame, tearoff=0)
+        menu.add_command(label="active_append", command=lambda: self.new_attribute("active_append"))
+        menu.add_command(label="nav_preview", command=lambda: self.new_attribute("nav_preview"))
+        menu.add_command(label="child_preview", command=lambda: self.new_attribute("child_preview"))
+        menu.add_command(label="active_template", command=lambda: self.new_attribute("active_template"))
+        menu.add_command(label="template", command=lambda: self.new_attribute("template"))
+        menu.add_command(label="alt_text", command=lambda: self.new_attribute("alt_text"))
+        menu.add_command(label="custom", command=lambda: self.add_text_attribute_custom())
+        # open menu to select attribute name
+        menu.tk_popup(event.x_root, event.y_root)
+
+    def save_text(self, text):
+        self.callbacks["Update text"]["callback"](node=self.node, text=text)
+
+    def save_text_attribute(self, attribute_name, text):
+        self.state.add_text_attribute(self.node, attribute_name, text)
+
+    def selection_updated(self):
+        if not self.settings['node_id']:
+            self.save_all()
+            self.rebuild_textboxes()
+
+    def tree_updated(self):
+        self.update()
+
+    def add_text_attribute_custom(self):
+        # popup window to get attribute name
+        name = simpledialog.askstring("Custom Text Attribute", "Enter attribute name:")
+        if name:
+            # check if attribute already exists
+            self.new_attribute(name)
+
+    def new_attribute(self, name):
+        if 'text_attributes' in self.node and name in self.node['text_attributes']:
+            messagebox.showinfo("Custom Text Attribute", "Attribute already exists.")
+            return
+        self.state.add_text_attribute(self.node, name, '')
+        self.text_attributes[name] = TextAttribute(master=self.textboxes_frame, attribute_name=name, 
+                                                    read_callback=lambda: self.callbacks["Get text attribute"]["callback"](attribute=name, node=self.node),
+                                                    write_callback=lambda text, attribute=name: self.save_text_attribute(attribute_name=attribute, text=text),
+                                                    delete_callback=lambda attribute=name: self.delete_text_attribute(attribute),
+                                                    expand=True,
+                                                    parent_module=self)
+        self.text_attributes[name].pack(side='top', fill='both', expand=True)
+        self.text_attributes[name].read()
+
+
+# TODO make adjustable pane
+class Transformers(Module):
+    def __init__(self, parent, callbacks, state):
+        self.scroll_frame = None
+        self.input_editors = {}
+        self.inputs = {}
+        self.inputs_frame = None
+        self.template_frame = None
+        self.template = None
+        self.template_editor = None
+        self.prompt = None
+        self.prompt_frame = None
+        #self.prompt_label = None
+        self.prompt_literal_textbox = None
+        self.buttons_frame = None
+        self.load_template_button = None
+        self.save_template_button = None
+        self.generate_button = None
+        self.generation_settings_frame = None
+        self.generation_settings = None
+        self.generation_settings_dashboard = None
+        self.completions_frame = None
+        self.completion_windows = None
+        Module.__init__(self, "transformers", parent, callbacks, state)
+        
+    def build(self):
+        Module.build(self)
+        self.scroll_frame = ScrollableFrame(self.frame)
+        self.scroll_frame.pack(side='top', fill='both', expand=True)
+        #self.frame.bind("<Button-1>", lambda e: self.frame.focus)
+        self.generation_settings = self.state.generation_settings
+        self.buttons_frame = tk.Frame(self.scroll_frame.scrollable_frame, bg=bg_color())
+        self.buttons_frame.pack(side='top', fill='x', expand=False)
+        self.load_template_button = tk.Button(self.buttons_frame, text="Load template", command=self.load_template)
+        self.load_template_button.pack(side='left')
+        self.save_template_button = tk.Button(self.buttons_frame, text="Save template", command=self.save_template)
+        self.save_template_button.pack(side='left')
+
+        self.inputs_frame = tk.Frame(self.scroll_frame.scrollable_frame, bg=bg_color())
+        self.inputs_frame.pack(side='top', fill='both', expand=True)
+
+        self.template_frame = tk.Frame(self.scroll_frame.scrollable_frame, bg=bg_color())
+        self.template_frame.pack(side='top', fill='both', expand=True)
+        self.template_editor = TextAttribute(master=self.template_frame, attribute_name="template", 
+                                             read_callback=lambda: self.read_template(), 
+                                             write_callback=lambda text: self.write_template(text=text), 
+                                             height=4, 
+                                             expand=True, parent_module=self)
+        self.template_editor.pack(side='top', fill='both', expand=True)
+
+        self.prompt_frame = CollapsableFrame(self.scroll_frame.scrollable_frame, title='prompt', expand=True, bg=bg_color())
+        self.prompt_frame.pack(side='top', fill='both', expand=True)
+        # self.prompt_label = tk.Label(self.scroll_frame.scrollable_frame, text="prompt", bg=bg_color(), fg=text_color())
+        # self.prompt_label.pack(side='top', fill='x')
+        self.prompt_literal_textbox = TextAware(self.prompt_frame.collapsable_frame, bd=2, height=3, undo=True, relief='raised')
+        self.prompt_literal_textbox.pack(side='top', fill='both', expand=True)
+        self.prompt_literal_textbox.configure(**textbox_config())
+        self.prompt_literal_textbox.configure(state='disabled')
+
+        self.generation_settings_frame = CollapsableFrame(self.scroll_frame.scrollable_frame, title='Generation settings', default_visible=False,
+                                                          bg=bg_color())
+        self.generation_settings_dashboard = GenerationSettings(orig_settings=self.generation_settings, realtime_update=True, parent_module=self)
+        self.generation_settings_dashboard.body(self.generation_settings_frame.collapsable_frame)
+        self.generation_settings_frame.pack(side='top', fill='both', expand=True)
+
+        self.generate_button = tk.Button(self.scroll_frame.scrollable_frame, text="Generate", command=self.generate)
+        self.generate_button.pack(side='top', expand=False)
+        
+        self.completions_frame = tk.Frame(self.scroll_frame.scrollable_frame, bg=bg_color())
+        self.completions_frame.pack(side='top', fill='both', expand=True)
+        # self.completion_windows.body(self.completions_frame)
+        self.load_default_template()
+
+    def load_default_template(self):
+        default_tempate = {
+            'inputs': [ 'input' ],
+            'template': '{inputs["input"]}',
+            'generation_settings': { 'model': 'curie' }
+        }
+        self.open_template(default_tempate)
+
+    def reset(self):
+        for input in self.inputs:
+            self.input_editors[input].destroy()
+            self.template['inputs'].remove(input)
+        self.inputs = {}
+        self.input_editors = {}
+        # if self.template_editor:
+        #     self.template_editor.destroy()
+        # self.template_editor = None
+        self.template = None
+
+    def open_template(self, template):
+        '''
+        template format:
+        {
+            inputs: [ string ]
+            template: f-string
+            generation_settings {}
+
+        }
+        '''
+        self.reset()
+        self.template = template
+        self.set_empty_inputs()
+        for input in template['inputs']:
+            self.input_editors[input] = TextAttribute(master=self.inputs_frame, attribute_name=input, 
+                                                      read_callback=lambda: self.read_input(input),
+                                                      write_callback=lambda text, input=input:self.write_input(input=input, text=text), 
+                                                      delete_callback=lambda input=input: self.remove_input(input), 
+                                                      expand=True, 
+                                                      height=2,
+                                                      parent_module=self)
+            self.input_editors[input].pack(side='top', fill='both', expand=True)
+
+        self.read_all()
+        self.update_prompt()
+
+
+    def set_empty_inputs(self):
+        for input in self.template['inputs']:
+            self.inputs[input] = ""
+
+    def read_input(self, input):
+        return self.inputs[input]
+
+    def write_input(self, input, text):
+        self.inputs[input] = text
+        self.update_prompt()
+
+    def read_template(self):
+        return self.template['template']
+
+    def write_template(self, text):
+        self.template['template'] = text
+        self.update_prompt()
+
+    def read_generation_settings(self):
+        if 'generation_settings' in self.template:
+            self.generation_settings.update(self.template['generation_settings'])
+        #print(self.generation_settings)
+        self.generation_settings_dashboard.read()
+
+    def write_generation_settings(self):
+        self.template['generation_settings'] = self.generation_settings
+
+    def read_all(self):
+        for input in self.input_editors:
+            self.input_editors[input].read()
+        self.template_editor.read()
+        self.read_generation_settings()
+
+    def write_all(self):
+        for input in self.input_editors:
+            self.input_editors[input].write()
+        self.template_editor.write()
+        self.write_generation_settings()
+        self.update_prompt()
+
+    def remove_input(self, input):
+        self.input_editors[input].destroy()
+        self.template['inputs'].remove(input)
+        del self.input_editors[input]
+        del self.inputs[input]
+        self.update_prompt()
+
+    def add_input(self, input):
+        self.input_editors[input] = TextAttribute(master=self.inputs_frame, attribute_name=input, 
+                                                  write_callback=lambda text, input=input:self.write_input(input=input, text=text), 
+                                                  delete_callback=lambda input=input: self.remove_input(input), 
+                                                  expand=True, 
+                                                  height=2,
+                                                  parent_module=self)
+        self.input_editors[input].pack(side='top', fill='both', expand=True)
+        self.template['inputs'].append(input)
+        self.update_prompt()
+
+    def update_prompt(self, *args):
+        # TODO database
+        inputs = self.inputs 
+        # TODO catch
+        try:
+            self.prompt = eval(f'f"""{self.template["template"]}"""')
+        except KeyError as e:
+            print(f'missing input: {e}')
+            return
+        self.prompt_literal_textbox.configure(state='normal')
+        self.prompt_literal_textbox.delete(1.0, tk.END)
+        self.prompt_literal_textbox.insert(tk.END, self.prompt)
+        self.prompt_literal_textbox.configure(state='disabled')
+
+    def open_template_file(self, file_path):
+        with open(file_path) as f:
+            template = json.load(f)
+        self.open_template(template)
+
+    def load_template(self):
+        file_path = filedialog.askopenfilename(
+            initialdir="./config/transformers",
+            title="Select prompt template",
+            filetypes=[("Json files", ".json")]
+        )
+        if file_path:
+            self.open_template_file(file_path)
+            
+    def save_template(self):
+        self.write_all()
+        file_path = filedialog.asksaveasfilename(
+            initialdir="./config/transformers",
+            title="Save prompt template",
+            filetypes=[("Json files", ".json")]
+        )
+
+        if file_path:
+            with open(file_path, 'w') as f:
+                json.dump(self.template, f)
+
+    def open_inputs(self, inputs):
+        self.inputs = inputs
+        self.read_all()
+
+    def build_completion_windows(self):
+        self.completion_windows = Windows(buttons=['close', 'save'])
+        self.completion_windows.body(self.completions_frame)
+
+    def destroy_completion_windows(self):
+        self.completion_windows.destroy()
+        self.completion_windows = None
+    
+    def hide_completion_windows(self):
+        pass
+
+    def generate(self):
+        self.write_all()
+        prompt = self.prompt
+        n = self.generation_settings["num_continuations"]
+        threading.Thread(target=self.call_model, args=(prompt, n)).start()
+
+    def call_model(self, prompt, n):
+        response, error = self.state.gen(prompt, n)
+        response_text_list = completions_text(response)
+        if not self.completion_windows:
+            self.build_completion_windows()
+        for completion in response_text_list:
+            self.completion_windows.open_window(completion)

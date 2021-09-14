@@ -48,7 +48,7 @@ DEFAULT_PREFERENCES = {
     'font_size': 12,
     'line_spacing': 8,
     'paragraph_spacing': 10,
-    'show_prompt': False,
+    #'show_prompt': False,
     'log_diff': False,
     'autosave': True,
     'save_counterfactuals': False,
@@ -69,6 +69,10 @@ DEFAULT_WORKSPACE = {
     # 'show_children': False,
     'alt_textbox': False,
     'show_search': False
+}
+
+DEFAULT_MODULE_SETTINGS = {
+    'edit': {'node_id': None,}
 }
 
 DEFAULT_GENERATION_SETTINGS = {
@@ -239,6 +243,12 @@ class TreeModel:
         return self.tree_raw_data.get("workspace") \
             if self.tree_raw_data and "workspace" in self.tree_raw_data \
             else DEFAULT_WORKSPACE
+
+    @property
+    def module_settings(self):
+        return self.tree_raw_data.get("module_settings") \
+            if self.tree_raw_data and "module_settings" in self.tree_raw_data \
+            else DEFAULT_MODULE_SETTINGS
 
     @property
     def tags(self):
@@ -720,9 +730,10 @@ class TreeModel:
         self.rebuild_tree()
 
     # TODO add creation date if it doesn't exist
-    def update_text(self, node, text, active_text=None, modified_flag=True, log_diff=False, refresh_nav=True):
+    def update_text(self, node, text, modified_flag=True, log_diff=False, refresh_nav=True):
         assert node["id"] in self.tree_node_dict, text
-        assert self.is_mutable(node)
+        if not self.is_mutable(node):
+            return
 
         # Remove trailing spaces
         # count spaces that will be removed
@@ -731,20 +742,13 @@ class TreeModel:
             num_spaces += 1
             text = text[:-1]
 
-        edited = False
         old_text = node["text"]
         if old_text != text:
             # Give children spaces removed from text
             for child in node["children"]:
                 child["text"] = " " * num_spaces + child["text"]
             node["text"] = text
-            edited = True
 
-        if active_text is not None and node.get("active_text", "") != active_text:
-            node["active_text"] = active_text
-            edited = True
-
-        if edited:
             if 'meta' not in node:
                 node['meta'] = {}
             if modified_flag:
@@ -865,8 +869,9 @@ class TreeModel:
         mask['masked_head'] = head
         mask['tail_id'] = tail['id']
         # TODO hacky
-        mask['nav_display_text'] = head['text'].strip()[:15].replace('\n', '\\n') \
+        nav_preview_text = head['text'].strip()[:15].replace('\n', '\\n') \
                                    + '...' + tail['text'].strip()[:12].replace('\n', '\\n')
+        self.add_text_attribute(mask, "nav_preview", nav_preview_text)
         mask['visited'] = True
 
         if refresh_nav:
@@ -1261,6 +1266,33 @@ class TreeModel:
 
 
     #################################
+    #   Text attributes
+    #################################
+
+    def add_text_attribute(self, node, attribute, text):
+        if 'text_attributes' not in node:
+            node['text_attributes'] = {}
+        node['text_attributes'][attribute] = text
+        self.tree_updated()
+
+
+    def get_text_attribute(self, node, attribute):
+        if 'text_attributes' not in node:
+            return None
+        if attribute not in node['text_attributes']:
+            return None
+        return node['text_attributes'][attribute]
+
+    def remove_text_attribute(self, node, attribute):
+        if 'text_attributes' not in node:
+            return
+        if attribute not in node['text_attributes']:
+            return
+        del node['text_attributes'][attribute]
+        self.tree_updated()
+
+
+    #################################
     #   I/O
     #################################
 
@@ -1311,6 +1343,11 @@ class TreeModel:
         self.tree_raw_data["workspace"] = {
             **DEFAULT_WORKSPACE.copy(),
             **self.tree_raw_data.get("workspace", {})
+        }
+
+        self.tree_raw_data["module_settings"] = {
+            **DEFAULT_MODULE_SETTINGS.copy(),
+            **self.tree_raw_data.get("module_settings", {})
         }
 
         self.tree_raw_data['tags'] = {

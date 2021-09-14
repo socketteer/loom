@@ -4,13 +4,16 @@ import uuid
 from view.colors import text_color, bg_color, edit_color, default_color
 from util.custom_tks import TextAware, ScrollableFrame
 from util.react import *
+from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
 from tkinter.scrolledtext import ScrolledText
 from view.styles import textbox_config
 from view.icons import Icons
 import time
 from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
 import os
+import codecs
 from PIL import Image, ImageTk
+from gpt import POSSIBLE_MODELS
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
@@ -18,7 +21,8 @@ buttons = {'go': 'arrow-green',
            'archive': 'archive-yellow',
            'close': 'minus-lightgray',
            'delete': 'trash-red',
-           'append': 'up-lightgray'}
+           'append': 'up-lightgray',
+           'save': 'save-white'}
 
 icons = Icons()
 
@@ -98,6 +102,11 @@ class Windows():
         for window in self.windows:
             self.remove_window(window)
 
+    def destroy(self):
+        self.scroll_frame.pack_forget()
+        self.scroll_frame.destroy()
+
+
 class NodeWindows(Windows):
     def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, init_height=1):
         self.callbacks = callbacks
@@ -117,7 +126,8 @@ class NodeWindows(Windows):
         tk.Grid.columnconfigure(self.windows[node['id']]['frame'], 1, weight=1)
         for i in range(len(self.buttons)):
             tk.Grid.rowconfigure(self.windows[node['id']]['frame'], i, weight=1)
-        # TODO adaptive init height
+        #  TODO adaptive init height based on text length
+
         self.windows_pane.add(self.windows[node['id']]['frame'], height=100)
         #self.windows_pane.paneconfig(self.windows[node['id']]['frame'])
         # if insert == 'end':
@@ -275,20 +285,33 @@ class Thumbnails:
     def add_thumbnail(self, filename):
         if filename not in self.thumbnails:
             image = self.get_thumbnail(filename)
-            self.thumbnails[filename] = tk.Label(self.scroll_frame.scrollable_frame, image=image,
-                                                 bg="white", cursor='hand2', width=100, bd=5)
-            self.thumbnails[filename].image = image
-            self.thumbnails[filename].bind("<Button-1>", lambda event, filename=filename: self.select(filename=filename))
-            self.thumbnails[filename].pack(side='top', pady=5, padx=5)
-    
+            self.thumbnails[filename] = {}
+            self.thumbnails[filename]['thumbnail'] = tk.Label(self.scroll_frame.scrollable_frame, image=image, bg="white", cursor='hand2', width=100, bd=5)
+            self.thumbnails[filename]['thumbnail'].image = image
+            self.thumbnails[filename]['thumbnail'].bind("<Button-1>", lambda event, filename=filename: self.select(filename=filename))
+            self.thumbnails[filename]['thumbnail'].pack(side='top', pady=5, padx=5)
+            self.build_menu(filename)
+            self.thumbnails[filename]['thumbnail'].bind("<Button-3>", lambda event, filename=filename: self.do_popup(event, filename=filename))
+
+    def build_menu(self, filename):
+        self.thumbnails[filename]['menu'] = tk.Menu(self.master, tearoff=0)
+        self.thumbnails[filename]['menu'].add_command(label="Select", command=lambda filename=filename: self.select(filename=filename)) 
+
+    def do_popup(self, event, filename):
+        self.thumbnails[filename]['menu'].tk_popup(event.x_root, event.y_root)
+        # try:
+        #     self.thumbnails[filename]['menu'].tk_popup(event.x_root, event.y_root)
+        # finally:
+        #     self.thumbnails[filename]['menu'].grab_release()
+
     def remove_thumbnail(self, filename):
         if filename in self.thumbnails:
-            self.thumbnails[filename].destroy()
+            self.thumbnails[filename]['thumbnail'].destroy()
             del self.thumbnails[filename]
 
     def clear(self):
         for filename in self.thumbnails:
-            self.thumbnails[filename].destroy()
+            self.thumbnails[filename]['thumbnail'].destroy()
         self.thumbnails = {}
 
     def update_thumbnails(self, image_files):
@@ -304,9 +327,9 @@ class Thumbnails:
         self.selection_callback(filename=filename)
 
     def set_selection(self, filename):
-        self.thumbnails[self.selected_file].configure(relief="flat")
+        self.thumbnails[self.selected_file]['thumbnail'].configure(relief="flat")
         self.selected_file = filename
-        self.thumbnails[filename].configure(relief="sunken")
+        self.thumbnails[filename]['thumbnail'].configure(relief="sunken")
 
     def scroll_to_selected(self):
         pass
@@ -511,3 +534,188 @@ class Multimedia:
         self.display_image()
         self.set_buttons()
         
+
+class CollapsableFrame(tk.Frame):
+    def __init__(self, master, image='', title='', expand=True, default_visible=True, **kwargs):
+        tk.Frame.__init__(self, master, **kwargs)
+        #self.master = master
+        if title or image: 
+            self.title = tk.Label(self, text=title, image=image, compound='left', bg=bg_color(), fg=text_color())
+            self.title.grid(row=0, column=0, sticky='w')
+        self.hide_button = tk.Label(self, text="-" if default_visible else "+", cursor="hand2", fg=text_color(), bg=bg_color(), font=("Helvetica", 16))
+        self.hide_button.grid(row=0, column=2)
+        self.hide_button.bind("<Button-1>", lambda event: self.toggle())
+        self.collapsable_frame = tk.Frame(self)
+        if default_visible:
+            self.collapsable_frame.grid(row=1, column=0, columnspan=3, sticky='nsew')
+        tk.Grid.columnconfigure(self, 0, weight=1)
+        if expand:
+            tk.Grid.rowconfigure(self, 1, weight=1)
+
+    def hide(self):
+        self.collapsable_frame.grid_remove()
+        self.hide_button.configure(text="+")
+
+    def show(self):
+        self.collapsable_frame.grid(row=1, column=0, columnspan=3, sticky='nsew')
+        self.hide_button.configure(text="-")
+
+    def toggle(self):
+        if self.collapsable_frame.winfo_ismapped():
+            self.hide()
+        else:
+            self.show()
+        
+
+class TextAttribute:
+    def __init__(self, master, attribute_name, read_callback=None, write_callback=None, delete_callback=None, expand=False, parent_module=None, height=2):
+        self.master = master
+        self.read_callback = read_callback
+        self.write_callback = write_callback
+        self.delete_callback = delete_callback
+        self.parent_module = parent_module
+
+        self.frame = CollapsableFrame(master, title=attribute_name, expand=expand, bg=bg_color())
+
+        if self.delete_callback:
+            self.delete_button = tk.Label(self.frame, image=icons.get_icon("trash-red"), cursor="hand2", bg=bg_color())
+            self.delete_button.grid(row=0, column=1, padx=10)
+            self.delete_button.bind("<Button-1>", lambda event: self.delete_callback())
+
+        self.textbox = TextAware(self.frame.collapsable_frame, bd=3, height=height)
+        self.textbox.pack(fill='both', expand=True)
+
+        self.textbox.configure(**textbox_config(bg=edit_color()))
+
+        self.textbox.bind("<Button>", lambda event: self.textbox.focus_set())
+        self.textbox.bind("<FocusOut>", lambda event: self.write())
+        self.textbox.bind("<Key>", self.key_pressed)
+        if self.parent_module:
+            self.parent_module.textboxes.append(self.textbox)
+    
+    def pack(self, **kwargs):
+        self.frame.pack(**kwargs)
+
+    def destroy(self):
+        if self.parent_module:
+            self.parent_module.textboxes.remove(self.textbox)
+        self.frame.pack_forget()
+        self.frame.destroy()
+
+    def write(self):
+        if self.write_callback:
+            text = self.get()
+            self.write_callback(text=text)
+
+    def read(self):
+        if self.read_callback:
+            text = self.read_callback()
+            self.textbox.delete("1.0", "end")
+            self.textbox.insert("1.0", text)
+
+    def get(self):
+        return self.textbox.get("1.0", "end-1c")
+
+    def key_pressed(self, event):
+        # if key is tab, break
+        if event.keysym == 'Tab':
+            self.master.focus()
+            return "break"
+
+
+
+class GenerationSettings:
+    def __init__(self, orig_settings, realtime_update=False, parent_module=None):
+        self.master = None
+        self.frame = None
+        self.orig_settings = orig_settings
+        self.realtime_update = realtime_update
+        self.parent_module = parent_module
+        self.vars = {
+            "model": tk.StringVar,
+            'num_continuations': tk.IntVar,
+            'temperature': tk.DoubleVar,
+            'top_p': tk.DoubleVar,
+            'response_length': tk.IntVar,
+            'prompt_length': tk.IntVar,
+            'logprobs': tk.IntVar,
+            'stop': tk.StringVar,
+            'logit_bias': tk.StringVar,
+        }
+        for key in self.vars.keys():
+            self.vars[key] = self.vars[key](value=self.orig_settings[key])
+            if self.realtime_update:
+                self.vars[key].trace("w", lambda a, b, c, key=key: self.write_var(key=key))
+
+        self.textboxes = {'stop': None,
+                          'logit_bias': None}
+
+    def body(self, master):
+        self.master = master
+        self.frame = ttk.Frame(self.master)
+        self.frame.pack(fill='both', expand=True)
+        create_combo_box(self.frame, "model", self.vars["model"], POSSIBLE_MODELS, width=20)
+
+        sliders = {
+            'num_continuations': (1, 20),
+            'temperature': (0., 1.),
+            'top_p': (0., 1.),
+            'response_length': (1, 1000),
+            'prompt_length': (100, 10000),
+            'logprobs': (0, 100),
+        }
+        for name, value_range in sliders.items():
+            create_slider(self.frame, name, self.vars[name], value_range)
+
+        for name in self.textboxes:
+            self.create_textbox(name)
+
+        self.set_textboxes()
+
+    # TODO test if text formats are correct
+    def read(self):
+        for key in self.vars.keys():
+            self.vars[key].set(self.orig_settings[key])
+        self.set_textboxes()
+
+    def set_textboxes(self):
+        for name in self.textboxes:
+            self.textboxes[name].delete(1.0, "end")
+            self.textboxes[name].insert(1.0, self.read_text(name))
+
+    def read_text(self, name):
+        decoded_string = codecs.decode(self.vars[name].get(), "unicode-escape")
+        repr_string = repr(decoded_string)
+        repr_noquotes = repr_string[1:-1]
+        return repr_noquotes
+
+    def write_var(self, key):
+        self.orig_settings[key] = self.vars[key].get()
+
+    def write_text(self, key):
+        self.vars[key].set(self.textboxes[key].get(1.0, "end-1c"))
+
+    def apply(self, *args):
+        for key, var in self.vars.items():
+            self.orig_settings[key] = var.get()
+
+    def key_pressed(self, event):
+        if event.keysym == 'Tab' or event.keysym == 'Return':
+            self.frame.focus()
+            return "break"
+
+    def create_textbox(self, name):
+        row = self.frame.grid_size()[1]
+        label_text = 'stop sequences (| delimited)' if name == 'stop' else 'logit bias (| delimited)' if name == 'logit_bias' else name + ' text'
+        create_side_label(self.frame, label_text, row)
+        self.textboxes[name] = TextAware(self.frame, height=1, width=20)
+        self.textboxes[name].grid(row=row, column=1)
+        self.textboxes[name].bind("<Key>", self.key_pressed)
+        if self.realtime_update:
+            self.textboxes[name].bind("<FocusOut>", lambda event, name=name: self.write_text(key=name))
+        if self.parent_module:
+            self.parent_module.textboxes.append(self.textboxes[name])
+
+    def destroy(self):
+        self.frame.pack_forget()
+        self.frame.destroy()
