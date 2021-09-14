@@ -21,7 +21,7 @@ import traceback
 from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color, \
     immutable_color
 from view.display import Display
-from view.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
+from components.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
     PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
     RunDialog, WorkspaceDialog
@@ -719,6 +719,7 @@ class Controller:
         # if there is text selected
         if self.display.textbox.tag_ranges("sel"):
             selection_menu = tk.Menu(menu, tearoff=0)
+            selection_menu.add_command(label="Copy")
             selection_menu.add_command(label="Save")
             selection_menu.add_command(label="Save memory")
             selection_menu.add_command(label="Substitute")
@@ -1972,7 +1973,6 @@ class Controller:
         else:
             return
 
-
     def modules_tree_updated(self, **kwargs):
         for pane in self.display.panes:
             if self.state.workspace[pane]['open']:
@@ -1983,7 +1983,8 @@ class Controller:
         for pane in self.display.panes:
             if self.state.workspace[pane]['open']:
                 for module in self.state.workspace[pane]['modules']:
-                    self.display.modules[module].selection_updated()
+                    if self.display.module_open(module):
+                        self.display.modules[module].selection_updated()
 
     def refresh_display(self, **kwargs):
         self.configure_buttons()

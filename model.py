@@ -13,7 +13,7 @@ from multiprocessing.pool import ThreadPool
 import codecs
 import json
 
-from gpt import openAI_generate, search, generate
+from gpt import openAI_generate, search, gen
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, generate_conditional_tree, filtered_children, \
@@ -1545,35 +1545,6 @@ class TreeModel:
     #   Generation
     #################################
 
-    def gen(self, prompt, n, inline=False):
-        if inline:
-            settings = self.inline_generation_settings
-        else:
-            settings = self.generation_settings
-        if settings["stop"]:
-            stop = parse_stop(settings["stop"])
-        else:
-            stop = None
-        if settings["logit_bias"]:
-            logit_bias = parse_logit_bias(settings["logit_bias"])
-        else:
-            logit_bias = None
-        try:
-            results, error = generate(prompt=prompt,
-                                      length=settings['response_length'],
-                                      num_continuations=n,
-                                      temperature=settings['temperature'],
-                                      logprobs=settings['logprobs'],
-                                      top_p=settings['top_p'],
-                                      model=settings['model'],
-                                      stop=stop,
-                                      logit_bias=logit_bias,
-                                      )
-        except TypeError as e:
-            results = None
-            error = "Typeerror"
-        return results, error
-
     def post_generation(self, error, nodes, results):
         if not error:
             #TODO adaptive branching
@@ -1619,7 +1590,7 @@ class TreeModel:
         self.tree_updated(delete=[node['id'] for node in nodes])
 
     def default_generate(self, prompt, nodes):
-        results, error = self.gen(prompt, len(nodes))
+        results, error = gen(prompt, self.generation_settings)
         self.post_generation(error, nodes, results)
 
 

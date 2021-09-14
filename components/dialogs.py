@@ -11,7 +11,7 @@ from util.util_tree import search, node_ancestry
 from util.keybindings import tkinter_keybindings, special_keybindings
 from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
 from view.styles import textbox_config
-from view.templates import *
+from components.templates import *
 import math
 import json
 import codecs
@@ -1041,196 +1041,19 @@ class PreferencesDialog(Dialog):
 class GenerationSettingsDialog(Dialog):
     def __init__(self, parent, orig_params):
         self.orig_params = orig_params
-        self.vars = {
-            'num_continuations': tk.IntVar,
-            'temperature': tk.DoubleVar,
-            'top_p': tk.DoubleVar,
-            'response_length': tk.IntVar,
-            'prompt_length': tk.IntVar,
-            'logprobs': tk.IntVar,
-            #"adaptive": tk.BooleanVar,
-            "model": tk.StringVar,
-            "preset": tk.StringVar,
-            'stop': tk.StringVar,
-            'start': tk.StringVar,
-            'restart': tk.StringVar,
-            'global_context': tk.StringVar,
-            'logit_bias': tk.StringVar,
-            'template': tk.StringVar,
-            'post_template': tk.StringVar,
-        }
-        for key in self.vars.keys():
-            self.vars[key] = self.vars[key](value=orig_params[key])
-        #self.memory_textbox = None
-        self.textboxes = {'stop': None,
-                          'start': None,
-                          'restart': None,
-                          'logit_bias': None}
-        self.context_textbox = None
-        self.memory_label = None
-        self.template_label = None
-        self.template_filename_label = None
-        self.preset_dropdown = None
-
+        self.generation_control = FullGenerationSettings(orig_params)
         Dialog.__init__(self, parent, title="Generation Settings")
 
     # Creates sliders for each sensitivity slider
     def body(self, master):
-
-        create_combo_box(master, "Model", self.vars["model"], POSSIBLE_MODELS, width=20)
-
-        sliders = {
-            'num_continuations': (1, 20),
-            'temperature': (0., 1.),
-            'top_p': (0., 1.),
-            'response_length': (1, 1000),
-            'prompt_length': (100, 10000),
-            'logprobs': (0, 100),
-        }
-        for name, value_range in sliders.items():
-            create_slider(master, name, self.vars[name], value_range)
-
-
-        for name in self.textboxes:
-            self.create_textbox(master, name)
-    
-
-        row = master.grid_size()[1]
-        self.memory_label = create_label(master, "global context (prepended)", row)
-        self.context_textbox = TextAware(master, height=4)
-        self.context_textbox.grid(row=row+1, column=0, columnspan=2, padx=20)
-        self.context_textbox.configure(
-            foreground=text_color(),
-            background=bg_color(),
-            padx=3,
-            wrap="word",
-        )
-
-        self.set_textboxes()
-
-
-        row = master.grid_size()[1]
-        self.template_label = create_side_label(master, "template")
-        self.template_filename_label = create_side_label(master, self.vars['template'].get(), row, col = 1)
-        create_button(master, "Load prompt template", self.load_template)
-        self.vars['template'].trace("w", self.set_template)
-
-
-        row = master.grid_size()[1]
-        create_side_label(master, "preset", row)
-        
-        # load presets into options
-        with open('./config/presets.json') as f:
-            self.presets_dict = json.load(f)
-
-        # if custom presets json exists, also append it to presets dict and options
-        if os.path.isfile('./config/custom_presets.json'):
-            with open('./config/custom_presets.json') as f:
-                self.presets_dict.update(json.load(f))
-
-        # when the preset changes, apply the preset
-        self.vars['preset'].trace('w', self.apply_preset)
-
-        self.preset_dropdown = tk.OptionMenu(master, self.vars["preset"], "Select preset...")
-        self.preset_dropdown.grid(row=row, column=1, pady=3)
-        self.set_options()
-
-        create_button(master, "Save preset", self.save_preset)
-        create_button(master, "Reset", self.reset_variables)
-
-
-    def set_template(self, *args):
-        self.template_filename_label.config(text=self.vars['template'].get())
-
-    def load_template(self):
-        file_path = filedialog.askopenfilename(
-            initialdir="./config/prompts",
-            title="Select prompt template",
-            filetypes=[("Text files", ".txt")]
-        )
-        if file_path:
-            filename = os.path.splitext(os.path.basename(file_path))[0]
-            self.vars['template'].set(filename)
-        
-
-    # set presets dropdown options to presets in preset dict
-    def set_options(self):
-        options = [p['preset'] for p in self.presets_dict.values()]
-        menu = self.preset_dropdown['menu']
-        menu.delete(0, 'end')
-        for option in options:
-            menu.add_command(label=option, command=tk._setit(self.vars['preset'], option))
-
+        self.generation_control.body(master)
 
     def reset_variables(self):
-        for key, var in self.vars.items():
-            var.set(self.orig_params[key])
-        self.set_textboxes()
+        pass
 
-    def set_textboxes(self):
-        for name in self.textboxes:
-            self.textboxes[name].delete(1.0, "end")
-            self.textboxes[name].insert(1.0, self.get_text(name))
-        self.context_textbox.delete(1.0, "end")
-        self.context_textbox.insert(1.0, self.vars['global_context'].get())
-
-    def create_textbox(self, master, name):
-        row = master.grid_size()[1]
-        label_text = 'stop sequences (| delimited)' if name == 'stop' else 'logit bias (| delimited)' if name == 'logit_bias' else name + ' text'
-        create_side_label(master, label_text, row)
-        self.textboxes[name] = TextAware(master, height=1, width=20)
-        self.textboxes[name].grid(row=row, column=1)
-
-    def get_text(self, name):
-        decoded_string = codecs.decode(self.vars[name].get(), "unicode-escape")
-        repr_string = repr(decoded_string)
-        repr_noquotes = repr_string[1:-1]
-        return repr_noquotes
-
-    def get_vars(self):
-        params = {}
-        for key, var in self.vars.items():
-            try:
-                params[key] = var.get()
-            except AttributeError:
-                print(key)
-        for key in self.textboxes:
-            params[key] = self.textboxes[key].get(1.0, "end-1c")
-        params["global_context"] = self.context_textbox.get("1.0", "end-1c")
-        return params
-        
-
-    # Put the slider values into the result field
     def apply(self):
-        for key, value in self.get_vars().items():
-            self.orig_params[key] = value
+        self.generation_control.apply()
         self.result = self.orig_params
-
-    def apply_preset(self, *args):
-        new_preset = self.presets_dict[self.vars["preset"].get()]
-        for key, value in new_preset.items():
-            self.vars[key].set(value)
-        self.set_textboxes()
-
-    def save_preset(self, *args):
-        preset_name = tk.simpledialog.askstring("Save preset", "Enter preset name")
-        if preset_name is None:
-            return
-        
-        preset_dict = self.get_vars()
-        preset_dict['preset'] = preset_name
-        self.presets_dict[preset_name] = preset_dict
-
-        self.set_options()
-        self.vars['preset'].set(preset_name)
-
-        # append new presets to json
-        with open('./config/custom_presets.json') as f:
-            custom_dict = json.load(f)
-        custom_dict[preset_name] = self.presets_dict[preset_name]
-        with open('./config/custom_presets.json', 'w') as f:
-            json.dump(custom_dict, f)
-        
 
 
 class VisualizationSettingsDialog(Dialog):

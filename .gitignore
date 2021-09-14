@@ -4,6 +4,9 @@ data/*
 !data/prime_intellect.json
 !data/GPT_chat.json
 static/media
+config/custom_presets.json
+
+.DS_Store
 
 ### Python template
 # Byte-compiled / optimized / DLL files

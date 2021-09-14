@@ -6,6 +6,7 @@ from pprint import pprint
 from celery import Celery
 import openai
 from util.util import retry, timestamp
+from util.gpt_util import parse_logit_bias, parse_stop
 import requests
 
 
@@ -33,7 +34,7 @@ import requests
                        'token': string}
     'position': {'end': int, 'start': int}
     ? 'counterfactuals': [{'token': float)}]  
-
+}
 '''
 
 
@@ -57,6 +58,26 @@ POSSIBLE_MODELS = [
     'j1-jumbo',
 ]
 
+def gen(prompt, settings):
+    if settings["stop"]:
+        stop = parse_stop(settings["stop"])
+    else:
+        stop = None
+    if settings["logit_bias"]:
+        logit_bias = parse_logit_bias(settings["logit_bias"])
+    else:
+        logit_bias = None
+    response, error = generate(prompt=prompt,
+                               length=settings['response_length'],
+                               num_continuations=settings['num_continuations'],
+                               temperature=settings['temperature'],
+                               logprobs=settings['logprobs'],
+                               top_p=settings['top_p'],
+                               model=settings['model'],
+                               stop=stop,
+                               logit_bias=logit_bias,
+                               )
+    return response, error
 
 def generate(**kwargs):
     if kwargs['model'] in ('j1-large', 'j1-jumbo'):

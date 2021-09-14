@@ -23903,13 +23903,13 @@
         "eb5d6668-8e67-11eb-8c51-f9fb80f92515"
     ],
     "generation_settings": {
-        "num_continuations": 4,
-        "temperature": 0.9,
+        "num_continuations": 5,
+        "temperature": 0.69,
         "top_p": 1.0,
         "response_length": 100,
         "prompt_length": 6000,
         "logprobs": 0,
-        "model": "davinci",
+        "model": "curie",
         "stop": "",
         "start": "",
         "restart": "",
@@ -23949,13 +23949,13 @@
         "font_size": 12,
         "line_spacing": 8,
         "paragraph_spacing": 10,
-        "show_prompt": false,
         "log_diff": false,
         "autosave": true,
         "save_counterfactuals": false,
         "prob": true,
         "reverse": false,
         "nav_tag": "bookmark",
+        "show_prompt": false,
         "hide_archived": true,
         "highlight_canonical": true,
         "canonical_only": false,
@@ -23985,7 +23985,7 @@
             ]
         },
         "bottom_pane": {
-            "open": true,
+            "open": false,
             "modules": [
                 "children"
             ]
@@ -24033,6 +24033,11 @@
             "show_only": false,
             "toggle_key": "^",
             "icon": "pin-red"
+        }
+    },
+    "module_settings": {
+        "edit": {
+            "node_id": null
         }
     }
 }

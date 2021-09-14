@@ -4,13 +4,13 @@ from tkinter import ttk
 import PIL
 
 from view.tree_vis import TreeVis
-from view.block_multiverse import BlockMultiverse
+from components.block_multiverse import BlockMultiverse
 from util.custom_tks import TextAware, ScrollableFrame
 from view.colors import bg_color, text_color, edit_color, GREEN, BLUE
 from util.util import metadata
 from util.util_tree import num_descendents
 from view.panes import Pane, NestedPane
-from view.modules import *
+from components.modules import *
 from view.icons import Icons
 from view.styles import textbox_config
 from tkinter.font import Font
@@ -219,6 +219,8 @@ class Display:
         #textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
         #textbox.bind("<Alt_L><Button-1>", lambda event: self.select_token(txt=textbox))
         textbox.bind("<Button-3>", lambda event: self.open_menu(txt=textbox, event=event))
+        textbox.bind("<Button-2>", lambda event: self.open_menu(txt=textbox, event=event))
+        #textbox.bind("<Command-Button-1>", lambda event: self.open_menu(txt=textbox, event=event))
         textbox.bind("<Button-1>", lambda event: self.clear_selection_tags(textbox=textbox))
         textbox.bind("<Button-1>", lambda event: textbox.focus_set())
         textbox.pack(expand=True, fill='both')
@@ -239,14 +241,16 @@ class Display:
         textbox.tag_raise("sel")
         textbox.tag_raise("insert")
 
-
     def clear_selection_tags(self, textbox):
         #self.display.textbox.tag_remove("sel", "1.0", "end")
         textbox.tag_remove("insert", "1.0", "end")
         textbox.tag_remove("node_select", "1.0", "end")
 
+    def button_pressed(self, event):
+        print(event.keysym)
+
     def open_menu(self, txt, event):
-        txt.tag_remove("insert", "1.0", "end")
+        self.clear_selection_tags(txt)
         txt.tag_add("insert", txt.index(tk.CURRENT), txt.index(tk.CURRENT) + "+1c")
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
         self.callbacks["Textbox menu"]["callback"](char_index=char_index, tk_current=txt.index(tk.CURRENT), e=event)

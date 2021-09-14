@@ -8,10 +8,10 @@ from util.react import react_changes, unchanged
 from util.canvas_util import move_object
 from view.icons import Icons
 from view.styles import textbox_config
-from view.templates import *
+from components.templates import *
 from view.tree_vis import round_rectangle
 from pprint import pformat, pprint
-from gpt import completions_text
+from gpt import completions_text, gen
 import uuid
 import threading
 from tkinter.colorchooser import askcolor
@@ -561,7 +561,7 @@ class ReadChildren(Module):
         child_text = child_text if child_text else node['text'][:100]
         child_label = tk.Label(self.scroll_frame.scrollable_frame, text=child_text, bg=bg_color(), fg=text_color(), cursor='hand2', 
                                anchor='w', justify='left', font=('Georgia', 12),
-                               image=icons.get_icon('arrow-white', 18), compound=tk.LEFT, padx=10)
+                               image=icons.get_icon('arrow-white', 16), compound=tk.LEFT, padx=10)
         child_label.bind("<Button-1>", lambda event, node=node: self.callbacks["Select node"]["callback"](node=node))
         child_label.pack(side='top', fill='x', expand=True, pady=10)
         self.children.append(child_label)
@@ -586,7 +586,11 @@ class ReadChildren(Module):
 
 class JanusPlayground(Module):
     def __init__(self, parent, callbacks, state):
+        self.generation_frame = None
         self.pane = None
+        self.settings_frame = None
+        self.settings_control = None
+        self.inline_settings_control = None
         self.textbox_frame = None
         self.menu_frame = None
         self.insert_prompt_button = None
@@ -603,7 +607,11 @@ class JanusPlayground(Module):
 
     def build(self):
         Module.build(self)
-        self.pane = ttk.Panedwindow(self.frame, orient='vertical')
+        self.generation_frame = ttk.Frame(self.frame)
+        self.generation_frame.pack(side='left', fill='both', expand=True)
+        self.settings_frame = ttk.Frame(self.frame)
+        self.settings_frame.pack(side='left', fill='both', expand=True)
+        self.pane = ttk.Panedwindow(self.generation_frame, orient='vertical')
         self.pane.pack(side='top', fill='both', expand=True)
         self.textbox_frame = ttk.Frame(self.pane)
         self.pane.add(self.textbox_frame, weight=4)
@@ -632,39 +640,37 @@ class JanusPlayground(Module):
         self.export_button.pack(side='left', expand=True)
         self.settings_button = tk.Label(self.button_frame, image=icons.get_icon("settings-lightgray"), bg=bg_color(),
                                         cursor='hand2')
-        self.settings_button.bind("<Button-1>", self.settings)
+        self.settings_button.bind("<Button-1>", self.toggle_settings)
         self.settings_button.pack(side='left', expand=True)
         self.completions_frame = ttk.Frame(self.pane)
         self.pane.add(self.completions_frame, weight=1)
         self.completion_windows.body(self.completions_frame)
 
     def replace_selected_text(self, text):
-        #selected_text = self.textbox.get("sel.first", "sel.last")
         sel_first = self.textbox.index("sel.first")
         self.textbox.delete("sel.first", "sel.last")
         self.textbox.insert(sel_first, text)
-        
 
     def inline_generate(self, *args):
         # get text up to cursor
         prompt = self.textbox.get("1.0", "insert")
-        n = self.state.inline_generation_settings["num_continuations"]
-        threading.Thread(target=self.call_model_inline, args=(prompt, n)).start()
+        settings = self.state.inline_generation_settings
+        threading.Thread(target=self.call_model_inline, args=(prompt, settings)).start()
 
     def generate(self, *args):
         prompt = self.textbox.get("1.0", "end-1c")
-        n = self.state.generation_settings["num_continuations"]
-        threading.Thread(target=self.call_model, args=(prompt, n)).start()
+        settings = self.state.generation_settings
+        threading.Thread(target=self.call_model, args=(prompt, settings)).start()
 
-    def call_model_inline(self, prompt, n):
-        response, error = self.state.gen(prompt, n, inline=True)
+    def call_model_inline(self, prompt, settings):
+        response, error = gen(prompt, settings)
         response_text_list = completions_text(response)
         self.inline_completions = [completion for completion in response_text_list if completion] + [""]
         self.inserted_range = None
         self.insert_inline_completion()
 
-    def call_model(self, prompt, n):
-        response, error = self.state.gen(prompt, n)
+    def call_model(self, prompt, settings):
+        response, error = gen(prompt, settings)
         response_text_list = completions_text(response)
         for completion in response_text_list:
             self.completion_windows.open_window(completion)
@@ -699,15 +705,22 @@ class JanusPlayground(Module):
     def export(self, *args):
         pass
 
-    def settings(self, *args):
-        pass
+    # TODO this goes off the side
+    def toggle_settings(self, *args):
+        if not self.settings_control:
+            print('opening settings')
+            self.settings_control = GenerationSettings(orig_settings=self.state.generation_settings,
+                                                    realtime_update=True)
+            self.settings_control.body(master=self.settings_frame)
+        else:
+            self.settings_control.destroy()
+            self.settings_control = None
+
 
     def insert_prompt(self, *args):
         prompt = self.callbacks["Prompt"]["callback"]()
         self.textbox.delete("1.0", "end")
         self.textbox.insert("1.0", prompt)
-
-
 
 
 class TextEditor(Module):
@@ -1257,7 +1270,7 @@ class Transformers(Module):
         self.input_editors = {}
         self.inputs = {}
         self.inputs_frame = None
-        self.template_frame = None
+        #self.template_frame = None
         self.template = None
         self.template_editor = None
         self.prompt = None
@@ -1277,55 +1290,59 @@ class Transformers(Module):
         
     def build(self):
         Module.build(self)
-        self.scroll_frame = ScrollableFrame(self.frame)
-        self.scroll_frame.pack(side='top', fill='both', expand=True)
+        #self.scroll_frame = ScrollableFrame(self.frame, height=500)
+        #self.scroll_frame.pack(side='top', fill='both', expand=True)
         #self.frame.bind("<Button-1>", lambda e: self.frame.focus)
         self.generation_settings = self.state.generation_settings
-        self.buttons_frame = tk.Frame(self.scroll_frame.scrollable_frame, bg=bg_color())
+        self.buttons_frame = tk.Frame(self.frame, bg=bg_color())
         self.buttons_frame.pack(side='top', fill='x', expand=False)
         self.load_template_button = tk.Button(self.buttons_frame, text="Load template", command=self.load_template)
         self.load_template_button.pack(side='left')
         self.save_template_button = tk.Button(self.buttons_frame, text="Save template", command=self.save_template)
         self.save_template_button.pack(side='left')
 
-        self.inputs_frame = tk.Frame(self.scroll_frame.scrollable_frame, bg=bg_color())
+        self.inputs_frame = tk.Frame(self.frame, bg=bg_color())
         self.inputs_frame.pack(side='top', fill='both', expand=True)
 
-        self.template_frame = tk.Frame(self.scroll_frame.scrollable_frame, bg=bg_color())
-        self.template_frame.pack(side='top', fill='both', expand=True)
-        self.template_editor = TextAttribute(master=self.template_frame, attribute_name="template", 
+        self.template_editor = TextAttribute(master=self.frame, attribute_name="template", 
                                              read_callback=lambda: self.read_template(), 
                                              write_callback=lambda text: self.write_template(text=text), 
                                              height=4, 
                                              expand=True, parent_module=self)
         self.template_editor.pack(side='top', fill='both', expand=True)
 
-        self.prompt_frame = CollapsableFrame(self.scroll_frame.scrollable_frame, title='prompt', expand=True, bg=bg_color())
+        self.prompt_frame = CollapsableFrame(self.frame, title='prompt', expand=True, bg=bg_color())
         self.prompt_frame.pack(side='top', fill='both', expand=True)
-        # self.prompt_label = tk.Label(self.scroll_frame.scrollable_frame, text="prompt", bg=bg_color(), fg=text_color())
-        # self.prompt_label.pack(side='top', fill='x')
-        self.prompt_literal_textbox = TextAware(self.prompt_frame.collapsable_frame, bd=2, height=3, undo=True, relief='raised')
+
+        self.prompt_literal_textbox = TextAware(self.prompt_frame.collapsable_frame, bd=2, height=3, undo=True,
+                                                relief='raised')
         self.prompt_literal_textbox.pack(side='top', fill='both', expand=True)
         self.prompt_literal_textbox.configure(**textbox_config())
         self.prompt_literal_textbox.configure(state='disabled')
 
-        self.generation_settings_frame = CollapsableFrame(self.scroll_frame.scrollable_frame, title='Generation settings', default_visible=False,
-                                                          bg=bg_color())
-        self.generation_settings_dashboard = GenerationSettings(orig_settings=self.generation_settings, realtime_update=True, parent_module=self)
+        self.generation_settings_frame = CollapsableFrame(self.frame, title='Generation settings', bg=bg_color())
+        self.generation_settings_dashboard = GenerationSettings(orig_settings=self.generation_settings,
+                                                                realtime_update=True, parent_module=self)
         self.generation_settings_dashboard.body(self.generation_settings_frame.collapsable_frame)
         self.generation_settings_frame.pack(side='top', fill='both', expand=True)
 
-        self.generate_button = tk.Button(self.scroll_frame.scrollable_frame, text="Generate", command=self.generate)
+        self.generate_button = tk.Button(self.frame, text="Generate", command=self.generate)
         self.generate_button.pack(side='top', expand=False)
         
-        self.completions_frame = tk.Frame(self.scroll_frame.scrollable_frame, bg=bg_color())
+        self.completions_frame = CollapsableFrame(self.frame, title='Completions', bg=bg_color())
+        self.completion_windows = Windows(buttons=['close', 'save'])
+        self.completion_windows.body(self.completions_frame.collapsable_frame)
         self.completions_frame.pack(side='top', fill='both', expand=True)
+
+        self.generation_settings_frame.hide()
+        self.completions_frame.hide()
+
         # self.completion_windows.body(self.completions_frame)
         self.load_default_template()
 
     def load_default_template(self):
         default_tempate = {
-            'inputs': [ 'input' ],
+            'inputs': ['input'],
             'template': '{inputs["input"]}',
             'generation_settings': { 'model': 'curie' }
         }
@@ -1337,21 +1354,18 @@ class Transformers(Module):
             self.template['inputs'].remove(input)
         self.inputs = {}
         self.input_editors = {}
-        # if self.template_editor:
-        #     self.template_editor.destroy()
-        # self.template_editor = None
         self.template = None
 
     def open_template(self, template):
-        '''
+        """
         template format:
         {
             inputs: [ string ]
             template: f-string
-            generation_settings {}
+            generation_settings: {}
 
         }
-        '''
+        """
         self.reset()
         self.template = template
         self.set_empty_inputs()
@@ -1367,7 +1381,6 @@ class Transformers(Module):
 
         self.read_all()
         self.update_prompt()
-
 
     def set_empty_inputs(self):
         for input in self.template['inputs']:
@@ -1400,6 +1413,7 @@ class Transformers(Module):
         for input in self.input_editors:
             self.input_editors[input].read()
         self.template_editor.read()
+        self.template_editor.textbox.see(tk.END)
         self.read_generation_settings()
 
     def write_all(self):
@@ -1430,7 +1444,6 @@ class Transformers(Module):
     def update_prompt(self, *args):
         # TODO database
         inputs = self.inputs 
-        # TODO catch
         try:
             self.prompt = eval(f'f"""{self.template["template"]}"""')
         except KeyError as e:
@@ -1440,6 +1453,7 @@ class Transformers(Module):
         self.prompt_literal_textbox.delete(1.0, tk.END)
         self.prompt_literal_textbox.insert(tk.END, self.prompt)
         self.prompt_literal_textbox.configure(state='disabled')
+        self.prompt_literal_textbox.see(tk.END)
 
     def open_template_file(self, file_path):
         with open(file_path) as f:
@@ -1471,17 +1485,6 @@ class Transformers(Module):
         self.inputs = inputs
         self.read_all()
 
-    def build_completion_windows(self):
-        self.completion_windows = Windows(buttons=['close', 'save'])
-        self.completion_windows.body(self.completions_frame)
-
-    def destroy_completion_windows(self):
-        self.completion_windows.destroy()
-        self.completion_windows = None
-    
-    def hide_completion_windows(self):
-        pass
-
     def generate(self):
         self.write_all()
         prompt = self.prompt
@@ -1491,7 +1494,6 @@ class Transformers(Module):
     def call_model(self, prompt, n):
         response, error = self.state.gen(prompt, n)
         response_text_list = completions_text(response)
-        if not self.completion_windows:
-            self.build_completion_windows()
+        self.completions_frame.show()
         for completion in response_text_list:
             self.completion_windows.open_window(completion)
