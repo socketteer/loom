@@ -1,0 +1,36 @@
+{"read": {
+    "workspace": {
+        "side_pane": {
+            "open": true, 
+            "modules": ["minimap"]
+            },
+        "bottom_pane": {
+            "open": true, 
+            "modules": ["read children"]
+            },
+        "buttons": ["Next", "Prev"]
+        }
+    },
+"write": {
+    "workspace": {
+        "side_pane": {
+            "open": true, 
+            "modules": ["edit", "generation settings"]
+            },
+        "bottom_pane": {
+            "open": true, 
+            "modules": ["children"]
+            },
+        "buttons": ["Delete", "Edit", "Children", "New Child", "Next", "Prev"]
+        }
+    },
+"chat": {
+    "workspace": {
+        "bottom_pane": {
+            "open": true, 
+            "modules": ["input"]
+            },
+        "buttons": ["Edit", "Retry", "Undo"]
+        }
+    }
+}

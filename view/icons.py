@@ -18,12 +18,15 @@ class Icons:
         return self.icons[icon_name]['icon'] 
 
     def init_icons(self):
+        # for all png files in ./static/icons
         for filename in os.listdir("./static/icons/program_icons"):
-            icon_name = os.path.splitext(filename)[0]
-            self.init_icon(icon_name, 'program_icons/' + filename, 16)
+            if filename.endswith(".png"):
+                icon_name = os.path.splitext(filename)[0]
+                self.init_icon(icon_name, 'program_icons/' + filename, 16)
         for filename in os.listdir("./static/icons/tag_icons"):
-            icon_name = os.path.splitext(filename)[0]
-            self.init_icon(icon_name, 'tag_icons/' + filename, 16)
+            if filename.endswith(".png"):
+                icon_name = os.path.splitext(filename)[0]
+                self.init_icon(icon_name, 'tag_icons/' + filename, 16)
 
 
 # icons_class = Icons()

@@ -16,6 +16,7 @@ from pprint import pprint
 from random import shuffle
 from util.gpt_util import tokenize_ada
 import difflib
+import re
 
 import numpy as np
 import pandas as pd
@@ -65,6 +66,17 @@ def remove_whitespace(x):
     return x.translate(str.maketrans('', '', string.whitespace))
 
 
+def split_text(text, d):
+    if not text:
+        return []
+    word_list = text.split(d)
+    if word_list[0] == '':
+        token_list = []
+    else:
+        token_list = [word_list[0]]
+    return token_list + [d+e for e in word_list[1:] if e]
+
+
 # String class which can be formatted with brackets other than {}
 class FString:
     def __init__(self, s, brackets="<>"):
@@ -100,7 +112,7 @@ def split_indices(s):
     """Splits a string on whitespaces and records the indices of each in the original string.
     @:return generator((word, (start_idx, end_idx)), ...)
     """
-    return ((m.group(0), (m.start(), m.end() - 1)) for m in re.finditer(r'\S+', s))
+    return ((m.group(0), (m.start(), m.end())) for m in re.finditer(r'\S+', s))
 
 
 def word_ngrams(s, n):

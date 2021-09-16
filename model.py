@@ -12,6 +12,8 @@ from collections import defaultdict, ChainMap
 from multiprocessing.pool import ThreadPool
 import codecs
 import json
+from util.frames_util import frame_merger, frame_merger_append
+from copy import deepcopy
 
 from gpt import openAI_generate, search, gen
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
@@ -61,12 +63,10 @@ DEFAULT_PREFERENCES = {
 
 DEFAULT_WORKSPACE = {
     'side_pane': {'open': False, 
-                  'modules': ['notes']},
+                  'modules': []},
     'bottom_pane': {'open': False, 
-                    'modules': ['children']},
-    # 'input_box': False,
-    # 'debug_box': False,
-    # 'show_children': False,
+                    'modules': []},
+    'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev"],
     'alt_textbox': False,
     'show_search': False
 }
@@ -234,21 +234,7 @@ class TreeModel:
 
     @property
     def preferences(self):
-        return self.tree_raw_data.get("preferences") \
-            if self.tree_raw_data and "preferences" in self.tree_raw_data \
-            else DEFAULT_PREFERENCES
-
-    @property
-    def workspace(self):
-        return self.tree_raw_data.get("workspace") \
-            if self.tree_raw_data and "workspace" in self.tree_raw_data \
-            else DEFAULT_WORKSPACE
-
-    @property
-    def module_settings(self):
-        return self.tree_raw_data.get("module_settings") \
-            if self.tree_raw_data and "module_settings" in self.tree_raw_data \
-            else DEFAULT_MODULE_SETTINGS
+        return self.state['preferences']
 
     @property
     def tags(self):
@@ -256,9 +242,94 @@ class TreeModel:
             if self.tree_raw_data and "tags" in self.tree_raw_data \
             else DEFAULT_TAGS
 
+    @property
+    def module_settings(self):
+        return self.state['module_settings']
+
+    @property
+    def workspace(self):
+        return self.state['workspace']
+    
+    @property
+    def user_workspace(self):
+        return self.user_state.get("workspace") \
+            if "workspace" in self.user_state \
+            else {}
+
+    @property
+    def user_state(self):
+        return self.tree_raw_data.get("user_state") \
+            if self.tree_raw_data and "user_state" in self.tree_raw_data \
+            else {}
+
+    @property
+    def state(self):
+        state = {}
+        state["preferences"] = deepcopy(DEFAULT_PREFERENCES)
+        state["workspace"] = deepcopy(DEFAULT_WORKSPACE)
+        state["module_settings"] = deepcopy(DEFAULT_MODULE_SETTINGS) 
+        frames = self.accumulate_frames(self.selected_node)
+        frame_merger.merge(state, frames)
+        frame_merger.merge(state, self.user_state)
+        return state
+
 
     def name(self):
         return os.path.splitext(os.path.basename(self.tree_filename))[0] if self.tree_filename else 'Untitled'
+
+    #################################
+    #   Frames
+    #################################
+    """
+    Frames are updates to the state applied by nodes in the tree. 
+    At any node in the multiverse, the state of the tree is the accumulation of all frames from its ancestry, 
+    applied in chronological order (the future can override the past).
+    A frame is a dictionary which is merged into the state of the tree using deepmerge.
+    """
+
+    def accumulate_frames(self, node):
+        frames = []
+        for ancestor in self.ancestry(node):
+            if 'frame' in ancestor:
+                frames.append(ancestor['frame'])
+        frame_accumulator = {}
+        for frame in frames:
+            frame_merger.merge(frame_accumulator, deepcopy(frame))
+        return frame_accumulator
+
+    def set_frame(self, node, frame):
+        node['frame'] = deepcopy(frame)
+
+    def update_frame(self, node, frame):
+        if 'frame' in node:
+            frame_merger.merge(node['frame'], deepcopy(frame))
+        else:
+            node['frame'] = deepcopy(frame)
+
+    def get_frame(self, node):
+        return node.get('frame', {})
+
+    def set_user_state(self, state):
+        self.tree_raw_data['user_state'] = deepcopy(state)
+
+    def update_user_state(self, update, append=False):
+        if 'user_state' in self.tree_raw_data:
+            if append:
+                frame_merger_append.merge(self.tree_raw_data['user_state'], deepcopy(update))
+            else:
+                frame_merger.merge(self.tree_raw_data['user_state'], deepcopy(update))
+        else:
+            self.tree_raw_data['user_state'] = deepcopy(update)
+        self.tree_updated()
+
+    def clear_user_state(self):
+        self.set_user_state({})
+        self.tree_updated()
+
+    def save_user_state_as_frame(self):
+        # saves current user settings as a frame at the selected node
+        self.set_frame(self.selected_node, self.user_state)
+        self.clear_user_state()
 
     #################################
     #   Hooks
@@ -1329,6 +1400,13 @@ class TreeModel:
             **self.tree_raw_data.get("generation_settings", {})
         }
 
+        self.tree_raw_data["inline_generation_settings"] = {
+            **DEFAULT_INLINE_GENERATION_SETTINGS.copy(),
+            **self.tree_raw_data.get("inline_generation_settings", {})
+        }
+
+        self.tree_raw_data["user_state"] = self.tree_raw_data.get("user_state", {})
+
         # View settings # TODO If there are more of these, reduce duplication
         self.tree_raw_data["visualization_settings"] = {
             **DEFAULT_VISUALIZATION_SETTINGS.copy(),
@@ -1338,11 +1416,6 @@ class TreeModel:
         self.tree_raw_data["preferences"] = {
             **DEFAULT_PREFERENCES.copy(),
             **self.tree_raw_data.get("preferences", {})
-        }
-
-        self.tree_raw_data["workspace"] = {
-            **DEFAULT_WORKSPACE.copy(),
-            **self.tree_raw_data.get("workspace", {})
         }
 
         self.tree_raw_data["module_settings"] = {
@@ -1378,6 +1451,11 @@ class TreeModel:
         new_tree["generation_settings"] = {
             **DEFAULT_GENERATION_SETTINGS.copy(),
             **self.tree_raw_data.get("generation_settings", {})
+        }
+
+        new_tree["inline_generation_settings"] = {
+            **DEFAULT_INLINE_GENERATION_SETTINGS.copy(),
+            **self.tree_raw_data.get("inline_generation_settings", {})
         }
 
         # View settings # TODO If there are more of these, reduce duplication
@@ -1764,7 +1842,7 @@ class TreeModel:
 
         # After asking for the generation, set loading text
         for child in children:
-            child["text"] = "\n\n** Generating **"
+            child["text"] = "\n\n** Generating **" if 'placeholder' not in kwargs else kwargs['placeholder']
         # for grandchild in grandchildren:
         #     grandchild["text"] = "\n\n** Generating **"
         self.tree_updated(edit=new_nodes)
@@ -2099,8 +2177,5 @@ class TreeModel:
         json_create(os.path.join(backup_dir, f"model_responses-{timestamp()}.json"), self.tree_raw_data['model_responses'])
         self.tree_raw_data['model_responses'] = {}
 
-        
-    def reset_workspace(self):
-        self.tree_raw_data['workspace'] = DEFAULT_WORKSPACE
-        self.tree_updated()
+    
         

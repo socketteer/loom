@@ -236,7 +236,6 @@
 
 - children
     - "hidden children" should include blacklisted windows
-    - fast version for read mode
 
 - pane with no modules should automatically close
 
@@ -269,6 +268,13 @@
 - zip chain (but not zip all) broken
 
 - override even meta hotkeys in modules
+
+- adjust selection
+    - remove trailing space or begnning of word depending on what's closer
+    
+- eval prompt
+
+- what to do about prompts that are cut off?
 
 ## Other TODO
 

@@ -243,6 +243,38 @@ class Controller:
 
 
 
+    @metadata(name='Debug', keys=["<Control-Shift-KeyPress-D>"])
+    def debug(self, event=None):
+        self.display.textbox.fix_selection()
+
+    # @metadata(name='Generate', keys=["<Control-G>", "<Control-KeyPress-G>"])
+    # def generate(self, event=None):
+    #     self.generate_dialog()
+
+    @metadata(name='View summaries', keys=["<Control-KeyPress-V>"])
+    def view_summaries(self, event=None):
+        self.view_summaries_dialog()
+
+    @metadata(name='AI Memory', keys=["<Control-KeyPress-M>"])
+    def ai_memory(self, event=None):
+        self.ai_memory_dialog()
+
+    @metadata(name='Create memory', keys=["<Control-KeyPress-M>"])
+    def add_memory(self, event=None):
+        self.add_memory_dialog()
+
+    @metadata(name='Node memory', keys=["<Alt-KeyPress-M>"])
+    def node_memory(self, event=None):
+        self.node_memory_dialog()
+
+    @metadata(name='Search ancestry', keys=["<Control-KeyPress-F>"])
+    def search_ancestry(self, event=None):
+        self.search_ancestry_dialog()
+
+    @metadata(name='Search tree', keys=["<Control-Shift-KeyPress-F>"])
+    def search(self, event=None):
+        self.search_dialog()
+
     #################################
     #   Navigation
     #################################
@@ -359,7 +391,9 @@ class Controller:
     def update_read_color(self, old_node, node):
         if self.display.mode == 'Read':
             nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
-            nca_end_index = self.ancestor_end_indices[index]
+            ancestor_indices = self.state.ancestor_text_indices(self.state.selected_node)
+            ancestor_end_indices = [ind[1] for ind in ancestor_indices]
+            nca_end_index = ancestor_end_indices[index]
             self.display.textbox.tag_delete("old")
             self.display.textbox.tag_add("old",
                                          "1.0",
@@ -410,6 +444,12 @@ class Controller:
         if self.undo_history:
             self.nav_history.append(self.state.selected_node_id)
             self.state.select_node(self.undo_history.pop())
+
+    @metadata(name="Undo")
+    def undo_action(self):
+        # this simply navigates to the parent
+        self.parent(node=self.state.selected_node)
+
 
     #################################
     #   Getters
@@ -585,6 +625,12 @@ class Controller:
                 print(str(e))
             self.state.generate_continuations(node=node, **kwargs)
 
+    @metadata(name="Retry")
+    def retry(self, node=None):
+        # if node has a next sibling, select it
+        # otherwise, navigate to parent, generate again, and select first newly generated node
+        pass
+
     def propagate_wavefunction(self):
         if self.display.mode == "Multiverse":
             if self.display.multiverse.active_wavefunction():
@@ -603,13 +649,6 @@ class Controller:
             self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth,
                                                     start_position=start_position, prompt=prompt)
 
-    # def propagage_wavefunction_realtime(self):
-    #     if self.display.mode == "Multiverse":
-    #         self.display.multiverse.propagate_realtime(prompt=self.state.build_prompt(quiet=True),
-    #                                                    max_depth=3,
-    #                                                    threshold=0.01,
-    #                                                    engine='ada')
-
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
     def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node?"):
@@ -623,7 +662,7 @@ class Controller:
             result = messagebox.askquestion("Delete", ask_text, icon='warning')
             if result != 'yes':
                 return False
-        next_sibling = self.state.sibling(node, wrap=False)
+        next_sibling = self.state.sibling(node, wrap=False, filter=self.in_nav)
         self.state.delete_node(node=node, reassign_children=reassign_children)
         if self.state.selected_node_id == node['id']:
             self.select_node(next_sibling)
@@ -715,6 +754,12 @@ class Controller:
         menu.add_command(label="Edit", command=lambda: self.edit_in_module(clicked_node))
         menu.add_command(label="Split", command=lambda: self.split_node(char_index, change_selection=True))
         menu.add_command(label="Generate")
+        menu.add_command(label="Add memory")
+        mask_menu = tk.Menu(menu, tearoff=0)
+        mask_menu.add_command(label="Mask from AI")
+        mask_menu.add_command(label="Mask from reader")
+        mask_menu.add_command(label="Custom mask")
+        menu.add_cascade(label="Mask", menu=mask_menu)
         
         # if there is text selected
         if self.display.textbox.tag_ranges("sel"):
@@ -825,6 +870,7 @@ class Controller:
         self.display.textbox.select_range(start_text_index, end_text_index)
 
     def open_selection_in_transformer(self, template=None):
+        self.display.textbox.fix_selection()
         inputs = self.display.textbox.selected_inputs()
         self.open_in_transformer(inputs, template)
 
@@ -1006,8 +1052,10 @@ class Controller:
         return self.search_textbox.meta['matches'] is not None
 
     def toggle_search(self, toggle=None):
+        print('controller: toggle_search')
         toggle = not self.state.workspace['show_search'] if not toggle else toggle
-        self.state.workspace['show_search'] = toggle
+        self.state.update_user_state(update={'workspace': {'show_search': toggle}})
+        #self.state.user_workspace['show_search'] = toggle
         if toggle:
             self.display.open_search()
         else:
@@ -1168,7 +1216,7 @@ class Controller:
         self.toggle_edit_mode(override_focus=True)
 
     # Enters edit mode or exits either edit mode
-    @metadata(name="Edit Toggle", keys=["<e>", "<Control-e>"], display_key="e")
+    @metadata(name="Edit Toggle", keys=["<Key-e>", "<Control-e>"], display_key="e")
     def toggle_edit_mode(self, to_edit_mode=None, override_focus=False):
         if not self.state.is_mutable(self.state.selected_node):
             self.immutable_popup(self.state.selected_node)
@@ -1233,6 +1281,8 @@ class Controller:
         self.refresh_visualization()
         self.refresh_textbox()
         self.refresh_display()
+
+
 
     #################################
     #   Edit
@@ -1666,41 +1716,21 @@ class Controller:
     #     for entry in results['data']:
     #         print(entry['score'])
 
+
     #################################
-    #   Frames
+    #   Modules
     #################################
-
-    @metadata(name="Submit", keys=[], display_key="")
-    def submit(self, text):
-        if text:
-            new_text = self.state.submit_modifications(text)
-            new_child = self.create_child(toggle_edit=False)
-            new_child['text'] = new_text
-            self.state.tree_updated(add=[new_child['id']])
-        
-        if self.state.preferences['auto_response']:
-            self.generate()
-
-    @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
-    def toggle_input_box(self):
-        self.toggle_module("bottom_pane", "input")
-    
-    @metadata(name="Toggle debug", keys=["<Control-Shift-KeyPress-D>"], display_key="")
-    def toggle_debug_box(self):
-        self.toggle_module("bottom_pane", "debug")
-
-    @metadata(name="Children", keys=["<Command-c>", "<Alt-c>"], display_key="")
-    def toggle_show_children(self, toggle='either'):
-        self.toggle_module("bottom_pane", "children")
 
     def open_module(self, pane_name, module_name):
-        self.state.workspace[pane_name]['open'] = True
+        #print('controller: open_module')
+        #self.state.workspace[pane_name]['open'] = True
+        if not self.state.workspace[pane_name]['open']:
+            self.state.update_user_state({'workspace': {pane_name: {'open': True}}})
         if module_name not in self.state.workspace[pane_name]['modules']:
-            self.state.workspace[pane_name]['modules'].append(module_name)
-        self.refresh_workspace()
-
-    def close_pane(self, pane_name):
-        self.state.workspace[pane_name]['open'] = False
+            #self.state.user_workspace[pane_name]['modules'].append(module_name)
+            # TODO this only appends to frame, doesn't append during accumulation
+            self.state.update_user_state({'workspace': {pane_name: {'modules': [module_name]}}}, append=True)
+            #print(self.state.workspace)
         self.refresh_workspace()
 
     def toggle_module(self, pane_name, module_name):
@@ -1709,6 +1739,66 @@ class Controller:
         else:
             self.open_module(pane_name, module_name)
         self.refresh_workspace()
+
+    def open_pane(self, pane_name):
+        #print('controller: open_pane')
+        self.state.update_user_state({'workspace': {pane_name: {'open': True}}})
+        #print('1', self.state.workspace)
+        self.refresh_workspace()
+
+    def close_pane(self, pane_name):
+        #print('controller: close_pane')
+        self.state.update_user_state({'workspace': {pane_name: {'open': False}}})
+        self.refresh_workspace()
+
+    @metadata(name="Side pane", keys=["<Command-p>", "<Alt-p>"], display_key="")
+    def toggle_side(self, toggle='either'):
+        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['side_pane']['open']):
+            self.open_pane("side_pane")
+        else:
+            self.close_pane('side_pane')
+
+    @metadata(name="Toggle bottom pane", keys=["<Command-b>", "<Alt-b>"], display_key="")
+    def toggle_bottom(self, toggle='either'):
+        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['bottom_pane']['open']):
+            self.open_pane("bottom_pane")
+        else:
+            self.close_pane('bottom_pane')
+
+    # this only builds the workspace according to state - doesn't set workspace state
+    def refresh_workspace(self):
+        for pane in self.display.panes:
+            if self.state.workspace[pane]["open"]:
+                if not self.display.pane_open(pane):
+                    self.display.open_pane(pane)
+                #print(self.state.workspace[pane]["modules"])
+                self.display.update_modules(pane, self.state.workspace[pane]["modules"])
+            else:
+                self.display.close_pane(pane)
+        self.display.configure_buttons(visible_buttons=self.state.workspace['buttons'])
+
+
+    @metadata(name="Submit", keys=[], display_key="")
+    def submit(self, text):
+        if text:
+            #new_text = self.state.submit_modifications(text)
+            new_child = self.create_child(toggle_edit=False)
+            new_child['text'] = text
+            self.state.tree_updated(add=[new_child['id']])    
+        if self.state.preferences['auto_response']:
+            self.generate(update_selection=True, placeholder="\n\t\t\t\t...typing...")
+
+    @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
+    def toggle_input_box(self):
+        self.toggle_module("bottom_pane", "input")
+    
+    @metadata(name="Toggle debug", display_key="")
+    def toggle_debug_box(self):
+        self.toggle_module("bottom_pane", "debug")
+
+    @metadata(name="Children")#, keys=["<Command-c>", "<Alt-c>"], display_key="")
+    def toggle_show_children(self, toggle='either'):
+        self.toggle_module("bottom_pane", "children")
 
     @metadata(name="Show hidden children")
     def show_hidden_children(self, node=None):
@@ -1976,14 +2066,6 @@ class Controller:
         self.configure_nav_tags()
         self.refresh_workspace()
 
-    def refresh_workspace(self):
-        for pane in self.display.panes:
-            if self.state.workspace[pane]["open"]:
-                self.display.open_pane(pane)
-                for i in range(len(self.state.workspace[pane]['modules'])):
-                    self.display.set_module(pane, i, self.state.workspace[pane]['modules'][i])
-            else:
-                self.display.destroy_pane(pane)
 
     def refresh_alt_textbox(self, **kwargs):
         # open alt textbox if node has "alt" attribute
@@ -2032,23 +2114,6 @@ class Controller:
             self.display.multiverse.clear_multiverse()
 
 
-    #################################
-    #   Modules
-    #################################
-
-    @metadata(name="Side pane", keys=["<Command-p>", "<Alt-p>"], display_key="")
-    def toggle_side(self, toggle='either'):
-        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['side_pane']['open']):
-            self.display.open_pane("side_pane")
-        else:
-            self.display.destroy_pane('side_pane')
-
-    @metadata(name="Toggle bottom pane", keys=["<Command-b>", "<Alt-b>"], display_key="")
-    def toggle_bottom(self, toggle='either'):
-        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['bottom_pane']['open']):
-            self.display.open_pane("bottom_pane")
-        else:
-            self.display.destroy_pane('bottom_pane')
 
     #################################
     #   Navtree
@@ -2104,9 +2169,11 @@ class Controller:
         if parent_id:
             if not self.in_nav(self.state.node(parent_id)):
                 if not self.state.visible(self.state.node(parent_id)):
-                    parent_id = self.state.root()['id']
+                    #parent_id = self.state.root()['id']
+                    return
                 else:
-                    print('parent not in nav but visible')
+                    #print('parent not in nav but visible')
+                    return
         self.display.nav_tree.insert(
             parent=parent_id,
             index=insert_idx,#0 if self.state.preferences.get('reverse', False) else "end",
@@ -2349,9 +2416,9 @@ class Controller:
     def configure_buttons(self):
         if self.state.selected_node:
             if not self.state.is_mutable(self.state.selected_node):
-                self.display.edit_button.configure(state='disabled')
+                self.display.buttons["Edit"].configure(state='disabled')
             else:
-                self.display.edit_button.configure(state='normal')
+                self.display.buttons["Edit"].configure(state='normal')
             if self.state.is_root(self.state.selected_node):
                 self.display.hoist_button.configure(state='disabled')
             else:
@@ -2386,7 +2453,7 @@ class Controller:
         if code_string:
             result = eval(code_string)
             print(result)
-            self.print_to_debug(result)
+            #self.print_to_debug(result)
             # try:
             #     result = eval(code_string)
             #     self.print_to_debug(message=result)

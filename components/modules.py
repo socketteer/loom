@@ -6,8 +6,9 @@ from util.custom_tks import TextAware
 from util.util_tree import tree_subset, limited_branching_tree
 from util.react import react_changes, unchanged
 from util.canvas_util import move_object
+from util.gpt_util import logprobs_to_probs
 from view.icons import Icons
-from view.styles import textbox_config
+from view.styles import textbox_config, code_textbox_config
 from components.templates import *
 from view.tree_vis import round_rectangle
 from pprint import pformat, pprint
@@ -29,7 +30,7 @@ class Paint(Module):
     DEFAULT_COLOR = 'black'
 
 
-    def __init__(self, parent, callbacks, state):
+    def __init__(self, callbacks, state):
         self.root = None
         self.undo_button = None
         self.redo_button = None
@@ -60,10 +61,10 @@ class Paint(Module):
         self.layers_frame = None
         working_dir = str(os.getcwd())
         self.blank_file = os.path.join(working_dir, "static/media/blank.png")
-        Module.__init__(self, 'paint', parent, callbacks, state)
+        Module.__init__(self, 'paint', callbacks, state)
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.root = tk.Frame(self.frame, bg=bg_color())
         self.root.pack(side="left", fill="both", expand=True)
 
@@ -433,16 +434,16 @@ class Paint(Module):
 
 
 class Notes(Module):
-    def __init__(self, parent, callbacks, state):
+    def __init__(self, callbacks, state):
         self.menu_frame = None
         self.new_note_button = None
         self.pinned_frame = None
         self.notes_frame = None
         self.notes = NodeWindows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], init_height=1)
-        Module.__init__(self, 'notes', parent, callbacks, state)
+        Module.__init__(self, 'notes', callbacks, state)
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.menu_frame = ttk.Frame(self.frame)
         self.menu_frame.pack(side='top')
         self.new_note_button = tk.Label(self.menu_frame, image=icons.get_icon("plus-lightgray"), bg=bg_color(), cursor='hand2')
@@ -472,7 +473,7 @@ class Notes(Module):
 
 
 class Children(Module):
-    def __init__(self, parent, callbacks, state):
+    def __init__(self, callbacks, state):
         self.menu_frame = None
         self.children = NodeWindows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'], 
                                buttons_visible=True, 
@@ -481,10 +482,10 @@ class Children(Module):
         self.add_child_button = None
         self.toggle_hidden_button = None
         self.show_hidden = False
-        Module.__init__(self, 'children', parent, callbacks, state)
+        Module.__init__(self, 'children', callbacks, state)
  
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.children.body(self.frame)
         self.menu_frame = ttk.Frame(self.frame)
         self.menu_frame.pack(side='bottom')
@@ -545,13 +546,13 @@ class Children(Module):
 
 
 class ReadChildren(Module):
-    def __init__(self, parent, callbacks, state):
+    def __init__(self, callbacks, state):
         self.children = []
         self.scroll_frame = None
-        Module.__init__(self, 'read children', parent, callbacks, state)
+        Module.__init__(self, 'read children', callbacks, state)
     
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.scroll_frame = ScrollableFrame(self.frame)
         self.scroll_frame.pack(side='top', fill='both', expand=True)
         self.refresh()
@@ -585,7 +586,7 @@ class ReadChildren(Module):
 
 
 class JanusPlayground(Module):
-    def __init__(self, parent, callbacks, state):
+    def __init__(self, callbacks, state):
         self.generation_frame = None
         self.pane = None
         self.settings_frame = None
@@ -595,6 +596,7 @@ class JanusPlayground(Module):
         self.menu_frame = None
         self.insert_prompt_button = None
         self.generate_button = None
+        self.eval_prompt_button = None
         self.export_button = None
         self.settings_button = None
         self.completions_frame = None
@@ -603,11 +605,11 @@ class JanusPlayground(Module):
         self.completion_index = 0
         self.model_response = None
         #self.inserted_range = None
-        Module.__init__(self, 'janus/playground', parent, callbacks, state)
+        Module.__init__(self, 'janus/playground', callbacks, state)
 
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.generation_frame = ttk.Frame(self.frame)
         self.generation_frame.pack(side='left', fill='both', expand=True)
         self.settings_frame = ttk.Frame(self.frame)
@@ -626,8 +628,10 @@ class JanusPlayground(Module):
         self.textbox.bind("<Key>", self.key_pressed)
         self.textbox.bind("<Alt-g>", self.inline_generate)
         self.textbox.bind("<Command-g>", self.inline_generate)
-        self.textbox.bind("<Alt-period>", self.insert_inline_completion)
-        self.textbox.bind("<Command-period>", self.insert_inline_completion)
+        self.textbox.bind("<Alt-period>", lambda event: self.insert_inline_completion(step=1))
+        self.textbox.bind("<Alt-comma>", lambda event: self.insert_inline_completion(step=-1))
+        self.textbox.bind("<Command-period>", lambda event: self.insert_inline_completion(step=1))
+        self.textbox.bind("<Command-comma>", lambda event: self.insert_inline_completion(step=-1))
         self.textbox.bind("<Button-2>", self.open_counterfactuals)
         self.textbox.bind("<Button-3>", self.open_counterfactuals)
 
@@ -638,8 +642,11 @@ class JanusPlayground(Module):
                                           cursor='hand2', command=self.insert_prompt, compound='left')
         self.generate_button.pack(side='left', expand=True)
         self.generate_button = ttk.Button(self.button_frame, text='Generate', image=icons.get_icon("brain-blue"),
-                                          cursor='hand2', command=self.generate, compound='left')
+                                          cursor='hand2', command=lambda: self.generate(mode='completions'), compound='left')
         self.generate_button.pack(side='left', expand=True)
+        self.eval_prompt_button = ttk.Button(self.button_frame, text='Evaluate prompt', image=icons.get_icon("chart-blue"),
+                                             cursor='hand2', command=lambda: self.generate(mode='eval'), compound='left')
+        self.eval_prompt_button.pack(side='left', expand=True)
         self.export_button = ttk.Button(self.button_frame, text='Export', cursor='hand2',
                                         command=self.export)
         self.export_button.pack(side='left', expand=True)
@@ -658,38 +665,65 @@ class JanusPlayground(Module):
 
     def inline_generate(self, *args):
         # get text up to cursor
-        prompt = self.textbox.get("1.0", "insert")
-        selected_range = self.textbox.selected_range()
-        if selected_range[0] == 'None':
+        if self.textbox.tag_ranges("sel"):
+            self.textbox.fix_selection()
+            prompt = self.textbox.get("1.0", "sel.first")
+            selected_range = self.textbox.selected_range()
+        else:
+            self.textbox.fix_insertion()
+            prompt = self.textbox.get("1.0", "insert")
             selected_range = [len(prompt), len(prompt)]
         settings = self.state.inline_generation_settings
         threading.Thread(target=self.call_model_inline, args=(prompt, settings, selected_range)).start()
 
-    def generate(self, *args):
+    def generate(self, mode='completions', *args):
         prompt = self.textbox.get("1.0", "end-1c")
         settings = self.state.generation_settings
-        threading.Thread(target=self.call_model, args=(prompt, settings)).start()
+        if mode == 'completions':
+            # disable generate button
+            self.generate_button.configure(state='disabled')
+            threading.Thread(target=self.call_model, args=(prompt, settings)).start()
+        elif mode == 'eval':
+            # disable eval button
+            self.eval_prompt_button.configure(state='disabled')
+            threading.Thread(target=self.call_model_prompt, args=(prompt, settings)).start()
+
+    def call_model(self, prompt, settings):
+        response, error = gen(prompt, settings)
+        # enable generate button
+        self.generate_button.configure(state='normal')
+        self.model_response = response
+        self.process_logprobs()
+        response_text_list = completions_text(response)
+        for completion in response_text_list:
+            self.completion_windows.open_window(completion)
+
+    def call_model_prompt(self, prompt, settings):
+        eval_settings = settings.copy()
+        eval_settings.update({'max_tokens': 1, 'num_continuations': 1, 'logprobs': 15})
+        response, error = gen(prompt, settings)
+        # enable eval button
+        self.eval_prompt_button.configure(state='normal')
+        self.model_response = response
+        self.process_logprobs()
+
 
     def call_model_inline(self, prompt, settings, selected_range):
         response, error = gen(prompt, settings)
         response_text_list = completions_text(response)
         self.textbox.alternatives = []
         inline_completions = [completion for completion in response_text_list if completion]
+        inline_completions.insert(0, self.textbox.get_range(selected_range[0], selected_range[1]))
+        self.completion_index = 0
         completions_dict = {'alts': [{'text': completion} for completion in inline_completions],
-                            'replace_range': selected_range}
+                            'replace_range': [selected_range[0], selected_range[1]]}
         self.textbox.alternatives.append(completions_dict)
         self.inline_completions = completions_dict
         #self.inserted_range = None
         self.textbox.tag_remove("alternate", "1.0", tk.END)
         self.insert_inline_completion()
 
-    def call_model(self, prompt, settings):
-        response, error = gen(prompt, settings)
-        self.model_response = response
-        self.process_logprobs()
-        response_text_list = completions_text(response)
-        for completion in response_text_list:
-            self.completion_windows.open_window(completion)
+
 
     def process_logprobs(self):
         # TODO when prompt length is shorter
@@ -699,8 +733,9 @@ class JanusPlayground(Module):
                 if 'counterfactuals' in token_data and token_data['counterfactuals']:
                     alt_dict = {'alts': [],
                                 'replace_range': [token_data['position']['start'], token_data['position']['end']],}
-                    for token, prob in token_data['counterfactuals'].items():
-                        alt_dict['alts'].append({'text': token, 'prob': prob})
+                    sorted_counterfactuals = {k: v for k, v in sorted(token_data['counterfactuals'].items(), key=lambda item: item[1], reverse=True)}
+                    for token, prob in sorted_counterfactuals.items():
+                        alt_dict['alts'].append({'text': token, 'logprob': prob, 'prob': logprobs_to_probs(prob)})
                     self.textbox.alternatives.append(alt_dict)
 
     def key_pressed(self, event):
@@ -709,30 +744,17 @@ class JanusPlayground(Module):
         # else:
         #     self.accept_completion()
 
-    def accept_completion(self):
-        # untag generated text
-        print('accept completion')
-        #self.textbox.tag_remove("generated", "1.0", "end")
-        #self.inserted_range = None
 
-    def insert_inline_completion(self, *args):
+    def insert_inline_completion(self, step=1, *args):
         if self.inline_completions:
+            self.completion_index += step
             completion = self.inline_completions['alts'][self.completion_index % len(self.inline_completions['alts'])]['text']
             repl = self.inline_completions['replace_range']
-            print(repl)
             self.textbox.replace_range(repl[0], repl[1], completion, "alternate")
-            # if self.textbox.tag_ranges("sel"):
-            #     self.inline_completions.append(self.textbox.selected_text())
-            #     self.textbox.replace_selected(completion, "alternate")
-            # elif self.textbox.tag_ranges("alternate"):
-            #     self.textbox.replace_tag(completion, "alternate", "alternate")
-            # else:
-            #     self.textbox.insert("insert", completion, "alternate")
-            self.completion_index += 1
+            
 
     def open_counterfactuals(self, event):
         self.textbox.open_alt_dropdown(event)
-
 
     def export(self, *args):
         pass
@@ -740,13 +762,23 @@ class JanusPlayground(Module):
     # TODO this goes off the side
     def toggle_settings(self, *args):
         if not self.settings_control:
-            print('opening settings')
+            self.settings_label = tk.Label(self.settings_frame, text="Generation settings", bg=bg_color())
+            self.settings_label.pack(side='top', expand=True)
             self.settings_control = GenerationSettings(orig_settings=self.state.generation_settings,
-                                                    realtime_update=True)
+                                                       realtime_update=True)
             self.settings_control.body(master=self.settings_frame)
+            self.inline_settings_label = tk.Label(self.settings_frame, text="Inline generation settings", bg=bg_color())
+            self.inline_settings_label.pack(side='top', expand=True)
+            self.inline_settings_control = GenerationSettings(orig_settings=self.state.inline_generation_settings,
+                                                              realtime_update=True)
+            self.inline_settings_control.body(master=self.settings_frame)
         else:
+            self.settings_label.destroy()
             self.settings_control.destroy()
             self.settings_control = None
+            self.inline_settings_label.destroy()
+            self.inline_settings_control.destroy()
+            self.inline_settings_control = None
 
 
     def insert_prompt(self, *args):
@@ -756,7 +788,7 @@ class JanusPlayground(Module):
 
 
 class TextEditor(Module):
-    def __init__(self, parent, callbacks, state):
+    def __init__(self, callbacks, state):
         self.textbox = None
         self.export_button = None
         self.attach_button = None
@@ -764,10 +796,10 @@ class TextEditor(Module):
         self.clear_button = None
         self.text = None
         self.button_frame = None
-        Module.__init__(self, 'texteditor', parent, callbacks, state)
+        Module.__init__(self, 'texteditor', callbacks, state)
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.textbox = TextAware(self.frame, bd=2, height=3, undo=True)
         self.textboxes.append(self.textbox)
         self.textbox.pack(side='top', fill='both', expand=True)
@@ -809,14 +841,14 @@ class TextEditor(Module):
 
 
 class Prompt(Module):
-    def __init__(self, parent, callbacks, state):
+    def __init__(self, callbacks, state):
         self.edit_button = None
         self.textbox = None
         self.button_frame = None
-        Module.__init__(self, 'prompt', parent, callbacks, state)
+        Module.__init__(self, 'prompt', callbacks, state)
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.textbox = TextAware(self.frame, bd=2, height=3, undo=True)
         self.textboxes.append(self.textbox)
         self.textbox.pack(side='top', fill='both', expand=True)
@@ -842,15 +874,15 @@ class Prompt(Module):
         self.tree_updated()
 
 class Run(Module):
-    def __init__(self, parent, callbacks, state):
-        Module.__init__(self, 'run', parent, callbacks, state)
+    def __init__(self, callbacks, state):
+        Module.__init__(self, 'run', callbacks, state)
         self.eval_code = EvalCode(self.callbacks["Run"]['prev_cmd'], callbacks)
         self.run_button = None
         self.clear_button = None
         self.button_frame = None
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.eval_code.body(self.frame)
         self.textboxes.append(self.eval_code.code_textbox)
         self.button_frame = ttk.Frame(self.frame)
@@ -868,8 +900,8 @@ class Run(Module):
 
 
 class MiniMap(Module):
-    def __init__(self, parent, callbacks, state):
-        Module.__init__(self, 'minimap', parent, callbacks, state)
+    def __init__(self, callbacks, state):
+        Module.__init__(self, 'minimap', callbacks, state)
         self.minimap_pane = None
         self.canvas = None 
         self.node_coords = {}
@@ -880,8 +912,8 @@ class MiniMap(Module):
         self.preview_textbox = None
         self.selected_node = None
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.minimap_pane = ttk.PanedWindow(self.frame, orient='vertical')
         self.minimap_pane.pack(side='left', fill='both', expand=True)
         self.canvas = tk.Canvas(self.minimap_pane, bg=vis_bg_color())
@@ -1070,11 +1102,11 @@ class MiniMap(Module):
 
 
 class DebugConsole(Module):
-    def __init__(self, parent, callbacks, state):
-        Module.__init__(self, "debug", parent, callbacks, state)
+    def __init__(self, callbacks, state):
+        Module.__init__(self, "debug", callbacks, state)
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.debug_box = TextAware(self.frame, bd=3, height=3)
         self.debug_box.pack(expand=True, fill='both')
         self.debug_box.configure(
@@ -1093,35 +1125,46 @@ class DebugConsole(Module):
 
 
 class Input(Module):
-    def __init__(self, parent, callbacks, state):
-        Module.__init__(self, "input", parent, callbacks, state)
+    def __init__(self, callbacks, state):
+        Module.__init__(self, "input", callbacks, state)
         self.button_frame = None
+        #self.undo_button = None
+        #self.retry_button = None
         self.submit_button = None
 
-    def build(self):
-        Module.build(self)
-        self.input_box = TextAware(self.frame, bd=3, height=3)
+    def build(self, parent):
+        Module.build(self, parent)
+        self.input_box = TextAware(self.frame, bd=3, height=1)
         self.input_box.pack(expand=True, fill='both')
         self.input_box.configure(**textbox_config(bg=edit_color()))
         self.input_box.focus()
         self.textboxes.append(self.input_box)
         self.button_frame = ttk.Frame(self.frame)
         self.button_frame.pack(side='bottom', fill='x')
-        self.submit_button = ttk.Button(self.button_frame, text="Submit", command=self.submit)
-        self.submit_button.pack(side='right', expand=True)
+        self.submit_button = ttk.Button(self.button_frame, text="Submit", image=icons.get_icon("arrow-white"), compound='right', command=self.submit)
+        self.submit_button.pack(side='right')
 
     def submit(self):
-        self.callbacks["Submit"]["callback"](text=self.input_box.get("1.0", "end-1c"))
+        text = self.input_box.get("1.0", "end-1c")
+        modified_text = self.apply_template(text)
+        self.callbacks["Submit"]["callback"](text=modified_text)
         self.input_box.delete("1.0", "end")
+
+    def apply_template(self, input):
+        if 'submit_template' in self.settings:
+            return eval(f'f"""{self.settings["submit_template"]}"""')
+        else:
+            return input
+
 
 
 class Media(Module):
-    def __init__(self, parent, callbacks, state):
-        Module.__init__(self, "media", parent, callbacks, state)
+    def __init__(self, callbacks, state):
+        Module.__init__(self, "media", callbacks, state)
         self.multimedia = Multimedia(callbacks, state)
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.multimedia.body(self.frame)
 
     def tree_updated(self):
@@ -1135,10 +1178,10 @@ class Media(Module):
 
 # TODO unpin edit node id when edit closed
 class Edit(Module):
-    def __init__(self, parent, callbacks, state):
-        Module.__init__(self, "edit", parent, callbacks, state)
+    def __init__(self, callbacks, state):
+        Module.__init__(self, "edit", callbacks, state)
         self.node_label = None
-        self.text = {}
+        #self.text = {}
         self.text_attributes = {}
         self.add_text_attribute_button = None
         self.textboxes_frame = None
@@ -1146,8 +1189,8 @@ class Edit(Module):
         self.node = None
         self.done_editing_button = None
 
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         self.node_label = ttk.Label(self.frame)
         self.node_label.pack(side='top', pady=10)
         self.node_label.configure(cursor="hand2")
@@ -1188,7 +1231,6 @@ class Edit(Module):
     def rebuild_textboxes(self):
         if self.text_attributes:
             for text_attribute in self.text_attributes:
-                self.state.remove_text_attribute(self.node, text_attribute)
                 self.text_attributes[text_attribute].destroy()
         self.text_attributes = {}
         self.textboxes = []
@@ -1201,26 +1243,37 @@ class Edit(Module):
         else:
             self.node_label.configure(image='')
 
-        
 
         self.text_attributes['text'] = TextAttribute(master=self.textboxes_frame, attribute_name="text", 
                                                      read_callback=lambda: self.callbacks["Text"]["callback"](node_id=self.node['id']),
                                                      write_callback=self.save_text,
                                                      expand=True,
-                                                     parent_module=self)
+                                                     parent_module=self,
+                                                     height=3)
         self.text_attributes['text'].pack(side='top', fill='both', expand=True, pady=10)
         #self.text_attributes['text'].update()
 
         if 'text_attributes' in self.node:
             for attribute in self.node['text_attributes']:
                 self.text_attributes[attribute] = TextAttribute(master=self.textboxes_frame, attribute_name=attribute, 
-                                                                read_callback=lambda: self.callbacks["Get text attribute"]["callback"](attribute=attribute, node=self.node),
+                                                                read_callback=lambda attribute=attribute: self.callbacks["Get text attribute"]["callback"](attribute=attribute, node=self.node),
                                                                 write_callback=lambda text, attribute=attribute: self.save_text_attribute(attribute_name=attribute, text=text),
                                                                 delete_callback=lambda attribute=attribute: self.delete_text_attribute(attribute),
                                                                 expand=True,
-                                                                parent_module=self)
+                                                                parent_module=self,
+                                                                height=1)
                 self.text_attributes[attribute].pack(side='top', fill='both', expand=True, pady=10)
-                #self.text_attributes[attribute].update()
+
+        # self.text_attributes['frame'] = TextAttribute(master=self.textboxes_frame, attribute_name="frame",
+        #                                   read_callback=self.read_frame, 
+        #                                   write_callback=self.write_frame,
+        #                                   expand=True,
+        #                                   parent_module=self,
+        #                                   height=3)
+        # self.text_attributes['frame'].pack(side='top', fill='both', expand=True, pady=10)
+        # self.text_attributes['frame'].textbox.configure(**textbox_config(bg='black', font='Monaco'))
+        # self.text_attributes['frame'].hide()
+        
         self.update()
 
 
@@ -1231,6 +1284,17 @@ class Edit(Module):
     def save_all(self):
         for text_attribute in self.text_attributes:
             self.text_attributes[text_attribute].write()
+
+    # todo catch json decode errors
+    def write_frame(self, text):
+        if text:
+            frame = json.loads(text)
+        else:
+            frame = {}
+        self.state.set_frame(self.node, frame)
+
+    def read_frame(self):
+        return json.dumps(self.state.get_frame(self.node))
 
     def delete_text_attribute(self, attribute_name):
         self.state.remove_text_attribute(self.node, attribute_name)
@@ -1298,7 +1362,7 @@ class Edit(Module):
 # TODO make adjustable pane
 # TODO show past and future inputs but hide by default if not used by template
 class Transformers(Module):
-    def __init__(self, parent, callbacks, state):
+    def __init__(self, callbacks, state):
         self.scroll_frame = None
         self.input_editors = {}
         self.inputs = {}
@@ -1319,14 +1383,14 @@ class Transformers(Module):
         self.generation_settings_dashboard = None
         self.completions_frame = None
         self.completion_windows = None
-        Module.__init__(self, "transformers", parent, callbacks, state)
+        Module.__init__(self, "transformers", callbacks, state)
         
-    def build(self):
-        Module.build(self)
+    def build(self, parent):
+        Module.build(self, parent)
         #self.scroll_frame = ScrollableFrame(self.frame, height=500)
         #self.scroll_frame.pack(side='top', fill='both', expand=True)
         #self.frame.bind("<Button-1>", lambda e: self.frame.focus)
-        self.generation_settings = self.state.generation_settings
+        self.generation_settings = self.state.generation_settings.copy()
         self.buttons_frame = tk.Frame(self.frame, bg=bg_color())
         self.buttons_frame.pack(side='top', fill='x', expand=False)
         self.load_template_button = ttk.Button(self.buttons_frame, text="Load template", command=self.load_template)
@@ -1412,6 +1476,7 @@ class Transformers(Module):
             self.input_editors[input].pack(side='top', fill='both', expand=True)
 
         self.read_all()
+        #self.write_all()
         self.update_prompt()
 
     def set_empty_inputs(self):
@@ -1471,6 +1536,7 @@ class Transformers(Module):
                                                   parent_module=self)
         self.input_editors[input].pack(side='top', fill='both', expand=True)
         self.template['inputs'].append(input)
+        self.read_all()
         self.update_prompt()
 
     def update_prompt(self, *args):
@@ -1516,6 +1582,7 @@ class Transformers(Module):
     def open_inputs(self, inputs):
         self.inputs = inputs
         self.read_all()
+        self.update_prompt()
 
     def generate(self):
         self.write_all()
@@ -1529,3 +1596,97 @@ class Transformers(Module):
         self.completions_frame.show()
         for completion in response_text_list:
             self.completion_windows.open_window(completion)
+
+
+class GenerationSettings(Module):
+    def __init__(self, callbacks, state):
+        self.settings_control = None
+        Module.__init__(self, "generation settings", callbacks, state)
+    
+    def build(self, parent):
+        Module.build(self, parent)
+        self.settings_control = FullGenerationSettings(orig_settings=self.state.generation_settings, 
+                                                       realtime_update=True, parent_module=self)
+        self.settings_control.body(self.frame)
+
+    # TODO update
+
+
+# TODO able to edit nodes that aren't selected
+# make more general attributes class
+class FrameEditor(Module):
+    def __init__(self, callbacks, state):
+        self.frame_editor = None
+        self.preset_dropdown = None 
+        self.save_preset_button = None
+        self.presets = None
+        self.preset = None
+        self.state_viewer = None
+        Module.__init__(self, "frame editor", callbacks, state)
+
+    def build(self, parent):
+        Module.build(self, parent)
+        self.frame_editor = TextAttribute(master=self.frame, attribute_name="frame",
+                                          read_callback=self.read_frame, 
+                                          write_callback=self.write_frame,
+                                          expand=True,
+                                          parent_module=self, height=7)
+        self.frame_editor.pack(side='top', fill='both', expand=True, pady=10)
+        self.frame_editor.textbox.configure(**code_textbox_config())
+    
+        # TODO make collapsible
+        self.state_viewer = TextAttribute(master=self.frame, attribute_name='state', bd=2, height=7,
+                                                relief='raised')
+        self.state_viewer.pack(side='top', fill='both', expand=True)
+        self.state_viewer.textbox.configure(**code_textbox_config(bg='#222222'))
+        self.state_viewer.textbox.configure(state='disabled')
+
+        self.preset_dropdown = tk.OptionMenu(self.frame, self.preset, "Select preset...")
+        self.preset_dropdown.pack(side='top', pady=10)
+        self.preset = tk.StringVar()
+        self.preset.trace('w', self.apply_preset)
+        self.get_presets()
+        self.set_presets()
+        self.frame_editor.read()
+
+    def set_presets(self):
+        options = self.presets.keys()
+        menu = self.preset_dropdown['menu']
+        menu.delete(0, 'end')
+        for option in options:
+            menu.add_command(label=option, command=tk._setit(self.preset, option))
+
+    def get_presets(self):
+        # load presets from json file
+        with open('./config/interfaces/interfaces.json') as f:
+            self.presets = json.load(f)
+
+    def apply_preset(self, *args):
+        preset = self.presets[self.preset.get()]
+        preset_text = json.dumps(preset, indent=4)
+        self.frame_editor.textbox.delete(1.0, tk.END)
+        self.frame_editor.textbox.insert(tk.END, preset_text)
+        self.write_frame(preset_text)
+
+    def get_state(self):
+        state = self.state.state
+        self.state_viewer.textbox.configure(state='normal')
+        self.state_viewer.textbox.delete(1.0, tk.END)
+        self.state_viewer.textbox.insert(tk.END, json.dumps(state, indent=4))
+        self.state_viewer.textbox.configure(state='disabled')
+
+    # todo catch json decode errors
+    def write_frame(self, text):
+        if text:
+            frame = json.loads(text)
+        else:
+            frame = {}
+        self.state.set_frame(self.state.selected_node, frame)
+        self.get_state()
+
+    def read_frame(self):
+        return json.dumps(self.state.get_frame(self.state.selected_node))
+
+    def selection_updated(self):
+        self.frame_editor.read()
+        self.get_state()

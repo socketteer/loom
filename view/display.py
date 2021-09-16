@@ -35,7 +35,9 @@ modules = {'edit': Edit,
            'janus/playground': JanusPlayground,
            'transformers': Transformers,
            'media': Media,
-           'paint': Paint}
+           'paint': Paint,
+           'generation settings': GenerationSettings,
+           'frame editor': FrameEditor,}
 
 orients = {'side_pane': "horizontal",
            "bottom_pane": "vertical"}
@@ -45,6 +47,12 @@ class Display:
     def __init__(self, root, callbacks, state, controller):
         self.root = root
         # Dict of callback names to callback data {**metadata, callback=func}
+        style = ttk.Style(root)
+    # set ttk theme to "clam" which support the fieldbackground option
+        style.configure("Treeview", background=bg_color(), 
+                        fieldbackground=bg_color())
+        style.configure("TPanedwindow", background=bg_color(), 
+                        fieldbackground=bg_color())
         self.callbacks = callbacks
         self.state = state
         self.controller = controller
@@ -97,8 +105,7 @@ class Display:
         self.search_results = None
         self.search_close_button = None
 
-        self.button_bar = None
-        self.edit_button = None
+        self.buttons = {}
 
         self.back_button = None
         self.forward_button = None
@@ -187,7 +194,7 @@ class Display:
         self.button_frame = ttk.Frame(self.main_frame)
         self.button_frame.pack(side="bottom", fill="both")
         self.build_main_buttons(self.button_frame)
-        self.button_bar.pack(side="top", fill="both")
+        #self.button_bar.pack(side="top", fill="both")
 
         self.search_frame = ttk.Frame(self.main_pane, relief=tk.RAISED, borderwidth=2)
 
@@ -217,15 +224,16 @@ class Display:
         textbox.bind("<Control-Button-1>", lambda event: self.edit_history(txt=textbox))
         textbox.bind("<Control-Shift-Button-1>", lambda event: self.goto_history(txt=textbox))
         textbox.bind("<Alt-Button-1>", lambda event: self.split_node(txt=textbox))
+        textbox.bind("<Command-Button-1>", lambda event: self.split_node(txt=textbox))
         #textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
         #textbox.bind("<Alt_L><Button-1>", lambda event: self.select_token(txt=textbox))
         textbox.bind("<Button-3>", lambda event: self.open_menu(txt=textbox, event=event))
         textbox.bind("<Button-2>", lambda event: self.open_menu(txt=textbox, event=event))
         #textbox.bind("<Command-Button-1>", lambda event: self.open_menu(txt=textbox, event=event))
         textbox.bind("<Button-1>", lambda event: self.clear_selection_tags(textbox=textbox))
+        textbox.bind("<Escape>", self.clear_selection_tags)
         textbox.bind("<Button-1>", lambda event: textbox.focus_set())
         textbox.pack(expand=True, fill='both')
-
 
         self.setup_textbox_tags(textbox)
 
@@ -242,7 +250,7 @@ class Display:
 
     def clear_selection_tags(self, textbox):
         #self.display.textbox.tag_remove("sel", "1.0", "end")
-        #textbox.tag_remove("insert", "1.0", "end")
+        textbox.tag_remove("insert", "1.0", "end")
         textbox.tag_remove("node_select", "1.0", "end")
 
     def button_pressed(self, event):
@@ -263,6 +271,7 @@ class Display:
         self.callbacks["Goto history"]["callback"](index=char_index)
 
     def split_node(self, txt, event=None):
+        txt.fix_insertion()
         char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
         self.callbacks["Split node"]["callback"](index=char_index)
 
@@ -276,24 +285,30 @@ class Display:
         self.callbacks["Insert summary"]["callback"](index=char_index)
 
     def build_main_buttons(self, frame):
-        self.button_bar = ttk.Frame(frame, width=500, height=20)
 
         # First a large edit button
-        self.edit_button = self.build_button(frame, "Edit", dict(width=12))
-        self.build_button(frame, "Children")
-        self.build_button(frame, "Visualize")
-        self.build_button(frame, "Wavefunction")
-        self.build_button(frame, "Side pane")
+        # self.edit_button = self.build_button(frame, "Edit", dict(width=12))
+        # self.build_button(frame, "Children")
+        # self.build_button(frame, "Visualize")
+        # self.build_button(frame, "Wavefunction")
+        # self.build_button(frame, "Side pane")
 
         # Button name, button params, pack params
         buttons = [
             # Tree modification on the left
-            # ["Delete"],
+            ["Delete"],
             # ["Newline"],
             # ["Space"],
             # ["Copy"],
+            ["Edit"],
+            ["Children"],
+            ["Visualize"],
+            ["Wavefunction"],
+            ["Side pane"],
             ["New Child", {}],
             ["Generate"],
+            ["Retry"],
+            ["Undo"],
             # Navigation on the right
             ["Next", {}, dict(side="right")],
             ["Prev", {}, dict(side="right")],
@@ -302,7 +317,19 @@ class Display:
         ]
 
         for btn in buttons:
-            self.build_button(frame, *btn)
+            self.buttons[btn[0]] = self.build_button(frame, *btn)
+
+    
+    def configure_buttons(self, visible_buttons):
+        for btn in self.buttons:
+            # hide all buttons not in the list that are currently visible
+            if btn not in visible_buttons and self.buttons[btn].winfo_ismapped():
+                self.buttons[btn].pack_forget()
+            # show all buttons in the list that are currently hidden
+            if btn in visible_buttons and not self.buttons[btn].winfo_ismapped():
+                side = "right" if btn in ("Next", "Prev", "Undo", "Retry") else "left"
+                self.buttons[btn].pack(side=side, fill='y')
+
 
     #################################
     #   Alt Textbox
@@ -379,6 +406,7 @@ class Display:
 
         # bind right click to context menu
         self.nav_tree.bind("<Button-3>", self.nav_tree_context_menu)
+        self.nav_tree.bind("<Button-2>", self.nav_tree_context_menu)
 
         # File controls
         buttons = [
@@ -387,7 +415,7 @@ class Display:
             ["Open", dict(width=15), dict(fill="x")],  # , dict(side="bottom", fill="x")],
         ]
         for btn in buttons:
-            self.build_button(self.nav_frame, *btn)
+            self.buttons[btn[0]] = self.build_button(self.nav_frame, *btn)
 
     def nav_tree_context_menu(self, event):
         # get the item the mouse is over
@@ -466,9 +494,7 @@ class Display:
 
     # TODO chapter_nav_frame is currently not used
     def destroy_chapter_nav(self):
-        print('destroy chapter nav')
         if self.chapter_nav_frame is not None:
-            print('destroying')
             self.chapter_nav_frame.pack_forget()
             self.chapter_nav_frame.destroy()
             self.chapter_nav_tree = None
@@ -486,17 +512,30 @@ class Display:
     #   Panes
     #################################
 
-    def destroy_pane(self, pane_name):
+    def pane_open(self, pane_name):
+        pane = self.panes[pane_name]
+        if pane:
+            return not pane.hidden
+        else:
+            return False
+
+    # called when refreshing state
+    def close_pane(self, pane_name):
         if self.panes[pane_name]:
-            self.panes[pane_name].destroy()
-        self.panes[pane_name] = None
-        self.state.workspace[pane_name]['open'] = False
-        for module in self.state.workspace[pane_name]['modules']:
-            self.modules[module] = None
+            pane = self.panes[pane_name]
+            pane.hide()
+
+    # called by hide button
+    def pane_closed(self, pane):
+        pane_name = pane.name
+        #print('display: pane_closed')
+        self.state.update_user_state({'workspace': {pane_name: {'open': False}}})
+        self.close_pane(pane_name)
 
     def open_pane(self, pane_name):
-        if not self.panes[pane_name]:
-            self.state.workspace[pane_name]['open'] = True
+        if self.panes[pane_name]:
+            self.panes[pane_name].show()
+        else:
             orient = orients[pane_name]
             if orient == 'horizontal':
                 parent = self.pane
@@ -505,88 +544,77 @@ class Display:
             self.panes[pane_name] = NestedPane(pane_name, parent, orient='horizontal' if orient == 'vertical' else 'vertical', 
                                                module_options=modules.keys(),
                                                module_selection_callback=self.module_selected,
-                                               module_window_destroy_callback=self.module_window_closed)
-            self.panes[pane_name].build_pane(weight=1, destroy_callback=self.destroy_pane)
-            #self.panes[pane_name].build_menu_frame(destroy_callback=self.destroy_pane)
-            self.build_modules(pane_name)
-            #self.set_module(pane_name)
-        
+                                               module_window_destroy_callback=self.window_closed,
+                                               hide_pane_callback=self.pane_closed)
+            self.panes[pane_name].build_pane(weight=1)
 
-    def build_modules(self, pane_name):
-        pane = self.panes[pane_name]
-        for i, module_name in enumerate(self.state.workspace[pane_name]['modules']):
-            module_window = pane.add_module_window()
-            #module_window.build(options=modules.keys(), selection_callback=self.module_selected, destroy_callback=self.module_window_closed)
-            self.set_module(pane_name, i, module_name)
+            self.build_modules(self.panes[pane_name], self.state.workspace[pane_name]['modules'])
 
-    def set_module(self, pane_name, window_idx, module_name):
-        pane = self.panes[pane_name]
-        #module_name = self.state.workspace[pane_name]['modules'][window_idx]
-        if len(pane.module_windows) == window_idx:
-            # if one less window than needed, create a new window
-            module_window = pane.add_module_window()
-        elif len(pane.module_windows) < window_idx:
-            print('error: not enough windows!')
-            return
-        pane.module_windows[window_idx].set_selection(module_name)
+    def build_modules(self, pane, module_names):
+        for module in module_names:
+            self.add_module(pane, module)
 
-    def open_module(self, window, module):
-        window.clear()
-        window.module = module
-        self.modules[module.name] = module
-        module.build()
+    def add_module(self, pane, module_name):
+        module = modules[module_name](callbacks=self.callbacks, state=self.state)
+        pane.add_module(module)
+        self.modules[module_name] = module
+
+    def open_module_in_window(self, window, module_name):
+        module = modules[module_name](callbacks=self.callbacks, state=self.state)
+        window.change_module(module)
+        self.modules[module_name] = module
 
     def module_open(self, module_name):
         return module_name in self.modules and self.modules[module_name]
 
-    # def show_module(self, module_name, **kwargs):
-    #     # check if module is already in a pane
-    #     pane = None
-    #     for module in self.state.workspace['side_pane']:
-    #         if module == module_name:
-    #             pane = 'side_pane'
-    #             break
-    #     for module in self.state.workspace['bottom_pane']:
-    #         if module == module_name:
-    #             pane = 'bottom_pane'
-    #             break
-    #     # check if pane is already open
-    #     if pane and self.state.workspace[pane]['open']:
-    #         # do nothing
-    #         return
-    #     elif pane:
-    #         # open pane
-    #         self.open_pane(pane)
-    #     else:
-    #         # open module in side pane
-
-        
-
-    def module_selected(self, pane_name, module_window):
-        #print('module selected')
+    # checks modules in pane against list, creates ones that don't exist, and 
+    # removes ones that aren't in the list
+    def update_modules(self, pane_name, new_module_names):
         pane = self.panes[pane_name]
+        current_module_names = pane.module_names()
+        new_modules, deleted_modules = react_changes(current_module_names, new_module_names)
+        #print('new modules:', new_modules)
+        #print('deleted modules:', deleted_modules)
+        #print('added modules:', new_modules)
+        for module_name in deleted_modules:
+            window = self.modules[module_name].window()
+            self.close_window(window)
+        for module_name in new_modules:
+            self.add_module(pane, module_name)
+
+    # TODO change this
+    def set_module(self, pane_name, module_name, idx):
+        pane = self.panes[pane_name]
+        if len(pane.module_windows) > idx:
+            # this will cause update event to create a module if the name has changed
+            pane.module_windows[idx].set_selection(module_name)
+        elif len(pane.module_windows) == idx:
+            pane.add_module(module_name)
+
+    def module_selected(self, module_window):
         module_name = module_window.module_selection.get()
-        if len(pane.module_windows) > len(self.state.workspace[pane_name]['modules']):
-            self.state.workspace[pane_name]['modules'].append(module_name)
-        module_window_index = pane.module_windows.index(module_window)
-        if self.state.workspace[pane_name]['modules'][module_window_index] != module_name or module_name not in self.modules or not self.modules[module_name]:
-            self.state.workspace[pane_name]['modules'][module_window_index] = module_name
-            module = modules[module_name](parent=module_window, callbacks=self.callbacks, state=self.state)
-            self.open_module(module_window, module)
+        # if module_name is not current module
+        if not module_window.module or module_name != module_window.module.name:
+            self.open_module_in_window(module_window, module_name)
+            pane_name = module_window.pane_name()
+            pane = self.panes[pane_name]
+            current_modules = pane.module_names()
+            self.state.update_user_state({'workspace': {pane_name: {'modules': current_modules}}})
+            
 
-        # if self.state.workspace[pane_name]['module'] != module_name or not self.panes[pane_name].module:
-        #     self.state.workspace[pane_name]['module'] = module_name
-        #     module = modules[module_name](parent=pane, callbacks=self.callbacks, state=self.state)
-        #     self.open_module(pane, module)
-
-    def module_window_closed(self, pane_name, module_window):
+    def close_window(self, module_window):
         if module_window.module:
             module_name = module_window.module.name
-            module_window_index = self.state.workspace[pane_name]['modules'].index(module_name)
-            self.state.workspace[pane_name]['modules'].pop(module_window_index)
             self.modules[module_name] = None
         module_window.destroy()
 
+    # called by x button
+    def window_closed(self, module_window):
+        self.close_window(module_window)
+        pane_name = module_window.pane_name()
+        pane = self.panes[pane_name]
+        current_modules = pane.module_names()
+        self.state.update_user_state({'workspace': {pane_name: {'modules': current_modules}}})
 
     #################################
     #   Edit mode
@@ -600,7 +628,7 @@ class Display:
     def set_mode(self, new_state):
         assert new_state in self.modes
         self.mode = new_state
-        self.edit_button.config(text="Finish Editing" if self.in_edit_mode else self.button_name("Edit"))
+        self.buttons['Edit'].config(text="Write" if self.in_edit_mode else self.button_name("Edit"))
 
         self.clear_story_frame()
 

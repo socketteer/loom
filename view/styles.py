@@ -13,3 +13,12 @@ def textbox_config(fg=text_color(), bg=bg_color(), font='Georgia', size=12, spac
             'spacing3': 5,
             'wrap': "word",
             'insertbackground': fg}
+
+
+def code_textbox_config(bg='black'):
+    return {
+        'font': Font(family='Monaco', size=12),
+        'foreground': 'white',
+        'background': bg,
+        'insertbackground': 'white',
+    }

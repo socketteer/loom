@@ -15,6 +15,8 @@ import codecs
 from PIL import Image, ImageTk
 from gpt import POSSIBLE_MODELS
 import json
+import bisect
+from util.util import split_indices
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
@@ -576,7 +578,7 @@ class CollapsableFrame(tk.Frame):
         
 
 class TextAttribute:
-    def __init__(self, master, attribute_name, read_callback=None, write_callback=None, delete_callback=None, expand=False, parent_module=None, height=2):
+    def __init__(self, master, attribute_name, read_callback=None, write_callback=None, delete_callback=None, expand=False, parent_module=None, height=3, **kwargs):
         self.master = master
         self.read_callback = read_callback
         self.write_callback = write_callback
@@ -590,7 +592,7 @@ class TextAttribute:
             self.delete_button.grid(row=0, column=1, padx=10)
             self.delete_button.bind("<Button-1>", lambda event: self.delete_callback())
 
-        self.textbox = TextAware(self.frame.collapsable_frame, bd=3, height=height)
+        self.textbox = TextAware(self.frame.collapsable_frame, height=height, **kwargs)
         self.textbox.pack(fill='both', expand=True)
 
         self.textbox.configure(**textbox_config(bg=edit_color()))
@@ -603,6 +605,12 @@ class TextAttribute:
     
     def pack(self, **kwargs):
         self.frame.pack(**kwargs)
+
+    def hide(self):
+        self.frame.hide()
+
+    def show(self):
+        self.frame.show()
 
     def destroy(self):
         if self.parent_module:
@@ -772,12 +780,12 @@ class FullGenerationSettings(GenerationSettings):
         create_side_label(self.templates_frame.collapsable_frame, "preset", row=0, col=2)
         
         # load presets into options
-        with open('./config/presets.json') as f:
+        with open('./config/generation_presets/presets.json') as f:
             self.presets_dict = json.load(f)
 
         # if custom presets json exists, also append it to presets dict and options
-        if os.path.isfile('./config/custom_presets.json'):
-            with open('./config/custom_presets.json') as f:
+        if os.path.isfile('./config/generation_presets/custom_presets.json'):
+            with open('./config/generation_presets/custom_presets.json') as f:
                 self.presets_dict.update(json.load(f))
 
         # when the preset changes, apply the preset
@@ -859,14 +867,14 @@ class FullGenerationSettings(GenerationSettings):
         self.vars['preset'].set(preset_name)
 
         # make custom_presets json if it doesn't exist
-        if not os.path.isfile('./config/custom_presets.json'):
-            with open('./config/custom_presets.json', 'w') as f:
+        if not os.path.isfile('./config/generation_presets/custom_presets.json'):
+            with open('./config/generation_presets/custom_presets.json', 'w') as f:
                 json.dump({}, f)
         # append new presets to json
-        with open('./config/custom_presets.json') as f:
+        with open('./config/generation_presets/custom_presets.json') as f:
             custom_dict = json.load(f)
         custom_dict[preset_name] = self.presets_dict[preset_name]
-        with open('./config/custom_presets.json', 'w') as f:
+        with open('./config/generation_presets/custom_presets.json', 'w') as f:
             json.dump(custom_dict, f)
 
 
@@ -884,10 +892,12 @@ class SmartText(TextAware):
         self.bind("<Key>", self.key_pressed)
         self.bind("<Button>", lambda event: self.focus_set())
         self.bind("<Button>", self.button_pressed)
+        self.bind("<Escape>", self.clear_temp_tags)
         #self.bind("<Button-1>", lambda event: self.clear_temp_tags())
         self.tag_configure("sel", background="black", foreground="white")
         self.tag_configure("insert", background="black", foreground="white")
-        self.tag_configure("alternate", background="#222222", font=('Georgia', 12, 'italic'))
+        self.tag_configure("alternate", background="#222222", foreground="white",
+                           font=('Georgia', 12, 'italic'))
         self.tag_raise("sel")
         self.tag_raise("insert")
         self.alternatives = []
@@ -898,7 +908,7 @@ class SmartText(TextAware):
     def button_pressed(self, event):
         pass
     
-    def clear_temp_tags(self):
+    def clear_temp_tags(self, event):
         self.tag_remove("insert", "1.0", "end")
         self.tag_remove("alternate", "1.0", "end")
 
@@ -910,11 +920,39 @@ class SmartText(TextAware):
         self.tag_add(tag, f"1.0 + {start} chars", f"1.0 + {end} chars")
         self.tag_raise(tag)
 
+    def get_range(self, start, end):
+        return self.get(f"1.0 + {start} chars", f"1.0 + {end} chars")
+
+    def char_index(self, index):
+        return len(self.get("1.0", index))
+
     def selected_text(self):
         return self.get("sel.first", "sel.last")
 
     def selected_range(self):
-        return self.index("sel.first"), self.index("sel.last")
+        return len(self.get("1.0", "sel.first")), len(self.get("1.0", "sel.last"))
+
+    def fix_selection(self):
+        # round selection positions to include full words (spaces are grouped at the beginning of the word - no training spaces!)
+        # TODO option to disable...
+        start, end = self.selected_range()
+        indices = list(split_indices(self.get("1.0", "end-1c")))
+        word_end_indices = [0]
+        word_start_indices = []
+        for i in indices:
+            word_end_indices.append(i[1][1])
+            word_start_indices.append(i[1][0])
+        rounded_start_index = word_end_indices[bisect.bisect_right(word_end_indices, start) - 1]
+        # check if rounded start index is before a newline, use word_start_indices instead
+        if self.get(f"1.0 + {rounded_start_index} chars") == "\n":
+            rounded_start_index = word_start_indices[bisect.bisect_right(word_start_indices, start) - 1]
+        rounded_end_index = word_end_indices[bisect.bisect_left(word_end_indices, end)]
+        self.select_range(rounded_start_index, rounded_end_index)
+
+    def fix_insertion(self):
+        # if insertion cursor is preceded by space, move it to the end of the previous word
+        if self.get(f"{tk.INSERT}-1c") == " ":
+            self.mark_set(tk.INSERT, f"{tk.INSERT}-1c")
 
     def replace_selected(self, new_text, tag=None):
         # if textbox is disabled, configure it to be enabled
@@ -987,10 +1025,10 @@ class SmartText(TextAware):
         current_text = self.get(f"1.0 + {start_pos} chars", f"1.0 + {end_pos} chars")
         
         for alt in alt_dict['alts']:
-            text = alt['text']
+            text = repr(alt['text'])
             color = "blue" if text == current_text else "white"
             if 'prob' in alt and show_probs:
-                text += f" ({alt['prob']})"
+                text += f" ({alt['prob']:.3f})"
             menu.add_command(label=text, foreground=color, 
                              command=lambda alt=alt: self.replace_range(start_pos, 
                                                                         end_pos, 

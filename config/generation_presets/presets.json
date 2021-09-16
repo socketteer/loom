@@ -55,6 +55,13 @@
     "global_context": "* Connected, feel free to talk now *\n",
     "template": "Default"
   },
+  "Loom support": {
+    "preset": "Loom support",
+    "start": "\\nLOOM_SUPPORT:",
+    "restart": "\\nFEEDBACK_TERMINAL:",
+    "stop": "\\n",
+    "template": "Default"
+  },
   "Prose to script": {
     "preset": "Prose to script",
     "start": "",
