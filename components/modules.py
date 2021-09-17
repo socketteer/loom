@@ -1147,7 +1147,7 @@ class Input(Module):
     def submit(self):
         text = self.input_box.get("1.0", "end-1c")
         modified_text = self.apply_template(text)
-        self.callbacks["Submit"]["callback"](text=modified_text)
+        self.callbacks["Submit"]["callback"](text=modified_text, auto_response=self.settings.get("auto_response", True))
         self.input_box.delete("1.0", "end")
 
     def apply_template(self, input):
@@ -1630,12 +1630,12 @@ class FrameEditor(Module):
                                           read_callback=self.read_frame, 
                                           write_callback=self.write_frame,
                                           expand=True,
-                                          parent_module=self, height=7)
+                                          parent_module=self, height=10)
         self.frame_editor.pack(side='top', fill='both', expand=True, pady=10)
         self.frame_editor.textbox.configure(**code_textbox_config())
     
         # TODO make collapsible
-        self.state_viewer = TextAttribute(master=self.frame, attribute_name='state', bd=2, height=7,
+        self.state_viewer = TextAttribute(master=self.frame, attribute_name='state', bd=2, height=10, expand=True,
                                                 relief='raised')
         self.state_viewer.pack(side='top', fill='both', expand=True)
         self.state_viewer.textbox.configure(**code_textbox_config(bg='#222222'))
@@ -1644,10 +1644,11 @@ class FrameEditor(Module):
         self.preset_dropdown = tk.OptionMenu(self.frame, self.preset, "Select preset...")
         self.preset_dropdown.pack(side='top', pady=10)
         self.preset = tk.StringVar()
-        self.preset.trace('w', self.apply_preset)
         self.get_presets()
         self.set_presets()
+        self.preset.trace('w', self.apply_preset)
         self.frame_editor.read()
+        self.get_state()
 
     def set_presets(self):
         options = self.presets.keys()
@@ -1655,6 +1656,7 @@ class FrameEditor(Module):
         menu.delete(0, 'end')
         for option in options:
             menu.add_command(label=option, command=tk._setit(self.preset, option))
+        # set menu to default
 
     def get_presets(self):
         # load presets from json file
@@ -1662,11 +1664,13 @@ class FrameEditor(Module):
             self.presets = json.load(f)
 
     def apply_preset(self, *args):
-        preset = self.presets[self.preset.get()]
-        preset_text = json.dumps(preset, indent=4)
-        self.frame_editor.textbox.delete(1.0, tk.END)
-        self.frame_editor.textbox.insert(tk.END, preset_text)
-        self.write_frame(preset_text)
+        preset_name = self.preset.get()
+        if preset_name in self.presets:
+            preset = self.presets[preset_name]
+            preset_text = json.dumps(preset, indent=4)
+            self.frame_editor.textbox.delete(1.0, tk.END)
+            self.frame_editor.textbox.insert(tk.END, preset_text)
+            self.write_frame(preset_text)
 
     def get_state(self):
         state = self.state.state
@@ -1685,7 +1689,7 @@ class FrameEditor(Module):
         self.get_state()
 
     def read_frame(self):
-        return json.dumps(self.state.get_frame(self.state.selected_node))
+        return json.dumps(self.state.get_frame(self.state.selected_node), indent=4)
 
     def selection_updated(self):
         self.frame_editor.read()

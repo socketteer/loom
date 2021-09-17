@@ -23,7 +23,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from components.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
-    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
+    Preferences, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
     RunDialog, WorkspaceDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff
@@ -227,6 +227,7 @@ class Controller:
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
                 ('Workspace settings', None, None, no_junk_args(self.workspace_dialog)),
+                #('Settings', None, None, no_junk_args(self.settings))
 
             ],
             "Developer": [
@@ -317,6 +318,7 @@ class Controller:
     # TODO extremely deprecated
     @metadata(name="Walk", keys=["<Key-w>", "<Control-w>"], display_key="w")
     def walk(self, canonical_only=False):
+        return
         filter_set = self.state.tagged_nodes("canonical") if canonical_only else None
         if 'children' in self.state.selected_node and len(self.state.selected_node['children']) > 0:
             chosen_child = stochastic_transition(self.state.selected_node, mode='descendents', filter_set=filter_set)
@@ -411,13 +413,14 @@ class Controller:
     def select_node(self, node, noscroll=False, ask_reveal=True):
         if node == self.state.selected_node:
             return
-        self.nav_history.append(self.state.selected_node_id)
-        self.undo_history = []
         if not self.in_nav(node):
             if ask_reveal:
-                self.ask_reveal(node)
+                if not self.ask_reveal(node):
+                    return
             else:
                 self.reveal_node(node)
+        self.nav_history.append(self.state.selected_node_id)
+        self.undo_history = []
         if self.state.preferences['coloring'] == 'read':
             old_node = self.state.selected_node
             self.state.select_node(node['id'], noscroll=True)
@@ -1503,15 +1506,15 @@ class Controller:
     def save_tree(self, popup=True, autosave=False, filename=None, subtree=None):
         if autosave and not self.state.preferences['autosave']:
             return
-        try:
-            if not autosave and not self.state.preferences['save_counterfactuals']:
-                self.state.delete_counterfactuals()
-            self.save_edits()
-            self.state.save_tree(backup=popup, save_filename=filename, subtree=subtree)
-            if popup:
-                messagebox.showinfo(title=None, message="Saved!")
-        except Exception as e:
-            messagebox.showerror(title="Error", message=f"Failed to Save!\n{str(e)}")
+        #try:
+        # if not autosave and not self.state.preferences['save_counterfactuals']:
+        #     self.state.delete_counterfactuals()
+        self.save_edits()
+        self.state.save_tree(backup=popup, save_filename=filename, subtree=subtree)
+        if popup:
+            messagebox.showinfo(title=None, message="Saved!")
+        #except Exception as e:
+            #messagebox.showerror(title="Error", message=f"Failed to Save!\n{str(e)}")
 
     @metadata(name="Save as sibling", keys=["<Command-e>", "<Alt-e>"], display_key="Command-e")
     def save_as_sibling(self):
@@ -1603,19 +1606,26 @@ class Controller:
     @metadata(name="Preferences", keys=["<Control-p>"], display_key="")
     def preferences(self):
         #print(self.state.preferences)
-        dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences, state=self.state)
-        if dialog.result:
-            self.state.tree_updated(rebuild=True)
-            self.state.selection_updated()
+        dialog = Preferences(parent=self.display.frame, orig_params=self.state.preferences,
+                          user_params=self.state.user_preferences, state=self.state)
+
+        #dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences, state=self.state)
+        # if dialog.result:
+        #     self.state.tree_updated(rebuild=True)
+        #     self.state.selection_updated()
+        self.state.tree_updated()
+        self.state.selection_updated()
+
 
     @metadata(name="Generation Settings", keys=["<Control-Shift-KeyPress-P>"], display_key="ctrl-p")
     def generation_settings_dialog(self):
-        dialog = GenerationSettingsDialog(self.display.frame, self.state.generation_settings)
-        if dialog.result:
-            #self.save_tree(popup=False)
-            self.state.tree_updated()
-            #self.refresh_textbox()
-            pprint(self.state.generation_settings)
+        dialog = GenerationSettingsDialog(parent=self.display.frame, orig_params=self.state.generation_settings, 
+                                          user_params=self.state.user_generation_settings, state=self.state)
+        # if dialog.result:
+        #     #self.save_tree(popup=False)
+        #     self.state.tree_updated()
+        #     #self.refresh_textbox()
+        #     pprint(self.state.generation_settings)
 
     @metadata(name="Visualization Settings", keys=["<Control-u>"], display_key="ctrl-u")
     def visualization_settings_dialog(self):
@@ -1779,14 +1789,14 @@ class Controller:
 
 
     @metadata(name="Submit", keys=[], display_key="")
-    def submit(self, text):
+    def submit(self, text, auto_response):
         if text:
             #new_text = self.state.submit_modifications(text)
             new_child = self.create_child(toggle_edit=False)
             new_child['text'] = text
             self.state.tree_updated(add=[new_child['id']])    
-        if self.state.preferences['auto_response']:
-            self.generate(update_selection=True, placeholder="\n\t\t\t\t...typing...")
+        if auto_response:
+            self.generate(update_selection=True, placeholder="")
 
     @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
     def toggle_input_box(self):
@@ -2317,6 +2327,8 @@ class Controller:
                                         icon='warning')
         if result == 'yes':
             self.reveal_node(node)
+            return True
+        return False
 
     @metadata(name="Center", keys=[], display_key="")
     def scroll_to_selected(self):

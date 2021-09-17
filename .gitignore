@@ -1,8 +1,6 @@
 data/backups/
 data/*
-!data/dialectical.json
-!data/prime_intellect.json
-!data/GPT_chat.json
+!data/loom_demo.json
 static/media
 config/custom_presets.json
 

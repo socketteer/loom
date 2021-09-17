@@ -975,86 +975,6 @@ class WorkspaceDialog(Dialog):
         self.result = self.orig_params
 
 
-class PreferencesDialog(Dialog):
-    def __init__(self, parent, orig_params, state):
-        self.orig_params = orig_params
-        self.state = state
-        self.vars = {
-            "bold_prompt": tk.BooleanVar,
-            "auto_response": tk.BooleanVar,
-            #"show_prompt": tk.BooleanVar,
-            "autosave": tk.BooleanVar,
-            "save_counterfactuals": tk.BooleanVar,
-            "prob": tk.BooleanVar,
-            "coloring": tk.StringVar,
-            "font_size": tk.IntVar,
-            "line_spacing": tk.IntVar,
-            "paragraph_spacing": tk.IntVar,
-            "reverse": tk.BooleanVar,
-            "nav_tag": tk.StringVar,
-        }
-        for key in self.vars.keys():
-            self.vars[key] = self.vars[key](value=orig_params[key])
-
-        Dialog.__init__(self, parent, title="Preferences")
-
-    def body(self, master):
-        create_label(master, "Nav tree")
-        create_checkbutton(master, "Reverse node order", "reverse", self.vars)
-
-        create_label(master, "Navigation")
-        row = master.grid_size()[1]
-        create_side_label(master, "A/D to navigate tag", row)
-        tag_options = self.state.tags.keys()
-        dropdown = tk.OptionMenu(master, self.vars["nav_tag"], *tag_options)
-        dropdown.grid(row=row, column=1, pady=3)
-
-        create_label(master, "Story frame")
-        create_checkbutton(master, "Bold prompt", "bold_prompt", self.vars)
-        # create_checkbutton(master, "Show literal prompt", "show_prompt", self.vars)
-
-        create_label(master, "Saving")
-        create_checkbutton(master, "Autosave", "autosave", self.vars)
-        create_checkbutton(master, "Save counterfactuals", "save_counterfactuals", self.vars)
-
-        create_label(master, "Generation")
-        create_checkbutton(master, "AI responses on submit", "auto_response", self.vars)
-        create_checkbutton(master, "Show logprobs as probs", "prob", self.vars)
-
-        row = master.grid_size()[1]
-        create_side_label(master, "Display mode", row)
-        mode_options = ['edit', 'read']
-        dropdown = tk.OptionMenu(master, self.vars["coloring"], *mode_options)
-        dropdown.grid(row=row, column=1, pady=3)
-
-        create_slider(master, "Font size", self.vars["font_size"], (5, 20))
-        create_slider(master, "Line spacing", self.vars["line_spacing"], (0, 20))
-        create_slider(master, "Paragraph spacing", self.vars["paragraph_spacing"], (0, 40))
-
-
-    def apply(self):
-        for key, var in self.vars.items():
-            self.orig_params[key] = var.get()
-        self.result = self.orig_params
-
-
-class GenerationSettingsDialog(Dialog):
-    def __init__(self, parent, orig_params):
-        self.orig_params = orig_params
-        self.generation_control = FullGenerationSettings(orig_params)
-        Dialog.__init__(self, parent, title="Generation Settings")
-
-    # Creates sliders for each sensitivity slider
-    def body(self, master):
-        self.generation_control.body(master)
-
-    def reset_variables(self):
-        pass
-
-    def apply(self):
-        self.generation_control.apply()
-        self.result = self.orig_params
-
 
 class VisualizationSettingsDialog(Dialog):
     def __init__(self, parent, orig_params):
@@ -1127,3 +1047,32 @@ class RunDialog(Dialog):
 
     def apply(self):
         self.eval_code.apply()
+
+
+class Preferences(Dialog):
+    def __init__(self, parent, orig_params, user_params, state):
+        self.preferences = Preferences(orig_params, user_params, state, realtime_update=False)
+        Dialog.__init__(self, parent, title="Settings")
+
+    def body(self, master):
+        self.preferences.body(master)
+
+    def apply(self):
+        self.preferences.write_user_state()
+
+
+class GenerationSettingsDialog(Dialog):
+    def __init__(self, parent, orig_params, user_params, state):
+        self.orig_params = orig_params
+        self.generation_control = FullGenerationSettings(orig_params, user_params, state, realtime_update=False)
+        Dialog.__init__(self, parent, title="Generation Settings")
+
+    # Creates sliders for each sensitivity slider
+    def body(self, master):
+        self.generation_control.body(master)
+
+    def reset_variables(self):
+        pass
+
+    def apply(self):
+        self.generation_control.write_user_state()

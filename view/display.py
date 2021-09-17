@@ -231,7 +231,7 @@ class Display:
         textbox.bind("<Button-2>", lambda event: self.open_menu(txt=textbox, event=event))
         #textbox.bind("<Command-Button-1>", lambda event: self.open_menu(txt=textbox, event=event))
         textbox.bind("<Button-1>", lambda event: self.clear_selection_tags(textbox=textbox))
-        textbox.bind("<Escape>", self.clear_selection_tags)
+        textbox.bind("<Escape>", self.clear_selection_tags(textbox=textbox))
         textbox.bind("<Button-1>", lambda event: textbox.focus_set())
         textbox.pack(expand=True, fill='both')
 
@@ -271,8 +271,9 @@ class Display:
         self.callbacks["Goto history"]["callback"](index=char_index)
 
     def split_node(self, txt, event=None):
-        txt.fix_insertion()
-        char_index = txt.count("1.0", txt.index(tk.CURRENT), "chars")[0]
+        fixed_position = txt.fix_insertion_position(txt.index(tk.CURRENT))
+        #txt.fix_insertion()
+        char_index = txt.count("1.0", fixed_position, "chars")[0]
         self.callbacks["Split node"]["callback"](index=char_index)
 
     def select_token(self, txt, event=None):

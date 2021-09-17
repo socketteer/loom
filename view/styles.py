@@ -21,4 +21,7 @@ def code_textbox_config(bg='black'):
         'foreground': 'white',
         'background': bg,
         'insertbackground': 'white',
+        'spacing1': 2,
+        'spacing2': 2,
+        'spacing3': 2,
     }

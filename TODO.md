@@ -276,6 +276,10 @@
 
 - what to do about prompts that are cut off?
 
+- version control - start a new "branch" and merge
+
+- hotkey to shift words to parent / children
+
 ## Other TODO
 
 ### bugs

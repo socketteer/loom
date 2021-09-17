@@ -12,7 +12,7 @@ from collections import defaultdict, ChainMap
 from multiprocessing.pool import ThreadPool
 import codecs
 import json
-from util.frames_util import frame_merger, frame_merger_append
+from util.frames_util import frame_merger, frame_merger_append, frame_merger_override
 from copy import deepcopy
 
 from gpt import openAI_generate, search, gen
@@ -40,24 +40,29 @@ def event(func):
 
 
 DEFAULT_PREFERENCES = {
-    #'hide_archived': True,
-    #'highlight_canonical': False,
-    #'canonical_only': False,
+
+    # Nav tree
+    'reverse': False,
+
+    # Navigation 
     'walk': 'descendents',  # 'leaves', 'uniform'
+    'nav_tag': 'bookmark',
+
+    # Story frame 
     'coloring': 'edit',  # 'read', 'none'
     'bold_prompt': True,
-    'auto_response': True,
     'font_size': 12,
     'line_spacing': 8,
     'paragraph_spacing': 10,
-    #'show_prompt': False,
+
+    # Saving
     'log_diff': False,
     'autosave': True,
-    'save_counterfactuals': False,
+    #'save_counterfactuals': False,
+    'model_response': 'backup', #'discard', #'save'
+
+    # generation data
     'prob': True,
-    'reverse': False,
-    'nav_tag': 'bookmark',
-    # display children preview
     # darkmode
 }
 
@@ -72,7 +77,8 @@ DEFAULT_WORKSPACE = {
 }
 
 DEFAULT_MODULE_SETTINGS = {
-    'edit': {'node_id': None,}
+    'edit': {'node_id': None,},
+    'input': {'auto_response': True},
 }
 
 DEFAULT_GENERATION_SETTINGS = {
@@ -142,6 +148,7 @@ EMPTY_TREE = {
     }
 }
 
+# new tags should be added to the root level by default
 DEFAULT_TAGS = { 
     "bookmark": { 
         "name": "bookmark", 
@@ -222,9 +229,7 @@ class TreeModel:
 
     @property
     def generation_settings(self):
-        return self.tree_raw_data.get("generation_settings") \
-            if self.tree_raw_data and "generation_settings" in self.tree_raw_data \
-            else DEFAULT_GENERATION_SETTINGS
+        return self.state['generation_settings']
 
     @property
     def inline_generation_settings(self):
@@ -250,6 +255,19 @@ class TreeModel:
     def workspace(self):
         return self.state['workspace']
     
+
+    @property
+    def user_preferences(self):
+        return self.user_state.get("preferences") \
+            if "preferences" in self.user_state \
+            else {}
+
+    @property
+    def user_generation_settings(self):
+        return self.user_state.get("generation_settings") \
+            if "generation_settings" in self.user_state \
+            else {}
+
     @property
     def user_workspace(self):
         return self.user_state.get("workspace") \
@@ -266,6 +284,7 @@ class TreeModel:
     def state(self):
         state = {}
         state["preferences"] = deepcopy(DEFAULT_PREFERENCES)
+        state["generation_settings"] = deepcopy(DEFAULT_GENERATION_SETTINGS)
         state["workspace"] = deepcopy(DEFAULT_WORKSPACE)
         state["module_settings"] = deepcopy(DEFAULT_MODULE_SETTINGS) 
         frames = self.accumulate_frames(self.selected_node)
@@ -300,11 +319,26 @@ class TreeModel:
     def set_frame(self, node, frame):
         node['frame'] = deepcopy(frame)
 
-    def update_frame(self, node, frame):
-        if 'frame' in node:
-            frame_merger.merge(node['frame'], deepcopy(frame))
+    def update(self, dict, update, append=False):
+        if append:
+                frame_merger_append.merge(dict, deepcopy(update))
         else:
-            node['frame'] = deepcopy(frame)
+            frame_merger.merge(dict, deepcopy(update))
+
+    def set_path(self, dict, value, path):
+        update_path = dict
+        for key in path[:-1]:
+            if key not in update_path:
+                update_path[key] = {}
+            update_path = update_path[key]
+        update_path[path[-1]] = deepcopy(value)
+
+    def update_frame(self, node, update, append=False):
+        if 'frame' in node:
+            self.update(node, node['frame'], update, append)
+        else:
+            node['frame'] = deepcopy(update)
+        self.tree_updated()
 
     def get_frame(self, node):
         return node.get('frame', {})
@@ -314,13 +348,21 @@ class TreeModel:
 
     def update_user_state(self, update, append=False):
         if 'user_state' in self.tree_raw_data:
-            if append:
-                frame_merger_append.merge(self.tree_raw_data['user_state'], deepcopy(update))
-            else:
-                frame_merger.merge(self.tree_raw_data['user_state'], deepcopy(update))
+            self.update(self.tree_raw_data['user_state'], update, append)
         else:
             self.tree_raw_data['user_state'] = deepcopy(update)
         self.tree_updated()
+
+    # TODO merge with frame
+    def set_user_state_partial(self, value, path):
+        if not 'user_state' in self.tree_raw_data:
+            self.tree_raw_data['user_state'] = {}
+        self.set_path(self.tree_raw_data['user_state'], value, path)
+        
+    def set_frame_partial(self, node, value, path):
+        if not 'frame' in node:
+            node['frame'] = {}
+        self.set_path(node['frame'], value, path)
 
     def clear_user_state(self):
         self.set_user_state({})
