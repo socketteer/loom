@@ -715,11 +715,6 @@ class SmartText(TextAware):
         # if insertion cursor is preceded by space, move it to the end of the previous word
         new_position = self.fix_insertion_position(tk.INSERT)
         self.mark_set(tk.INSERT, new_position)
-        # if self.get(f"{tk.INSERT}-1c") == " ":
-        #     self.mark_set(tk.INSERT, f"{tk.INSERT}-1c")
-        # # if the next character is a space or punctuation, move it to the next position
-        # if self.get(f"{tk.INSERT}+1c") in (" ", "\n", ",", ".", ";", ":", "!", "?", "-"):
-        #     self.mark_set(tk.INSERT, f"{tk.INSERT}+1c")
 
     def fix_insertion_position(self, position):
         if self.get(f"{position}-1c") == " ":
