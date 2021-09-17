@@ -107,13 +107,18 @@ def limited_branching_tree(ancestry, root, depth_limit):
 # TODO copy contains no data except id(same as old tree) and children - will cause problems?
 # TODO modify this function or make new function that copies all of tree?
 # TODO existing python function to filter/copy dictionary?
-def tree_subset(root, filter=None):
+def tree_subset(root, filter=None, copy_attributes=None):
     if not filter:
         return root
+    if not copy_attributes:
+        copy_attributes = []
     new_root = {'id': root['id'], 'children': []}
     if 'children' in root:
         for child in filtered_children(root, filter):
             new_root['children'].append(tree_subset(child, filter))
+    for attribute in copy_attributes:
+        if attribute in root:
+            new_root[attribute] = root[attribute]
     return new_root
 
 

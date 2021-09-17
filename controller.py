@@ -23,8 +23,8 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from components.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
-    Preferences, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
-    RunDialog, WorkspaceDialog
+    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
+    RunDialog, WorkspaceDialog, ExportOptionsDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff
 from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
@@ -32,6 +32,8 @@ from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stoch
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
 from util.keybindings import tkinter_keybindings
 from view.icons import Icons
+from gpt import gen
+import json
 
 
 def gated_call(f, condition):
@@ -652,7 +654,6 @@ class Controller:
             self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth,
                                                     start_position=start_position, prompt=prompt)
 
-
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
     def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node?"):
         node = node if node else self.state.selected_node
@@ -719,8 +720,6 @@ class Controller:
             if change_selection:
                 self.nav_select(node_id=new_parent["id"])
             # TODO deal with metadata
-
-
 
     def zip_chain(self, node=None):
         node = node if node else self.state.selected_node
@@ -794,6 +793,14 @@ class Controller:
 
         menu.tk_popup(e.x_root, e.y_root + 8)
 
+
+    def generate_template(self, inputs, template_file):
+        # open template file json
+        with open(template_file, 'r') as f:
+            template_dict = json.load(f)
+        template = template_dict['template']
+        prompt = eval(f'f"""{template}"""')
+        
 
     def refresh_textbox(self, **kwargs):
         #print('refresh textbox')
@@ -1531,6 +1538,19 @@ class Controller:
     @metadata(name="Export subtree", keys=["<Control-Command-KeyPress-X>", "<Control-Alt-KeyPress-X>"], display_key="Ctrl-Command-X")
     def export_subtree(self, node=None):
         node = node if node else self.state.selected_node
+        export_options = {
+            'subtree_only': True,
+            'visible_only': True,
+            'tags': False,
+            'text_attributes': False,
+            'multimedia': False,
+            'chapters': False
+        }
+        result = False
+        dialog = ExportOptionsDialog(parent=self.display.frame, options_dict=export_options, result=result)
+        if not result:
+            return 
+        node = node if export_options['subtree_only'] else self.state.root
         filename = self.state.tree_filename if self.state.tree_filename \
             else os.path.join(os.getcwd() + '/data', "new_tree.json")
         # TODO default name shouldn't be parent tree name
@@ -1540,13 +1560,14 @@ class Controller:
             defaultextension='.json')
         if filename:
             #self.state.tree_filename = filename
-            new_tree = node.copy()
-            new_tree.pop('parent_id')
-            new_tree = {'root': new_tree}
-            new_tree = self.state.copy_global_objects(new_tree)
-            print(new_tree)
-            self.save_tree(subtree=new_tree, filename=filename)
-            return
+            self.state.export_subtree(node, filename, export_options)
+            # new_tree = node.copy()
+            # new_tree.pop('parent_id')
+            # new_tree = {'root': new_tree}
+            # new_tree = self.state.copy_global_objects(new_tree)
+            # print(new_tree)
+            # self.save_tree(subtree=new_tree, filename=filename)
+            # return
 
 
     @metadata(name="Export to text", keys=["<Control-Shift-KeyPress-X>"], display_key="Ctrl-Shift-X")
@@ -1606,7 +1627,7 @@ class Controller:
     @metadata(name="Preferences", keys=["<Control-p>"], display_key="")
     def preferences(self):
         #print(self.state.preferences)
-        dialog = Preferences(parent=self.display.frame, orig_params=self.state.preferences,
+        dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences,
                           user_params=self.state.user_preferences, state=self.state)
 
         #dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences, state=self.state)

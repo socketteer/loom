@@ -1,5 +1,6 @@
+from re import L
 import tkinter as tk
-from tkinter import ttk, filedialog
+from tkinter import Frame, ttk, filedialog
 import uuid
 from view.colors import text_color, bg_color, edit_color, default_color
 from util.custom_tks import TextAware, ScrollableFrame
@@ -839,16 +840,11 @@ class SmartText(TextAware):
 #################################
 
 class Settings:
-    def __init__(self, orig_params, user_params, settings_key, state, realtime_update=False, parent_module=None):
+    def __init__(self, orig_params, realtime_update=False, parent_module=None):
         self.orig_params = orig_params
-        self.user_params = user_params
-        self.settings_key = settings_key
-        self.state = state
         self.realtime_update = realtime_update
         self.parent_module = parent_module
-        self.updates = {}
         self.vars = {}
-        self.pin_buttons = {}
         self.textboxes = {}
         self.frame = None
         self.master = None
@@ -861,29 +857,82 @@ class Settings:
     def init_vars(self):
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=self.orig_params[key])
-            self.vars[key].trace("w", lambda a, b, c, key=key: self.write_var(key=key))
+            self.vars[key].trace("w", lambda a, b, c, key=key: self.set_var(key=key))
+    
+    def set_var(self, key):
+        if self.realtime_update:
+            self.write()
 
-    def write_var(self, key):
+    def write(self):
+        for key in self.vars.keys():
+            self.orig_params[key] = self.vars[key].get()
+
+    def reset_vars(self):
+        for key in self.vars.keys():
+            self.vars[key].set(self.orig_params[key])
+
+    def key_pressed(self, event):
+        if event.keysym == 'Tab' or event.keysym == 'Return':
+            self.frame.focus()
+            return "break"
+
+    def create_textbox(self, name, label_text=None):
+        row = self.frame.grid_size()[1]
+        label_text = label_text if label_text else name + ' text'
+        create_side_label(self.frame, label_text, row)
+        self.textboxes[name] = TextAware(self.frame, height=1, width=20)
+        self.textboxes[name].grid(row=row, column=1)
+        self.textboxes[name].bind("<Key>", self.key_pressed)
+        self.textboxes[name].bind("<FocusOut>", lambda event, name=name: self.get_text(key=name))
+        if self.parent_module:
+            self.parent_module.textboxes.append(self.textboxes[name])
+
+    def get_text(self, key):
+        self.vars[key].set(self.textboxes[key].get(1.0, "end-1c"))
+
+
+    def create_dropdown(self, var, label_text, options):
+        row = self.frame.grid_size()[1]
+        create_side_label(self.frame, label_text, row)
+        dropdown = tk.OptionMenu(self.frame, self.vars[var], *options)
+        dropdown.grid(row=row, column=1, pady=3)
+
+    def destroy(self):
+        self.frame.pack_forget()
+        self.frame.destroy()
+
+
+class FrameSettings(Settings):
+    def __init__(self, orig_params, user_params, settings_key, state, realtime_update=False, parent_module=None):
+        Settings.__init__(self, orig_params, realtime_update, parent_module)
+        self.user_params = user_params
+        self.settings_key = settings_key
+        self.state = state
+        self.updates = {}
+        self.pin_buttons = {}
+
+    def set_var(self, key):
         if key not in self.updates:
             self.pin_var(key)
         else:
             self.updates[key] = self.vars[key].get()
-        if self.realtime_update:
-            self.write_user_state()
+        Settings.set_var(self, key)
         
     def unpin_var(self, key):
         # unpin button
         # reset var to original value
         # remove from updates dict
-        self.vars[key].set(self.orig_params[key])
-        self.updates.pop(key)
-        self.pin_buttons[key].configure(image=icons.get_icon("square-black"))
+        if key in self.pin_buttons:
+            self.vars[key].set(self.orig_params[key])
+            self.updates.pop(key)
+            self.pin_buttons[key].configure(image=icons.get_icon("square-black"))
 
     def pin_var(self, key):
         # pin button
         # add to updates dict
-        self.pin_buttons[key].configure(image=icons.get_icon("pin-red"))
-        self.updates[key] = self.vars[key].get()
+        if key in self.pin_buttons:
+            self.pin_buttons[key].configure(image=icons.get_icon("pin-red"))
+            self.updates[key] = self.vars[key].get()
 
     def toggle_pin(self, key):
         if key in self.updates:
@@ -891,11 +940,14 @@ class Settings:
         else:
             self.pin_var(key)
 
+    def write(self):
+        # overrides Settings.write()
+        self.write_user_state()
+
     def write_user_state(self):
         # write updates to user state
         print('writing user state')
         print(self.updates)
-        #self.state.update_user_state({self.settings_key: self.updates}, override=True)
         self.state.set_user_state_partial(value=self.updates, path=[self.settings_key])
 
     def write_to_frame(self):
@@ -914,51 +966,45 @@ class Settings:
                 self.pin_var(key)
 
     def reset_vars(self):
-        # reset vars to original values
-        for key in self.vars.keys():
-            self.vars[key].set(self.orig_params[key])
+        Settings.reset_vars(self)
         self.set_pins()
 
-    def build_pin_button(self, key):
-        row = self.frame.grid_size()[1] - 1
+    def build_pin_button(self, key, row=None):
+        row = row if row else self.frame.grid_size()[1] - 1
         self.pin_buttons[key] = tk.Label(self.frame, image=icons.get_icon("square-black"),
                                          cursor="hand2")
         self.pin_buttons[key].grid(row=row, column=2)
         self.pin_buttons[key].bind("<Button-1>", lambda event, key=key: self.toggle_pin(key))
 
-    def key_pressed(self, event):
-        if event.keysym == 'Tab' or event.keysym == 'Return':
-            self.frame.focus()
-            return "break"
 
-    def create_textbox(self, name, label_text=None):
-        row = self.frame.grid_size()[1]
-        label_text = label_text if label_text else name + ' text'
-        create_side_label(self.frame, label_text, row)
-        self.textboxes[name] = TextAware(self.frame, height=1, width=20)
-        self.textboxes[name].grid(row=row, column=1)
-        self.textboxes[name].bind("<Key>", self.key_pressed)
-        self.textboxes[name].bind("<FocusOut>", lambda event, name=name: self.get_text(key=name))
-        if self.parent_module:
-            self.parent_module.textboxes.append(self.textboxes[name])
+class ExportOptions(Settings):
+    def __init__(self, orig_params, realtime_update=False, parent_module=None):
+        Settings.__init__(self, orig_params, realtime_update, parent_module)
+        self.vars = {
+            'subtree_only': tk.BooleanVar,
+            'visible_only': tk.BooleanVar,
+            #'frames': tk.BooleanVar,
+            #'ancestry_frames': tk.BooleanVar,
+            'tags': tk.BooleanVar,
+            'text_attributes': tk.BooleanVar,
+            'multimedia': tk.BooleanVar,
+            'chapters': tk.BooleanVar
+        }
 
-    def create_dropdown(self, var, label_text, options):
-        row = self.frame.grid_size()[1]
-        create_side_label(self.frame, label_text, row)
-        dropdown = tk.OptionMenu(self.frame, self.vars[var], *options)
-        dropdown.grid(row=row, column=1, pady=3)
-
-    def get_text(self, key):
-        self.vars[key].set(self.textboxes[key].get(1.0, "end-1c"))
-
-    def destroy(self):
-        self.frame.pack_forget()
-        self.frame.destroy()
+    def body(self, master):
+        Settings.body(self, master)
+        self.init_vars()
+        create_checkbutton(self.frame, "Subtree only", "subtree_only", self.vars)
+        create_checkbutton(self.frame, "Visible only", "visible_only", self.vars)
+        create_checkbutton(self.frame, "Export tags", "tags", self.vars)
+        create_checkbutton(self.frame, "Export text attributes", "text_attributes", self.vars)
+        create_checkbutton(self.frame, "Export multimedia", "multimedia", self.vars)
+        create_checkbutton(self.frame, "Export chapters", "chapters", self.vars)
 
 
-class Preferences(Settings):
+class Preferences(FrameSettings):
     def __init__(self, orig_params, user_params, state, realtime_update=False, parent_module=None):
-        Settings.__init__(self, orig_params, user_params, "preferences", state, realtime_update, parent_module)
+        FrameSettings.__init__(self, orig_params, user_params, "preferences", state, realtime_update, parent_module)
         self.vars = {
             "reverse": tk.BooleanVar,
 
@@ -980,7 +1026,7 @@ class Preferences(Settings):
         self.init_vars()
 
     def body(self, master):
-        Settings.body(self, master)
+        FrameSettings.body(self, master)
         create_label(self.frame, "Nav tree")
 
         create_checkbutton(self.frame, "Reverse node order", "reverse", self.vars)
@@ -1030,10 +1076,8 @@ class Preferences(Settings):
         self.set_pins()
     
 
-class GenerationSettings(Settings):
-    def __init__(self, orig_params, user_params, state, realtime_update=False, parent_module=None):
-        Settings.__init__(self, orig_params, user_params, "generation_settings", state, realtime_update, parent_module)
-        self.vars = {
+def generation_settings_init(self):
+    self.vars = {
             "model": tk.StringVar,
             'num_continuations': tk.IntVar,
             'temperature': tk.DoubleVar,
@@ -1044,60 +1088,129 @@ class GenerationSettings(Settings):
             'stop': tk.StringVar,
             'logit_bias': tk.StringVar,
         }
-        self.textboxes = {'stop': None,
-                          'logit_bias': None}
-        self.init_vars()
+    self.textboxes = {'stop': None,
+                    'logit_bias': None}
+    self.init_vars()
+
+
+def full_generation_settings_init(self):
+    additional_vars = {
+            'start': tk.StringVar,
+            'restart': tk.StringVar,
+            'global_context': tk.StringVar,
+            'template': tk.StringVar,
+            'post_template': tk.StringVar,
+            'preset': tk.StringVar,
+        }
+    for key in additional_vars.keys():
+        self.vars[key] = additional_vars[key](value=self.orig_params[key])
+        self.vars[key].trace("w", lambda a, b, c, key=key: self.set_var(key=key))
+    
+    self.textboxes.update({'start': None,
+                            'restart': None,})
+
+    self.context_textbox = None
+    self.template_label = None
+    self.template_filename_label = None
+    self.preset_dropdown = None
+
+
+def generation_settings_body(self, build_pins=False):
+    create_combo_box(self.frame, "model", self.vars["model"], POSSIBLE_MODELS, width=15)
+    if build_pins:
+        self.build_pin_button("model")
+
+    sliders = {
+        'num_continuations': (1, 20),
+        'temperature': (0., 1.),
+        'top_p': (0., 1.),
+        'response_length': (1, 1000),
+        'prompt_length': (100, 10000),
+        'logprobs': (0, 100),
+    }
+    for name, value_range in sliders.items():
+        create_slider(self.frame, name, self.vars[name], value_range)
+        if build_pins:
+            self.build_pin_button(name)
+
+    for name in self.textboxes:
+        self.create_textbox(name)
+        if build_pins:
+            self.build_pin_button(name)
+    self.set_textboxes()
+    if build_pins:
+        self.set_pins()
+
+
+def generation_settings_templates_body(self, build_pins=False):
+
+    # TODO use grid
+    # self.context_frame = CollapsableFrame(self.frame, title="global prepended context", bg=bg_color())
+    # self.context_frame.pack(side="top", fill="both", expand=True, pady=10)
+    row = self.frame.grid_size()[1]
+    self.context_textbox = TextAware(self.frame, height=4, width=30)
+    self.context_textbox.configure(**textbox_config())
+    self.context_textbox.grid(row=row, column=0, columnspan=2)
+    self.context_textbox.bind("<Key>", self.key_pressed)
+    self.context_textbox.bind("<FocusOut>", lambda event: self.get_context())
+    self.set_context()
+    if self.parent_module:
+        self.parent_module.textboxes.append(self.context_textbox)
+    if build_pins:
+        self.build_pin_button('global_context')
+
+    # self.templates_frame = CollapsableFrame(self.frame, title="templates", bg=bg_color())
+    # self.templates_frame.pack(side="top", fill="both", expand=True, pady=10)
+
+    row = self.frame.grid_size()[1]
+    self.template_label = create_side_label(self.frame, "template")
+    self.template_filename_label = create_side_label(self.frame, self.vars['template'].get(), row=row, col=1)
+    self.vars['template'].trace("w", self.set_template)
+    if build_pins:
+        self.build_pin_button('template')
+
+    row = self.frame.grid_size()[1]
+    self.preset_label = create_side_label(self.frame, "preset")
+    
+    # load presets into options
+    with open('./config/generation_presets/presets.json') as f:
+        self.presets_dict = json.load(f)
+
+    # if custom presets json exists, also append it to presets dict and options
+    if os.path.isfile('./config/generation_presets/custom_presets.json'):
+        with open('./config/generation_presets/custom_presets.json') as f:
+            self.presets_dict.update(json.load(f))
+
+    # when the preset changes, apply the preset
+    self.vars['preset'].trace('w', self.apply_preset)
+
+    self.preset_dropdown = tk.OptionMenu(self.frame, self.vars["preset"], "Select preset...")
+    self.preset_dropdown.grid(row=row, column=1)
+    self.set_options()
+    if build_pins:
+        self.build_pin_button('preset')
+
+    row = self.frame.grid_size()[1]
+    create_button(self.frame, "Load template", self.load_template, column=0, width=12)
+    create_button(self.frame, "Save preset", self.save_preset, column=0)
+    #create_button(master, "Reset", self.reset_variables)
+
+    if build_pins:
+        self.write_to_frame_button = tk.Button(self.frame, text="Write to frame", command=self.write_to_frame)
+        self.write_to_frame_button.grid(row=self.frame.grid_size()[1], column=1, pady=3)
+
+    if build_pins:
+        self.set_pins()
+
+
+class SpecialGenerationSettings(Settings):
+    def __init__(self, orig_params, realtime_update=False, parent_module=None):
+        Settings.__init__(self, orig_params, realtime_update, parent_module)
+        generation_settings_init(self)
 
     def body(self, master):
         Settings.body(self, master)
-        create_combo_box(self.frame, "model", self.vars["model"], POSSIBLE_MODELS, width=15)
-        self.build_pin_button("model")
-
-        sliders = {
-            'num_continuations': (1, 20),
-            'temperature': (0., 1.),
-            'top_p': (0., 1.),
-            'response_length': (1, 1000),
-            'prompt_length': (100, 10000),
-            'logprobs': (0, 100),
-        }
-        for name, value_range in sliders.items():
-            create_slider(self.frame, name, self.vars[name], value_range)
-            self.build_pin_button(name)
-
-        for name in self.textboxes:
-            self.create_textbox(name)
-            self.build_pin_button(name)
-
-        self.set_textboxes()
-        self.set_pins()
-
-    # def __init__(self, orig_settings, realtime_update=False, parent_module=None):
-    #     self.master = None
-    #     self.frame = None
-    #     self.orig_settings = orig_settings
-    #     self.realtime_update = realtime_update
-    #     self.parent_module = parent_module
-    #     self.vars = {
-    #         "model": tk.StringVar,
-    #         'num_continuations': tk.IntVar,
-    #         'temperature': tk.DoubleVar,
-    #         'top_p': tk.DoubleVar,
-    #         'response_length': tk.IntVar,
-    #         'prompt_length': tk.IntVar,
-    #         'logprobs': tk.IntVar,
-    #         'stop': tk.StringVar,
-    #         'logit_bias': tk.StringVar,
-    #     }
-    #     for key in self.vars.keys():
-    #         self.vars[key] = self.vars[key](value=self.orig_settings[key])
-    #         if self.realtime_update:
-    #             self.vars[key].trace("w", lambda a, b, c, key=key: self.write_var(key=key))
-
-    #     self.textboxes = {'stop': None,
-    #                       'logit_bias': None}
-
-    
+        generation_settings_body(self, build_pins=False)
 
     def reset_vars(self):
         Settings.reset_vars(self)
@@ -1114,112 +1227,31 @@ class GenerationSettings(Settings):
         repr_noquotes = repr_string[1:-1]
         return repr_noquotes
 
-    # def write_var(self, key):
-    #     self.orig_settings[key] = self.vars[key].get()
 
-    # def get_text(self, key):
-    #     self.vars[key].set(self.textboxes[key].get(1.0, "end-1c"))
-
-    # def apply(self, *args):
-    #     for key in self.vars:
-    #         self.write_var(key)
-
-
-    # def create_textbox(self, name):
-    #     row = self.frame.grid_size()[1]
-    #     label_text = 'stop sequences (| delimited)' if name == 'stop' else 'logit bias (| delimited)' if name == 'logit_bias' else name + ' text'
-    #     create_side_label(self.frame, label_text, row)
-    #     self.textboxes[name] = TextAware(self.frame, height=1, width=20)
-    #     self.textboxes[name].grid(row=row, column=1)
-    #     self.textboxes[name].bind("<Key>", self.key_pressed)
-    #     self.textboxes[name].bind("<FocusOut>", lambda event, name=name: self.get_text(key=name))
-    #     if self.parent_module:
-    #         self.parent_module.textboxes.append(self.textboxes[name])
-
-
-
-class FullGenerationSettings(GenerationSettings):
-    def __init__(self, orig_params, user_params, state, realtime_update=False, parent_module=None):
-        GenerationSettings.__init__(self, orig_params, user_params, state, realtime_update=realtime_update, parent_module=parent_module)
-        additional_vars = {
-            'start': tk.StringVar,
-            'restart': tk.StringVar,
-            'global_context': tk.StringVar,
-            'template': tk.StringVar,
-            'post_template': tk.StringVar,
-            'preset': tk.StringVar,
-        }
-        for key in additional_vars.keys():
-            self.vars[key] = additional_vars[key](value=self.orig_params[key])
-            self.vars[key].trace("w", lambda a, b, c, key=key: self.write_var(key=key))
-        
-        self.textboxes.update({'start': None,
-                               'restart': None,})
-
-        self.context_textbox = None
-        self.template_label = None
-        self.template_filename_label = None
-        self.preset_dropdown = None
-        self.write_to_frame_button = None
+class GenerationSettings(FrameSettings, SpecialGenerationSettings):
+    def __init__(self, orig_params, user_params=None, state=None, realtime_update=False, parent_module=None):
+        FrameSettings.__init__(self, orig_params, user_params, "generation_settings", state, realtime_update, parent_module)
+        generation_settings_init(self)
+        #init_generation_settings(self)
+        #self.init_vars()
 
     def body(self, master):
-        GenerationSettings.body(self, master)
+        FrameSettings.body(self, master)
+        generation_settings_body(self, build_pins=True)
 
-        self.write_to_frame_button = tk.Button(self.frame, text="Write to frame", command=self.write_to_frame)
-        self.write_to_frame_button.grid(row=self.frame.grid_size()[1], column=1, pady=3)
+    def write(self):
+        FrameSettings.write(self)
 
-        # TODO use grid
-        self.context_frame = CollapsableFrame(master, title="global prepended context", bg=bg_color())
-        self.context_frame.pack(side="top", fill="both", expand=True, pady=10)
-        self.context_textbox = TextAware(self.context_frame.collapsable_frame, height=4, width=30)
-        self.context_textbox.configure(**textbox_config())
-        self.context_textbox.pack(side="top", fill="both", expand=True)
-        self.context_textbox.bind("<Key>", self.key_pressed)
-        self.context_textbox.bind("<FocusOut>", lambda event: self.get_context())
-        self.set_context()
-        #self.build_pin_button('global_context')
 
-        self.templates_frame = CollapsableFrame(master, title="templates", bg=bg_color())
-        self.templates_frame.pack(side="top", fill="both", expand=True, pady=10)
+class SpecialFullGenerationSettings(SpecialGenerationSettings):
+    def __init__(self, orig_params, realtime_update=False, parent_module=None):
+        SpecialGenerationSettings.__init__(self, orig_params, realtime_update, parent_module)
+        full_generation_settings_init(self)
 
-        self.template_label = create_side_label(self.templates_frame.collapsable_frame, "template")
-        self.template_filename_label = create_side_label(self.templates_frame.collapsable_frame, self.vars['template'].get(), row=0, col=1)
-        self.vars['template'].trace("w", self.set_template)
-        #self.build_pin_button('template')
-
-        create_side_label(self.templates_frame.collapsable_frame, "preset", row=2, col=0)
-        
-        # load presets into options
-        with open('./config/generation_presets/presets.json') as f:
-            self.presets_dict = json.load(f)
-
-        # if custom presets json exists, also append it to presets dict and options
-        if os.path.isfile('./config/generation_presets/custom_presets.json'):
-            with open('./config/generation_presets/custom_presets.json') as f:
-                self.presets_dict.update(json.load(f))
-
-        # when the preset changes, apply the preset
-        self.vars['preset'].trace('w', self.apply_preset)
-
-        self.preset_dropdown = tk.OptionMenu(self.templates_frame.collapsable_frame, self.vars["preset"], "Select preset...")
-        self.preset_dropdown.grid(row=2, column=1)
-        self.set_options()
-        #self.build_pin_button('preset')
-
-        create_button(self.templates_frame.collapsable_frame, "Load template", self.load_template, row=1, column=0, width=12)
-        create_button(self.templates_frame.collapsable_frame, "Save preset", self.save_preset, row=3, column=0)
-        #create_button(master, "Reset", self.reset_variables)
-
-        # TODO these don't work
-        # if context is empty, hide the frame
-        if not self.vars['global_context'].get():
-            self.context_frame.hide()
-        
-        # if preset is default, hide the frame
-        if self.vars['preset'].get() == 'Default':
-            self.templates_frame.hide()
-
-        #self.set_pins()
+    def body(self, master):
+        FrameSettings.body(self, master)
+        generation_settings_body(self, build_pins=False)
+        generation_settings_templates_body(self, build_pins=False)
 
     def set_context(self):
         self.context_textbox.delete(1.0, "end")
@@ -1289,3 +1321,170 @@ class FullGenerationSettings(GenerationSettings):
         custom_dict[preset_name] = self.presets_dict[preset_name]
         with open('./config/generation_presets/custom_presets.json', 'w') as f:
             json.dump(custom_dict, f)
+
+
+class FullGenerationSettings(FrameSettings, SpecialFullGenerationSettings):
+    def __init__(self, orig_params, user_params=None, state=None, realtime_update=False, parent_module=None):
+        FrameSettings.__init__(self, orig_params, user_params, "generation_settings", state, realtime_update, parent_module)
+        generation_settings_init(self)
+        full_generation_settings_init(self)
+
+    def body(self, master):
+        FrameSettings.body(self, master)
+        generation_settings_body(self, build_pins=True)
+        generation_settings_templates_body(self, build_pins=True)
+
+    def write(self):
+        FrameSettings.write(self)
+
+# class FullGenerationSettings(GenerationSettings):
+#     def __init__(self, orig_params, user_params, state, realtime_update=False, parent_module=None):
+#         GenerationSettings.__init__(self, orig_params, user_params, state, realtime_update=realtime_update, parent_module=parent_module)
+#         additional_vars = {
+#             'start': tk.StringVar,
+#             'restart': tk.StringVar,
+#             'global_context': tk.StringVar,
+#             'template': tk.StringVar,
+#             'post_template': tk.StringVar,
+#             'preset': tk.StringVar,
+#         }
+#         for key in additional_vars.keys():
+#             self.vars[key] = additional_vars[key](value=self.orig_params[key])
+#             self.vars[key].trace("w", lambda a, b, c, key=key: self.set_var(key=key))
+        
+#         self.textboxes.update({'start': None,
+#                                'restart': None,})
+
+#         self.context_textbox = None
+#         self.template_label = None
+#         self.template_filename_label = None
+#         self.preset_dropdown = None
+#         self.write_to_frame_button = None
+
+#     def body(self, master):
+#         GenerationSettings.body(self, master)
+
+#         self.write_to_frame_button = tk.Button(self.frame, text="Write to frame", command=self.write_to_frame)
+#         self.write_to_frame_button.grid(row=self.frame.grid_size()[1], column=1, pady=3)
+
+#         # TODO use grid
+#         self.context_frame = CollapsableFrame(master, title="global prepended context", bg=bg_color())
+#         self.context_frame.pack(side="top", fill="both", expand=True, pady=10)
+#         self.context_textbox = TextAware(self.context_frame.collapsable_frame, height=4, width=30)
+#         self.context_textbox.configure(**textbox_config())
+#         self.context_textbox.pack(side="top", fill="both", expand=True)
+#         self.context_textbox.bind("<Key>", self.key_pressed)
+#         self.context_textbox.bind("<FocusOut>", lambda event: self.get_context())
+#         self.set_context()
+#         #self.build_pin_button('global_context')
+
+#         self.templates_frame = CollapsableFrame(master, title="templates", bg=bg_color())
+#         self.templates_frame.pack(side="top", fill="both", expand=True, pady=10)
+
+#         self.template_label = create_side_label(self.templates_frame.collapsable_frame, "template")
+#         self.template_filename_label = create_side_label(self.templates_frame.collapsable_frame, self.vars['template'].get(), row=0, col=1)
+#         self.vars['template'].trace("w", self.set_template)
+#         #self.build_pin_button('template')
+
+#         create_side_label(self.templates_frame.collapsable_frame, "preset", row=2, col=0)
+        
+#         # load presets into options
+#         with open('./config/generation_presets/presets.json') as f:
+#             self.presets_dict = json.load(f)
+
+#         # if custom presets json exists, also append it to presets dict and options
+#         if os.path.isfile('./config/generation_presets/custom_presets.json'):
+#             with open('./config/generation_presets/custom_presets.json') as f:
+#                 self.presets_dict.update(json.load(f))
+
+#         # when the preset changes, apply the preset
+#         self.vars['preset'].trace('w', self.apply_preset)
+
+#         self.preset_dropdown = tk.OptionMenu(self.templates_frame.collapsable_frame, self.vars["preset"], "Select preset...")
+#         self.preset_dropdown.grid(row=2, column=1)
+#         self.set_options()
+#         #self.build_pin_button('preset')
+
+#         create_button(self.templates_frame.collapsable_frame, "Load template", self.load_template, row=1, column=0, width=12)
+#         create_button(self.templates_frame.collapsable_frame, "Save preset", self.save_preset, row=3, column=0)
+#         #create_button(master, "Reset", self.reset_variables)
+
+#         # TODO these don't work
+#         # if context is empty, hide the frame
+#         if not self.vars['global_context'].get():
+#             self.context_frame.hide()
+        
+#         # if preset is default, hide the frame
+#         if self.vars['preset'].get() == 'Default':
+#             self.templates_frame.hide()
+
+#         #self.set_pins()
+
+#     def set_context(self):
+#         self.context_textbox.delete(1.0, "end")
+#         self.context_textbox.insert(1.0, self.vars['global_context'].get())
+
+#     def get_context(self):
+#         self.vars['global_context'].set(self.context_textbox.get(1.0, "end-1c"))
+
+#     def set_template(self, *args):
+#         self.template_filename_label.config(text=self.vars['template'].get())
+
+#     def load_template(self):
+#         file_path = filedialog.askopenfilename(
+#             initialdir="./config/prompts",
+#             title="Select prompt template",
+#             filetypes=[("Text files", ".txt")]
+#         )
+#         if file_path:
+#             filename = os.path.splitext(os.path.basename(file_path))[0]
+#             self.vars['template'].set(filename)
+
+#     def set_options(self):
+#         options = [p['preset'] for p in self.presets_dict.values()]
+#         menu = self.preset_dropdown['menu']
+#         menu.delete(0, 'end')
+#         for option in options:
+#             menu.add_command(label=option, command=tk._setit(self.vars['preset'], option))
+
+#     def get_all(self):
+#         for key in self.textboxes:
+#             self.get_text(key)
+#         self.get_context()
+
+#     def settings_copy(self):
+#         settings = {}
+#         for key in self.vars.keys():
+#             settings[key] = self.vars[key].get()
+#         return settings
+
+#     def apply_preset(self, *args):
+#         new_preset = self.presets_dict[self.vars["preset"].get()]
+#         for key, value in new_preset.items():
+#             self.vars[key].set(value)
+#         self.set_textboxes()
+#         self.set_context()
+
+#     def save_preset(self, *args):
+#         preset_name = tk.simpledialog.askstring("Save preset", "Enter preset name")
+#         if preset_name is None:
+#             return
+        
+#         self.get_all()
+#         settings_copy = self.settings_copy()
+#         settings_copy['preset'] = preset_name
+#         self.presets_dict[preset_name] = settings_copy
+
+#         self.set_options()
+#         self.vars['preset'].set(preset_name)
+
+#         # make custom_presets json if it doesn't exist
+#         if not os.path.isfile('./config/generation_presets/custom_presets.json'):
+#             with open('./config/generation_presets/custom_presets.json', 'w') as f:
+#                 json.dump({}, f)
+#         # append new presets to json
+#         with open('./config/generation_presets/custom_presets.json') as f:
+#             custom_dict = json.load(f)
+#         custom_dict[preset_name] = self.presets_dict[preset_name]
+#         with open('./config/generation_presets/custom_presets.json', 'w') as f:
+#             json.dump(custom_dict, f)

@@ -1049,7 +1049,7 @@ class RunDialog(Dialog):
         self.eval_code.apply()
 
 
-class Preferences(Dialog):
+class PreferencesDialog(Dialog):
     def __init__(self, parent, orig_params, user_params, state):
         self.preferences = Preferences(orig_params, user_params, state, realtime_update=False)
         Dialog.__init__(self, parent, title="Settings")
@@ -1076,3 +1076,17 @@ class GenerationSettingsDialog(Dialog):
 
     def apply(self):
         self.generation_control.write_user_state()
+
+
+class ExportOptionsDialog(Dialog):
+    def __init__(self, parent, options_dict, result):
+        self.export_options = ExportOptions(options_dict)
+        self.result = result
+        Dialog.__init__(self, parent, title="Export Options")
+
+    def body(self, master):
+        self.export_options.body(master)
+
+    def apply(self):
+        self.result = True
+        self.export_options.write()

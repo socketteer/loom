@@ -21,7 +21,7 @@
             "open": true, 
             "modules": ["children"]
             },
-        "buttons": ["Delete", "Edit", "Children", "New Child", "Next", "Prev"]
+        "buttons": ["Delete", "Edit", "Children", "New Child", "Generate", "Next", "Prev"]
         }
     },
 "chat": {

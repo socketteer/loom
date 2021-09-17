@@ -1418,7 +1418,7 @@ class Transformers(Module):
         self.prompt_literal_textbox.configure(state='disabled')
 
         self.generation_settings_frame = CollapsableFrame(self.frame, title='Generation settings', bg=bg_color())
-        self.generation_settings_dashboard = GenerationSettings(orig_settings=self.generation_settings,
+        self.generation_settings_dashboard = SpecialGenerationSettings(orig_params=self.generation_settings,
                                                                 realtime_update=True, parent_module=self)
         self.generation_settings_dashboard.body(self.generation_settings_frame.collapsable_frame)
         self.generation_settings_frame.pack(side='top', fill='both', expand=True)
@@ -1605,7 +1605,9 @@ class GenerationSettings(Module):
     
     def build(self, parent):
         Module.build(self, parent)
-        self.settings_control = FullGenerationSettings(orig_settings=self.state.generation_settings, 
+        self.settings_control = FullGenerationSettings(orig_params=self.state.generation_settings,
+                                                       user_params=self.state.user_generation_settings,
+                                                       state=self.state,
                                                        realtime_update=True, parent_module=self)
         self.settings_control.body(self.frame)
 
@@ -1622,6 +1624,7 @@ class FrameEditor(Module):
         self.presets = None
         self.preset = None
         self.state_viewer = None
+        self.write_to_user_frame_button = None
         Module.__init__(self, "frame editor", callbacks, state)
 
     def build(self, parent):
@@ -1647,8 +1650,13 @@ class FrameEditor(Module):
         self.get_presets()
         self.set_presets()
         self.preset.trace('w', self.apply_preset)
+
+        self.write_to_user_frame_button = tk.Button(self.frame, text="Copy to user frame", command=self.write_to_user_frame)
+        self.write_to_user_frame_button.pack(side='top', pady=10)
+
         self.frame_editor.read()
         self.get_state()
+    
 
     def set_presets(self):
         options = self.presets.keys()
@@ -1687,6 +1695,10 @@ class FrameEditor(Module):
             frame = {}
         self.state.set_frame(self.state.selected_node, frame)
         self.get_state()
+
+    def write_to_user_frame(self):
+        frame_text = json.loads(self.frame_editor.textbox.get(1.0, tk.END))
+        self.state.set_user_state(frame_text)
 
     def read_frame(self):
         return json.dumps(self.state.get_frame(self.state.selected_node), indent=4)

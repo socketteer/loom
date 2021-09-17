@@ -268,17 +268,26 @@
 - zip chain (but not zip all) broken
 
 - override even meta hotkeys in modules
-
-- adjust selection
-    - remove trailing space or begnning of word depending on what's closer
     
 - eval prompt
+     - not working?
 
-- what to do about prompts that are cut off?
+- eval probs for prompts that are cut off
 
 - version control - start a new "branch" and merge
 
 - hotkey to shift words to parent / children
+
+- generation settings default option to modify dictionaries directly
+
+- export
+    - export subtree function
+    - global objects and frames
+
+- import 
+    - throw out immutable root?
+
+
 
 ## Other TODO
 
@@ -300,6 +309,7 @@
 * change chapter dialog doesn't show up when hotkey pressed depending on focus
 * after the first counterfactual substitution via select node, other selections will be misaligned
 * visited state sometimes doesn't update
+* split node sometimes causes string/int index comparison error?
 
 ### problems
 * saving and inserting into nav tree is slow for massive trees
