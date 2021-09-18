@@ -757,26 +757,34 @@ class Controller:
         menu.add_command(label="Split", command=lambda: self.split_node(char_index, change_selection=True))
         menu.add_command(label="Generate")
         menu.add_command(label="Add memory")
-        mask_menu = tk.Menu(menu, tearoff=0)
-        mask_menu.add_command(label="Mask from AI")
-        mask_menu.add_command(label="Mask from reader")
-        mask_menu.add_command(label="Custom mask")
-        menu.add_cascade(label="Mask", menu=mask_menu)
+        splice_menu = tk.Menu(menu, tearoff=0)
+        splice_menu.add_command(label="Obliviate")
+        splice_menu.add_command(label="Inject")
+        if self.display.textbox.tag_ranges("sel"):
+            splice_menu.add_command(label="Mask")
+            splice_menu.add_command(label="Open window from...")
+        splice_menu.add_command(label="Open window to...")
+        splice_menu.add_command(label="Custom splice")
+
+        menu.add_cascade(label="Splice", menu=splice_menu)
         
+        menu.add_command(label="Annotate")
         # if there is text selected
         if self.display.textbox.tag_ranges("sel"):
             selection_menu = tk.Menu(menu, tearoff=0)
             selection_menu.add_command(label="Copy")
-            selection_menu.add_command(label="Save")
-            selection_menu.add_command(label="Save memory")
-            selection_menu.add_command(label="Substitute")
+            save_menu = tk.Menu(selection_menu, tearoff=0)
+            save_menu.add_command(label="Save text")
+            save_menu.add_command(label="Save window")
+            save_menu.add_command(label="Save as memory")
+            selection_menu.add_cascade(label="Save", menu=save_menu)
+            #selection_menu.add_command(label="Substitute")
             transform_menu = tk.Menu(menu, tearoff=0)
             transform_menu.add_command(label="Prose to script", command=lambda: self.open_selection_in_transformer(template='./config/transformers/prose_to_script.json'))
             selection_menu.add_cascade(label="Transform", menu=transform_menu)
             
             #selection_menu.add_command(label="Transform", command=lambda: self.open_selection_in_transformer())
             selection_menu.add_command(label="Link")
-            selection_menu.add_command(label="Annotate")
             selection_menu.add_command(label="Add summary")
             selection_menu.add_command(label="Delete")
 
@@ -1064,7 +1072,7 @@ class Controller:
     def toggle_search(self, toggle=None):
         print('controller: toggle_search')
         toggle = not self.state.workspace['show_search'] if not toggle else toggle
-        self.state.update_user_state(update={'workspace': {'show_search': toggle}})
+        self.state.update_user_frame(update={'workspace': {'show_search': toggle}})
         #self.state.user_workspace['show_search'] = toggle
         if toggle:
             self.display.open_search()
@@ -1541,16 +1549,17 @@ class Controller:
         export_options = {
             'subtree_only': True,
             'visible_only': True,
+            'root_frame': True,
+            'frames': False,
             'tags': False,
+            'chapters': False,
             'text_attributes': False,
             'multimedia': False,
-            'chapters': False
         }
         result = False
         dialog = ExportOptionsDialog(parent=self.display.frame, options_dict=export_options, result=result)
         if not result:
             return 
-        node = node if export_options['subtree_only'] else self.state.root
         filename = self.state.tree_filename if self.state.tree_filename \
             else os.path.join(os.getcwd() + '/data', "new_tree.json")
         # TODO default name shouldn't be parent tree name
@@ -1756,11 +1765,11 @@ class Controller:
         #print('controller: open_module')
         #self.state.workspace[pane_name]['open'] = True
         if not self.state.workspace[pane_name]['open']:
-            self.state.update_user_state({'workspace': {pane_name: {'open': True}}})
+            self.state.update_user_frame({'workspace': {pane_name: {'open': True}}})
         if module_name not in self.state.workspace[pane_name]['modules']:
             #self.state.user_workspace[pane_name]['modules'].append(module_name)
             # TODO this only appends to frame, doesn't append during accumulation
-            self.state.update_user_state({'workspace': {pane_name: {'modules': [module_name]}}}, append=True)
+            self.state.update_user_frame({'workspace': {pane_name: {'modules': [module_name]}}}, append=True)
             #print(self.state.workspace)
         self.refresh_workspace()
 
@@ -1773,13 +1782,13 @@ class Controller:
 
     def open_pane(self, pane_name):
         #print('controller: open_pane')
-        self.state.update_user_state({'workspace': {pane_name: {'open': True}}})
+        self.state.update_user_frame({'workspace': {pane_name: {'open': True}}})
         #print('1', self.state.workspace)
         self.refresh_workspace()
 
     def close_pane(self, pane_name):
         #print('controller: close_pane')
-        self.state.update_user_state({'workspace': {pane_name: {'open': False}}})
+        self.state.update_user_frame({'workspace': {pane_name: {'open': False}}})
         self.refresh_workspace()
 
     @metadata(name="Side pane", keys=["<Command-p>", "<Alt-p>"], display_key="")

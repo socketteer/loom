@@ -942,13 +942,13 @@ class FrameSettings(Settings):
 
     def write(self):
         # overrides Settings.write()
-        self.write_user_state()
+        self.write_user_frame()
 
-    def write_user_state(self):
+    def write_user_frame(self):
         # write updates to user state
-        print('writing user state')
+        print('writing user frame')
         print(self.updates)
-        self.state.set_user_state_partial(value=self.updates, path=[self.settings_key])
+        self.state.set_user_frame_partial(value=self.updates, path=[self.settings_key])
 
     def write_to_frame(self):
         # write updates to node frame and remove pins & remove from user state
@@ -983,8 +983,8 @@ class ExportOptions(Settings):
         self.vars = {
             'subtree_only': tk.BooleanVar,
             'visible_only': tk.BooleanVar,
-            #'frames': tk.BooleanVar,
-            #'ancestry_frames': tk.BooleanVar,
+            'root_frame': tk.BooleanVar,
+            'frames': tk.BooleanVar,
             'tags': tk.BooleanVar,
             'text_attributes': tk.BooleanVar,
             'multimedia': tk.BooleanVar,
@@ -996,6 +996,8 @@ class ExportOptions(Settings):
         self.init_vars()
         create_checkbutton(self.frame, "Subtree only", "subtree_only", self.vars)
         create_checkbutton(self.frame, "Visible only", "visible_only", self.vars)
+        create_checkbutton(self.frame, "Export root frame", "root_frame", self.vars)
+        create_checkbutton(self.frame, "Export frames", "frames", self.vars)
         create_checkbutton(self.frame, "Export tags", "tags", self.vars)
         create_checkbutton(self.frame, "Export text attributes", "text_attributes", self.vars)
         create_checkbutton(self.frame, "Export multimedia", "multimedia", self.vars)

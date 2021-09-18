@@ -1058,7 +1058,7 @@ class PreferencesDialog(Dialog):
         self.preferences.body(master)
 
     def apply(self):
-        self.preferences.write_user_state()
+        self.preferences.write_user_frame()
 
 
 class GenerationSettingsDialog(Dialog):
@@ -1075,7 +1075,7 @@ class GenerationSettingsDialog(Dialog):
         pass
 
     def apply(self):
-        self.generation_control.write_user_state()
+        self.generation_control.write_user_frame()
 
 
 class ExportOptionsDialog(Dialog):

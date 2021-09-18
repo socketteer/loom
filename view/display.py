@@ -437,9 +437,13 @@ class Display:
 
             view_menu.add_command(label="Hide")
             view_menu.add_command(label="Hoist")
+            # contingent
             view_menu.add_command(label="Zip")
+            # contingent
             view_menu.add_command(label="Unzip")
+            # contingent
             view_menu.add_command(label="Expand subtree")
+            # contingent
             view_menu.add_command(label="Collapse subtree")
 
             menu.add_cascade(label="View", menu=view_menu)
@@ -463,8 +467,10 @@ class Display:
             
             menu.add_cascade(label="Tag", menu=tag_menu)
             
+            menu.add_command(label="Edit frame")
             menu.add_command(label="Edit chapter")
             menu.add_command(label="Info")
+            menu.add_command(label="Export subtree")
 
             # display the menu
             menu.tk_popup(event.x_root, event.y_root)
@@ -530,7 +536,7 @@ class Display:
     def pane_closed(self, pane):
         pane_name = pane.name
         #print('display: pane_closed')
-        self.state.update_user_state({'workspace': {pane_name: {'open': False}}})
+        self.state.update_user_frame({'workspace': {pane_name: {'open': False}}})
         self.close_pane(pane_name)
 
     def open_pane(self, pane_name):
@@ -600,7 +606,7 @@ class Display:
             pane_name = module_window.pane_name()
             pane = self.panes[pane_name]
             current_modules = pane.module_names()
-            self.state.update_user_state({'workspace': {pane_name: {'modules': current_modules}}})
+            self.state.update_user_frame({'workspace': {pane_name: {'modules': current_modules}}})
             
 
     def close_window(self, module_window):
@@ -615,7 +621,7 @@ class Display:
         pane_name = module_window.pane_name()
         pane = self.panes[pane_name]
         current_modules = pane.module_names()
-        self.state.update_user_state({'workspace': {pane_name: {'modules': current_modules}}})
+        self.state.update_user_frame({'workspace': {pane_name: {'modules': current_modules}}})
 
     #################################
     #   Edit mode

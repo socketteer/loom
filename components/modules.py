@@ -1698,7 +1698,7 @@ class FrameEditor(Module):
 
     def write_to_user_frame(self):
         frame_text = json.loads(self.frame_editor.textbox.get(1.0, tk.END))
-        self.state.set_user_state(frame_text)
+        self.state.set_user_frame(frame_text)
 
     def read_frame(self):
         return json.dumps(self.state.get_frame(self.state.selected_node), indent=4)

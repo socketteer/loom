@@ -258,26 +258,26 @@ class TreeModel:
 
     @property
     def user_preferences(self):
-        return self.user_state.get("preferences") \
-            if "preferences" in self.user_state \
+        return self.user_frame.get("preferences") \
+            if "preferences" in self.user_frame \
             else {}
 
     @property
     def user_generation_settings(self):
-        return self.user_state.get("generation_settings") \
-            if "generation_settings" in self.user_state \
+        return self.user_frame.get("generation_settings") \
+            if "generation_settings" in self.user_frame \
             else {}
 
     @property
     def user_workspace(self):
-        return self.user_state.get("workspace") \
-            if "workspace" in self.user_state \
+        return self.user_frame.get("workspace") \
+            if "workspace" in self.user_frame \
             else {}
 
     @property
-    def user_state(self):
-        return self.tree_raw_data.get("user_state") \
-            if self.tree_raw_data and "user_state" in self.tree_raw_data \
+    def user_frame(self):
+        return self.tree_raw_data.get("frame") \
+            if self.tree_raw_data and "frame" in self.tree_raw_data \
             else {}
 
     @property
@@ -289,7 +289,7 @@ class TreeModel:
         state["module_settings"] = deepcopy(DEFAULT_MODULE_SETTINGS) 
         frames = self.accumulate_frames(self.selected_node)
         frame_merger.merge(state, frames)
-        frame_merger.merge(state, self.user_state)
+        frame_merger.merge(state, self.user_frame)
         return state
 
 
@@ -316,8 +316,11 @@ class TreeModel:
             frame_merger.merge(frame_accumulator, deepcopy(frame))
         return frame_accumulator
 
-    def set_frame(self, node, frame):
-        node['frame'] = deepcopy(frame)
+    def set_frame(self, frame_parent, frame):
+        frame_parent['frame'] = deepcopy(frame)
+
+    # def overwrite_frame(self, frame, new_frame):
+    #     frame = deepcopy(new_frame)
 
     def update(self, dict, update, append=False):
         if append:
@@ -343,35 +346,35 @@ class TreeModel:
     def get_frame(self, node):
         return node.get('frame', {})
 
-    def set_user_state(self, state):
-        self.tree_raw_data['user_state'] = deepcopy(state)
+    def set_user_frame(self, state):
+        self.tree_raw_data['frame'] = deepcopy(state)
 
-    def update_user_state(self, update, append=False):
-        if 'user_state' in self.tree_raw_data:
-            self.update(self.tree_raw_data['user_state'], update, append)
+    def update_user_frame(self, update, append=False):
+        if 'frame' in self.tree_raw_data:
+            self.update(self.tree_raw_data['frame'], update, append)
         else:
-            self.tree_raw_data['user_state'] = deepcopy(update)
+            self.tree_raw_data['frame'] = deepcopy(update)
         self.tree_updated()
 
     # TODO merge with frame
-    def set_user_state_partial(self, value, path):
-        if not 'user_state' in self.tree_raw_data:
-            self.tree_raw_data['user_state'] = {}
-        self.set_path(self.tree_raw_data['user_state'], value, path)
+    def set_user_frame_partial(self, value, path):
+        if 'frame' not in self.tree_raw_data:
+            self.tree_raw_data['frame'] = {}
+        self.set_path(self.tree_raw_data['frame'], value, path)
         
     def set_frame_partial(self, node, value, path):
-        if not 'frame' in node:
+        if 'frame' not in node:
             node['frame'] = {}
         self.set_path(node['frame'], value, path)
 
-    def clear_user_state(self):
-        self.set_user_state({})
+    def clear_user_frame(self):
+        self.set_user_frame({})
         self.tree_updated()
 
-    def save_user_state_as_frame(self):
+    def write_user_frame_to_node(self):
         # saves current user settings as a frame at the selected node
-        self.set_frame(self.selected_node, self.user_state)
-        self.clear_user_state()
+        self.set_frame(self.selected_node, self.user_frame)
+        self.clear_user_frame()
 
     #################################
     #   Hooks
@@ -1447,7 +1450,7 @@ class TreeModel:
             **self.tree_raw_data.get("inline_generation_settings", {})
         }
 
-        self.tree_raw_data["user_state"] = self.tree_raw_data.get("user_state", {})
+        self.tree_raw_data["frame"] = self.tree_raw_data.get("frame", {})
 
         # View settings # TODO If there are more of these, reduce duplication
         self.tree_raw_data["visualization_settings"] = {
@@ -1619,6 +1622,9 @@ class TreeModel:
             self.selection_updated()
 
 
+    def tree_dir(self):
+        return os.path.dirname(self.tree_filename)
+
     # Tree flat data is just a different view to tree raw data!
     # We edit tree flat data with tkinter and save raw data which is still in json form
     def save_tree(self, backup=True, save_filename=None, subtree=None):
@@ -1645,8 +1651,8 @@ class TreeModel:
         self.io_update()
         return True
 
-    def tree_dir(self):
-        return os.path.dirname(self.tree_filename)
+    def export_subtree(self, node, filename, export_options):
+        pass
 
     def save_simple_tree(self, save_filename, subtree=None):
         subtree = subtree if subtree else self.tree_raw_data

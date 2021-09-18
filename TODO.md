@@ -44,8 +44,6 @@
 - "collapse subtree" not implemented
 
 
-- tutorial
-
 - substitute (node)
 
 - adopt grandparent hotkey
@@ -68,8 +66,6 @@
 - fix reverse
     - also reverse nav direction when nav tree is reversed
     - changing reverse in preferences doesn't cause update to nav tree
-
-- templates which take user input
 
 - summaries 
     - with context
@@ -108,19 +104,13 @@
 - make everything a module
     - story textbox
     - nav and chapter trees
-    - multimedia
     - other dialogs
-    - playground
-        - save as tree
         
-- module preferences
-
 - windows
     - hide buttons preference
     - no show hidden option preference
     - bind edit hotkey
-       
-- scripts to fix old workspace preferences
+
 
 - generations data options
     - save in tree file
@@ -153,7 +143,6 @@
 - workspace / preferences presets
     - read mode
         - text highlight
-        - no icons in show children
         - minimap
         - hide nav tree?
     - edit mode
@@ -172,16 +161,6 @@
     - emacs-like commands
 
 - tabs for suggested modules and dropdown for all
-
-- minimap 
-    - detect size of frame
-    - right click
-    - node/subtree color / tag display
-        - color according to tag
-    - reactive updating
-    - selected node highlighted by default; show preview text in textbox
-    - export image of minimap
-    - auto color by curation metrics
 
 - visible nodes tree object
     - locality / pruning
@@ -203,24 +182,12 @@
 
 - code to be executed upon navigating to node
 
-- prevent opening copies of a module
-    - trying to open a copy just moves the module
-        - don't rebuild
-    - some modules are ok to have copies (text editor etc)
-
-- expand / contract note scope
 
 - don't change selection when unhoisting from root node
 
 - tagging a node which was just split results in tagging multiple nodes (revealed or done only when navigating to node - why?)
 
-- playground
-    - toggle multiple choice or inline (end)
-    - integrate with tree
-    - view counterfactuals with dropdown menu
 
-- abstract inline generation
-    - any key should "accept" completion and clear list
 - inline generation in story textbox
     - hotkey to split node after generation
 
@@ -238,30 +205,44 @@
     - "hidden children" should include blacklisted windows
 
 - pane with no modules should automatically close
-
-- edit
-    - refresh selection on edit action
-    - done closes window
-    - attribute templates
-    - tags
-    - goto and unpin if pinned node
     
-- modules come in two types, ones which can be duplicated (and should have their own settings) and ones which shouldnt
-    - ok instances
-        - text editor
-        - edit
-        - playground
-        - run
-    - not ok
-        - notes
-        - paint
-        - media
-        - input
-        - children
-        - prompt
-        - debug
-    - ?
-        - minimap
+
+- modules
+    - notes 
+        - expand / contract note scope
+        - click icon to toggle pin
+            - show empty square icon when no tag
+    - playground
+        - toggle multiple choice or inline (end)
+        - integrate with tree
+        - view counterfactuals with dropdown menu
+    - minimap 
+        - detect size of frame
+        - right click
+        - node/subtree color / tag display
+            - color according to tag
+        - reactive updating
+        - selected node highlighted by default; show preview text in textbox
+        - export image of minimap
+        - auto color by curation metrics
+
+
+    - modules come in two types, ones which can be duplicated (and should have their own settings) and ones which shouldnt
+        - ok instances
+            - text editor
+            - edit
+            - playground
+            - run
+        - not ok
+            - notes
+            - paint
+            - media
+            - input
+            - children
+            - prompt
+            - debug
+        - ?
+            - minimap
 
 - fullscreen / minimize
 
@@ -278,16 +259,37 @@
 
 - hotkey to shift words to parent / children
 
-- generation settings default option to modify dictionaries directly
-
 - export
     - export subtree function
     - global objects and frames
 
 - import 
-    - throw out immutable root?
+    - throw out immutable root? or convert to normal node
 
+- custom focus out binding for text attribute class
 
+- node events
+    - onSelect
+    - onExit
+    - onEdit
+    - tags can be configured to toggle on events
+
+- frames
+    - script to delete / reassign old settings
+        - chapters, memories, and tags get moved to root frame
+    - merging and splitting frames
+    - zipping / unzipping frames
+    - frame tree
+    - edit frame template
+    - edit user frame dialog
+
+- splices
+    - links and windows
+
+- textbox
+    - move inline generation stuff to SmartText
+    - class for StoryTextbox? or make it a module?
+    - editable main textbox - detect modification range
 
 ## Other TODO
 
@@ -317,14 +319,11 @@
     - textboxes are being rebuilt multiple times when tree updated
 
 ### Deprecated
-- child edit mode
 - OpenAI logprob format. Use loom-specific format now for everything
     - node-specific meta.generation dictionary
-- Janus generate
 
 #### To deprecate
-- node-specific "visited" status (move to session file)
-
+- node-specific "visited" status (move to session file?)
 
 ### Model response data
 - option to not save model response data
