@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import Canvas, ttk, simpledialog, messagebox
 from view.colors import text_color, bg_color, edit_color, vis_bg_color
 from util.custom_tks import TextAware
-from util.util_tree import tree_subset, limited_branching_tree
+from util.util_tree import tree_subset, limited_branching_tree, limited_distance_tree, generate_conditional_tree, flatten_tree, collapsed_wavefunction
 from util.react import react_changes, unchanged
 from util.canvas_util import move_object
 from util.gpt_util import logprobs_to_probs
@@ -924,15 +924,25 @@ class MiniMap(Module):
         self.clear()
         root = self.state.root()
         filtered_tree = tree_subset(root, filter=lambda node:self.callbacks["In nav"]["callback"](node=node))
-        ancestry = self.state.ancestry(self.selected_node)
-        if self.settings()['visible_nodes'] == 'ancestry_dist':
-            pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=self.settings()['path_length_limit'])
-        elif self.settings()['visible_nodes'] == 'all':
+        # FIXME using generate_conditional_tree for filtered_dict causes ancestry out of range error - why?
+        filtered_dict = {d['id']: d for d in flatten_tree(filtered_tree)}
+        self.ancestry = self.state.ancestry(self.selected_node)
+        center_subtree = False
+        if self.settings()['prune_mode'] == 'ancestry_dist':
+            pruned_tree = limited_branching_tree(self.ancestry, filtered_tree, depth_limit=self.settings()['path_length_limit'])
+        elif self.settings()['prune_mode'] == 'selection_dist':
+            pruned_tree = limited_distance_tree(filtered_tree, self.selected_node, distance_limit=self.settings()['path_length_limit'], 
+                                                node_dict=filtered_dict)
+            self.ancestry = self.ancestry[-(self.settings()['path_length_limit'] + 1):]
+        elif self.settings()['prune_mode'] == 'wavefunction_collapse':
+            pruned_tree = collapsed_wavefunction(self.ancestry, filtered_tree, self.selected_node, depth_limit=self.settings()['path_length_limit'])
+            center_subtree = True
+        elif self.settings()['prune_mode'] == 'all':
             pruned_tree = filtered_tree
         else:
             pruned_tree = filtered_tree
         self.compute_tree_coordinates(pruned_tree, 200, 400, level=0)
-        self.center_about_ancestry(ancestry, x_align=200)
+        self.center_about_ancestry(self.ancestry, x_align=200, center_subtree=center_subtree)
         self.center_y(self.selected_node, 400)
         self.fix_orientation()
         # if self.old_node_coords and self.old_selected_node == self.selected_node:
@@ -990,7 +1000,8 @@ class MiniMap(Module):
             move_object(self.canvas, self.nodes[node_id], (new_x, new_y))
 
 
-    def center_about_ancestry(self, ancestry, x_align, level=0):
+    # TODO center remaining subtree based on extreme x values
+    def center_about_ancestry(self, ancestry, x_align, level=0, center_subtree=False):
         if level >= len(ancestry):
             return
         ancestor = ancestry[level]
@@ -999,13 +1010,21 @@ class MiniMap(Module):
         for node_id in self.levels[level]:
             self.node_coords[node_id] = (self.node_coords[node_id][0] - offset, self.node_coords[node_id][1])
         if level + 1 < len(ancestry):
-            self.center_about_ancestry(ancestry, x_align, level+1)
+            self.center_about_ancestry(ancestry, x_align, level+1, center_subtree)
         else:
             #shift all deeper levels by same offset
             remaining_levels = [self.levels[i] for i in range(level+1, len(self.levels))]
             for l in remaining_levels:
+                # center remaning levels based on extreme x coordinates
+                x_offsets = [self.node_coords[node_id][0] for node_id in l]
+                if center_subtree:
+                    x_min = min(x_offsets)
+                    x_max = max(x_offsets)
+                    x_mid = (x_min + x_max)/2 - x_min
+                else:
+                    x_mid = 0
                 for node_id in l:
-                    self.node_coords[node_id] = (self.node_coords[node_id][0] - offset, self.node_coords[node_id][1])
+                    self.node_coords[node_id] = (self.node_coords[node_id][0] - offset - x_mid, self.node_coords[node_id][1])
 
 
     def center_y(self, selected_node, y_align):
@@ -1051,9 +1070,8 @@ class MiniMap(Module):
         self.preview_textbox.configure(state="disabled")
 
     def color_selection(self, selected_node):
-        ancestry = self.state.ancestry(selected_node)
         # color all ancestry nodes blue
-        for node in ancestry:
+        for node in self.ancestry:
             self.canvas.itemconfig(self.nodes[node['id']], fill="blue", outline="blue",)
             if node['id'] in self.lines:
                 self.canvas.itemconfig(self.lines[node['id']], fill="blue", width=self.settings()['line_thickness'] + 1)

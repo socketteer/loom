@@ -1417,7 +1417,7 @@ class MinimapSettings(FrameSettings):
             'node_radius': tk.IntVar,
             'line_thickness': tk.IntVar,
             'horizontal': tk.BooleanVar,
-            'visible_nodes': tk.StringVar,
+            'prune_mode': tk.StringVar,
             'path_length_limit': tk.IntVar,
         }
         self.init_vars()
@@ -1438,8 +1438,8 @@ class MinimapSettings(FrameSettings):
         create_checkbutton(self.frame, "Horizontal", "horizontal", self.vars)
         self.build_pin_button("horizontal")
 
-        self.create_dropdown("visible_nodes", "Visible nodes", ['all', 'in_nav', 'ancestry_dist', 'selection_dist', 'wavefunction'])
-        self.build_pin_button("visible_nodes")
+        self.create_dropdown("prune_mode", "Prune mode", ['in_nav', 'open_in_nav', 'ancestry_dist', 'selection_dist', 'wavefunction_collapse', 'all'])
+        self.build_pin_button("prune_mode")
 
     def write(self):
         FrameSettings.write(self)

@@ -86,7 +86,7 @@ DEFAULT_MODULE_SETTINGS = {
                 'node_radius': 10,
                 'line_thickness': 2,
                 'horizontal': False,
-                'visible_nodes': 'all', #'ancestry_dist', 'wavefunction', 'selected_dist', 'in_nav'
+                'prune_mode': 'in_nav', #'open_in_nav', 'ancestry_dist', 'wavefunction_collapse', 'selected_dist', 'all'
                 'path_length_limit': 10,
                 }
 }

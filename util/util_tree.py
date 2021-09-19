@@ -99,6 +99,24 @@ def limited_branching_tree(ancestry, root, depth_limit):
             new_root['children'].append(depth_limited_tree(child, depth_limit-1))
     return new_root
 
+# TODO option for no depth limit
+def collapsed_wavefunction(ancestry, root, current_node, depth_limit):
+    if len(ancestry) <= 1 or root['id'] == current_node['id']:
+        return depth_limited_tree(root, depth_limit)
+    child_in_ancestry = ancestry[1]
+    new_root = {'id': root['id'], 'children': []}
+    for child in root['children']:
+        if child['id'] == child_in_ancestry['id']:
+            new_root['children'].append(collapsed_wavefunction(ancestry[1:], child, current_node, depth_limit))
+    return new_root
+
+def limited_distance_tree(root, reference_node, distance_limit, node_dict):
+    condition = lambda node: path_distance(reference_node, node, node_dict) <= distance_limit
+    if not condition(root):
+        # root is node in reference node's ancestry distance_limit removed
+        ancestry = node_ancestry(reference_node, node_dict)
+        root = ancestry[-(distance_limit + 1)]
+    return tree_subset(root, condition)
 
 # given a root node and include condition, returns a new tree which contains only nodes who satisfy
 # the condition and whose ancestors also all satisfy the condition
@@ -107,6 +125,8 @@ def limited_branching_tree(ancestry, root, depth_limit):
 # TODO copy contains no data except id(same as old tree) and children - will cause problems?
 # TODO modify this function or make new function that copies all of tree?
 # TODO existing python function to filter/copy dictionary?
+
+# this assumes the root satisfies the condition
 def tree_subset(root, filter=None, copy_attributes=None):
     if not filter:
         return root
@@ -140,6 +160,7 @@ def node_ancestry(node, node_dict):
 # returns node ancestry starting from root
 def ancestry_in_range(root, node, node_dict):
     ancestry = node_ancestry(node, node_dict)
+    #print([n['id'] for n in ancestry])
     i = 0
     while ancestry[i]['id'] != root['id']:
         i += 1
@@ -164,21 +185,24 @@ def ancestry_plaintext(ancestry):
 def nearest_common_ancestor(node_a, node_b, node_dict):
     ancestry_a = node_ancestry(node_a, node_dict)
     ancestry_b = node_ancestry(node_b, node_dict)
-    # for node in ancestry_a:
-    #     print(node['id'])
-    # print('ancestry b')
-    # for node in ancestry_b:
-    #     print(node['id'])
+    #print('ancestry a:', [n['id'] for n in ancestry_a])
+    #print('ancestry b:', [n['id'] for n in ancestry_b])
     for i in range(1, len(ancestry_a)):
         if i > (len(ancestry_b) - 1) or ancestry_a[i] is not ancestry_b[i]:
             return ancestry_a[i-1], i-1
     return ancestry_a[-1], len(ancestry_a) - 1
 
+def path_distance(node_a, node_b, node_dict):
+    nca, _ = nearest_common_ancestor(node_a, node_b, node_dict)
+    #print('nca:', nca['id'])
+    a_distance = len(ancestry_in_range(nca, node_a, node_dict))
+    b_distance = len(ancestry_in_range(nca, node_b, node_dict))
+    return (a_distance - 1) + (b_distance - 1)
+
 # Returns True if a is ancestor of b
 def in_ancestry(a, b, node_dict):
     ancestry = node_ancestry(b, node_dict)
     return a in ancestry
-
 
 def node_index(node, node_dict):
     return len(node_ancestry(node, node_dict)) - 1
