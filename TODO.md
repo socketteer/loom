@@ -34,7 +34,6 @@
     - autocomplete
     - diff / optimization logging
 - repair autocomplete
-- inline scroll through short completions
 
 
 - test click goto commands
@@ -59,9 +58,6 @@
 - bring selected node out of Model
     - should be with Display?
     - multiple selected nodes
-    
-- multiple generation presets
-    - for inline generation
 
 - fix reverse
     - also reverse nav direction when nav tree is reversed
@@ -274,7 +270,6 @@
     - should markup live in text?
 
 - textbox
-    - move inline generation stuff to SmartText
     - class for StoryTextbox? or make it a module?
     - editable main textbox
         - compound nodes

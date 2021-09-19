@@ -103,11 +103,11 @@ DEFAULT_GENERATION_SETTINGS = {
 }
 
 DEFAULT_INLINE_GENERATION_SETTINGS = {
-    "model": "curie",
-    "num_continuations": 4,
-    "temperature": 0.9,
+    "model": "davinci",
+    "num_continuations": 8,
+    "temperature": 1,
     "top_p": 1,
-    "response_length": 50,
+    "response_length": 60,
     "prompt_length": 6000,
     "logprobs": 0,
     "stop": "\\n|.|?|!",
@@ -230,24 +230,23 @@ class TreeModel:
             else DEFAULT_VISUALIZATION_SETTINGS
 
     @property
+    def tags(self):
+        return self.tree_raw_data.get("tags") \
+            if self.tree_raw_data and "tags" in self.tree_raw_data \
+            else DEFAULT_TAGS
+
+
+    @property
     def generation_settings(self):
         return self.state['generation_settings']
 
     @property
     def inline_generation_settings(self):
-        return self.tree_raw_data.get("inline_generation_settings") \
-            if self.tree_raw_data and "inline_generation_settings" in self.tree_raw_data \
-            else DEFAULT_INLINE_GENERATION_SETTINGS
+        return self.state['inline_generation_settings']
 
     @property
     def preferences(self):
         return self.state['preferences']
-
-    @property
-    def tags(self):
-        return self.tree_raw_data.get("tags") \
-            if self.tree_raw_data and "tags" in self.tree_raw_data \
-            else DEFAULT_TAGS
 
     @property
     def module_settings(self):
@@ -257,6 +256,7 @@ class TreeModel:
     def workspace(self):
         return self.state['workspace']
     
+    # user frame
 
     @property
     def user_preferences(self):
@@ -268,6 +268,12 @@ class TreeModel:
     def user_generation_settings(self):
         return self.user_frame.get("generation_settings") \
             if "generation_settings" in self.user_frame \
+            else {}
+
+    @property
+    def user_inline_generation_settings(self):
+        return self.user_frame.get("inline_generation_settings") \
+            if "inline_generation_settings" in self.user_frame \
             else {}
 
     @property
@@ -287,6 +293,7 @@ class TreeModel:
         state = {}
         state["preferences"] = deepcopy(DEFAULT_PREFERENCES)
         state["generation_settings"] = deepcopy(DEFAULT_GENERATION_SETTINGS)
+        state["inline_generation_settings"] = deepcopy(DEFAULT_INLINE_GENERATION_SETTINGS)
         state["workspace"] = deepcopy(DEFAULT_WORKSPACE)
         state["module_settings"] = deepcopy(DEFAULT_MODULE_SETTINGS) 
         frames = self.accumulate_frames(self.selected_node)

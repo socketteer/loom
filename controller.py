@@ -231,6 +231,7 @@ class Controller:
             "Settings": [
                 ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences)),
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
+                ('Inline generation settings', None, None, no_junk_args(self.inline_generation_settings_dialog)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
                 ('Workspace settings', None, None, no_junk_args(self.workspace_dialog)),
                 #('Settings', None, None, no_junk_args(self.settings))
@@ -1732,6 +1733,16 @@ class Controller:
     def generation_settings_dialog(self):
         dialog = GenerationSettingsDialog(parent=self.display.frame, orig_params=self.state.generation_settings, 
                                           user_params=self.state.user_generation_settings, state=self.state)
+        # if dialog.result:
+        #     #self.save_tree(popup=False)
+        #     self.state.tree_updated()
+        #     #self.refresh_textbox()
+        #     pprint(self.state.generation_settings)
+
+    @metadata(name="Inline Generation Settings")
+    def inline_generation_settings_dialog(self):
+        dialog = GenerationSettingsDialog(parent=self.display.frame, orig_params=self.state.inline_generation_settings, 
+                                          user_params=self.state.user_inline_generation_settings, state=self.state)
         # if dialog.result:
         #     #self.save_tree(popup=False)
         #     self.state.tree_updated()
