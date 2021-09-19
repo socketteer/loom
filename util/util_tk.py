@@ -139,14 +139,14 @@ def create_list_box(frame, values, label_text="", row=None, selectmode=tk.SINGLE
 
 
 # Create a slider with a text label, value pair defining its range, and selected variable
-def create_slider(frame, text, variable, valuePair, row=None):
+def create_slider(frame, text, variable, valuePair, row=None, resolution=None):
     row = frame.grid_size()[1] if row is None else row
     create_side_label(frame, text, row)
     s = ttk.Style()
     s.configure("TScale", foreground='white')
     slider = tk.Scale(frame, from_=valuePair[0], to=valuePair[1],
                       variable=variable, orient=tk.HORIZONTAL,
-                      resolution=-1)
+                      resolution=resolution if resolution is not None else -1)
     slider.grid(row=row, column=1, pady=3)
     return slider
 

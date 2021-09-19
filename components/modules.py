@@ -849,6 +849,7 @@ class Run(Module):
 class MiniMap(Module):
     def __init__(self, callbacks, state):
         Module.__init__(self, 'minimap', callbacks, state)
+        self.settings_frame = None
         self.minimap_pane = None
         self.canvas = None 
         self.node_coords = {}
@@ -861,8 +862,15 @@ class MiniMap(Module):
 
     def build(self, parent):
         Module.build(self, parent)
+        self.settings_frame = CollapsableFrame(self.frame, title='Minimap settings', bg=bg_color())
+        self.minimap_settings = MinimapSettings(orig_params=self.state.module_settings['minimap'], 
+                                              user_params=self.state.user_module_settings.get('minimap', {}), 
+                                              state=self.state, realtime_update=True, parent_module=self)
+        self.minimap_settings.body(self.settings_frame.collapsable_frame)
+        self.settings_frame.pack(side='top', fill='both', expand=True)
+        self.settings_frame.hide()
         self.minimap_pane = ttk.PanedWindow(self.frame, orient='vertical')
-        self.minimap_pane.pack(side='left', fill='both', expand=True)
+        self.minimap_pane.pack(side='top', fill='both', expand=True)
         self.canvas = tk.Canvas(self.minimap_pane, bg=vis_bg_color())
         self.minimap_pane.add(self.canvas, weight=5)
         #self.canvas.pack(side='top', fill='both', expand=True)
@@ -907,6 +915,7 @@ class MiniMap(Module):
 
 
     def refresh(self):
+        #print(self.settings())
         self.selected_node = self.state.selected_node
         # self.cache()
         # if self.old_selected_node != self.selected_node:
@@ -916,11 +925,16 @@ class MiniMap(Module):
         root = self.state.root()
         filtered_tree = tree_subset(root, filter=lambda node:self.callbacks["In nav"]["callback"](node=node))
         ancestry = self.state.ancestry(self.selected_node)
-        pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=12)
+        if self.settings()['visible_nodes'] == 'ancestry_dist':
+            pruned_tree = limited_branching_tree(ancestry, filtered_tree, depth_limit=self.settings()['path_length_limit'])
+        elif self.settings()['visible_nodes'] == 'all':
+            pruned_tree = filtered_tree
+        else:
+            pruned_tree = filtered_tree
         self.compute_tree_coordinates(pruned_tree, 200, 400, level=0)
         self.center_about_ancestry(ancestry, x_align=200)
         self.center_y(self.selected_node, 400)
-        #self.fix_orientation()
+        self.fix_orientation()
         # if self.old_node_coords and self.old_selected_node == self.selected_node:
         #     print('moving nodes')
         #     self.move_nodes()
@@ -934,8 +948,8 @@ class MiniMap(Module):
         if level not in self.levels:
             self.levels[level] = []
         self.levels[level].append(root["id"])
-        level_offset = 80
-        leaf_offset = 50
+        level_offset = self.settings()['level_offset']
+        leaf_offset = self.settings()['leaf_offset']
         leaf_position = x
         next_child_position = x
         for child in root['children']:
@@ -946,7 +960,7 @@ class MiniMap(Module):
         return leaf_position - x
 
     def fix_orientation(self):
-        if self.state.visualization_settings["horizontal"]:
+        if self.settings()["horizontal"]:
             coords = {}
             # if the tree is horizontal, swap x and y coordinates
             for id, value in self.node_coords.items():
@@ -955,13 +969,13 @@ class MiniMap(Module):
 
     def draw_precomputed_tree(self, root):
         root_x, root_y = self.node_coords[root["id"]]
-        self.draw_node(root['id'], radius=15, x=root_x, y=root_y)
+        self.draw_node(root['id'], radius=self.settings()['node_radius'], x=root_x, y=root_y)
 
         for child in root['children']:
             child_x, child_y = self.node_coords[child["id"]]
-            self.draw_connector(child['id'], root_x, root_y, child_x, child_y, fill='#000000', width=2, 
-                                offset=30, 
-                                connections='vertical')
+            self.draw_connector(child['id'], root_x, root_y, child_x, child_y, fill='#000000', width=self.settings()['line_thickness'], 
+                                offset=self.settings()['leaf_offset']*5/8,
+                                connections='horizontal' if self.settings()['horizontal'] else 'vertical')
             self.draw_precomputed_tree(child)
 
     def move_nodes(self):
@@ -1042,7 +1056,7 @@ class MiniMap(Module):
         for node in ancestry:
             self.canvas.itemconfig(self.nodes[node['id']], fill="blue", outline="blue",)
             if node['id'] in self.lines:
-                self.canvas.itemconfig(self.lines[node['id']], fill="blue", width=3)
+                self.canvas.itemconfig(self.lines[node['id']], fill="blue", width=self.settings()['line_thickness'] + 1)
 
     def select_node(self, node_id):
         self.callbacks["Nav Select"]["callback"](node_id=node_id)
@@ -1094,12 +1108,12 @@ class Input(Module):
     def submit(self):
         text = self.input_box.get("1.0", "end-1c")
         modified_text = self.apply_template(text)
-        self.callbacks["Submit"]["callback"](text=modified_text, auto_response=self.settings.get("auto_response", True))
+        self.callbacks["Submit"]["callback"](text=modified_text, auto_response=self.settings().get("auto_response", True))
         self.input_box.delete("1.0", "end")
 
     def apply_template(self, input):
-        if 'submit_template' in self.settings:
-            return eval(f'f"""{self.settings["submit_template"]}"""')
+        if 'submit_template' in self.settings():
+            return eval(f'f"""{self.settings()["submit_template"]}"""')
         else:
             return input
 
@@ -1158,20 +1172,20 @@ class Edit(Module):
         self.rebuild_textboxes()
 
     def toggle_pin(self, *args):
-        if self.settings['node_id']:
-            if self.settings['node_id'] != self.state.selected_node_id:
+        if self.settings()['node_id']:
+            if self.settings()['node_id'] != self.state.selected_node_id:
                 self.done_editing()
             else:
-                self.settings['node_id'] = None
+                self.settings()['node_id'] = None
                 self.node_label.configure(image="")
         else:
-            self.settings['node_id'] = self.state.selected_node['id']
+            self.settings()['node_id'] = self.state.selected_node['id']
             self.node_label.configure(image=icons.get_icon('pin-red'), compound="left")
 
     def done_editing(self):
         self.save_all()
         # unpin edit node id
-        self.settings['node_id'] = None
+        self.settings()['node_id'] = None
         self.rebuild_textboxes()
         # TODO close pane
 
@@ -1182,9 +1196,9 @@ class Edit(Module):
         self.text_attributes = {}
         self.textboxes = []
 
-        self.node = self.state.node(self.settings['node_id']) if self.settings['node_id'] else self.state.selected_node
+        self.node = self.state.node(self.settings()['node_id']) if self.settings['node_id'] else self.state.selected_node
         self.node_label.configure(text=f"editing node: {self.node['id']}")
-        pinned = self.settings['node_id'] is not None
+        pinned = self.settings()['node_id'] is not None
         if pinned: 
             self.node_label.configure(image=icons.get_icon('pin-red'), compound="left")
         else:
@@ -1277,7 +1291,7 @@ class Edit(Module):
         self.state.add_text_attribute(self.node, attribute_name, text)
 
     def selection_updated(self):
-        if not self.settings['node_id']:
+        if not self.settings()['node_id']:
             self.save_all()
             self.rebuild_textboxes()
 

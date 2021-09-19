@@ -81,6 +81,14 @@ DEFAULT_WORKSPACE = {
 DEFAULT_MODULE_SETTINGS = {
     'edit': {'node_id': None,},
     'input': {'auto_response': True},
+    'minimap': {'level_offset': 70,
+                'leaf_offset': 40,
+                'node_radius': 10,
+                'line_thickness': 2,
+                'horizontal': False,
+                'visible_nodes': 'all', #'ancestry_dist', 'wavefunction', 'selected_dist', 'in_nav'
+                'path_length_limit': 10,
+                }
 }
 
 DEFAULT_GENERATION_SETTINGS = {
@@ -274,6 +282,12 @@ class TreeModel:
     def user_inline_generation_settings(self):
         return self.user_frame.get("inline_generation_settings") \
             if "inline_generation_settings" in self.user_frame \
+            else {}
+
+    @property
+    def user_module_settings(self):
+        return self.user_frame.get("module_settings") \
+            if "module_settings" in self.user_frame \
             else {}
 
     @property

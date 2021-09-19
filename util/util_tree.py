@@ -95,7 +95,7 @@ def limited_branching_tree(ancestry, root, depth_limit):
     for child in root['children']:
         if child['id'] == child_in_ancestry['id']:
             new_root['children'].append(limited_branching_tree(ancestry[1:], child, depth_limit))
-        else:
+        elif depth_limit > 0:
             new_root['children'].append(depth_limited_tree(child, depth_limit-1))
     return new_root
 
