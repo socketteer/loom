@@ -40,8 +40,6 @@
     - alter for read mode
 
 - vis expanded state out of sync with nav tree expanded state
-- "collapse subtree" not implemented
-
 
 - substitute (node)
 
@@ -158,12 +156,8 @@
         - hoist
         - tag...
         
-- general 'get prompt' method for various modules / textboxes
-
-- show alt completions inline or in menu
 
 - code to be executed upon navigating to node
-
 
 - don't change selection when unhoisting from root node
 
@@ -173,7 +167,6 @@
 - inline generation in story textbox
     - hotkey to split node after generation
 
-- abstract right click menus for textboxes
 
 - ghostchildren and portals
     - ghostchildren have hysteresis: navigating to ghostchild keeps current ancestry

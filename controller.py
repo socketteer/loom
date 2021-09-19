@@ -165,7 +165,7 @@ class Controller:
                 ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
                 ('Collapse subtree', 'Ctrl-minus', None, no_junk_args(self.collapse_subtree)),
                 ('Collapse all except subtree', 'Ctrl-:', None, no_junk_args(self.collapse_all_except_subtree)),
-                ('Expand children', 'Ctrl-\"', None, no_junk_args(self.expand_children)),
+                ('Expand children', 'Ctrl-\"', None, no_junk_args(self.expand_node)),
                 ('Expand subtree', 'Ctrl-+', None, no_junk_args(self.expand_subtree)),
                 ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
                 ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
@@ -349,7 +349,7 @@ class Controller:
             self.select_node(node=self.state.node(self.state.checkpoint))
 
     @metadata(name="Nav Select")
-    def nav_select(self, *, node_id):
+    def nav_select(self, *, node_id, open=False):
         if not node_id or node_id == self.state.selected_node_id:
             return
         if self.change_parent.meta["click_mode"]:
@@ -359,7 +359,7 @@ class Controller:
         # node = self.state.node(node_id]
         # node["open"] = self.display.nav_tree.item(node["id"], "open")
         #self.state.select_node(node_id)
-        self.select_node(node=self.state.node(node_id))
+        self.select_node(node=self.state.node(node_id), open=open)
 
     # figure out scope and whether should add, edit, delete
     @metadata(name="Tag")
@@ -418,7 +418,7 @@ class Controller:
         return self.display.nav_tree.exists(node['id'])
 
     @metadata(name="Select node")
-    def select_node(self, node, noscroll=False, ask_reveal=True):
+    def select_node(self, node, noscroll=False, ask_reveal=True, open=False):
         if node == self.state.selected_node:
             return
         if not self.in_nav(node):
@@ -428,6 +428,11 @@ class Controller:
             else:
                 self.reveal_node(node)
         self.write_textbox_changes()
+        if open:
+            node['open'] = True
+            self.refresh_nav_node(node)
+        else:
+            node['open'] = self.display.nav_tree.item(node["id"], "open")
         self.nav_history.append(self.state.selected_node_id)
         self.undo_history = []
         if self.state.preferences['coloring'] == 'read':
@@ -1460,21 +1465,38 @@ class Controller:
     #   Collapsing
     #################################
 
-    @metadata(name="Expand subtree", keys=["<Control-plus>"], display_key="Ctrl-plus")
-    def expand_subtree(self):
-        pass
 
     @metadata(name="Collapse subtree", keys=["<Control-minus>"], display_key="Ctrl-minus")
-    def collapse_subtree(self):
-        pass
+    def collapse_subtree(self, node=None):
+        node = node if node else self.state.selected_node
+        self.collapse_node(node)
+        for child in filtered_children(node, self.in_nav):
+            self.collapse_subtree(child)
 
-    @metadata(name="Expand children", keys=["<Control-quotedbl>"], display_key="Ctrl-\"")
-    def expand_children(self):
-        pass
+    @metadata(name="Expand subtree", keys=["<Control-plus>"], display_key="Ctrl-plus")
+    def expand_subtree(self, node=None):
+        node = node if node else self.state.selected_node
+        self.expand_node(node)
+        for child in filtered_children(node, self.in_nav):
+            self.expand_subtree(child)
+
+    @metadata(name="Expand children", keys=["<Control-slash>"], display_key="Ctrl-/")
+    def expand_node(self, node=None):
+        node = node if node else self.state.selected_node
+        node['open'] = True
+        self.display.nav_tree.item(
+            node["id"],
+            open=True
+        )
 
     @metadata(name="Collapse node", keys=["<Control-question>"], display_key="Ctrl-?")
-    def collapse_node(self):
-        pass
+    def collapse_node(self, node=None):
+        node = node if node else self.state.selected_node
+        node['open'] = False
+        self.display.nav_tree.item(
+            node["id"],
+            open=False
+        )
 
     @metadata(name="Collapse all except subtree", keys=["<Control-colon>"], display_key="Ctrl-:")
     def collapse_all_except_subtree(self):
@@ -1720,11 +1742,6 @@ class Controller:
         #print(self.state.preferences)
         dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences,
                           user_params=self.state.user_preferences, state=self.state)
-
-        #dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences, state=self.state)
-        # if dialog.result:
-        #     self.state.tree_updated(rebuild=True)
-        #     self.state.selection_updated()
         self.state.tree_updated()
         self.state.selection_updated()
 
@@ -1733,21 +1750,13 @@ class Controller:
     def generation_settings_dialog(self):
         dialog = GenerationSettingsDialog(parent=self.display.frame, orig_params=self.state.generation_settings, 
                                           user_params=self.state.user_generation_settings, state=self.state)
-        # if dialog.result:
-        #     #self.save_tree(popup=False)
-        #     self.state.tree_updated()
-        #     #self.refresh_textbox()
-        #     pprint(self.state.generation_settings)
+        self.state.tree_updated()
+        self.state.selection_updated()
 
     @metadata(name="Inline Generation Settings")
     def inline_generation_settings_dialog(self):
         dialog = GenerationSettingsDialog(parent=self.display.frame, orig_params=self.state.inline_generation_settings, 
                                           user_params=self.state.user_inline_generation_settings, state=self.state)
-        # if dialog.result:
-        #     #self.save_tree(popup=False)
-        #     self.state.tree_updated()
-        #     #self.refresh_textbox()
-        #     pprint(self.state.generation_settings)
 
     @metadata(name="Visualization Settings", keys=["<Control-u>"], display_key="ctrl-u")
     def visualization_settings_dialog(self):
@@ -1821,31 +1830,6 @@ class Controller:
             node = self.state.selected_node
         dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state, default_inheritability='delayed')
         self.refresh_textbox()
-
-
-
-    #################################
-    #   Filtering
-    #################################
-    #
-    # @metadata(name="Toggle hide archived", keys=[], display_key="")
-    # def toggle_hide_archived(self, toggle=None):
-    #     self.state.tags['archived']['hide'] = not self.state.tags['archived']['hide']
-    #     self.state.tree_updated(rebuild=True)
-    #
-    # @metadata(name="Toggle canonical only", keys=[], display_key="")
-    # def toggle_canonical_only(self, toggle=None):
-    #     self.state.tags['canonical']['show_only'] = not self.state.tags['canonical']['show_only']
-    #     self.state.tree_updated(rebuild=True)
-
-    # @metadata(name="Semantic search memory", keys=["<Control-Shift-KeyPress-M>"], display_key="ctrl-Command-m")
-    # def ancestry_semantic_search(self, node=None):
-    #     if node is None:
-    #         node = self.state.selected_node
-    #     results = self.state.semantic_search_memory(node)
-    #     print(results)
-    #     for entry in results['data']:
-    #         print(entry['score'])
 
 
     #################################
@@ -2310,6 +2294,7 @@ class Controller:
             index=insert_idx,#0 if self.state.preferences.get('reverse', False) else "end",
             iid=node["id"],
             text=self.nav_name(node),
+            #open=True,
             open=node.get("open", False),
             tags=tags,
             **dict(image=image) if image else {}
@@ -2411,9 +2396,9 @@ class Controller:
 
         # Update the open state of all nodes based on the navbar
         # TODO
-        # for node in self.state.nodes:
-        #     if self.display.nav_tree.exists(node["id"]):
-        #         node["open"] = self.display.nav_tree.item(node["id"], "open")
+        for node in self.state.nodes:
+            if self.display.nav_tree.exists(node["id"]):
+                node["open"] = self.display.nav_tree.item(node["id"], "open")
 
         # Update tag of node based on visited status
         self.refresh_nav_node(self.state.selected_node)
@@ -2473,6 +2458,7 @@ class Controller:
         self.display.chapter_nav_tree.see(selected_chapter_root_id)
         self.set_chapter_scrollbars()
 
+    @metadata(name="Node open")
     def node_open(self, node):
         try:
             open = self.display.nav_tree.item(node['id'], "open")

@@ -937,8 +937,10 @@ class MiniMap(Module):
         elif self.settings()['prune_mode'] == 'wavefunction_collapse':
             pruned_tree = collapsed_wavefunction(self.ancestry, filtered_tree, self.selected_node, depth_limit=self.settings()['path_length_limit'])
             center_subtree = True
-        elif self.settings()['prune_mode'] == 'all':
+        elif self.settings()['prune_mode'] == 'in_nav':
             pruned_tree = filtered_tree
+        elif self.settings()['prune_mode'] == 'open_in_nav':
+            pruned_tree = tree_subset(filtered_tree, filter=lambda node:self.state.is_root(node) or self.callbacks["Node open"]["callback"](node=self.state.parent(node)))
         else:
             pruned_tree = filtered_tree
         self.compute_tree_coordinates(pruned_tree, 200, 400, level=0)
@@ -1077,7 +1079,7 @@ class MiniMap(Module):
                 self.canvas.itemconfig(self.lines[node['id']], fill="blue", width=self.settings()['line_thickness'] + 1)
 
     def select_node(self, node_id):
-        self.callbacks["Nav Select"]["callback"](node_id=node_id)
+        self.callbacks["Nav Select"]["callback"](node_id=node_id, open=True)
 
 
 class DebugConsole(Module):
