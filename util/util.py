@@ -171,6 +171,84 @@ def diff(old, new):
     return {'added': added, 'removed': removed, 'old': old, 'new': new}
 
 
+def diff_linesToWords(text1, text2, delimiter=re.compile('\n')):
+    """
+        Split two texts into an array of strings.  Reduce the texts to a string
+        of hashes where each Unicode character represents one line.
+
+        95% of this function code is copied from `diff_linesToChars` on:
+            https://github.com/google/diff-match-patch/blob/895a9512bbcee0ac5a8ffcee36062c8a79f5dcda/python3/diff_match_patch.py#L381
+
+        Copyright 2018 The diff-match-patch Authors.
+        https://github.com/google/diff-match-patch
+        Licensed under the Apache License, Version 2.0 (the "License");
+        you may not use this file except in compliance with the License.
+        You may obtain a copy of the License at
+        http://www.apache.org/licenses/LICENSE-2.0
+
+        Args:
+            text1: First string.
+            text2: Second string.
+            delimiter: a re.compile() expression for the word delimiter type
+
+        Returns:
+            Three element tuple, containing the encoded text1, the encoded text2 and
+            the array of unique strings.  The zeroth element of the array of unique
+            strings is intentionally blank.
+    """
+    lineArray = []  # e.g. lineArray[4] == "Hello\n"
+    lineHash = {}   # e.g. lineHash["Hello\n"] == 4
+
+    # "\x00" is a valid character, but various debuggers don't like it.
+    # So we'll insert a junk entry to avoid generating a null character.
+    lineArray.append('')
+
+    def diff_linesToCharsMunge(text):
+        """Split a text into an array of strings.  Reduce the texts to a string
+        of hashes where each Unicode character represents one line.
+        Modifies linearray and linehash through being a closure.
+        Args:
+            text: String to encode.
+        Returns:
+            Encoded string.
+        """
+        chars = []
+        # Walk the text, pulling out a substring for each line.
+        # text.split('\n') would would temporarily double our memory footprint.
+        # Modifying text would create many large strings to garbage collect.
+        lineStart = 0
+        lineEnd = -1
+        while lineEnd < len(text) - 1:
+            lineEnd = delimiter.search(text, lineStart)
+
+            if lineEnd:
+                lineEnd = lineEnd.start()
+
+            else:
+                lineEnd = len(text) - 1
+
+            line = text[lineStart:lineEnd + 1]
+
+            if line in lineHash:
+                chars.append(chr(lineHash[line]))
+            else:
+                if len(lineArray) == maxLines:
+                    # Bail out at maxLines because unichr(maxLines+1) throws.
+                    line = text[lineStart:]
+                    lineEnd = len(text)
+                lineArray.append(line)
+                lineHash[line] = len(lineArray) - 1
+                chars.append(chr(len(lineArray) - 1))
+            lineStart = lineEnd + 1
+        return "".join(chars)
+
+    # Allocate 2/3rds of the space for text1, the rest for text2.
+    maxLines = 666666
+    chars1 = diff_linesToCharsMunge(text1)
+    maxLines = 1114111
+    chars2 = diff_linesToCharsMunge(text2)
+    return (chars1, chars2, lineArray)
+
 ################################################################################
 # I/O
 ################################################################################

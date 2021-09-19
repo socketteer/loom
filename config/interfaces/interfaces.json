@@ -16,7 +16,7 @@
     "workspace": {
         "side_pane": {
             "open": true, 
-            "modules": ["edit", "generation settings"]
+            "modules": ["notes"]
             },
         "bottom_pane": {
             "open": true, 
@@ -24,7 +24,21 @@
             },
         "buttons": ["Delete", "Edit", "Children", "New Child", "Generate", "Next", "Prev"]
         },
-    "preferences": {"coloring": "edit"} 
+    "preferences": {"coloring": "edit", "editable": true} 
+    },
+"gamify": {
+    "workspace": {
+        "side_pane": {
+            "open": true, 
+            "modules": ["edit"]
+            },
+        "bottom_pane": {
+            "open": true, 
+            "modules": ["read children"]
+            },
+        "buttons": ["Delete", "Edit", "Children", "New Child", "Generate", "Next", "Prev"]
+        },
+    "preferences": {"coloring": "edit", "editable": true} 
     },
 "chat": {
     "workspace": {

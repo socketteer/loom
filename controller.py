@@ -26,7 +26,7 @@ from components.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, 
     PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
     RunDialog, WorkspaceDialog, ExportOptionsDialog
 from model import TreeModel
-from util.util import clip_num, metadata, diff, split_indices
+from util.util import clip_num, metadata, diff, split_indices, diff_linesToWords
 from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
     node_index, nearest_common_ancestor, filtered_children
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
@@ -36,6 +36,7 @@ from gpt import gen
 from difflib import SequenceMatcher
 from diff_match_patch import diff_match_patch
 import json
+from view.colors import edit_color, bg_color
 
 
 def gated_call(f, condition):
@@ -822,7 +823,8 @@ class Controller:
         self.display.clear_selection_tags(self.display.textbox)
         self.display.textbox.configure(font=Font(family="Georgia", size=self.state.preferences['font_size']),
                                        spacing1=self.state.preferences['paragraph_spacing'],
-                                       spacing2=self.state.preferences['line_spacing'])
+                                       spacing2=self.state.preferences['line_spacing'],
+                                       background=edit_color() if self.state.preferences["editable"] else bg_color())
         #self.display.textbox.tag_config("node_select", font=Font(family="Georgia", size=self.state.preferences['font_size'], weight="bold"))
 
         # Fill textbox with text history, disable editing
@@ -889,23 +891,34 @@ class Controller:
             # self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
             self.display.textbox.focus()
 
+    @metadata(name="Toggle textbox editable", keys=["<Control-Shift-KeyPress-E>"])
+    def toggle_editable(self):
+        if self.state.preferences.get('editable', False):
+            self.state.update_user_frame(update={'preferences': {'editable': False}})
+        else:
+            self.state.update_user_frame(update={'preferences': {'editable': True}})
+        self.refresh_textbox()
+
     @metadata(name="Write textbox")
     def write_textbox_changes(self):
         if self.state.preferences['editable']:
             old_text = self.state.ancestry_text(self.state.selected_node)
             new_text = self.display.textbox.get("1.0", "end-1c")
             if old_text != new_text:
-                split_old_text = re.split(r'(\s+)', old_text)
-                split_new_text = re.split(r'(\s+)', new_text)
-                split_old_indices = [0]
-                split_new_indices = [0]
-                for i in range(len(split_old_text)):
-                    split_old_indices.append(split_old_indices[-1] + len(split_old_text[i]))
-                for i in range(len(split_new_text)):
-                    split_new_indices.append(split_new_indices[-1] + len(split_new_text[i]))
+                # split_old_text = re.split(r'(\s+)', old_text)
+                # split_new_text = re.split(r'(\s+)', new_text)
+                # split_old_indices = [0]
+                # split_new_indices = [0]
+                # for i in range(len(split_old_text)):
+                #     split_old_indices.append(split_old_indices[-1] + len(split_old_text[i]))
+                # for i in range(len(split_new_text)):
+                #     split_new_indices.append(split_new_indices[-1] + len(split_new_text[i]))
 
                 dmp = diff_match_patch()
-                diffs = dmp.diff_main(old_text, new_text)
+                a = diff_linesToWords(old_text, new_text, delimiter=re.compile(' '))
+                diffs = dmp.diff_main(a[0], a[1], False)
+                dmp.diff_charsToLines(diffs, a[2])
+
                 diff_indices_old = []
                 diff_indices_new = []
                 old_text_index = 0
@@ -924,8 +937,13 @@ class Controller:
                         diff_indices_new.append((new_text_index, new_text_index + len(d[1])))
                         new_text_index += len(d[1])
 
+                # for i in range(len(diff_indices_old)):
+                #     print(old_text[diff_indices_old[i][0]:diff_indices_old[i][1]])
+                #     print(new_text[diff_indices_new[i][0]:diff_indices_new[i][1]])
+                #     print()
+
                 texts = [new_text[i:j] for i, j in diff_indices_new]
-                
+
                 self.try_replaces_ranges(diff_indices_old, texts)
 
 

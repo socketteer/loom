@@ -139,20 +139,6 @@
     - interpreter
 
 - make add and remove tag methods in controller
-    
-- workspace / preferences presets
-    - read mode
-        - text highlight
-        - minimap
-        - hide nav tree?
-    - edit mode
-        - text highlight
-        - notes
-    - chat/play mode
-        - gpt preset
-        - input box
-        - hide nav tree
-        - automatically go to first generation after generating
         
 - text highlighting
     - keyboard
@@ -204,10 +190,13 @@
 - children
     - "hidden children" should include blacklisted windows
 
-- pane with no modules should automatically close
-    
+- panes
+    - pane with no modules should automatically close
+    - buttons to open panes
+    - top and left pane
 
 - modules
+    - modules / workspace menu
     - notes 
         - expand / contract note scope
         - click icon to toggle pin
@@ -277,6 +266,8 @@
     - frame tree
     - edit frame template
     - edit user frame dialog
+    - frames should be able to reference preset names
+        - requires saving frames as strings instead of dicts?
 
 - splices
     - links and windows
