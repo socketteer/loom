@@ -294,6 +294,11 @@
         - transformers
         - playground
 
+- fix vis
+
+- store permanent alternative texts
+    - as ghostparents?
+
 ## Other TODO
 
 ### bugs

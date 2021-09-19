@@ -14,10 +14,13 @@ from util.util_tk import create_side_label, create_label, Entry, create_button, 
 import os
 import codecs
 from PIL import Image, ImageTk
-from gpt import POSSIBLE_MODELS
+from gpt import POSSIBLE_MODELS, gen, completions_text
+from util.gpt_util import logprobs_to_probs
 import json
 import bisect
 from util.util import split_indices
+import threading
+
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
@@ -641,7 +644,7 @@ class TextAttribute:
 
 
 
-class SmartText(TextAware):
+class LoomTerminal(TextAware):
     """
     alternatives:
     {
@@ -664,6 +667,8 @@ class SmartText(TextAware):
         self.tag_raise("sel")
         self.tag_raise("insert")
         self.alternatives = []
+        self.completion_index = None
+        self.inline_completions = None
 
     def key_pressed(self, event):
         pass
@@ -777,17 +782,9 @@ class SmartText(TextAware):
         self.tag_range("alternate", start_pos, end_pos)
         # get x y coordinates of start_pos
         start_index = self.index(f"1.0 + {start_pos} chars")
-        x, y = self.count("1.0", start_index, "xpixels", "ypixels")
-        # TODO adjust based on font size
-        x = x + self.winfo_rootx() + 5
-        y = y + self.winfo_rooty() + 45
-        # get Text scroll position
-        scroll_pos = self.yview()[0]
-        # get Text height
-        text_height = self.winfo_height()
-        scroll_offset = int(round(scroll_pos * text_height))
-
-        y = y - scroll_offset
+        self.update_idletasks()
+        bbox = self.bbox(start_index)
+        x, y = self.winfo_rootx() + bbox[0], self.winfo_rooty() + bbox[1] + 25
 
         # create dropdown menu
         menu = tk.Menu(self, tearoff=0)
@@ -805,7 +802,7 @@ class SmartText(TextAware):
                                                                         alt['text'],
                                                                         tag="alternate"))
 
-        menu.add_separator()
+        #menu.add_separator()
         # display current text
 
         menu.tk_popup(x, y)
@@ -833,7 +830,67 @@ class SmartText(TextAware):
         alt_dict = self.get_alt_dict(position)
         if alt_dict:
             self.alt_dropdown(alt_dict)
+            return True
+        return False
 
+    def inline_generate(self, generation_settings):
+        if self.tag_ranges("sel"):
+            self.fix_selection()
+            prompt = self.get("1.0", "sel.first")
+            selected_range = self.selected_range()
+        else:
+            self.fix_insertion()
+            prompt = self.get("1.0", "insert")
+            selected_range = [len(prompt), len(prompt)]
+        threading.Thread(target=self.call_model_inline, args=(prompt, generation_settings, selected_range)).start()
+
+    def call_model_inline(self, prompt, settings, selected_range):
+        response, error = gen(prompt, settings)
+        response_text_list = completions_text(response)
+        self.alternatives = []
+        inline_completions = [completion for completion in response_text_list if completion]
+        inline_completions.insert(0, self.get_range(selected_range[0], selected_range[1]))
+        self.completion_index = 0
+        completions_dict = {'alts': [{'text': completion} for completion in inline_completions],
+                            'replace_range': [selected_range[0], selected_range[1]]}
+        self.alternatives.append(completions_dict)
+        self.inline_completions = completions_dict
+        #self.inserted_range = None
+        self.tag_remove("alternate", "1.0", tk.END)
+        self.insert_inline_completion()
+
+    def call_model_prompt(self, prompt, settings):
+        eval_settings = settings.copy()
+        eval_settings.update({'max_tokens': 1, 'num_continuations': 1, 'logprobs': 15})
+        response, error = gen(prompt, eval_settings)
+        # enable eval button
+        #self.eval_prompt_button.configure(state='normal')
+        self.model_response = response
+        self.process_logprobs()
+
+    def insert_inline_completion(self, step=1):
+        if self.inline_completions:
+            self.completion_index += step
+            completion = self.inline_completions['alts'][self.completion_index % len(self.inline_completions['alts'])]['text']
+            repl = self.inline_completions['replace_range']
+            self.replace_range(repl[0], repl[1], completion, "alternate")        
+
+    def process_logprobs(self):
+        self.alternatives = []
+        if "tokens" in self.model_response['prompt']:
+            # check if prompt is shorter than text in textbox
+            prompt_length = len(self.model_response['prompt']['text'])
+            textbox_length = len(self.get("1.0", "end-1c"))
+            diff = textbox_length - prompt_length
+            for token_data in self.model_response['prompt']['tokens']:
+                #print(token_data)
+                if 'counterfactuals' in token_data and token_data['counterfactuals']:
+                    alt_dict = {'alts': [],
+                                'replace_range': [token_data['position']['start'] + diff, token_data['position']['end'] + diff],}
+                    sorted_counterfactuals = {k: v for k, v in sorted(token_data['counterfactuals'].items(), key=lambda item: item[1], reverse=True)}
+                    for token, prob in sorted_counterfactuals.items():
+                        alt_dict['alts'].append({'text': token, 'logprob': prob, 'prob': logprobs_to_probs(prob)})
+                    self.alternatives.append(alt_dict)
 
 #################################
 #   Settings

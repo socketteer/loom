@@ -619,15 +619,15 @@ class JanusPlayground(Module):
         self.textbox_frame = ttk.Frame(self.pane)
         self.pane.add(self.textbox_frame, weight=4)
 
-        self.textbox = SmartText(self.textbox_frame, bd=2, height=3, undo=True)
+        self.textbox = LoomTerminal(self.textbox_frame, bd=2, height=3, undo=True)
         self.textbox.pack(side='top', fill='both', expand=True)
         self.textboxes.append(self.textbox)
         self.textbox.configure(**textbox_config(bg=edit_color()))
         #self.textbox.tag_config("generated", font=('Georgia', self.state.preferences['font_size'], 'bold'))
         
         self.textbox.bind("<Key>", self.key_pressed)
-        self.textbox.bind("<Alt-g>", self.inline_generate)
-        self.textbox.bind("<Command-g>", self.inline_generate)
+        self.textbox.bind("<Alt-i>", self.inline_generate)
+        self.textbox.bind("<Command-i>", self.inline_generate)
         self.textbox.bind("<Alt-period>", lambda event: self.insert_inline_completion(step=1))
         self.textbox.bind("<Alt-comma>", lambda event: self.insert_inline_completion(step=-1))
         self.textbox.bind("<Command-period>", lambda event: self.insert_inline_completion(step=1))
@@ -658,23 +658,9 @@ class JanusPlayground(Module):
         self.pane.add(self.completions_frame, weight=1)
         self.completion_windows.body(self.completions_frame)
 
-    # def replace_selected_text(self, text):
-    #     sel_first = self.textbox.index("sel.first")
-    #     self.textbox.delete("sel.first", "sel.last")
-    #     self.textbox.insert(sel_first, text)
 
     def inline_generate(self, *args):
-        # get text up to cursor
-        if self.textbox.tag_ranges("sel"):
-            self.textbox.fix_selection()
-            prompt = self.textbox.get("1.0", "sel.first")
-            selected_range = self.textbox.selected_range()
-        else:
-            self.textbox.fix_insertion()
-            prompt = self.textbox.get("1.0", "insert")
-            selected_range = [len(prompt), len(prompt)]
-        settings = self.state.inline_generation_settings
-        threading.Thread(target=self.call_model_inline, args=(prompt, settings, selected_range)).start()
+        self.textbox.inline_generate(self.state.inline_generation_settings)
 
     def generate(self, mode='completions', *args):
         prompt = self.textbox.get("1.0", "end-1c")
@@ -690,76 +676,32 @@ class JanusPlayground(Module):
 
     def call_model(self, prompt, settings):
         response, error = gen(prompt, settings)
-        # enable generate button
         self.generate_button.configure(state='normal')
         self.model_response = response
-        self.process_logprobs()
+        self.textbox.process_logprobs()
         response_text_list = completions_text(response)
         for completion in response_text_list:
             self.completion_windows.open_window(completion)
 
     def call_model_prompt(self, prompt, settings):
-        eval_settings = settings.copy()
-        eval_settings.update({'max_tokens': 1, 'num_continuations': 1, 'logprobs': 15})
-        response, error = gen(prompt, eval_settings)
-        # enable eval button
+        self.textbox.call_model_prompt(prompt, settings)
         self.eval_prompt_button.configure(state='normal')
-        self.model_response = response
-        self.process_logprobs()
-
 
     def call_model_inline(self, prompt, settings, selected_range):
-        response, error = gen(prompt, settings)
-        response_text_list = completions_text(response)
-        self.textbox.alternatives = []
-        inline_completions = [completion for completion in response_text_list if completion]
-        inline_completions.insert(0, self.textbox.get_range(selected_range[0], selected_range[1]))
-        self.completion_index = 0
-        completions_dict = {'alts': [{'text': completion} for completion in inline_completions],
-                            'replace_range': [selected_range[0], selected_range[1]]}
-        self.textbox.alternatives.append(completions_dict)
-        self.inline_completions = completions_dict
-        #self.inserted_range = None
-        self.textbox.tag_remove("alternate", "1.0", tk.END)
-        self.insert_inline_completion()
-
+        self.textbox.call_model_inline(prompt, settings, selected_range)
 
     def process_logprobs(self):
-        # TODO when prompt length is shorter
-        self.textbox.alternatives = []
-        if "tokens" in self.model_response['prompt']:
-            # check if prompt is shorter than text in textbox
-            prompt_length = len(self.model_response['prompt']['text'])
-            textbox_length = len(self.textbox.get("1.0", "end-1c"))
-            diff = textbox_length - prompt_length
-            for token_data in self.model_response['prompt']['tokens']:
-                #print(token_data)
-                if 'counterfactuals' in token_data and token_data['counterfactuals']:
-                    alt_dict = {'alts': [],
-                                'replace_range': [token_data['position']['start'] + diff, token_data['position']['end'] + diff],}
-                    sorted_counterfactuals = {k: v for k, v in sorted(token_data['counterfactuals'].items(), key=lambda item: item[1], reverse=True)}
-                    for token, prob in sorted_counterfactuals.items():
-                        alt_dict['alts'].append({'text': token, 'logprob': prob, 'prob': logprobs_to_probs(prob)})
-                    self.textbox.alternatives.append(alt_dict)
-        #print(self.textbox.alternatives)
+        self.textbox.process_logprobs()
+
+    def insert_inline_completion(self, step=1, *args):
+        self.textbox.insert_inline_completion(step)
+
+    def open_counterfactuals(self, event):
+        return self.textbox.open_alt_dropdown(event)
 
     def key_pressed(self, event):
         if event.keysym == "Alt_L":
             return
-        # else:
-        #     self.accept_completion()
-
-
-    def insert_inline_completion(self, step=1, *args):
-        if self.inline_completions:
-            self.completion_index += step
-            completion = self.inline_completions['alts'][self.completion_index % len(self.inline_completions['alts'])]['text']
-            repl = self.inline_completions['replace_range']
-            self.textbox.replace_range(repl[0], repl[1], completion, "alternate")
-            
-
-    def open_counterfactuals(self, event):
-        self.textbox.open_alt_dropdown(event)
 
     def export(self, *args):
         pass

@@ -48,7 +48,7 @@ ooo what features! wow so cool
 
 # Hotkeys
 
-
+*Alt hotkeys correspond to Command on Mac*
 
 ### File
 
@@ -71,21 +71,24 @@ Visualization Settings: `Control-u`
 
 Multimedia dialog: `u`
 
-Tree Info: `i`, `Control-i`
+Tree Info: `Control-i`
 
 Node Metadata: `Control+Shift+N`
 
 Run Code: `Control+Shift+B`
 
+
 ### Mode / display
 
 Toggle edit / save edits: `e`, `Control-e`
 
+Toggle story textbox editable: `Control-Shift-e`
+
 Toggle visualize: `j`, `Control-j`
 
-Toggle input box: `Tab`
+Toggle bottom pane: `Tab`
 
-Toggle debug box: `Control+Shift+D`
+Toggle side pane: `Alt-p`
 
 Toggle show children: `Alt-c`
 
@@ -142,6 +145,8 @@ Toggle archive node: `!`
 ### Generation and memory
 
 Generate: `g`, `Control-g`
+
+Inline generate: `Alt-i`
 
 Add memory: `Control-m`
 

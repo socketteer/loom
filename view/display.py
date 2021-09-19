@@ -1,5 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
+from util.gpt_util import event_probs
 
 import PIL
 
@@ -11,7 +12,7 @@ from util.util import metadata
 from util.util_tree import num_descendents
 from view.panes import Pane, NestedPane
 from components.modules import *
-from components.templates import SmartText
+from components.templates import LoomTerminal
 from view.icons import Icons
 from view.styles import textbox_config
 from tkinter.font import Font
@@ -217,7 +218,7 @@ class Display:
 
         scrollbar = ttk.Scrollbar(textbox_frame, command=lambda *args: self.__getattribute__(textbox_attr).yview(*args))
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        textbox = SmartText(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
+        textbox = LoomTerminal(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
         self.__setattr__(textbox_attr + "_scrollbar", scrollbar)
         self.__setattr__(textbox_attr, textbox)
         # TODO move this out
@@ -227,14 +228,28 @@ class Display:
         textbox.bind("<Command-Button-1>", lambda event: self.split_node(txt=textbox))
         #textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
         #textbox.bind("<Alt_L><Button-1>", lambda event: self.select_token(txt=textbox))
-        textbox.bind("<Button-3>", lambda event: self.open_menu(txt=textbox, event=event))
-        textbox.bind("<Button-2>", lambda event: self.open_menu(txt=textbox, event=event))
-        #textbox.bind("<Command-Button-1>", lambda event: self.open_menu(txt=textbox, event=event))
+        
+        #textbox.bind("<Button-3>", lambda event: self.open_menu(txt=textbox, event=event))
+        #textbox.bind("<Button-2>", lambda event: self.open_menu(txt=textbox, event=event))
+        
         textbox.bind("<Button-1>", lambda event: self.clear_selection_tags(textbox=textbox))
         textbox.bind("<Escape>", self.clear_selection_tags(textbox=textbox))
         textbox.bind("<Button-1>", lambda event: textbox.focus_set())
         textbox.bind("<Button-1>", lambda event: self.write_modifications())
         textbox.bind("<FocusOut>", lambda event: self.write_modifications())
+
+        textbox.bind("<Button-2>", lambda event: self.right_click(event, textbox=textbox))
+        textbox.bind("<Button-3>", lambda event: self.right_click(event, textbox=textbox))
+
+
+        # generation
+        textbox.bind("<Alt-i>", lambda event: self.inline_generate(textbox=textbox))
+        textbox.bind("<Command-i>", lambda event: self.inline_generate(textbox=textbox))
+        textbox.bind("<Alt-period>", lambda event: self.insert_inline_completion(step=1, textbox=textbox))
+        textbox.bind("<Alt-comma>", lambda event: self.insert_inline_completion(step=-1, textbox=textbox))
+        textbox.bind("<Command-period>", lambda event: self.insert_inline_completion(step=1, textbox=textbox))
+        textbox.bind("<Command-comma>", lambda event: self.insert_inline_completion(step=-1, textbox=textbox))
+
         textbox.pack(expand=True, fill='both')
 
         self.setup_textbox_tags(textbox)
@@ -260,6 +275,20 @@ class Display:
 
     def write_modifications(self):
         self.callbacks["Write textbox"]["callback"]()
+    
+    def right_click(self, event, textbox):
+        counterfactuals = self.open_counterfactuals(event=event, textbox=textbox)
+        if not counterfactuals:
+            self.open_menu(txt=textbox, event=event)
+
+    def inline_generate(self, textbox):
+        textbox.inline_generate(self.state.inline_generation_settings)
+
+    def insert_inline_completion(self, textbox, step=1):
+        textbox.insert_inline_completion(step)
+
+    def open_counterfactuals(self, event, textbox):
+        return textbox.open_alt_dropdown(event)
 
     def open_menu(self, txt, event):
         self.clear_selection_tags(txt)
@@ -327,6 +356,7 @@ class Display:
 
     
     def configure_buttons(self, visible_buttons):
+        visible_buttons += ["Save", "Open"]
         for btn in self.buttons:
             # hide all buttons not in the list that are currently visible
             if btn not in visible_buttons and self.buttons[btn].winfo_ismapped():

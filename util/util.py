@@ -171,8 +171,10 @@ def diff(old, new):
     return {'added': added, 'removed': removed, 'old': old, 'new': new}
 
 
+# https://evandrocoan.github.io/debugtools/html/classdebug__tools_1_1utilities_1_1diffmatchpatch.html
 def diff_linesToWords(text1, text2, delimiter=re.compile('\n')):
     """
+        
         Split two texts into an array of strings.  Reduce the texts to a string
         of hashes where each Unicode character represents one line.
 

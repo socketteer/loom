@@ -824,7 +824,7 @@ class Controller:
         self.display.textbox.configure(font=Font(family="Georgia", size=self.state.preferences['font_size']),
                                        spacing1=self.state.preferences['paragraph_spacing'],
                                        spacing2=self.state.preferences['line_spacing'],
-                                       background=edit_color() if self.state.preferences["editable"] else bg_color())
+                                       background=edit_color() if self.state.preferences["editable"] or self.display.mode == "Edit" else bg_color())
         #self.display.textbox.tag_config("node_select", font=Font(family="Georgia", size=self.state.preferences['font_size'], weight="bold"))
 
         # Fill textbox with text history, disable editing
@@ -905,15 +905,6 @@ class Controller:
             old_text = self.state.ancestry_text(self.state.selected_node)
             new_text = self.display.textbox.get("1.0", "end-1c")
             if old_text != new_text:
-                # split_old_text = re.split(r'(\s+)', old_text)
-                # split_new_text = re.split(r'(\s+)', new_text)
-                # split_old_indices = [0]
-                # split_new_indices = [0]
-                # for i in range(len(split_old_text)):
-                #     split_old_indices.append(split_old_indices[-1] + len(split_old_text[i]))
-                # for i in range(len(split_new_text)):
-                #     split_new_indices.append(split_new_indices[-1] + len(split_new_text[i]))
-
                 dmp = diff_match_patch()
                 a = diff_linesToWords(old_text, new_text, delimiter=re.compile(' '))
                 diffs = dmp.diff_main(a[0], a[1], False)
@@ -1761,8 +1752,7 @@ class Controller:
         if dialog.result:
             self.refresh_workspace()
 
-
-    @metadata(name="Show Info", keys=["<i>", "<Control-i>"], display_key="i")
+    @metadata(name="Show Info", keys=["<Control-i>"], display_key="i")
     def info_dialog(self):
         all_text = "".join([d["text"] for d in self.state.tree_node_dict.values()])
 
