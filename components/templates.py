@@ -1013,6 +1013,7 @@ class Preferences(FrameSettings):
             "nav_tag": tk.StringVar,
             "walk": tk.StringVar,
 
+            "editable": tk.BooleanVar,
             "bold_prompt": tk.BooleanVar,
             "coloring": tk.StringVar,
             "font_size": tk.IntVar,
@@ -1043,6 +1044,9 @@ class Preferences(FrameSettings):
         self.build_pin_button("walk")
 
         create_label(self.frame, "Story frame")
+
+        create_checkbutton(self.frame, "Edit textbox directly", "editable", self.vars)
+        self.build_pin_button("editable")
 
         create_checkbutton(self.frame, "Bold prompt", "bold_prompt", self.vars)
         self.build_pin_button("bold_prompt")

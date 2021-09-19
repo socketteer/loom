@@ -701,7 +701,7 @@ class JanusPlayground(Module):
     def call_model_prompt(self, prompt, settings):
         eval_settings = settings.copy()
         eval_settings.update({'max_tokens': 1, 'num_continuations': 1, 'logprobs': 15})
-        response, error = gen(prompt, settings)
+        response, error = gen(prompt, eval_settings)
         # enable eval button
         self.eval_prompt_button.configure(state='normal')
         self.model_response = response
@@ -724,19 +724,24 @@ class JanusPlayground(Module):
         self.insert_inline_completion()
 
 
-
     def process_logprobs(self):
         # TODO when prompt length is shorter
         self.textbox.alternatives = []
         if "tokens" in self.model_response['prompt']:
+            # check if prompt is shorter than text in textbox
+            prompt_length = len(self.model_response['prompt']['text'])
+            textbox_length = len(self.textbox.get("1.0", "end-1c"))
+            diff = textbox_length - prompt_length
             for token_data in self.model_response['prompt']['tokens']:
+                #print(token_data)
                 if 'counterfactuals' in token_data and token_data['counterfactuals']:
                     alt_dict = {'alts': [],
-                                'replace_range': [token_data['position']['start'], token_data['position']['end']],}
+                                'replace_range': [token_data['position']['start'] + diff, token_data['position']['end'] + diff],}
                     sorted_counterfactuals = {k: v for k, v in sorted(token_data['counterfactuals'].items(), key=lambda item: item[1], reverse=True)}
                     for token, prob in sorted_counterfactuals.items():
                         alt_dict['alts'].append({'text': token, 'logprob': prob, 'prob': logprobs_to_probs(prob)})
                     self.textbox.alternatives.append(alt_dict)
+        #print(self.textbox.alternatives)
 
     def key_pressed(self, event):
         if event.keysym == "Alt_L":

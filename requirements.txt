@@ -34,3 +34,4 @@ vine==5.0.0
 wcwidth==0.2.5
 transformers==4.2.2
 deepmerge==0.3.0
+diff-match-patch==20200713

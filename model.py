@@ -49,6 +49,8 @@ DEFAULT_PREFERENCES = {
     'nav_tag': 'bookmark',
 
     # Story frame 
+    'editable': False,
+    'history_conflict': 'overwrite', # 'branch', 'ask', 'forbid'
     'coloring': 'edit',  # 'read', 'none'
     'bold_prompt': True,
     'font_size': 12,
@@ -853,16 +855,16 @@ class TreeModel:
 
         # Remove trailing spaces
         # count spaces that will be removed
-        num_spaces = 0
-        while text.endswith(" "):
-            num_spaces += 1
-            text = text[:-1]
+        # num_spaces = 0
+        # while text.endswith(" "):
+        #     num_spaces += 1
+        #     text = text[:-1]
 
         old_text = node["text"]
         if old_text != text:
             # Give children spaces removed from text
-            for child in node["children"]:
-                child["text"] = " " * num_spaces + child["text"]
+            # for child in node["children"]:
+            #     child["text"] = " " * num_spaces + child["text"]
             node["text"] = text
 
             if 'meta' not in node:
@@ -894,6 +896,7 @@ class TreeModel:
                 self.tree_updated(edit=[node['id']])
             else:
                 self.rebuild_tree()
+                #pass
 
 
     def update_note(self, node, text, index=0):
@@ -1224,10 +1227,11 @@ class TreeModel:
     # returns first node that is fully contained in the context window
     def context_window_index(self, node):
         indices = self.ancestor_text_indices(node)
-        first_in_context_index = indices[-1][1] - self.generation_settings['prompt_length']
+        end_indices = [ind[1] for ind in indices]
+        first_in_context_index = end_indices[-1] - self.generation_settings['prompt_length']
         if first_in_context_index < 0:
             return 0
-        context_node_index = bisect.bisect_left(indices, first_in_context_index) + 1
+        context_node_index = bisect.bisect_left(end_indices, first_in_context_index) + 1
         return context_node_index
 
     #################################

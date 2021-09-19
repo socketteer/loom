@@ -113,7 +113,7 @@ def split_indices(s):
     @:return generator((word, (start_idx, end_idx)), ...)
     """
     return ((m.group(0), (m.start(), m.end())) for m in re.finditer(r'\S+', s))
-
+    
 
 def word_ngrams(s, n):
     """Splits a string into ngram words"""

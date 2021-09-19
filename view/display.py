@@ -233,6 +233,8 @@ class Display:
         textbox.bind("<Button-1>", lambda event: self.clear_selection_tags(textbox=textbox))
         textbox.bind("<Escape>", self.clear_selection_tags(textbox=textbox))
         textbox.bind("<Button-1>", lambda event: textbox.focus_set())
+        textbox.bind("<Button-1>", lambda event: self.write_modifications())
+        textbox.bind("<FocusOut>", lambda event: self.write_modifications())
         textbox.pack(expand=True, fill='both')
 
         self.setup_textbox_tags(textbox)
@@ -255,6 +257,9 @@ class Display:
 
     def button_pressed(self, event):
         print(event.keysym)
+
+    def write_modifications(self):
+        self.callbacks["Write textbox"]["callback"]()
 
     def open_menu(self, txt, event):
         self.clear_selection_tags(txt)

@@ -26,13 +26,15 @@ from components.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, 
     PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
     RunDialog, WorkspaceDialog, ExportOptionsDialog
 from model import TreeModel
-from util.util import clip_num, metadata, diff
+from util.util import clip_num, metadata, diff, split_indices
 from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
     node_index, nearest_common_ancestor, filtered_children
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
 from util.keybindings import tkinter_keybindings
 from view.icons import Icons
 from gpt import gen
+from difflib import SequenceMatcher
+from diff_match_patch import diff_match_patch
 import json
 
 
@@ -117,7 +119,8 @@ class Controller:
         def in_edit():
             return self.display.mode in ["Edit", "Child Edit"] \
                    or (self.display.mode == "Visualize" and self.display.vis.textbox) \
-                   or self.has_focus(self.display.search_box) or self.module_textbox_has_focus()
+                   or self.has_focus(self.display.search_box) or self.module_textbox_has_focus() \
+                   or self.state.preferences['editable'] and self.has_focus(self.display.textbox)
         
         valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete"]
 
@@ -248,7 +251,8 @@ class Controller:
 
     @metadata(name='Debug', keys=["<Control-Shift-KeyPress-D>"])
     def debug(self, event=None):
-        self.display.textbox.fix_selection()
+        #self.display.textbox.fix_selection()
+        self.write_textbox_changes()
 
     # @metadata(name='Generate', keys=["<Control-G>", "<Control-KeyPress-G>"])
     # def generate(self, event=None):
@@ -421,6 +425,7 @@ class Controller:
                     return
             else:
                 self.reveal_node(node)
+        self.write_textbox_changes()
         self.nav_history.append(self.state.selected_node_id)
         self.undo_history = []
         if self.state.preferences['coloring'] == 'read':
@@ -866,7 +871,9 @@ class Controller:
                     self.display.textbox.see(tk.END)
                 else:
                     self.display.textbox.see(history_end)
-            self.display.textbox.configure(state="disabled")
+
+            if not self.state.preferences.get('editable', False):
+                self.display.textbox.configure(state="disabled")
 
             # makes text copyable
             #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
@@ -882,6 +889,45 @@ class Controller:
             # self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
             self.display.textbox.focus()
 
+    @metadata(name="Write textbox")
+    def write_textbox_changes(self):
+        if self.state.preferences['editable']:
+            old_text = self.state.ancestry_text(self.state.selected_node)
+            new_text = self.display.textbox.get("1.0", "end-1c")
+            if old_text != new_text:
+                split_old_text = re.split(r'(\s+)', old_text)
+                split_new_text = re.split(r'(\s+)', new_text)
+                split_old_indices = [0]
+                split_new_indices = [0]
+                for i in range(len(split_old_text)):
+                    split_old_indices.append(split_old_indices[-1] + len(split_old_text[i]))
+                for i in range(len(split_new_text)):
+                    split_new_indices.append(split_new_indices[-1] + len(split_new_text[i]))
+
+                dmp = diff_match_patch()
+                diffs = dmp.diff_main(old_text, new_text)
+                diff_indices_old = []
+                diff_indices_new = []
+                old_text_index = 0
+                new_text_index = 0
+                for d in diffs:
+                    if d[0] == 0:
+                        old_text_index += len(d[1])
+                        new_text_index += len(d[1])
+                    elif d[0] == -1:
+                        # text was deleted
+                        diff_indices_old.append((old_text_index, old_text_index + len(d[1])))
+                        diff_indices_new.append((new_text_index, new_text_index))
+                    elif d[0] == 1:
+                        # text was added
+                        diff_indices_old.append((old_text_index, old_text_index))
+                        diff_indices_new.append((new_text_index, new_text_index + len(d[1])))
+                        new_text_index += len(d[1])
+
+                texts = [new_text[i:j] for i, j in diff_indices_new]
+                
+                self.try_replaces_ranges(diff_indices_old, texts)
+
 
     def select_endpoints_range(self, start_endpoint, end_endpoint):
         start_text_index, end_text_index = self.endpoints_to_range(start_endpoint, end_endpoint)
@@ -894,10 +940,13 @@ class Controller:
 
     def replace_selected_text(self, text):
         self.display.textbox.configure(state="normal")
-        selected_text = self.get_selected_text()
+        selected_text = self.display.textbox.get_selected_text()
         start_pos = self.display.textbox.index("sel.first")
         start_index = len(self.display.textbox.get("1.0", start_pos))
         end_index = start_index + len(selected_text)
+        self.try_replace_range(start_index, end_index, text)
+
+    def try_replace_range(self, start_index, end_index, text):
         start_endpoint, end_endpoint = self.range_to_endpoints(start_index, end_index)
         if self.path_uninterrupted(start_endpoint, end_endpoint):
             self.replace_trajectory(start_endpoint, end_endpoint, text)
@@ -905,7 +954,28 @@ class Controller:
             # TODO open warning dialog to ask user to confirm
             pass
 
-    def replace_trajectory(self, start_endpoint, end_endpoint, text):
+    def try_replaces_ranges(self, ranges, texts):
+        # check if any of the ranges are interrupted
+        start_endpoints = []
+        end_endpoints = []
+        for i in range(len(ranges)):
+            start_endpoint, end_endpoint = self.range_to_endpoints(ranges[i][0], ranges[i][1])
+            start_endpoints.append(start_endpoint)
+            end_endpoints.append(end_endpoint)
+            if not self.path_uninterrupted(start_endpoint, end_endpoint):
+                if self.state.preferences['history_conflict'] == 'overwrite':
+                    pass
+                elif self.state.preferences['history_conflict'] == 'branch':
+                    # TODO not implemented
+                    return
+                elif self.state.preferences['history_conflict'] == 'ask':
+                    # TODO open warning dialog to ask user to confirm
+                    return
+        for i in range(len(ranges)):
+            self.replace_trajectory(start_endpoints[i], end_endpoints[i], texts[i], refresh_nav=True)
+
+
+    def replace_trajectory(self, start_endpoint, end_endpoint, text, refresh_nav=True):
         # replace text along a trajectory. This will put all the new text in the end endpoint, and result
         # in empty nodes if the chain is greater than two nodes long
         start_node = self.state.node(start_endpoint[0])
@@ -914,17 +984,18 @@ class Controller:
         if start_node == end_node:
             # substitute the text range in the node
             new_text = start_node['text'][:start_endpoint[1]] + text + start_node['text'][end_endpoint[1]:]
-            self.state.update_text(start_node, new_text)
+            self.state.update_text(start_node, new_text, refresh_nav=refresh_nav)
         else:
             for node in node_path:
                 if node == start_node:
                     new_text = node['text'][:start_endpoint[1]]
-                    self.state.update_text(node, new_text)
+                    #print(node['text'][:start_endpoint[1]])
+                    self.state.update_text(node, new_text, refresh_nav=refresh_nav)
                 elif node == end_node: 
                     new_text = text + node['text'][end_endpoint[1]:]
-                    self.state.update_text(node, new_text)
+                    self.state.update_text(node, new_text, refresh_nav=refresh_nav)
                 else:
-                    self.state.update_text(node, "")
+                    self.state.update_text(node, "", refresh_nav=refresh_nav)
 
     def path_uninterrupted(self, start_endpoint, end_endpoint):
         # returns true if any nodes between start_endpoint and end_endpoint have siblings
@@ -955,6 +1026,7 @@ class Controller:
         end_text_index = end - start_indices[end_node_index]
         start_node = ancestry[start_node_index]
         end_node = ancestry[end_node_index]
+        #print(start_node['text'][start_text_index])
         return (start_node['id'], start_text_index), (end_node['id'], end_text_index)
 
     def node_range(self, node):
@@ -1344,7 +1416,7 @@ class Controller:
 
 
     @metadata(name="Prepend space", keys=["<Control-space>"], display_key="ctrl-space")
-    def prepend_space(self, node):
+    def prepend_space(self, node=None):
         node = node if node else self.state.selected_node
         if not self.state.is_mutable(node):
             self.immutable_popup(node)

@@ -250,11 +250,6 @@
 
 - override even meta hotkeys in modules
     
-- eval prompt
-     - not working?
-
-- eval probs for prompts that are cut off
-
 - version control - start a new "branch" and merge
 
 - hotkey to shift words to parent / children
@@ -285,11 +280,28 @@
 
 - splices
     - links and windows
+    - should markup live in text?
 
 - textbox
     - move inline generation stuff to SmartText
     - class for StoryTextbox? or make it a module?
-    - editable main textbox - detect modification range
+    - editable main textbox
+        - compound nodes
+        - ask, branch, forbid modes
+
+- interface presets
+    - separate "write" into "generate" and "gamify" interfaces
+    - "gamify"
+        - "edit"
+        - frames tree
+        - view: reader
+    - "generate"/write
+        - children
+        - notes
+        - view: writer (sees everything that reader and AI sees, tagged. sees splices markup?)
+    - prompt programming preset
+        - transformers
+        - playground
 
 ## Other TODO
 
