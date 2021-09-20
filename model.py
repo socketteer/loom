@@ -693,6 +693,12 @@ class TreeModel:
     def id_visible(self, node_id):
         return self.visible(self.node(node_id))
 
+    def is_AI_generated(self, node):
+        if 'meta' in node:
+            if 'source' in node['meta']:
+                return node["meta"]["source"] == "AI"
+        return False
+
     def construct_node_condition(self, info_dict):
         name = info_dict['name']
         params = info_dict.get('params', {})
@@ -1883,12 +1889,13 @@ class TreeModel:
         prompt = prompt[-prompt_length:]
 
         global_context = self.generation_settings['global_context']
-        
-        if memory:
-            memory_list = self.construct_memory(node)
-            memory = ' '.join(memory['text'] for memory in memory_list)
-        else:
-            memory = ''
+
+        memory = ''
+        # if memory:
+        #     memory_list = self.construct_memory(node)
+        #     memory = ' '.join(memory['text'] for memory in memory_list)
+        # else:
+        #     memory = ''
         
         start_text = codecs.decode(self.generation_settings['start'], "unicode-escape")
 

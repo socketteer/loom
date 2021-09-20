@@ -466,8 +466,13 @@ class Controller:
 
     @metadata(name="Undo")
     def undo_action(self):
-        # this simply navigates to the parent
-        self.parent(node=self.state.selected_node)
+        # this navigates to the parent of the last non-AI generated node
+        ancestry = self.state.ancestry(self.state.selected_node)
+        if len(ancestry) > 1:
+            for ancestor in ancestry[::-1]:
+                if not self.state.is_AI_generated(ancestor):
+                    self.parent(node=ancestor)
+                    return
 
 
     #################################
