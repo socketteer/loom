@@ -978,11 +978,11 @@ class ExportOptions(Settings):
             'subtree_only': tk.BooleanVar,
             'visible_only': tk.BooleanVar,
             'root_frame': tk.BooleanVar,
-            'frames': tk.BooleanVar,
+            'frame': tk.BooleanVar,
             'tags': tk.BooleanVar,
             'text_attributes': tk.BooleanVar,
             'multimedia': tk.BooleanVar,
-            'chapters': tk.BooleanVar
+            'chapter_id': tk.BooleanVar
         }
 
     def body(self, master):
@@ -991,11 +991,11 @@ class ExportOptions(Settings):
         create_checkbutton(self.frame, "Subtree only", "subtree_only", self.vars)
         create_checkbutton(self.frame, "Visible only", "visible_only", self.vars)
         create_checkbutton(self.frame, "Export root frame", "root_frame", self.vars)
-        create_checkbutton(self.frame, "Export frames", "frames", self.vars)
+        create_checkbutton(self.frame, "Export frames", "frame", self.vars)
         create_checkbutton(self.frame, "Export tags", "tags", self.vars)
         create_checkbutton(self.frame, "Export text attributes", "text_attributes", self.vars)
         create_checkbutton(self.frame, "Export multimedia", "multimedia", self.vars)
-        create_checkbutton(self.frame, "Export chapters", "chapters", self.vars)
+        create_checkbutton(self.frame, "Export chapters", "chapter_id", self.vars)
 
 
 class Preferences(FrameSettings):

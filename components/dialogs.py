@@ -1079,14 +1079,13 @@ class GenerationSettingsDialog(Dialog):
 
 
 class ExportOptionsDialog(Dialog):
-    def __init__(self, parent, options_dict, result):
+    def __init__(self, parent, options_dict):
         self.export_options = ExportOptions(options_dict)
-        self.result = result
         Dialog.__init__(self, parent, title="Export Options")
 
     def body(self, master):
         self.export_options.body(master)
 
     def apply(self):
-        self.result = True
         self.export_options.write()
+        self.result = self.export_options

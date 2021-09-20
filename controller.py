@@ -428,6 +428,7 @@ class Controller:
             else:
                 self.reveal_node(node)
         if not self.state.selected_node:
+            # if no selected node (probably previous node was deleted), just select
             self.state.select_node(node['id'])
         self.write_textbox_changes()
         if open:
@@ -450,7 +451,6 @@ class Controller:
     def update_text(self, text, node=None):
         node = node if node else self.state.selected_node
         self.state.update_text(node, text)
-
 
     @metadata(name="<", keys=["<Command-minus>", "<Alt-minus>"])
     def prev_selection(self):
@@ -1582,6 +1582,10 @@ class Controller:
     #################################
 
 
+    @metadata(name="New")
+    def new_tree(self):
+        self.state.open_empty_tree()
+
     @metadata(name="Open", keys=["<o>", "<Control-o>"], display_key="o")
     def open_tree(self):
         options = {
@@ -1656,15 +1660,14 @@ class Controller:
             'subtree_only': True,
             'visible_only': True,
             'root_frame': True,
-            'frames': False,
+            'frame': False,
             'tags': False,
-            'chapters': False,
+            'chapter_id': False,
             'text_attributes': False,
             'multimedia': False,
         }
-        result = False
-        dialog = ExportOptionsDialog(parent=self.display.frame, options_dict=export_options, result=result)
-        if not result:
+        dialog = ExportOptionsDialog(parent=self.display.frame, options_dict=export_options)
+        if not dialog.result:
             return 
         filename = self.state.tree_filename if self.state.tree_filename \
             else os.path.join(os.getcwd() + '/data', "new_tree.json")
@@ -1675,7 +1678,12 @@ class Controller:
             defaultextension='.json')
         if filename:
             #self.state.tree_filename = filename
-            self.state.export_subtree(node, filename, export_options)
+            node = node if export_options['subtree_only'] else self.state.root()
+            filter = self.in_nav if export_options['visible_only'] else None
+            copy_attributes = [attribute for attribute in ['frame', 'tags', 'chapter_id', 'text_attributes', 'multimedia'] if export_options[attribute]]
+            # TODO don't necessarily copy mutable for zipped things
+            copy_attributes += ['mutable', 'text'] #'parent_id'
+            self.state.export_subtree(node, filename, filter, copy_attributes)
             # new_tree = node.copy()
             # new_tree.pop('parent_id')
             # new_tree = {'root': new_tree}

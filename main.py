@@ -15,6 +15,7 @@ from util.util_tk import create_menubar
 from view.colors import darkmode
 import PIL.Image
 import PIL.ImageTk
+from copy import deepcopy
 
 class Application:
 
@@ -104,7 +105,7 @@ class Application:
             print("opening", filename)
             tab.state.open_tree(filename)
         else:
-            tab.state.load_tree_data(EMPTY_TREE)
+            tab.state.load_tree_data(deepcopy(EMPTY_TREE))
 
 
     def close_tab(self, event=None, index=None):
@@ -136,6 +137,7 @@ class Application:
         menu_list = defaultdict(list, {
             "File": [
                 #('New Tab', 'Ctrl+N', '<Control-n>', self.create_tab),
+                ('New', None, None, lambda event=None: self.forward_command(Controller.new_tree)),
                 ('Open', 'O', None, lambda event=None: self.forward_command(Controller.open_tree)),
                 ('Import subtree', 'Ctrl+Shift+O', None, lambda event=None: self.forward_command(Controller.import_tree)),
                 ('Save', 'S', None, lambda event=None: self.forward_command(Controller.save_tree)),

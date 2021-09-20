@@ -135,7 +135,7 @@ def tree_subset(root, filter=None, copy_attributes=None):
     new_root = {'id': root['id'], 'children': []}
     if 'children' in root:
         for child in filtered_children(root, filter):
-            new_root['children'].append(tree_subset(child, filter))
+            new_root['children'].append(tree_subset(child, filter, copy_attributes))
     for attribute in copy_attributes:
         if attribute in root:
             new_root[attribute] = root[attribute]

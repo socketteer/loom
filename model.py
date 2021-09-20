@@ -20,7 +20,7 @@ from util.util import json_create, timestamp, json_open, clip_num, index_clip, d
 from util.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
     subtree_list, generate_conditional_tree, filtered_children, \
     new_node, add_immutable_root, make_simple_tree, fix_tree, ancestry_in_range, ancestry_plaintext, ancestor_text_indices, \
-    node_index, ancestor_text_list
+    node_index, ancestor_text_list, tree_subset
 from util.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs, parse_logit_bias, parse_stop
 from util.multiverse_util import greedy_word_multiverse
 from util.node_conditions import conditions, condition_lambda
@@ -1130,11 +1130,11 @@ class TreeModel:
     #   Chapters
     #################################
 
-    def import_chapters(self, root, chapters):
-        if 'chapter_id' in root and root['chapter_id'] not in self.chapters:
-            self.chapters[root['chapter_id']] = chapters[root['chapter_id']]
-        for child in root['children']:
-            self.import_chapters(child, chapters)
+    # def import_chapters(self, root, chapters):
+    #     if 'chapter_id' in root and root['chapter_id'] not in self.chapters:
+    #         self.chapters[root['chapter_id']] = chapters[root['chapter_id']]
+    #     for child in root['children']:
+    #         self.import_chapters(child, chapters)
 
     def chapter_title(self, node):
         # print(self.chapters)
@@ -1556,7 +1556,7 @@ class TreeModel:
     def load_tree_data(self, data, init_global=True):
         if "root" not in data:
             # json file with a root node
-            self.tree_raw_data = EMPTY_TREE
+            self.tree_raw_data = deepcopy(EMPTY_TREE)
             if "text" in data:
                 self.tree_raw_data['root'] = data
             else:
@@ -1582,6 +1582,11 @@ class TreeModel:
         self.load_tree_data(json_open(self.tree_filename))
         self.io_update()
 
+    def open_empty_tree(self):
+        self.tree_filename = None
+        self.load_tree_data(deepcopy(EMPTY_TREE))
+        self.io_update()
+
     # Open a new tree json
     # TODO if you try to import things that already exist in tree this causes problems
     # because of duplicate IDs
@@ -1590,15 +1595,31 @@ class TreeModel:
         tree_json = json_open(filename)
         if 'root' in tree_json:
             new_subtree_root = tree_json['root']
-            self.selected_node['children'].append(new_subtree_root)
-            new_subtree_root['parent_id'] = self.selected_node_id
+            if not new_subtree_root['mutable']:
+                new_subtree_root['mutable'] = True
+            self.add_subtree(self.selected_node, new_subtree_root)
+            # self.selected_node['children'].append(new_subtree_root)
+            # new_subtree_root['parent_id'] = self.selected_node_id
             if 'chapters' in tree_json:
-                self.import_chapters(new_subtree_root, tree_json['chapters'])
+                #self.import_chapters(new_subtree_root, tree_json['chapters'])
+                self.chapters.update(tree_json['chapters'])
+            if 'tags' in tree_json:
+                self.tags.update(tree_json['tags'])
             self.load_tree_data(self.tree_raw_data)
             self.tree_updated()
             self.io_update()
         else:
-            print('improperly formatted tree')
+            if 'id' in tree_json:
+                self.add_subtree(self.selected_node, tree_json)
+                self.load_tree_data(self.tree_raw_data)
+                self.tree_updated()
+                self.io_update()
+            else:
+                print('improperly formatted tree')
+
+    def add_subtree(self, node, subtree_root):
+        node['children'].append(subtree_root)
+        subtree_root['parent_id'] = node['id']
 
     # open new tree with node as root
     def open_node_as_root(self, node=None, new_filename=None, save=True, rebuild_global=False):
@@ -1683,8 +1704,16 @@ class TreeModel:
         self.io_update()
         return True
 
-    def export_subtree(self, node, filename, export_options):
-        pass
+    def export_subtree(self, root, filename, filter=None, copy_attributes=None):
+        filtered_tree = tree_subset(root, filter=filter, copy_attributes=copy_attributes)
+        filtered_tree = {'root': filtered_tree}
+        if 'tags' in copy_attributes:
+            filtered_tree['tags'] = self.tags
+        if 'chapter_id' in copy_attributes:
+            filtered_tree['chapters'] = self.chapters
+        # TODO copy globals
+        json_create(filename, filtered_tree)
+        self.io_update()
 
     def save_simple_tree(self, save_filename, subtree=None):
         subtree = subtree if subtree else self.tree_raw_data
