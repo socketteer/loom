@@ -653,7 +653,15 @@ class Controller:
     def retry(self, node=None):
         # if node has a next sibling, select it
         # otherwise, navigate to parent, generate again, and select first newly generated node
-        pass
+        node = node if node else self.state.selected_node
+        if self.state.is_AI_generated(node):
+            next_sibling = self.state.sibling(node, wrap=False, filter=self.in_nav)
+            self.select_node(next_sibling)
+            if not self.state.is_AI_generated(self.state.selected_node):
+                self.generate(update_selection=True, placeholder="")
+        else:
+            self.generate(update_selection=True, placeholder="")
+
 
     def propagate_wavefunction(self):
         if self.display.mode == "Multiverse":
