@@ -662,8 +662,9 @@ class LoomTerminal(TextAware):
     def fix_insertion_position(self, position):
         if self.get(f"{position}-1c") == " ":
             return f"{position}-1c"
-        # if the next character is a space or punctuation, move it to the next position
-        if self.get(f"{position}+1c") in (" ", "\n", ",", ".", ";", ":", "!", "?", "-"):
+        # if the next character is punctuation or space, move to next position, unless current char is punctuation
+        if self.get(position) not in ("\n", ",", ".", ";", ":", "!", "?", "-") and \
+                self.get(f"{position}+1c") in (" ", "\n", ",", ".", ";", ":", "!", "?", "-"):
             return f"{position}+1c"
 
     def replace_selected(self, new_text, tag=None):

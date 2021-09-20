@@ -123,7 +123,7 @@ class Controller:
                    or self.has_focus(self.display.search_box) or self.module_textbox_has_focus() \
                    or self.state.preferences['editable'] and self.has_focus(self.display.textbox)
         
-        valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete"]
+        valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete", "Command"]
 
         inside_edit = any(v in tk_key for v in valid_keys_outside_edit)
 
