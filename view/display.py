@@ -38,7 +38,8 @@ modules = {'edit': Edit,
            'media': Media,
            'paint': Paint,
            'generation settings': GenerationSettings,
-           'frame editor': FrameEditor,}
+           'frame editor': FrameEditor,
+           'memories': Memories,}
 
 orients = {'side_pane': "horizontal",
            "bottom_pane": "vertical"}

@@ -581,69 +581,6 @@ class CollapsableFrame(tk.Frame):
             self.show()
         
 
-class TextAttribute:
-    def __init__(self, master, attribute_name, read_callback=None, write_callback=None, delete_callback=None, expand=False, parent_module=None, height=3, **kwargs):
-        self.master = master
-        self.read_callback = read_callback
-        self.write_callback = write_callback
-        self.delete_callback = delete_callback
-        self.parent_module = parent_module
-
-        self.frame = CollapsableFrame(master, title=attribute_name, expand=expand, bg=bg_color())
-
-        if self.delete_callback:
-            self.delete_button = tk.Label(self.frame, image=icons.get_icon("trash-red"), cursor="hand2", bg=bg_color())
-            self.delete_button.grid(row=0, column=1, padx=10)
-            self.delete_button.bind("<Button-1>", lambda event: self.delete_callback())
-
-        self.textbox = TextAware(self.frame.collapsable_frame, height=height, **kwargs)
-        self.textbox.pack(fill='both', expand=True)
-
-        self.textbox.configure(**textbox_config(bg=edit_color()))
-
-        self.textbox.bind("<Button>", lambda event: self.textbox.focus_set())
-        self.textbox.bind("<FocusOut>", lambda event: self.write())
-        self.textbox.bind("<Key>", self.key_pressed)
-        if self.parent_module:
-            self.parent_module.textboxes.append(self.textbox)
-    
-    def pack(self, **kwargs):
-        self.frame.pack(**kwargs)
-
-    def hide(self):
-        self.frame.hide()
-
-    def show(self):
-        self.frame.show()
-
-    def destroy(self):
-        if self.parent_module:
-            self.parent_module.textboxes.remove(self.textbox)
-        self.frame.pack_forget()
-        self.frame.destroy()
-
-    def write(self):
-        if self.write_callback:
-            text = self.get()
-            self.write_callback(text=text)
-
-    def read(self):
-        if self.read_callback:
-            text = self.read_callback()
-            self.textbox.delete("1.0", "end")
-            self.textbox.insert("1.0", text)
-
-    def get(self):
-        return self.textbox.get("1.0", "end-1c")
-
-    def key_pressed(self, event):
-        # if key is tab, break
-        if event.keysym == 'Tab':
-            self.master.focus()
-            return "break"
-
-
-
 class LoomTerminal(TextAware):
     """
     alternatives:
@@ -1446,3 +1383,86 @@ class MinimapSettings(FrameSettings):
         if self.parent_module:
             self.parent_module.refresh()
         
+
+
+#################################
+#   TextAttributes
+#################################
+
+
+class TextAttribute:
+    def __init__(self, master, attribute_name, read_callback=None, write_callback=None, delete_callback=None, expand=False, parent_module=None, height=3, **kwargs):
+        self.master = master
+        self.read_callback = read_callback
+        self.write_callback = write_callback
+        self.delete_callback = delete_callback
+        self.parent_module = parent_module
+
+        self.frame = CollapsableFrame(master, title=attribute_name, expand=expand, bg=bg_color())
+
+        if self.delete_callback:
+            self.delete_button = tk.Label(self.frame, image=icons.get_icon("trash-red"), cursor="hand2", bg=bg_color())
+            self.delete_button.grid(row=0, column=1, padx=10)
+            self.delete_button.bind("<Button-1>", lambda event: self.delete_callback())
+
+        self.textbox = TextAware(self.frame.collapsable_frame, height=height, **kwargs)
+        self.textbox.pack(fill='both', expand=True)
+
+        self.textbox.configure(**textbox_config(bg=edit_color()))
+
+        self.textbox.bind("<Button>", lambda event: self.textbox.focus_set())
+        self.textbox.bind("<FocusOut>", lambda event: self.write())
+        self.textbox.bind("<Key>", self.key_pressed)
+        if self.parent_module:
+            self.parent_module.textboxes.append(self.textbox)
+    
+    def pack(self, **kwargs):
+        self.frame.pack(**kwargs)
+
+    def hide(self):
+        self.frame.hide()
+
+    def show(self):
+        self.frame.show()
+
+    def destroy(self):
+        if self.parent_module:
+            self.parent_module.textboxes.remove(self.textbox)
+        self.frame.pack_forget()
+        self.frame.destroy()
+
+    def write(self):
+        if self.write_callback:
+            text = self.get()
+            self.write_callback(text=text)
+
+    def read(self):
+        if self.read_callback:
+            text = self.read_callback()
+            self.textbox.delete("1.0", "end")
+            self.textbox.insert("1.0", text)
+
+    def get(self):
+        return self.textbox.get("1.0", "end-1c")
+
+    def key_pressed(self, event):
+        # if key is tab, break
+        if event.keysym == 'Tab':
+            self.master.focus()
+            return "break"
+
+
+class Memory(TextAttribute):
+    def __init__(self, master, memory_id, state, parent_module=None, expand=False, height=3):
+        self.master = master
+        self.state = state
+        self.memory_id = memory_id
+        memory = self.state.memories[memory_id]
+        memory_name = memory['name'] if 'name' in memory else memory['text'][:20]
+        read_callback = lambda: self.state.memories[memory_id]['text']
+        write_callback = lambda text: self.write_memory(text)
+        delete_callback = lambda: self.state.delete_memory(memory_id)
+        TextAttribute.__init__(self, master, memory_name, read_callback, write_callback, delete_callback, expand=expand, parent_module=parent_module, height=height)
+
+    def write_memory(self, text):
+        self.state.update_memory(self.memory_id, update={'text': text})

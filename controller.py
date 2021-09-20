@@ -23,7 +23,7 @@ from view.colors import history_color, not_visited_color, visited_color, ooc_col
 from view.display import Display
 from components.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
-    PreferencesDialog, AIMemory, CreateMemory, NodeMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
+    PreferencesDialog, CreateMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
     RunDialog, WorkspaceDialog, ExportOptionsDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff, split_indices, diff_linesToWords
@@ -211,7 +211,7 @@ class Controller:
             "Generation": [
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
                 ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
-                ('View summaries', '', None, no_junk_args(self.view_summaries)),
+                #('View summaries', '', None, no_junk_args(self.view_summaries)),
 
             ],
             "Memory": [
@@ -233,7 +233,7 @@ class Controller:
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
                 ('Inline generation settings', None, None, no_junk_args(self.inline_generation_settings_dialog)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
-                ('Workspace settings', None, None, no_junk_args(self.workspace_dialog)),
+                #('Workspace settings', None, None, no_junk_args(self.workspace_dialog)),
                 #('Settings', None, None, no_junk_args(self.settings))
 
             ],
@@ -427,6 +427,8 @@ class Controller:
                     return
             else:
                 self.reveal_node(node)
+        if not self.state.selected_node:
+            self.state.select_node(node['id'])
         self.write_textbox_changes()
         if open:
             node['open'] = True
@@ -1810,19 +1812,19 @@ class Controller:
             node = self.state.selected_node
         dialog = MultimediaDialog(parent=self.display.frame, callbacks=self.callbacks, state=self.state)
 
-    @metadata(name="Memory dialogue", keys=["<Control-Shift-KeyPress-M>"], display_key="Control-shift-m")
-    def ai_memory(self, node=None):
-        if node is None:
-            node = self.state.selected_node
-        dialog = AIMemory(parent=self.display.frame, node=node, state=self.state)
-        self.refresh_textbox()
+    # @metadata(name="Memory dialogue", keys=["<Control-Shift-KeyPress-M>"], display_key="Control-shift-m")
+    # def ai_memory(self, node=None):
+    #     if node is None:
+    #         node = self.state.selected_node
+    #     dialog = AIMemory(parent=self.display.frame, node=node, state=self.state)
+    #     self.refresh_textbox()
 
-    @metadata(name="Node memory", keys=["<Command-m>", "<Alt-m>"], display_key="Command-m")
-    def node_memory(self, node=None):
-        if node is None:
-            node = self.state.selected_node
-        dialog = NodeMemory(parent=self.display.frame, node=node, state=self.state)
-        self.refresh_textbox()
+    # @metadata(name="Node memory", keys=["<Command-m>", "<Alt-m>"], display_key="Command-m")
+    # def node_memory(self, node=None):
+    #     if node is None:
+    #         node = self.state.selected_node
+    #     dialog = NodeMemory(parent=self.display.frame, node=node, state=self.state)
+    #     self.refresh_textbox()
 
     @metadata(name="Add memory", keys=["<m>", "<Control-m>"], display_key="m")
     def add_memory(self, node=None):

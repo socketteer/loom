@@ -146,16 +146,7 @@
     - locality / pruning
     - hoisting
     - masks
-    - source of truth for nav, visible
-    
-- right click dropdowns
-    - minimap
-        - edit (in preview textbox)
-        - color node / subtree
-        - expand / collapse
-        - hoist
-        - tag...
-        
+    - source of truth for nav, visible (not quite - nav is still source of truth)
 
 - code to be executed upon navigating to node
 
@@ -193,18 +184,31 @@
     - playground
         - toggle multiple choice or inline (end)
         - integrate with tree
-        - view counterfactuals with dropdown menu
     - minimap 
         - detect size of frame
         - right click
+            - edit (in preview textbox)
+            - color node / subtree
+            - expand / collapse
+            - hoist
+            - tag...
         - node/subtree color / tag display
             - color according to tag
         - reactive updating
         - selected node highlighted by default; show preview text in textbox
         - export image of minimap
         - auto color by curation metrics
-
-
+    - paint
+        - all layers should be canvases
+            - transparent bg
+            - merge lines into img when layer changes - "imagify" canvas
+                - make canvas lines into transparent png
+                - merge drawing png & background png (if background not blank)
+        - right click 
+            - merge up
+            - delete
+            - hide
+            - change transparency?
     - modules come in two types, ones which can be duplicated (and should have their own settings) and ones which shouldnt
         - ok instances
             - text editor
@@ -255,18 +259,22 @@
     - frame tree
     - edit frame template
     - edit user frame dialog
+    - save frame preset
     - frames should be able to reference preset names
         - requires saving frames as strings instead of dicts?
+
+
+- enable / disable realtime updates for textattributes
 
 - splices
     - links and windows
     - should markup live in text?
 
-- textbox
-    - class for StoryTextbox? or make it a module?
+- LoomTerminals
     - editable main textbox
-        - compound nodes
+        - handle compound nodes
         - ask, branch, forbid modes
+    - color by token probability
 
 - interface presets
     - separate "write" into "generate" and "gamify" interfaces
@@ -286,6 +294,24 @@
 
 - store permanent alternative texts
     - as ghostparents?
+
+- demo
+    - tutorial
+    - read examples
+    - write examples
+    - multiverse comics
+
+- NL functions database
+
+- "path" bar
+
+- pretext
+    - subsume memories under pretext type
+    - memory module
+        - enable / disable
+        - change automatic inheritability conditions
+    - memory collection
+    - world info
 
 ## Other TODO
 

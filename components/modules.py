@@ -1687,3 +1687,54 @@ class FrameEditor(Module):
     def selection_updated(self):
         self.frame_editor.read()
         self.get_state()
+
+
+# TODO toggle enabled/disabled
+# automatically minimize disabled entries
+class Memories(Module):
+    def __init__(self, callbacks, state):
+        self.memories = {}
+        self.scroll_frame = None
+        self.add_memory_button = None
+        Module.__init__(self, "memories", callbacks, state)
+
+    def build(self, parent):
+        Module.build(self, parent)
+        # TODO scroll frame doesn't seem scrollable?
+        self.scroll_frame = ScrollableFrame(self.frame)
+        self.scroll_frame.pack(side='top', fill='both', expand=True)
+        self.add_memory_button = tk.Button(self.frame, text="Add memory", command=self.add_memory)
+        self.add_memory_button.pack(side='bottom', pady=10)
+        self.refresh()
+
+    def refresh(self):
+        current_memories = self.state.memories
+        new_memories, deleted_memories = react_changes(self.memories.keys(), current_memories.keys())
+        for memory_id in new_memories:
+            self.build_memory(memory_id)
+        for memory_id in deleted_memories:
+            self.remove_memory(memory_id)
+
+    def build_memory(self, memory_id):
+        self.memories[memory_id] = Memory(self.scroll_frame.scrollable_frame, memory_id, self.state, parent_module=self)
+        self.memories[memory_id].pack(side='top', fill='both', expand=True)
+        self.memories[memory_id].read()
+
+    def remove_memory(self, memory_id):
+        self.memories[memory_id].destroy()
+        del self.memories[memory_id]
+
+    def read_all(self):
+        for memory in self.memories.values():
+            memory.read()
+
+    def selection_updated(self):
+        self.refresh()
+
+    def tree_updated(self):
+        self.refresh()
+        self.read_all()
+
+    def add_memory(self):
+        pass
+        

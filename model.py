@@ -218,7 +218,7 @@ class TreeModel:
         self.tree_node_dict = None
         # {chapter_id: chapter}
         self.chapters = None
-        self.memories = None
+        #self.memories = None
         self.summaries = None
         self.checkpoint = None
         self.canonical = None
@@ -263,6 +263,10 @@ class TreeModel:
     @property
     def workspace(self):
         return self.state['workspace']
+
+    @property
+    def memories(self):
+        return self.state['memories']
     
     # user frame
 
@@ -305,6 +309,7 @@ class TreeModel:
     @property
     def state(self):
         state = {}
+        state["memories"] = {}
         state["preferences"] = deepcopy(DEFAULT_PREFERENCES)
         state["generation_settings"] = deepcopy(DEFAULT_GENERATION_SETTINGS)
         state["inline_generation_settings"] = deepcopy(DEFAULT_INLINE_GENERATION_SETTINGS)
@@ -361,7 +366,7 @@ class TreeModel:
 
     def update_frame(self, node, update, append=False):
         if 'frame' in node:
-            self.update(node, node['frame'], update, append)
+            self.update(node['frame'], update, append)
         else:
             node['frame'] = deepcopy(update)
         self.tree_updated()
@@ -1170,47 +1175,49 @@ class TreeModel:
     #   Memory, summaries
     #################################
 
-    def create_memory_entry(self, node, text, inheritability='none'):
+    def create_memory(self, node, text, inheritability='none'):
+        memory_id = str(uuid.uuid1())
         new_memory = {
-            "id": str(uuid.uuid1()),
-            #"root_id": node["id"],
+            "id": memory_id,
+            "root_id": node["id"],
             "text": text,
             "inheritability": inheritability,
             "enabled": True,
         }
+        # TODO if inheritability global, add to root frame instead
+        self.update_frame(node, update={'memories': {memory_id: new_memory}})
+        self.tree_updated()
 
-        self.memories[new_memory['id']] = new_memory
+    def update_memory(self, memory_id, update):
+        memory = self.state['memories'][memory_id]
+        self.update_frame(node=self.node(memory["root_id"]), update={'memories': {memory_id: update}})
 
-        if 'memories' not in node:
-            node['memories'] = []
-
-        node['memories'].append(new_memory['id'])
-
-    def delete_memory_entry(self, memory):
-        self.memories.pop(memory['id'])
-        root_node = self.node(memory["root_id"])
-        root_node['memories'].remove(memory['id'])
+    def delete_memory(self, memory_id):
+        pass
+        # self.memories.pop(memory['id'])
+        # root_node = self.node(memory["root_id"])
+        # root_node['memories'].remove(memory['id'])
 
     def memory_active(self, node, memory):
         memory_ancestor = self.node(memory['root_id'])
-        if not in_ancestry(memory_ancestor, node, self.tree_node_dict):
-            return False
+        # if not in_ancestry(memory_ancestor, node, self.tree_node_dict):
+        #     return False
         return memory['inheritability'] == 'none' and memory['root_id'] == node['id'] \
-               or memory['inheritability'] == 'subtree' \
+               or memory['inheritability'] == 'subtree' or memory['inheritability'] == 'global' \
                or (memory['inheritability'] == 'delayed'
                    and node_index(memory_ancestor, self.tree_node_dict) < self.context_window_index(node))
 
     # TODO also return list of pending?
-    def construct_memory(self, node):
-        ancestry = self.ancestry(node)
-        memories = []
-        for ancestor in ancestry:
-            if 'memories' in ancestor:
-                for memory_id in ancestor['memories']:
-                    memory = self.memories[memory_id]
-                    if self.memory_active(node, memory):
-                        memories.append(memory)
-        return memories
+    # def construct_memory(self, node):
+    #     ancestry = self.ancestry(node)
+    #     memories = []
+    #     for ancestor in ancestry:
+    #         if 'memories' in ancestor:
+    #             for memory_id in ancestor['memories']:
+    #                 memory = self.memories[memory_id]
+    #                 if self.memory_active(node, memory):
+    #                     memories.append(memory)
+    #     return memories
 
     def create_summary(self, root_node, end_node, summary_text):
         new_summary = {
@@ -1448,9 +1455,9 @@ class TreeModel:
             self.tree_raw_data['canonical'] = []
         self.canonical = self.tree_raw_data["canonical"]
 
-        if 'memories' not in self.tree_raw_data:
-            self.tree_raw_data['memories'] = {}
-        self.memories = self.tree_raw_data["memories"]
+        # if 'memories' not in self.tree_raw_data:
+        #     self.tree_raw_data['memories'] = {}
+        # self.memories = self.tree_raw_data["memories"]
 
         if 'summaries' not in self.tree_raw_data:
             self.tree_raw_data['summaries'] = {}
