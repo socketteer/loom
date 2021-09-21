@@ -1402,21 +1402,22 @@ class TreeModel:
 
 
     def update_tree_tag_changed(self, node, tag):
-        update_scope = self.tag_scope(node, tag)
-        hidden_in_scope = [d for d in update_scope if not self.visible(self.node(d))]
-        visible_in_scope = [d for d in update_scope if self.visible(self.node(d))]
-        if self.has_tag_attribute(node, tag):
-            if self.tags[tag]['hide']:
-                self.tree_updated(delete=hidden_in_scope)
-                return
-        else:
-            if self.tags[tag]['hide']:
-                self.tree_updated(add=visible_in_scope)
-                return
-            elif self.tags[tag]['show_only']:
-                self.tree_updated(delete=hidden_in_scope)
-                return
-        self.tree_updated(edit=update_scope)
+        if self.tags[tag]['hide'] or self.tags[tag]['show_only']:
+            update_scope = self.tag_scope(node, tag)
+            hidden_in_scope = [d for d in update_scope if not self.visible(self.node(d))]
+            visible_in_scope = [d for d in update_scope if self.visible(self.node(d))]
+            if self.has_tag_attribute(node, tag):
+                if self.tags[tag]['hide']:
+                    self.tree_updated(delete=hidden_in_scope)
+                    return
+            else:
+                if self.tags[tag]['hide']:
+                    self.tree_updated(add=visible_in_scope)
+                    return
+                elif self.tags[tag]['show_only']:
+                    self.tree_updated(delete=hidden_in_scope)
+                    return
+        self.tree_updated(edit=[node['id']])
 
 
     #################################

@@ -249,6 +249,7 @@
     - onSelect
     - onExit
     - onEdit
+    - global and local
     - tags can be configured to toggle on events
 
 - frames
@@ -312,6 +313,12 @@
         - change automatic inheritability conditions
     - memory collection
     - world info
+
+- num descendents in children preview
+
+- tagging nodes causes newly opened nodes to close
+
+- don't open minimap settings 
 
 ## Other TODO
 
