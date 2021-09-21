@@ -666,6 +666,7 @@ class LoomTerminal(TextAware):
         if self.get(position) not in ("\n", ",", ".", ";", ":", "!", "?", "-") and \
                 self.get(f"{position}+1c") in (" ", "\n", ",", ".", ";", ":", "!", "?", "-"):
             return f"{position}+1c"
+        return position
 
     def replace_selected(self, new_text, tag=None):
         # if textbox is disabled, configure it to be enabled

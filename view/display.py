@@ -307,7 +307,6 @@ class Display:
 
     def split_node(self, txt, event=None):
         fixed_position = txt.fix_insertion_position(txt.index(tk.CURRENT))
-        #txt.fix_insertion()
         char_index = txt.count("1.0", fixed_position, "chars")[0]
         self.callbacks["Split node"]["callback"](index=char_index)
 
