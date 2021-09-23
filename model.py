@@ -563,7 +563,7 @@ class TreeModel:
 
     def ancestor_text_indices(self, node, root=None):
         ancestry = self.ancestry(node, root)
-        return ancestor_text_indices(ancestry)
+        return ancestor_text_indices(ancestry, text_callback=self.text)
 
     def chain_uninterrupted(self, start, end):
         # returns true if chain of nodes has no other siblings
@@ -998,7 +998,6 @@ class TreeModel:
         #     self.rebuild_tree()
         return new_parent, node
 
-
     def sever_from_parent(self, node):
         parent = self.parent(node)
         parent['children'].remove(node)
@@ -1160,6 +1159,15 @@ class TreeModel:
     def set_template(self, node, value):
         node['template'] = value
         self.tree_updated()
+
+    def display_to_raw_index(self, node, index):
+        # if the node text is an fstring template, convert index of evaluated text to 
+        # index of raw template
+        if self.is_template(node):
+            # TODO
+            return index
+        else:
+            return index
 
     #################################
     #   Chapters

@@ -185,9 +185,9 @@ def ancestor_text_list(ancestry, text_callback=None):
 
 def ancestry_plaintext(ancestry, text_callback=None):
     if text_callback:
-        return " ".join(ancestor_text_list(ancestry, text_callback))
+        return "".join(ancestor_text_list(ancestry, text_callback))
     else:
-        return " ".join(ancestor_text_list(ancestry))
+        return "".join(ancestor_text_list(ancestry))
 
 def nearest_common_ancestor(node_a, node_b, node_dict):
     ancestry_a = node_ancestry(node_a, node_dict)

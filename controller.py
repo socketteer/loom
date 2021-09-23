@@ -735,10 +735,14 @@ class Controller:
             self.nav_select(node_id=selected_ancestor["id"])
 
     @metadata(name="Split node", keys=[], display_key="")
-    def split_node(self, index, change_selection=True):
+    def split_node(self, index, change_selection=True, node=None):
+        node = node if node else self.state.selected_node
         if self.display.mode == "Read":
+            if self.state.is_template(node):
+                #TODO
+                return
             ancestor_index, selected_ancestor = self.index_to_ancestor(index)
-            ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(self.state.selected_node)]
+            ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(node)]
             negative_offset = ancestor_end_indices[ancestor_index] - index
             split_index = len(selected_ancestor['text']) - negative_offset
             new_parent, _ = self.state.split_node(selected_ancestor, split_index)
@@ -957,7 +961,7 @@ class Controller:
 
                 texts = [new_text[i:j] for i, j in diff_indices_new]
 
-                self.try_replaces_ranges(diff_indices_old, texts)
+                self.try_replace_ranges(diff_indices_old, texts)
 
 
     def select_endpoints_range(self, start_endpoint, end_endpoint):
@@ -985,7 +989,7 @@ class Controller:
             # TODO open warning dialog to ask user to confirm
             pass
 
-    def try_replaces_ranges(self, ranges, texts):
+    def try_replace_ranges(self, ranges, texts):
         # check if any of the ranges are interrupted
         start_endpoints = []
         end_endpoints = []
