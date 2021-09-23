@@ -1089,3 +1089,50 @@ class ExportOptionsDialog(Dialog):
     def apply(self):
         self.export_options.write()
         self.result = self.export_options
+
+
+# TODO option to apply to user frame
+# TODO use generic settings dialog with overrides?
+# TODO use program vars?
+class ChatDialog(Dialog):
+    def __init__(self, parent, state):
+        self.state = state
+        self.AI_name_entry = None 
+        self.player_name_entry = None
+        self.master = None
+        self.AI_prefix = '\\n'
+        self.AI_suffix = ":"
+        self.player_prefix = '\n'
+        self.player_suffix = ": {input}"
+        Dialog.__init__(self, parent, title="Settings")
+
+    def body(self, master):
+        self.master = master
+        self.AI_name_entry = Entry(master, master.grid_size()[1], "AI name", "", None, width=20)
+        self.player_name_entry = Entry(master, master.grid_size()[1], "Player name", "", None, width=20)
+        self.set_names()
+
+    def set_names(self):
+
+        AI_template = self.state.generation_settings['start']
+        #print(AI_template.startswith('\\n'))
+        #print(AI_template.endswith(AI_suffix))
+        if AI_template.startswith(self.AI_prefix) and AI_template.endswith(self.AI_suffix):
+            AI_name = AI_template[len(self.AI_prefix):-len(self.AI_suffix)]
+        else:
+            AI_name = ""
+        self.AI_name_entry.tk_variables.set(AI_name)
+        player_template = self.state.module_settings['input']['submit_template']
+        # check if player template is in the form f"\\n{player_name}: \{input\}"
+        if player_template.startswith(self.player_prefix) and player_template.endswith(self.player_suffix):
+            player_name = player_template[len(self.player_prefix):-len(self.player_suffix)]
+        else:
+            player_name = ""
+        self.player_name_entry.tk_variables.set(player_name)
+
+    def apply(self):
+        AI_name = self.AI_prefix + self.AI_name_entry.tk_variables.get() + self.AI_suffix
+        self.state.update_frame(self.state.selected_node, update={'generation_settings': {'start': AI_name}})
+        player_name = self.player_name_entry.tk_variables.get()
+        player_submit_template = self.player_prefix + player_name + self.player_suffix
+        self.state.update_frame(self.state.selected_node, update={'module_settings': {'input': {'submit_template': player_submit_template}}})

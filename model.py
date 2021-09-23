@@ -59,7 +59,7 @@ DEFAULT_PREFERENCES = {
 
     # Saving
     'log_diff': False,
-    'autosave': True,
+    'autosave': False,
     #'save_counterfactuals': False,
     'model_response': 'backup', #'discard', #'save'
 
@@ -80,7 +80,7 @@ DEFAULT_WORKSPACE = {
 
 DEFAULT_MODULE_SETTINGS = {
     'edit': {'node_id': None,},
-    'input': {'auto_response': True},
+    'input': {'auto_response': True, 'submit_template': "{input}"},
     'minimap': {'level_offset': 70,
                 'leaf_offset': 40,
                 'node_radius': 10,
@@ -144,19 +144,7 @@ DEFAULT_VISUALIZATION_SETTINGS = {
     # auto collapse
 }
 
-EMPTY_TREE = {
-    "root": {
-        "mutable": False,
-        "visited": True,
-        "text": "",
-        "children": [
-            {
-                "text": "",
-                "children": [],
-            }
-        ],
-    }
-}
+DEFAULT_VARS = {}
 
 # new tags should be added to the root level by default
 DEFAULT_TAGS = { 
@@ -201,6 +189,20 @@ DEFAULT_TAGS = {
         "icon": "pin-red",
     }
  }
+
+EMPTY_TREE = {
+    "root": {
+        "mutable": False,
+        "visited": True,
+        "text": "",
+        "children": [
+            {
+                "text": "",
+                "children": [],
+            }
+        ],
+    }
+}
 
 
 class TreeModel:
@@ -267,6 +269,10 @@ class TreeModel:
     @property
     def memories(self):
         return self.state['memories']
+
+    @property
+    def vars(self):
+        return self.state['vars']
     
     # user frame
 
@@ -310,6 +316,7 @@ class TreeModel:
     def state(self):
         state = {}
         state["memories"] = {}
+        state["vars"] = deepcopy(DEFAULT_VARS)
         state["preferences"] = deepcopy(DEFAULT_PREFERENCES)
         state["generation_settings"] = deepcopy(DEFAULT_GENERATION_SETTINGS)
         state["inline_generation_settings"] = deepcopy(DEFAULT_INLINE_GENERATION_SETTINGS)
@@ -548,11 +555,11 @@ class TreeModel:
 
     def ancestry_text(self, node, root=None):
         ancestry = self.ancestry(node, root)
-        return ancestry_plaintext(ancestry)
+        return ancestry_plaintext(ancestry, text_callback=self.text)
 
     def ancestor_text_list(self, node, root=None):
         ancestry = self.ancestry(node, root)
-        return ancestor_text_list(ancestry)
+        return ancestor_text_list(ancestry, text_callback=self.text)
 
     def ancestor_text_indices(self, node, root=None):
         ancestry = self.ancestry(node, root)
@@ -699,6 +706,9 @@ class TreeModel:
                 return node["meta"]["source"] == "AI"
         return False
 
+    def is_template(self, node):
+        return node.get('template', False)
+
     def construct_node_condition(self, info_dict):
         name = info_dict['name']
         params = info_dict.get('params', {})
@@ -722,6 +732,7 @@ class TreeModel:
             if attributes['show_only']:
                 or_conditions.append(lambda node, _tag=tag: self.has_tag(node, _tag))
         return lambda node: condition_lambda(node, and_conditions, or_conditions)
+
 
 
     #################################
@@ -1133,6 +1144,23 @@ class TreeModel:
 
 
     #################################
+    #   Text
+    #################################
+
+    def text(self, node):
+        if self.is_template(node):
+            try:
+                return eval(f'f"""{node["text"]}"""')
+            except Exception:
+                return node['text']
+        else:
+            return node['text']
+
+    def set_template(self, node, value):
+        node['template'] = value
+        self.tree_updated()
+
+    #################################
     #   Chapters
     #################################
 
@@ -1175,6 +1203,28 @@ class TreeModel:
             self.remove_all_chapters(child)
         if was_root:
             self.tree_updated()
+
+
+    #################################
+    #   Vars
+    #################################
+
+    # TODO globals
+
+    def create_var(self, node, name, value=''):
+        if name not in self.vars:
+            self.update_var(node, name, value)
+        else:
+            pass
+
+    def delete_var(self, node, name):
+        # what should this do?
+        # 1. delete from all frames
+        # 2. mask in current frame
+        pass
+
+    def update_var(self, node, name, value):
+        self.update_frame(node=node, update={'vars': {name: value}})
 
 
     #################################

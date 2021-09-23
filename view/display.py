@@ -39,7 +39,8 @@ modules = {'edit': Edit,
            'paint': Paint,
            'generation settings': GenerationSettings,
            'frame editor': FrameEditor,
-           'memories': Memories,}
+           'memories': Memories,
+           'vars': Vars}
 
 orients = {'side_pane': "horizontal",
            "bottom_pane": "vertical"}
@@ -342,8 +343,8 @@ class Display:
             ["Side pane"],
             ["New Child", {}],
             ["Generate"],
-            ["Retry"],
-            ["Undo"],
+            ["Retry", {}, dict(side="right")],
+            ["Undo", {}, dict(side="right")],
             # Navigation on the right
             ["Next", {}, dict(side="right")],
             ["Prev", {}, dict(side="right")],

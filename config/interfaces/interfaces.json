@@ -48,6 +48,7 @@
             },
         "buttons": ["Edit", "Retry", "Undo"]
         },
-    "preferences": {"coloring": "none"} 
+    "preferences": {"coloring": "none"},
+    "generation_settings": {"stop": "\\n"}
     }
 }

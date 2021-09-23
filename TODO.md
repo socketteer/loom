@@ -320,6 +320,16 @@
 
 - don't open minimap settings 
 
+- frame editor - refresh on change
+
+- delete all children
+
+- version control - option to turn versions into explicit branches (and vice versa?)
+
+- generation settings text attributes f strings?
+
+- update text index stuff to work with templates
+
 ## Other TODO
 
 ### bugs

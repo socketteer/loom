@@ -1216,7 +1216,7 @@ class Edit(Module):
         self.text_attributes = {}
         self.textboxes = []
 
-        self.node = self.state.node(self.settings()['node_id']) if self.settings['node_id'] else self.state.selected_node
+        self.node = self.state.node(self.settings()['node_id']) if self.settings()['node_id'] else self.state.selected_node
         self.node_label.configure(text=f"editing node: {self.node['id']}")
         pinned = self.settings()['node_id'] is not None
         if pinned: 
@@ -1693,48 +1693,107 @@ class FrameEditor(Module):
 # automatically minimize disabled entries
 class Memories(Module):
     def __init__(self, callbacks, state):
-        self.memories = {}
-        self.scroll_frame = None
-        self.add_memory_button = None
+        self.memory_editor = None
         Module.__init__(self, "memories", callbacks, state)
 
     def build(self, parent):
         Module.build(self, parent)
-        # TODO scroll frame doesn't seem scrollable?
-        self.scroll_frame = ScrollableFrame(self.frame)
-        self.scroll_frame.pack(side='top', fill='both', expand=True)
-        self.add_memory_button = tk.Button(self.frame, text="Add memory", command=self.add_memory)
-        self.add_memory_button.pack(side='bottom', pady=10)
-        self.refresh()
+        self.memory_editor = AttributesEditor(attribute_category="memory",
+                                              get_attributes_callback=self.get_memories,
+                                              attribute_name_callback_template=self.get_memory_name,
+                                              read_callback_template=self.read_memory,
+                                              write_callback_template=self.write_memory,
+                                              delete_callback_template=self.delete_memory,
+                                              visibility_callback_template=self.toggle_visibility,
+                                              add_attribute_callback=self.add_memory,
+                                              parent_module=self,
+                                              height=3)
+        self.memory_editor.build(self.frame)
+
+    def get_memories(self):
+        return self.state.memories
+
+    def get_memory_name(self, memory_id):
+        memory = self.state.memories[memory_id]
+        return memory['name'] if 'name' in memory else memory['text'][:20]
+
+    def read_memory(self, memory_id):
+        return self.state.memories[memory_id]['text']
+
+    def write_memory(self, memory_id, text):
+        self.state.update_memory(memory_id, update={'text': text})
+
+    def delete_memory(self, memory_id):
+        self.state.delete_memory(memory_id)
+
+    def toggle_visibility(self, memory_id):
+        pass
+
+    def add_memory(self):
+        pass
 
     def refresh(self):
-        current_memories = self.state.memories
-        new_memories, deleted_memories = react_changes(self.memories.keys(), current_memories.keys())
-        for memory_id in new_memories:
-            self.build_memory(memory_id)
-        for memory_id in deleted_memories:
-            self.remove_memory(memory_id)
+        self.memory_editor.refresh()
 
-    def build_memory(self, memory_id):
-        self.memories[memory_id] = Memory(self.scroll_frame.scrollable_frame, memory_id, self.state, parent_module=self)
-        self.memories[memory_id].pack(side='top', fill='both', expand=True)
-        self.memories[memory_id].read()
-
-    def remove_memory(self, memory_id):
-        self.memories[memory_id].destroy()
-        del self.memories[memory_id]
-
-    def read_all(self):
-        for memory in self.memories.values():
-            memory.read()
+    def read(self):
+        self.memory_editor.read_all()
 
     def selection_updated(self):
         self.refresh()
 
     def tree_updated(self):
         self.refresh()
-        self.read_all()
+        self.read()
 
-    def add_memory(self):
-        pass
-        
+
+    
+class Vars(Module):
+    def __init__(self, callbacks, state):
+        self.vars_editor = None
+        Module.__init__(self, "vars", callbacks, state)
+
+    def build(self, parent):
+        Module.build(self, parent)
+        self.vars_editor = AttributesEditor(attribute_category="variable",
+                                            get_attributes_callback=self.get_vars,
+                                            read_callback_template=self.read_var,
+                                            write_callback_template=self.write_var,
+                                            delete_callback_template=self.delete_var,
+                                            add_attribute_callback=self.add_var,
+                                            parent_module=self,
+                                            height=1)
+        self.vars_editor.build(self.frame)
+
+    def get_vars(self):
+        return self.state.vars
+
+    def read_var(self, var_id):
+        return self.state.vars[var_id]
+
+    def write_var(self, var_id, text):
+        # TODO use create var function
+        self.state.update_var(self.state.selected_node, var_id, text)
+
+    def delete_var(self, var_id):
+        self.state.delete_var(var_id)
+
+    def add_var(self):
+        # TODO add as default in attributeEditor class
+        name = simpledialog.askstring("New variable", "Variable name:")
+        if name:
+            self.state.create_var(self.state.selected_node, name)
+        self.refresh()
+
+    def refresh(self):
+        self.vars_editor.refresh()
+
+    def read(self):
+        self.vars_editor.read_all()
+
+    def selection_updated(self):
+        self.refresh()
+        self.read()
+
+    def tree_updated(self):
+        self.refresh()
+        self.read()

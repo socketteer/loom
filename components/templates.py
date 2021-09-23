@@ -1453,18 +1453,63 @@ class TextAttribute:
             self.master.focus()
             return "break"
 
+# TODO option for single-line entry attributes instead of textattribute template
+class AttributesEditor:
+    # displays a list of TextAttributes
+    def __init__(self, attribute_category=None, get_attributes_callback=None, attribute_name_callback_template=None, read_callback_template=None, write_callback_template=None, 
+                 delete_callback_template=None, visibility_callback_template=None, add_attribute_callback=None, parent_module=None, expand=False,
+                 height=3):
+        self.attributes = {}
+        self.scroll_frame = None
+        self.add_attribute_button = None
+        self.attribute_category = attribute_category if attribute_category else "attribute"
+        self.get_attributes_callback = get_attributes_callback
+        self.attribute_name_callback_template = attribute_name_callback_template
+        self.read_callback_template = read_callback_template
+        self.write_callback_template = write_callback_template
+        self.delete_callback_template = delete_callback_template
+        self.add_attribute_callback = add_attribute_callback
+        self.visibility_callback_template = visibility_callback_template
+        self.parent_module = parent_module
+        self.expand = expand
+        self.height = height
 
-class Memory(TextAttribute):
-    def __init__(self, master, memory_id, state, parent_module=None, expand=False, height=3):
-        self.master = master
-        self.state = state
-        self.memory_id = memory_id
-        memory = self.state.memories[memory_id]
-        memory_name = memory['name'] if 'name' in memory else memory['text'][:20]
-        read_callback = lambda: self.state.memories[memory_id]['text']
-        write_callback = lambda text: self.write_memory(text)
-        delete_callback = lambda: self.state.delete_memory(memory_id)
-        TextAttribute.__init__(self, master, memory_name, read_callback, write_callback, delete_callback, expand=expand, parent_module=parent_module, height=height)
+    def build(self, parent):
+        self.parent = parent
+        self.scroll_frame = ScrollableFrame(parent)
+        self.scroll_frame.pack(side='top', fill='both', expand=True)
+        if self.add_attribute_callback:
+            self.add_attribute_button = tk.Button(parent, text=f"Add {self.attribute_category}", command=self.add_attribute_callback)
+            self.add_attribute_button.pack(side='bottom', pady=10)
+        self.refresh()
 
-    def write_memory(self, text):
-        self.state.update_memory(self.memory_id, update={'text': text})
+    def refresh(self):
+        if self.get_attributes_callback:
+            # get_attributes_callback is assumed to return a dictionary
+            current_attributes = self.get_attributes_callback()
+            new_attributes, deleted_attributes = react_changes(self.attributes.keys(), current_attributes.keys())
+            for attribute_key in new_attributes:
+                self.build_attribute(attribute_key)
+            for attribute_key in deleted_attributes:
+                self.destroy_attribute(attribute_key)
+
+    def build_attribute(self, attribute_key):
+        attribute_name = self.attribute_name_callback_template(attribute_key) if self.attribute_name_callback_template else attribute_key
+        self.attributes[attribute_key] = TextAttribute(self.scroll_frame.scrollable_frame, 
+                                                       attribute_name=attribute_name, 
+                                                       read_callback=lambda name=attribute_key: self.read_callback_template(name) if self.read_callback_template else None,
+                                                       write_callback=lambda text, name=attribute_key: self.write_callback_template(name, text=text) if self.write_callback_template else None,
+                                                       delete_callback=lambda name=attribute_key: self.delete_callback_template(name) if self.delete_callback_template else None,
+                                                       expand=self.expand,
+                                                       height=self.height,
+                                                       parent_module=self.parent_module)
+        self.attributes[attribute_key].pack(side='top', fill='both', expand=True)
+        self.attributes[attribute_key].read()
+        
+    def destroy_attribute(self, attribute_key):
+        self.attributes[attribute_key].destroy()
+        del self.attributes[attribute_key]
+
+    def read_all(self):
+        for attribute in self.attributes.values():
+            attribute.read() 

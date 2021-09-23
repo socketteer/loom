@@ -24,7 +24,7 @@ from view.display import Display
 from components.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
     NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
     PreferencesDialog, CreateMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
-    RunDialog, WorkspaceDialog, ExportOptionsDialog
+    RunDialog, WorkspaceDialog, ExportOptionsDialog, ChatDialog
 from model import TreeModel
 from util.util import clip_num, metadata, diff, split_indices, diff_linesToWords
 from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
@@ -233,7 +233,7 @@ class Controller:
                 ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
                 ('Inline generation settings', None, None, no_junk_args(self.inline_generation_settings_dialog)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
-                #('Workspace settings', None, None, no_junk_args(self.workspace_dialog)),
+                ('Chat settings', None, None, no_junk_args(self.chat_dialog)),
                 #('Settings', None, None, no_junk_args(self.settings))
 
             ],
@@ -492,7 +492,7 @@ class Controller:
     @metadata(name="Text")
     def get_text(self, node_id=None):
         node_id = node_id if node_id else self.state.selected_node_id
-        return self.state.node(node_id)['text']
+        return self.state.text(self.state.node(node_id))#self.state.node(node_id)['text']
 
     @metadata(name="Get floating notes")
     def get_floating_notes(self, tag='note', node=None):
@@ -644,7 +644,7 @@ class Controller:
                 node = self.state.selected_node
             try:
                 node["open"] = True
-                self.display.nav_tree.item(node, open=True)
+                self.display.nav_tree.item(node['id'], open=True)
             except Exception as e:
                 print(str(e))
             self.state.generate_continuations(node=node, **kwargs)
@@ -871,7 +871,7 @@ class Controller:
             for node_text in ancestry[:-1]:
                 # "end" includes the automatically inserted new line
                 history += node_text
-            selected_text = self.state.selected_node["text"]
+            selected_text = self.state.text(self.state.selected_node)#self.state.selected_node["text"]
             prompt_length = self.state.generation_settings['prompt_length'] - len(selected_text)
 
             in_context = history[-prompt_length:]
@@ -905,7 +905,8 @@ class Controller:
         elif self.display.mode == "Edit":
             self.display.textbox.configure(state="normal")
             self.display.textbox.delete("1.0", "end")
-            self.display.textbox.insert("1.0", self.state.selected_node["text"])
+            # TODO depending on show template mode
+            self.display.textbox.insert("1.0", self.state.selected_node["text"])#self.state.text(self.state.selected_node))#self.state.selected_node["text"])
             self.display.textbox.see(tk.END)
 
             # self.display.secondary_textbox.delete("1.0", "end")
@@ -1780,6 +1781,9 @@ class Controller:
     def inline_generation_settings_dialog(self):
         dialog = GenerationSettingsDialog(parent=self.display.frame, orig_params=self.state.inline_generation_settings, 
                                           user_params=self.state.user_inline_generation_settings, state=self.state)
+
+    def chat_dialog(self):
+        dialog = ChatDialog(parent=self.display.frame, state=self.state)
 
     @metadata(name="Visualization Settings", keys=["<Control-u>"], display_key="ctrl-u")
     def visualization_settings_dialog(self):

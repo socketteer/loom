@@ -166,21 +166,28 @@ def ancestry_in_range(root, node, node_dict):
         i += 1
     return ancestry[i:]
 
-def ancestor_text_indices(ancestry=None):
+def ancestor_text_indices(ancestry=None, text_callback=None):
     indices = []
     #end_indices = []
     start_index = 0
     for node in ancestry:
+        text = text_callback(node) if text_callback else node['text']
         #text.append(node["text"])
-        indices.append((start_index, start_index + len(node["text"])))
-        start_index += len(node["text"])
+        indices.append((start_index, start_index + len(text)))
+        start_index += len(text)
     return indices
 
-def ancestor_text_list(ancestry):
-    return [node['text'] for node in ancestry]
+def ancestor_text_list(ancestry, text_callback=None):
+    if text_callback:
+        return [text_callback(node) for node in ancestry]
+    else:
+        return [node['text'] for node in ancestry]
 
-def ancestry_plaintext(ancestry):
-    return ''.join(ancestor_text_list(ancestry))
+def ancestry_plaintext(ancestry, text_callback=None):
+    if text_callback:
+        return " ".join(ancestor_text_list(ancestry, text_callback))
+    else:
+        return " ".join(ancestor_text_list(ancestry))
 
 def nearest_common_ancestor(node_a, node_b, node_dict):
     ancestry_a = node_ancestry(node_a, node_dict)
