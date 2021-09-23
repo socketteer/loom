@@ -466,7 +466,8 @@ class Display:
             menu.add_command(label="Copy")
             menu.add_command(label="Copy id")
             menu.add_command(label="Duplicate")
-            menu.add_command(label="Delete")
+            menu.add_command(label="Delete", command=lambda id=item: self.callbacks["Delete"]["callback"](node=self.state.node(id)))
+            menu.add_command(label="Delete children", command=lambda id=item: self.callbacks["Delete children"]["callback"](node=self.state.node(id)))
             menu.add_command(label="Move...")
 
             view_menu = tk.Menu(menu, tearoff=0)

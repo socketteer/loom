@@ -873,8 +873,6 @@ class TreeModel:
         # else:
         #     self.rebuild_tree()
 
-
-
     # TODO Doesn't support deleting root
     def delete_node(self, node=None, reassign_children=False):
         node = node if node else self.selected_node
@@ -889,6 +887,8 @@ class TreeModel:
             siblings.extend(node["children"])
 
         self.rebuild_tree()
+
+
 
     # TODO add creation date if it doesn't exist
     def update_text(self, node, text, modified_flag=True, log_diff=False, refresh_nav=True):

@@ -1676,6 +1676,7 @@ class FrameEditor(Module):
             frame = {}
         self.state.set_frame(self.state.selected_node, frame)
         self.get_state()
+        self.state.tree_updated()
 
     def write_to_user_frame(self):
         frame_text = json.loads(self.frame_editor.textbox.get(1.0, tk.END))

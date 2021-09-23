@@ -682,7 +682,7 @@ class Controller:
                                                     start_position=start_position, prompt=prompt)
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
-    def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node?"):
+    def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node and subtree?"):
         node = node if node else self.state.selected_node
         if not node:
             return
@@ -702,6 +702,22 @@ class Controller:
         else:
             self.state.tree_updated()
         return True
+
+    @metadata(name="Delete children")
+    def delete_children(self, ask=True, node=None):
+        node = node if node else self.state.selected_node
+        if not node:
+            return
+        if not node['children']:
+            return
+        children = node['children']
+        if ask:
+            result = messagebox.askquestion("Delete", f"Delete {len(children)} children and subtrees?", icon='warning')
+            if result != 'yes':
+                return False
+        for child in children:
+            self.delete_node(child, reassign_children=False, ask=False)
+        self.state.tree_updated(delete=[n['id'] for n in subtree_list(node, filter=self.in_nav) if n != node])
 
     @metadata(name="Delete and reassign children")
     def delete_node_reassign_children(self, node=None):

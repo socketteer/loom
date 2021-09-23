@@ -89,7 +89,7 @@ def generate(**kwargs):
     else:
         # TODO OpenAI errors
         response, error = openAI_generate(**kwargs)
-        return format_openAI_response(response, kwargs['prompt'], False), error
+        return format_openAI_response(response, kwargs['prompt']), error
 
 def completions_text(response):
     return [completion['text'] for completion in response['completions']]
@@ -128,7 +128,6 @@ openai.api_key = os.environ.get("OPENAI_API_KEY", None)
 
 
 def openAI_token_position(token, text_offset):
-    text_offset = text_offset# - len(prompt)
     return {'start': text_offset,
             'end': text_offset + len(token)}
 
@@ -147,6 +146,7 @@ def format_openAI_completion(completion, prompt, prompt_end_index):
         completion_dict['tokens'].append(token_dict)
     return completion_dict
 
+
 def format_openAI_prompt(completion, prompt):
     prompt_dict = {'text': prompt, 'tokens': []}
     # loop over tokens until offset >= prompt length
@@ -164,18 +164,14 @@ def format_openAI_prompt(completion, prompt):
     return prompt_dict, prompt_end_index
 
 
-def format_openAI_response(response, prompt, echo):
-    response_dict = {}
-    if echo:
-        pass
-    else:
-        prompt_dict, prompt_end_index = format_openAI_prompt(response['choices'][0], prompt)
+def format_openAI_response(response, prompt):
+    prompt_dict, prompt_end_index = format_openAI_prompt(response['choices'][0], prompt)
 
-        response_dict = {'completions': [format_openAI_completion(completion, prompt, prompt_end_index) for completion in response['choices']],
-                         'prompt': prompt_dict,
-                         'id': response['id'],
-                         'model': response['model'],
-                         'timestamp': timestamp()}
+    response_dict = {'completions': [format_openAI_completion(completion, prompt, prompt_end_index) for completion in response['choices']],
+                     'prompt': prompt_dict,
+                     'id': response['id'],
+                     'model': response['model'],
+                     'timestamp': timestamp()}
     return response_dict
 
 
@@ -269,9 +265,6 @@ def ai21_generate(prompt, length=150, num_continuations=1, logprobs=10, temperat
         error = f'Bad status code {response.status_code}'
         print(request_json)
     return response, error
-
-
-
 
 
 if __name__ == "__main__":

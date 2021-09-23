@@ -231,8 +231,6 @@
 - zip chain (but not zip all) broken
 
 - override even meta hotkeys in modules
-    
-- version control - start a new "branch" and merge
 
 - hotkey to shift words to parent / children
 
@@ -316,19 +314,22 @@
 
 - num descendents in children preview
 
+- centralized way to synch node and nav tree open states
 - tagging nodes causes newly opened nodes to close
 
 - don't open minimap settings 
 
-- frame editor - refresh on change
-
 - delete all children
 
-- version control - option to turn versions into explicit branches (and vice versa?)
-
+- version control 
+    - option to turn versions into explicit branches (and vice versa?)
+    - start a new "branch" and merge
+    
 - generation settings text attributes f strings?
 
 - update text index stuff to work with templates
+
+- adjust textattribute textbox heights based on content
 
 ## Other TODO
 
