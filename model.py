@@ -892,7 +892,8 @@ class TreeModel:
 
     # TODO add creation date if it doesn't exist
     def update_text(self, node, text, modified_flag=True, log_diff=False, refresh_nav=True):
-        assert node["id"] in self.tree_node_dict, text
+        if not node["id"] in self.tree_node_dict or not text:
+            return
         if not self.is_mutable(node):
             return
 
