@@ -1,5 +1,6 @@
 import PIL
 import os
+import io
 
 class Icons:
     def __init__(self):
@@ -10,7 +11,10 @@ class Icons:
         self.icons[icon_name] = {}
         self.icons[icon_name]["size"] = size
         self.icons[icon_name]["img"] = PIL.Image.open(f"./static/icons/{filename}")
-        #self.icons[icon_name]["icon"] = self.icons[icon_name]['img']#PIL.ImageTk.PhotoImage(self.icons[icon_name]["img"].resize((size, size)))
+        with open(f"./static/icons/{filename}", "rb") as f:
+            img = PIL.Image.open(io.BytesIO(f.read()))
+            self.icons[icon_name]["img"] = img
+        # self.icons[icon_name]["img"] = PIL.Image.open(f"./static/icons/{filename}")
 
     def get_icon(self, icon_name, size=16):
         if 'icon' not in self.icons[icon_name]:
