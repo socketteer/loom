@@ -319,8 +319,6 @@
 
 - don't open minimap settings 
 
-- delete all children
-
 - version control 
     - option to turn versions into explicit branches (and vice versa?)
     - start a new "branch" and merge

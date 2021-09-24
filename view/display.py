@@ -621,8 +621,10 @@ class Display:
         #print('deleted modules:', deleted_modules)
         #print('added modules:', new_modules)
         for module_name in deleted_modules:
-            window = self.modules[module_name].window()
-            self.close_window(window)
+            # TODO
+            if module_name in self.modules:
+                window = self.modules[module_name].window()
+                self.close_window(window)
         for module_name in new_modules:
             self.add_module(pane, module_name)
 
