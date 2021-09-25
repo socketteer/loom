@@ -238,9 +238,12 @@ class TextAware(tk.Text):
             self.mark_set("matchEnd", "%s+%sc" % (index, count.get()))
             self.tag_add(tag, "matchStart", "matchEnd")
 
-    def reset_height(self):
+    def reset_height(self, max_height=None):
         height = self.height()
-        self.configure(height=height)
+        if max_height is not None and height > max_height:
+            self.configure(height=max_height)
+        else:
+            self.configure(height=height)
 
     def height(self):
         return self.tk.call((self._w, "count", "-update", "-displaylines", "1.0", "end"))

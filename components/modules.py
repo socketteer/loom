@@ -439,7 +439,7 @@ class Notes(Module):
         self.new_note_button = None
         self.pinned_frame = None
         self.notes_frame = None
-        self.notes = NodeWindows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], init_height=1)
+        self.notes = NodeWindows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], max_height=1)
         Module.__init__(self, 'notes', callbacks, state)
 
     def build(self, parent):
@@ -478,7 +478,7 @@ class Children(Module):
         self.children = NodeWindows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'],
                                     buttons_visible=True,
                                     editable=False,
-                                    init_height=100)
+                                    max_height=100)
         self.add_child_button = None
         self.toggle_hidden_button = None
         self.show_hidden = False
@@ -1244,8 +1244,7 @@ class Edit(Module):
                                                                 write_callback=lambda text, attribute=attribute: self.save_text_attribute(attribute_name=attribute, text=text),
                                                                 delete_callback=lambda attribute=attribute: self.delete_text_attribute(attribute),
                                                                 expand=True,
-                                                                parent_module=self,
-                                                                height=1)
+                                                                parent_module=self)
                 self.text_attributes[attribute].pack(side='top', fill='both', expand=True, pady=10)
 
         # self.text_attributes['frame'] = TextAttribute(master=self.textboxes_frame, attribute_name="frame",
@@ -1388,7 +1387,6 @@ class Transformers(Module):
         self.template_editor = TextAttribute(master=self.frame, attribute_name="template", 
                                              read_callback=lambda: self.read_template(), 
                                              write_callback=lambda text: self.write_template(text=text), 
-                                             height=4, 
                                              expand=True, parent_module=self)
         self.template_editor.pack(side='top', fill='both', expand=True)
 
@@ -1455,7 +1453,7 @@ class Transformers(Module):
                                                       write_callback=lambda text, input=input:self.write_input(input=input, text=text), 
                                                       delete_callback=lambda input=input: self.remove_input(input), 
                                                       expand=True, 
-                                                      height=2,
+                                                      max_height=10,
                                                       parent_module=self)
             self.input_editors[input].pack(side='top', fill='both', expand=True)
 
@@ -1515,8 +1513,7 @@ class Transformers(Module):
         self.input_editors[input] = TextAttribute(master=self.inputs_frame, attribute_name=input, 
                                                   write_callback=lambda text, input=input:self.write_input(input=input, text=text), 
                                                   delete_callback=lambda input=input: self.remove_input(input), 
-                                                  expand=True, 
-                                                  height=2,
+                                                  expand=True,
                                                   parent_module=self)
         self.input_editors[input].pack(side='top', fill='both', expand=True)
         self.template['inputs'].append(input)
@@ -1711,7 +1708,7 @@ class Memories(Module):
                                               visibility_callback_template=self.toggle_visibility,
                                               add_attribute_callback=self.add_memory,
                                               parent_module=self,
-                                              height=3)
+                                              max_height=3)
         self.memory_editor.build(self.frame)
 
     def get_memories(self):
@@ -1764,8 +1761,7 @@ class Vars(Module):
                                             write_callback_template=self.write_var,
                                             delete_callback_template=self.delete_var,
                                             add_attribute_callback=self.add_var,
-                                            parent_module=self,
-                                            height=1)
+                                            parent_module=self)
         self.vars_editor.build(self.frame)
 
     def get_vars(self):

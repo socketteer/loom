@@ -57,13 +57,14 @@ class EvalCode:
 
 
 class Windows:
-    def __init__(self, buttons, buttons_visible=True):
+    def __init__(self, buttons, buttons_visible=True, max_height=20):
         self.windows_pane = None
         self.windows = {}
         self.master = None
         self.scroll_frame = None
         self.buttons = buttons
         self.buttons_visible = buttons_visible
+        self.max_height = max_height
 
     def body(self, master):
         self.master = master
@@ -71,6 +72,8 @@ class Windows:
         self.scroll_frame.pack(expand=True, fill="both")
         #self.windows_pane = tk.PanedWindow(self.scroll_frame.scrollable_frame, orient='vertical')
         #self.windows_pane.pack(side='top', fill='both', expand=True)
+        toplevel = self.master.winfo_toplevel()
+        toplevel.bind("<Configure>", self.resize)
 
     def open_window(self, text):
         window_id = str(uuid.uuid1())
@@ -90,11 +93,12 @@ class Windows:
         self.windows[window_id]['textbox'].configure(**textbox_config(bg=edit_color(), pady=1, spacing2=3, spacing1=4))
         self.windows[window_id]['textbox'].insert("1.0", text)
         self.master.update_idletasks()
-        self.windows[window_id]['textbox'].reset_height()
+        self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
         if self.buttons_visible:
             for i, button in enumerate(self.buttons):
                  self.draw_button(i, window_id, button)
         self.windows[window_id]['textbox'].bind("<Escape>", lambda event: self.master.focus_set())
+        
 
     def draw_button(self, row, window_id, button):
         self.windows[window_id][button] = tk.Label(self.windows[window_id]['frame'], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor='hand2')
@@ -118,16 +122,21 @@ class Windows:
         self.scroll_frame.pack_forget()
         self.scroll_frame.destroy()
 
+    def resize(self, event):
+        self.master.update_idletasks()
+        for window in self.windows:
+            self.windows[window]['textbox'].reset_height(max_height=self.max_height)
+
 
 class NodeWindows(Windows):
-    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, init_height=1):
+    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, max_height=10):
         self.callbacks = callbacks
         self.blacklist = []
         self.whitelist = []
         #self.buttons_visible = buttons_visible
         self.nav_icons_visible = nav_icons_visible
         self.editable = editable
-        self.init_height = init_height
+        self.max_height = max_height
         Windows.__init__(self, buttons, buttons_visible)
 
     def open_window(self, node, insert='end'):
@@ -198,7 +207,7 @@ class NodeWindows(Windows):
         node = self.windows[window_id]['node']
         new_text = self.windows[window_id]['textbox'].get("1.0", 'end-1c')
         self.callbacks["Update text"]["callback"](node=node, text=new_text)
-        self.windows[window_id]['textbox'].reset_height()
+        self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
 
     def save_windows(self):
         for window_id in self.windows:
@@ -1384,12 +1393,13 @@ class MinimapSettings(FrameSettings):
 
 
 class TextAttribute:
-    def __init__(self, master, attribute_name, read_callback=None, write_callback=None, delete_callback=None, expand=False, parent_module=None, height=3, **kwargs):
+    def __init__(self, master, attribute_name, read_callback=None, write_callback=None, delete_callback=None, expand=False, parent_module=None, max_height=10, **kwargs):
         self.master = master
         self.read_callback = read_callback
         self.write_callback = write_callback
         self.delete_callback = delete_callback
         self.parent_module = parent_module
+        self.max_height = max_height
 
         self.frame = CollapsableFrame(master, title=attribute_name, expand=expand, bg=bg_color())
 
@@ -1398,7 +1408,7 @@ class TextAttribute:
             self.delete_button.grid(row=0, column=1, padx=10)
             self.delete_button.bind("<Button-1>", lambda event: self.delete_callback())
 
-        self.textbox = TextAware(self.frame.collapsable_frame, height=height, **kwargs)
+        self.textbox = TextAware(self.frame.collapsable_frame, height=1, **kwargs)
         self.textbox.pack(fill='both', expand=True)
 
         self.textbox.configure(**textbox_config(bg=edit_color()))
@@ -1406,6 +1416,8 @@ class TextAttribute:
         self.textbox.bind("<Button>", lambda event: self.textbox.focus_set())
         self.textbox.bind("<FocusOut>", lambda event: self.write())
         self.textbox.bind("<Key>", self.key_pressed)
+        toplevel = self.master.winfo_toplevel()
+        toplevel.bind("<Configure>", lambda event: self.resize())
         if self.parent_module:
             self.parent_module.textboxes.append(self.textbox)
     
@@ -1434,8 +1446,7 @@ class TextAttribute:
             text = self.read_callback()
             self.textbox.delete("1.0", "end")
             self.textbox.insert("1.0", text)
-            self.master.update_idletasks()
-            self.textbox.reset_height()
+            self.resize()
 
     def get(self):
         return self.textbox.get("1.0", "end-1c")
@@ -1446,12 +1457,16 @@ class TextAttribute:
             self.master.focus()
             return "break"
 
+    def resize(self):
+        self.master.update_idletasks()
+        self.textbox.reset_height(max_height=self.max_height)
+
 # TODO option for single-line entry attributes instead of textattribute template
 class AttributesEditor:
     # displays a list of TextAttributes
     def __init__(self, attribute_category=None, get_attributes_callback=None, attribute_name_callback_template=None, read_callback_template=None, write_callback_template=None, 
                  delete_callback_template=None, visibility_callback_template=None, add_attribute_callback=None, parent_module=None, expand=False,
-                 height=3):
+                 max_height=3):
         self.attributes = {}
         self.scroll_frame = None
         self.add_attribute_button = None
@@ -1465,7 +1480,7 @@ class AttributesEditor:
         self.visibility_callback_template = visibility_callback_template
         self.parent_module = parent_module
         self.expand = expand
-        self.height = height
+        self.max_height = max_height
 
     def build(self, parent):
         self.parent = parent
@@ -1494,7 +1509,7 @@ class AttributesEditor:
                                                        write_callback=lambda text, name=attribute_key: self.write_callback_template(name, text=text) if self.write_callback_template else None,
                                                        delete_callback=lambda name=attribute_key: self.delete_callback_template(name) if self.delete_callback_template else None,
                                                        expand=self.expand,
-                                                       height=self.height,
+                                                       max_height=self.max_height,
                                                        parent_module=self.parent_module)
         self.attributes[attribute_key].pack(side='top', fill='both', expand=True)
         self.attributes[attribute_key].read()
