@@ -57,34 +57,44 @@ class EvalCode:
 
 
 class Windows:
-    def __init__(self, buttons):
+    def __init__(self, buttons, buttons_visible=True):
         self.windows_pane = None
         self.windows = {}
         self.master = None
         self.scroll_frame = None
         self.buttons = buttons
+        self.buttons_visible = buttons_visible
 
     def body(self, master):
         self.master = master
         self.scroll_frame = ScrollableFrame(self.master)
         self.scroll_frame.pack(expand=True, fill="both")
-        self.windows_pane = tk.PanedWindow(self.scroll_frame.scrollable_frame, orient='vertical')
-        self.windows_pane.pack(side='top', fill='both', expand=True)
+        #self.windows_pane = tk.PanedWindow(self.scroll_frame.scrollable_frame, orient='vertical')
+        #self.windows_pane.pack(side='top', fill='both', expand=True)
 
     def open_window(self, text):
         window_id = str(uuid.uuid1())
-        self.windows[window_id] = {'frame': ttk.Frame(self.windows_pane, borderwidth=1)}
+        self.windows[window_id] = {}
+        self.build_window(window_id, text)
+        
+
+    def build_window(self, window_id, text):
+        self.windows[window_id]['frame'] = ttk.Frame(self.scroll_frame.scrollable_frame, borderwidth=1)
         tk.Grid.columnconfigure(self.windows[window_id]['frame'], 1, weight=1)
         for i in range(len(self.buttons)):
             tk.Grid.rowconfigure(self.windows[window_id]['frame'], i, weight=1)
-        self.windows_pane.add(self.windows[window_id]['frame'], height=100)
+        self.windows[window_id]['frame'].pack(side='top', fill='both', expand=True)
+        #self.windows_pane.add(self.windows[window_id]['frame'], height=100)
         self.windows[window_id]['textbox'] = TextAware(self.windows[window_id]['frame'], bd=3, undo=True)
         self.windows[window_id]['textbox'].grid(row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
         self.windows[window_id]['textbox'].configure(**textbox_config(bg=edit_color(), pady=1, spacing2=3, spacing1=4))
         self.windows[window_id]['textbox'].insert("1.0", text)
-
-        for i, button in enumerate(self.buttons):
-             self.draw_button(i, window_id, button)
+        self.master.update_idletasks()
+        self.windows[window_id]['textbox'].reset_height()
+        if self.buttons_visible:
+            for i, button in enumerate(self.buttons):
+                 self.draw_button(i, window_id, button)
+        self.windows[window_id]['textbox'].bind("<Escape>", lambda event: self.master.focus_set())
 
     def draw_button(self, row, window_id, button):
         self.windows[window_id][button] = tk.Label(self.windows[window_id]['frame'], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor='hand2')
@@ -96,16 +106,11 @@ class Windows:
         self.remove_window(window_id)
 
     def remove_window(self, window_id):
-        self.windows_pane.forget(self.windows[window_id]['frame'])
+        self.windows[window_id]['frame'].pack_forget()
         self.windows[window_id]['frame'].destroy()
         del self.windows[window_id]
     
     def clear_windows(self):
-        # self.windows_pane.pack_forget()
-        # self.windows_pane.destroy()
-        # self.windows_pane = tk.PanedWindow(self.scroll_frame.scrollable_frame, orient='vertical')
-        # self.windows_pane.pack(side='top', fill='both', expand=True)
-        # self.windows = {}
         for window in self.windows:
             self.remove_window(window)
 
@@ -119,46 +124,31 @@ class NodeWindows(Windows):
         self.callbacks = callbacks
         self.blacklist = []
         self.whitelist = []
-        self.buttons_visible = buttons_visible
+        #self.buttons_visible = buttons_visible
         self.nav_icons_visible = nav_icons_visible
         self.editable = editable
         self.init_height = init_height
-        Windows.__init__(self, buttons)
+        Windows.__init__(self, buttons, buttons_visible)
 
     def open_window(self, node, insert='end'):
         if node['id'] in self.windows:
             return
-        self.windows[node['id']] = {'frame': ttk.Frame(self.windows_pane, borderwidth=1)}
-        self.windows[node['id']]['node'] = node
-        tk.Grid.columnconfigure(self.windows[node['id']]['frame'], 1, weight=1)
-        for i in range(len(self.buttons)):
-            tk.Grid.rowconfigure(self.windows[node['id']]['frame'], i, weight=1)
-        #  TODO adaptive init height based on text length
+        #TODO use text method
+        self.windows[node['id']] = {'node': node}
+        self.build_window(node['id'], node['text'])
+        
 
-        self.windows_pane.add(self.windows[node['id']]['frame'], height=100)
-        #self.windows_pane.paneconfig(self.windows[node['id']]['frame'])
-        # if insert == 'end':
-        #     self.windows_pane.add(self.windows[node['id']]['frame'], weight=1)
-        # else:
-        #     self.windows_pane.insert(0, self.windows[node['id']]['frame'], weight=1)
-        self.windows[node['id']]['textbox'] = TextAware(self.windows[node['id']]['frame'], bd=3, undo=True)
-        self.windows[node['id']]['textbox'].grid(row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
-        self.windows[node['id']]['textbox'].configure(**textbox_config(bg=edit_color()))
-        # bind click event to goto node
-        self.windows[node['id']]['textbox'].insert("1.0", node["text"])
-
-        self.windows[node['id']]['textbox'].bind("<FocusOut>", lambda event, _id=node['id']: self.save_edits(_id))
-        self.windows[node['id']]['textbox'].bind("<Button-1>", lambda event, _id=node['id']: self.window_clicked(_id))
+    def build_window(self, window_id, text):
+        super().build_window(window_id, text)
+        self.windows[window_id]['textbox'].bind("<FocusOut>", lambda event, _id=window_id: self.save_edits(_id))
+        self.windows[window_id]['textbox'].bind("<Button-1>", lambda event, _id=window_id: self.window_clicked(_id))
 
         if not self.editable:
-            self.edit_off(node['id'])
+            self.edit_off(window_id)
         else:
-            self.edit_on(node['id'])
-        if self.buttons_visible:
-            for i, button in enumerate(self.buttons):
-                self.draw_button(i, node['id'], button)
+            self.edit_on(window_id)
         if self.nav_icons_visible:
-            self.draw_nav_icon(node['id'])
+            self.draw_nav_icon(window_id)
 
     def fix_heights(self):
         for i in range(len(self.windows) - 1):
@@ -208,6 +198,7 @@ class NodeWindows(Windows):
         node = self.windows[window_id]['node']
         new_text = self.windows[window_id]['textbox'].get("1.0", 'end-1c')
         self.callbacks["Update text"]["callback"](node=node, text=new_text)
+        self.windows[window_id]['textbox'].reset_height()
 
     def save_windows(self):
         for window_id in self.windows:
@@ -1443,6 +1434,8 @@ class TextAttribute:
             text = self.read_callback()
             self.textbox.delete("1.0", "end")
             self.textbox.insert("1.0", text)
+            self.master.update_idletasks()
+            self.textbox.reset_height()
 
     def get(self):
         return self.textbox.get("1.0", "end-1c")

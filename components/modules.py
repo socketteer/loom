@@ -475,10 +475,10 @@ class Notes(Module):
 class Children(Module):
     def __init__(self, callbacks, state):
         self.menu_frame = None
-        self.children = NodeWindows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'], 
-                               buttons_visible=True, 
-                               editable=False,
-                               init_height=100)
+        self.children = NodeWindows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'],
+                                    buttons_visible=True,
+                                    editable=False,
+                                    init_height=100)
         self.add_child_button = None
         self.toggle_hidden_button = None
         self.show_hidden = False
@@ -507,8 +507,11 @@ class Children(Module):
         self.toggle_hidden_button["compound"] = tk.LEFT
 
     def tree_updated(self):
-        if not self.children.windows_pane:
-            self.build()
+        # if not self.children.windows_pane:
+        #     self.build()
+        if not self.children.scroll_frame:
+            print('not built')
+            return
         children = self.callbacks["Get children"]["callback"]()
         self.children.update_windows(children)
         self.children.update_text()
