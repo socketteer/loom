@@ -329,6 +329,8 @@
 
 - adjust textattribute textbox heights based on content
 
+- preferences pin buttons appearing bug
+
 ## Other TODO
 
 ### bugs

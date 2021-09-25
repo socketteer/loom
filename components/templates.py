@@ -20,7 +20,8 @@ import json
 import bisect
 from util.util import split_indices
 import threading
-
+import datetime
+import time
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
@@ -65,6 +66,7 @@ class Windows:
         self.buttons = buttons
         self.buttons_visible = buttons_visible
         self.max_height = max_height
+        self.last_resize = datetime.datetime.min
 
     def body(self, master):
         self.master = master
@@ -123,9 +125,13 @@ class Windows:
         self.scroll_frame.destroy()
 
     def resize(self, event):
-        self.master.update_idletasks()
-        for window in self.windows:
-            self.windows[window]['textbox'].reset_height(max_height=self.max_height)
+        if self.last_resize + datetime.timedelta(milliseconds=500) < datetime.datetime.now():
+            self.master.update_idletasks()
+            for window in self.windows:
+                textbox = self.windows[window]['textbox']
+                textbox.after(300, textbox.reset_height)
+            self.last_resize = datetime.datetime.now()
+            
 
 
 class NodeWindows(Windows):
@@ -1400,6 +1406,7 @@ class TextAttribute:
         self.delete_callback = delete_callback
         self.parent_module = parent_module
         self.max_height = max_height
+        self.last_resize = datetime.datetime.min
 
         self.frame = CollapsableFrame(master, title=attribute_name, expand=expand, bg=bg_color())
 
@@ -1458,8 +1465,11 @@ class TextAttribute:
             return "break"
 
     def resize(self):
-        self.master.update_idletasks()
-        self.textbox.reset_height(max_height=self.max_height)
+        if self.last_resize + datetime.timedelta(milliseconds=500) < datetime.datetime.now():
+            self.master.update_idletasks()
+            self.textbox.after(300, self.textbox.reset_height(max_height=self.max_height))
+            self.last_resize = datetime.datetime.now()
+        
 
 # TODO option for single-line entry attributes instead of textattribute template
 class AttributesEditor:

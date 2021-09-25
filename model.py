@@ -1254,8 +1254,11 @@ class TreeModel:
         self.tree_updated()
 
     def update_memory(self, memory_id, update):
-        memory = self.state['memories'][memory_id]
-        self.update_frame(node=self.node(memory["root_id"]), update={'memories': {memory_id: update}})
+        try:
+            memory = self.state['memories'][memory_id]
+            self.update_frame(node=self.node(memory["root_id"]), update={'memories': {memory_id: update}})
+        except KeyError:
+            pass
 
     def delete_memory(self, memory_id):
         pass
