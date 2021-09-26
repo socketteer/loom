@@ -539,6 +539,8 @@ class Children(Module):
         #pprint(self.children.windows)
         self.children.edit_on(child['id'])
         self.children.focus_textbox(child['id'])
+        
+        
 
     def toggle_hidden(self, *args):
         self.show_hidden = not self.show_hidden
@@ -567,7 +569,7 @@ class ReadChildren(Module):
                                anchor='w', justify='left', font=('Georgia', 12),
                                image=icons.get_icon('arrow-white', 16), compound=tk.LEFT, padx=10)
         child_label.bind("<Button-1>", lambda event, node=node: self.callbacks["Select node"]["callback"](node=node))
-        child_label.pack(side='top', fill='x', expand=True, pady=10)
+        child_label.pack(side='top', fill='x', expand=True, pady=5)
         self.children.append(child_label)
 
     def refresh(self):

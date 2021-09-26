@@ -933,7 +933,7 @@ class Controller:
             # self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
             self.display.textbox.focus()
 
-    @metadata(name="Toggle textbox editable", keys=["<Control-Shift-KeyPress-E>"])
+    @metadata(name="Toggle textbox editable", keys=["<Control-Shift-KeyPress-E>", "<Alt-Shift-KeyPress-E>"])
     def toggle_editable(self):
         if self.state.preferences.get('editable', False):
             self.state.update_user_frame(update={'preferences': {'editable': False}})

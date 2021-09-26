@@ -92,7 +92,7 @@ class Windows:
         #self.windows_pane.add(self.windows[window_id]['frame'], height=100)
         self.windows[window_id]['textbox'] = TextAware(self.windows[window_id]['frame'], bd=3, undo=True)
         self.windows[window_id]['textbox'].grid(row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
-        self.windows[window_id]['textbox'].configure(**textbox_config(bg=edit_color(), pady=1, spacing2=3, spacing1=4))
+        self.windows[window_id]['textbox'].configure(**textbox_config(bg=edit_color(), pady=1, spacing2=1, spacing1=1))
         self.windows[window_id]['textbox'].insert("1.0", text)
         self.master.update_idletasks()
         self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
@@ -157,6 +157,7 @@ class NodeWindows(Windows):
         super().build_window(window_id, text)
         self.windows[window_id]['textbox'].bind("<FocusOut>", lambda event, _id=window_id: self.save_edits(_id))
         self.windows[window_id]['textbox'].bind("<Button-1>", lambda event, _id=window_id: self.window_clicked(_id))
+        self.windows[window_id]['textbox'].bind("<Control-e>", lambda event, _id=window_id: self.edit_off(_id))
 
         if not self.editable:
             self.edit_off(window_id)
@@ -259,6 +260,9 @@ class NodeWindows(Windows):
         new_nodes = [node for node in nodes if node['id'] in new_windows and node['id'] not in self.blacklist]
         for node in new_nodes:
             self.open_window(node, insert=insert)
+        self.scroll_frame.canvas.update_idletasks()
+        self.scroll_frame.canvas.yview_moveto(1)
+
         #self.fix_heights()
 
     def update_text(self):
@@ -741,7 +745,7 @@ class LoomTerminal(TextAware):
             color = "blue" if text == current_text else "white"
             if 'prob' in alt and show_probs:
                 text += f" ({alt['prob']:.3f})"
-            menu.add_command(label=text, foreground=color, 
+            menu.add_command(label=text, foreground=color, background=bg_color(),
                              command=lambda alt=alt: self.replace_range(start_pos, 
                                                                         end_pos, 
                                                                         alt['text'],
@@ -779,23 +783,27 @@ class LoomTerminal(TextAware):
         return False
 
     def inline_generate(self, generation_settings):
+        prompt_length = generation_settings['prompt_length']
         if self.tag_ranges("sel"):
             self.fix_selection()
-            prompt = self.get("1.0", "sel.first")
+            prompt = self.get("1.0", "sel.first")[-prompt_length:]
             selected_range = self.selected_range()
         else:
             self.fix_insertion()
-            prompt = self.get("1.0", "insert")
-            selected_range = [len(prompt), len(prompt)]
+            text = self.get("1.0", "insert")
+            prompt = text[-prompt_length:]
+            selected_range = [len(text), len(text)]
         threading.Thread(target=self.call_model_inline, args=(prompt, generation_settings, selected_range)).start()
 
     def call_model_inline(self, prompt, settings, selected_range):
         response, error = gen(prompt, settings)
         response_text_list = completions_text(response)
+        #print(response_text_list)
         self.alternatives = []
         inline_completions = [completion for completion in response_text_list if completion]
-        inline_completions.insert(0, self.get_range(selected_range[0], selected_range[1]))
-        self.completion_index = 0
+        current_text = self.get_range(selected_range[0], selected_range[1])
+        inline_completions.insert(0, current_text)
+        self.completion_index = 0        
         completions_dict = {'alts': [{'text': completion} for completion in inline_completions],
                             'replace_range': [selected_range[0], selected_range[1]]}
         self.alternatives.append(completions_dict)
@@ -974,7 +982,7 @@ class FrameSettings(Settings):
     def build_pin_button(self, key, row=None):
         row = row if row else self.frame.grid_size()[1] - 1
         self.pin_buttons[key] = tk.Label(self.frame, image=icons.get_icon("square-black"),
-                                         cursor="hand2")
+                                         cursor="hand2", bg=bg_color())
         self.pin_buttons[key].grid(row=row, column=2)
         self.pin_buttons[key].bind("<Button-1>", lambda event, key=key: self.toggle_pin(key))
 

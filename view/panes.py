@@ -185,7 +185,7 @@ class Module:
 
     def build(self, parent):
         self.parent = parent
-        self.frame = ttk.Frame(self.parent.frame, borderwidth=2)#, background="red")
+        self.frame = ttk.Frame(self.parent.frame, borderwidth=2)
         self.frame.pack(expand=True, fill='both', side="top")
     
     def destroy(self):
