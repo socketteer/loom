@@ -127,9 +127,11 @@ class Windows:
     def resize(self, event):
         if self.last_resize + datetime.timedelta(milliseconds=500) < datetime.datetime.now():
             self.master.update_idletasks()
-            for window in self.windows:
-                textbox = self.windows[window]['textbox']
-                textbox.after(300, textbox.reset_height)
+            for window_id in self.windows:
+                window = self.windows[window_id]
+                if 'textbox' in window:
+                    textbox = window['textbox']
+                    textbox.after(300, textbox.reset_height)
             self.last_resize = datetime.datetime.now()
             
 
@@ -260,7 +262,8 @@ class NodeWindows(Windows):
         new_nodes = [node for node in nodes if node['id'] in new_windows and node['id'] not in self.blacklist]
         for node in new_nodes:
             self.open_window(node, insert=insert)
-        self.scroll_frame.canvas.update_idletasks()
+        self.scroll_frame.update_idletasks()
+        self.scroll_frame.canvas.configure(scrollregion=self.scroll_frame.canvas.bbox("all"))
         self.scroll_frame.canvas.yview_moveto(1)
 
         #self.fix_heights()

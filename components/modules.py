@@ -682,7 +682,7 @@ class JanusPlayground(Module):
     def call_model(self, prompt, settings):
         response, error = gen(prompt, settings)
         self.generate_button.configure(state='normal')
-        self.model_response = response
+        self.textbox.model_response = response
         self.textbox.process_logprobs()
         response_text_list = completions_text(response)
         for completion in response_text_list:
