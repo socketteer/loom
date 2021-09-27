@@ -396,7 +396,8 @@ class Controller:
     @metadata(name="Center view", keys=["<Key-l>", "<Control-l>"])
     def center_view(self):
         #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
-        self.display.vis.center_view_on_node(self.state.selected_node)
+        #self.display.vis.center_view_on_node(self.state.selected_node)
+        pass
 
     def update_read_color(self, old_node, node):
         if self.display.mode == 'Read':
@@ -1403,15 +1404,16 @@ class Controller:
 
     @metadata(name="Visualize", keys=["<Key-j>", "<Control-j>"], display_key="j")
     def toggle_visualization_mode(self):
-        if self.state.preferences['autosave']:
-            self.save_edits()
-        self.display.set_mode("Visualize" if self.display.mode != "Visualize" else "Read")
-        self.refresh_display()
-
-        self.refresh_visualization()
-        self.refresh_textbox()
-        self.display.textbox.update_idletasks()
-        self.center_view()
+        pass
+        # if self.state.preferences['autosave']:
+        #     self.save_edits()
+        # self.display.set_mode("Visualize" if self.display.mode != "Visualize" else "Read")
+        # self.refresh_display()
+        #
+        # self.refresh_visualization()
+        # self.refresh_textbox()
+        # self.display.textbox.update_idletasks()
+        # self.center_view()
 
 
     @metadata(name="Wavefunction", keys=[])
@@ -2087,7 +2089,7 @@ class Controller:
     #         self.display.input_box.mark_set(tk.INSERT, insert)
 
     # TODO <Right> doesn't work
-    # TODO test
+    # TODO examples
     # @metadata(name="Apply Autocomplete", keys=["<Alt_R>", "<Right>"], display_key="")
     # def apply_autocomplete(self, auto=True):
     #     if self.has_focus(self.display.input_box) and self.autocomplete.meta["in_autocomplete"]:

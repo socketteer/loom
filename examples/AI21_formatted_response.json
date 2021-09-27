@@ -1,0 +1,84 @@
+{
+  "completions": [
+    {
+      "text": ":",
+      "tokens": [
+        {
+          "generatedToken": {
+            "token": ":",
+            "logprob": -0.9603805541992188
+          },
+          "position": {
+            "start": 11,
+            "end": 12
+          },
+          "counterfactuals": {
+            ":": -0.9603805541992188,
+            "s are": -2.4213180541992188,
+            " ": -3.0931930541992188
+          }
+        }
+      ],
+      "finishReason": "length"
+    },
+    {
+      "text": " NOW",
+      "tokens": [
+        {
+          "generatedToken": {
+            "token": " NOW",
+            "logprob": -12.612724304199219
+          },
+          "position": {
+            "start": 11,
+            "end": 15
+          },
+          "counterfactuals": {
+            ":": -0.9603805541992188,
+            "s are": -2.4213180541992188,
+            " ": -3.0931930541992188
+          }
+        }
+      ],
+      "finishReason": "length"
+    }
+  ],
+  "prompt": {
+    "text": "Test prompt",
+    "tokens": [
+      {
+        "generatedToken": {
+          "token": " Test",
+          "logprob": -9.40399169921875
+        },
+        "position": {
+          "start": 0,
+          "end": 4
+        },
+        "counterfactuals": {
+          " The": -2.837585926055908,
+          " ": -3.064148426055908,
+          " A": -4.017273426055908
+        }
+      },
+      {
+        "generatedToken": {
+          "token": " prompt",
+          "logprob": -13.457390785217285
+        },
+        "position": {
+          "start": 4,
+          "end": 11
+        },
+        "counterfactuals": {
+          " your": -2.5101253986358643,
+          "imonia": -3.0648128986358643,
+          "o": -3.5023128986358643
+        }
+      }
+    ]
+  },
+  "id": "be61383a-e78e-4b3a-998b-833e5f821b3d",
+  "model": "j1-large",
+  "timestamp": "2021-09-27-11.44.21"
+}

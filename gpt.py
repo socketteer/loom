@@ -8,8 +8,8 @@ import openai
 from util.util import retry, timestamp
 from util.gpt_util import parse_logit_bias, parse_stop
 import requests
-
-
+import codecs
+import json
 
 # response dictionary type
 '''
@@ -37,7 +37,6 @@ import requests
 }
 '''
 
-
 # finishReason
 '''
 "finishReason": {"reason": "stop" | "length", 
@@ -57,6 +56,7 @@ POSSIBLE_MODELS = [
     'j1-large',
     'j1-jumbo',
 ]
+
 
 def gen(prompt, settings):
     if settings["stop"]:
@@ -79,20 +79,34 @@ def gen(prompt, settings):
                                )
     return response, error
 
+
 def generate(**kwargs):
+    #pprint(kwargs)
     if kwargs['model'] in ('j1-large', 'j1-jumbo'):
         response, error = ai21_generate(**kwargs)
+        #save_response_json(response.json(), 'examples/AI21_response.json')
         if not error:
-            return format_ai21_response(response.json(), model=kwargs['model']), error
+            formatted_response = format_ai21_response(response.json(), model=kwargs['model'])
+            #save_response_json(formatted_response, 'examples/AI21_formatted_response.json')
+            return formatted_response, error
         else:
             return response, error
     else:
         # TODO OpenAI errors
         response, error = openAI_generate(**kwargs)
-        return format_openAI_response(response, kwargs['prompt']), error
+        #save_response_json(response, 'examples/openAI_response.json')
+        formatted_response = format_openAI_response(response, kwargs['prompt'])
+        #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')
+        return formatted_response, error
+
 
 def completions_text(response):
     return [completion['text'] for completion in response['completions']]
+
+
+def save_response_json(response, filename):
+    with open(filename, 'w') as f:
+        json.dump(response, f)
 
 #################################
 #   Janus
@@ -104,7 +118,6 @@ app = Celery(
     broker=redis_url,
     backend=redis_url,
 )
-
 
 # get_gpt_response(prompt, memory, retry=True) -> result, error
 janus_task = "janus.my_celery.tasks.get_gpt_response"
@@ -124,12 +137,33 @@ def janus_generate(prompt, memory=""):
 
 openai.api_key = os.environ.get("OPENAI_API_KEY", None)
 
-# pprint([d["id"] for d in openai.Engine.list()["data"]])
 
+def fix_openAI_token(token):
+    # if token is a byte string, convert to string
+    # TODO this doesn't work
+    decoded = codecs.decode(token, "unicode-escape")
+    return decoded
+    # byte_token = decoded.encode('raw_unicode_escape')
+    # return byte_token.decode('utf-8')
 
 def openAI_token_position(token, text_offset):
     return {'start': text_offset,
             'end': text_offset + len(token)}
+
+
+def format_openAI_token_dict(completion, token, i):
+    token_dict = {'generatedToken': {'token': token,
+                                     'logprob': completion['logprobs']['token_logprobs'][i]},
+                  'position': openAI_token_position(token, completion['logprobs']['text_offset'][i])}
+    if completion['logprobs']['top_logprobs']:
+        openai_counterfactuals = completion['logprobs']['top_logprobs'][i]
+        if openai_counterfactuals:
+            sorted_counterfactuals = {k: v for k, v in
+                                      sorted(openai_counterfactuals.items(), key=lambda item: item[1], reverse=True)}
+            token_dict['counterfactuals'] = sorted_counterfactuals
+    else:
+        token_dict['counterfactuals'] = None
+    return token_dict
 
 
 def format_openAI_completion(completion, prompt, prompt_end_index):
@@ -138,11 +172,7 @@ def format_openAI_completion(completion, prompt, prompt_end_index):
                        'tokens': []}
     for i, token in enumerate(completion['logprobs']['tokens'][prompt_end_index:]):
         j = i + prompt_end_index
-        token_dict = {'generatedToken': {'token': token,
-                                         'logprob': completion['logprobs']['token_logprobs'][j]},
-                      'position': openAI_token_position(token, completion['logprobs']['text_offset'][j])}
-        if completion['logprobs']['top_logprobs']:
-            token_dict['counterfactuals'] = completion['logprobs']['top_logprobs'][j]
+        token_dict = format_openAI_token_dict(completion, token, j)
         completion_dict['tokens'].append(token_dict)
     return completion_dict
 
@@ -154,20 +184,22 @@ def format_openAI_prompt(completion, prompt):
         if completion['logprobs']['text_offset'][i] >= len(prompt):
             prompt_end_index = i
             break
-        token_dict = {'generatedToken': {'token': token,
-                                         'logprob': completion['logprobs']['token_logprobs'][i]},
-                      'position': openAI_token_position(token, completion['logprobs']['text_offset'][i])}
-        if completion['logprobs']['top_logprobs']:
-            token_dict['counterfactuals'] = completion['logprobs']['top_logprobs'][i]
+        token_dict = format_openAI_token_dict(completion, token, i)
         prompt_dict['tokens'].append(token_dict)
 
     return prompt_dict, prompt_end_index
 
 
-def format_openAI_response(response, prompt):
-    prompt_dict, prompt_end_index = format_openAI_prompt(response['choices'][0], prompt)
+def format_openAI_response(response, prompt, echo=True):
+    if echo:
+        prompt_dict, prompt_end_index = format_openAI_prompt(response['choices'][0], prompt)
+    else:
+        prompt_dict = {'text': prompt, 'tokens': None}
+        prompt_end_index = 0
+        prompt = ''
 
-    response_dict = {'completions': [format_openAI_completion(completion, prompt, prompt_end_index) for completion in response['choices']],
+    response_dict = {'completions': [format_openAI_completion(completion, prompt, prompt_end_index) for completion in
+                                     response['choices']],
                      'prompt': prompt_dict,
                      'id': response['id'],
                      'model': response['model'],
@@ -213,27 +245,33 @@ ai21_api_key = os.environ.get("AI21_API_KEY", None)
 def fix_ai21_tokens(token):
     return token.replace("▁", " ").replace("<|newline|>", "\n")
 
-
-def format_ai21_token_data(token):
+def ai21_token_position(textRange, text_offset):
+    return {'start': textRange['start'] + text_offset,
+            'end': textRange['end'] + text_offset}
+    
+def format_ai21_token_data(token, prompt_offset=0):
     token_dict = {'generatedToken': {'token': fix_ai21_tokens(token['generatedToken']['token']),
                                      'logprob': token['generatedToken']['logprob']},
-                  'position': token['textRange']}
+                  'position': ai21_token_position(token['textRange'], prompt_offset)}
     if token['topTokens']:
         token_dict['counterfactuals'] = {fix_ai21_tokens(c['token']): c['logprob'] for c in token['topTokens']}
+    else: 
+        token_dict['counterfactuals'] = None
     return token_dict
 
 
-def format_ai21_completion(completion):
+def format_ai21_completion(completion, prompt_offset=0):
     completion_dict = {'text': completion['data']['text'],
-                       'tokens': [format_ai21_token_data(token) for token in completion['data']['tokens']],
+                       'tokens': [format_ai21_token_data(token, prompt_offset) for token in completion['data']['tokens']],
                        'finishReason': completion['finishReason']['reason']}
     return completion_dict
 
 
 def format_ai21_response(response, model):
-    response_dict = {'completions': [format_ai21_completion(completion) for completion in response['completions']],
-                     'prompt': {'text': response['prompt']['text'],
-                                'tokens': [format_ai21_token_data(token) for token in response['prompt']['tokens']]},
+    prompt = response['prompt']['text']
+    response_dict = {'completions': [format_ai21_completion(completion, prompt_offset=len(prompt)) for completion in response['completions']],
+                     'prompt': {'text': prompt,
+                                'tokens': [format_ai21_token_data(token, prompt_offset=0) for token in response['prompt']['tokens']]},
                      'id': response['id'],
                      'model': model,
                      'timestamp': timestamp()}
@@ -270,6 +308,6 @@ def ai21_generate(prompt, length=150, num_continuations=1, logprobs=10, temperat
 if __name__ == "__main__":
     pass
 
-    #print(janus_generate("test"))
+    # print(janus_generate("examples"))
     # print(os.environ["OPENAI_API_KEY"])
-    # print(api_generate("test"))
+    # print(api_generate("examples"))

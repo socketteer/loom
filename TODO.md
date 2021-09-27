@@ -331,6 +331,8 @@
 
 - preferences pin buttons appearing bug
 
+- decode openAI alt token bytes
+
 ## Other TODO
 
 ### bugs

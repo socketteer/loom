@@ -1,0 +1,78 @@
+{
+  "id": "cmpl-3mpwvOSNXHuPcwDgvMUzTbJduHFSQ",
+  "object": "text_completion",
+  "created": 1632768449,
+  "model": "curie:2020-05-03",
+  "choices": [
+    {
+      "text": "Test prompt order",
+      "index": 0,
+      "logprobs": {
+        "tokens": [
+          "Test",
+          " prompt",
+          " order"
+        ],
+        "token_logprobs": [
+          null,
+          -12.956981,
+          -9.304747
+        ],
+        "top_logprobs": [
+          null,
+          {
+            ".": -1.1042169,
+            "_": -3.1398766,
+            ",": -3.666287
+          },
+          {
+            ":": -1.788499,
+            "\n": -2.410658,
+            ".": -2.8032901
+          }
+        ],
+        "text_offset": [
+          0,
+          4,
+          11
+        ]
+      },
+      "finish_reason": "length"
+    },
+    {
+      "text": "Test prompt paper",
+      "index": 1,
+      "logprobs": {
+        "tokens": [
+          "Test",
+          " prompt",
+          " paper"
+        ],
+        "token_logprobs": [
+          null,
+          -12.956981,
+          -8.029809
+        ],
+        "top_logprobs": [
+          null,
+          {
+            ".": -1.1042169,
+            "_": -3.1398766,
+            ",": -3.666287
+          },
+          {
+            ":": -1.788499,
+            "\n": -2.410658,
+            ".": -2.8032901
+          }
+        ],
+        "text_offset": [
+          0,
+          4,
+          11
+        ]
+      },
+      "finish_reason": "length"
+    }
+  ]
+}

@@ -838,15 +838,16 @@ class LoomTerminal(TextAware):
             prompt_length = len(self.model_response['prompt']['text'])
             textbox_length = len(self.get("1.0", "end-1c"))
             diff = textbox_length - prompt_length
-            for token_data in self.model_response['prompt']['tokens']:
-                #print(token_data)
-                if 'counterfactuals' in token_data and token_data['counterfactuals']:
-                    alt_dict = {'alts': [],
-                                'replace_range': [token_data['position']['start'] + diff, token_data['position']['end'] + diff],}
-                    sorted_counterfactuals = {k: v for k, v in sorted(token_data['counterfactuals'].items(), key=lambda item: item[1], reverse=True)}
-                    for token, prob in sorted_counterfactuals.items():
-                        alt_dict['alts'].append({'text': token, 'logprob': prob, 'prob': logprobs_to_probs(prob)})
-                    self.alternatives.append(alt_dict)
+            if self.model_response['prompt']['tokens']:
+                for token_data in self.model_response['prompt']['tokens']:
+                    #print(token_data)
+                    if 'counterfactuals' in token_data and token_data['counterfactuals']:
+                        alt_dict = {'alts': [],
+                                    'replace_range': [token_data['position']['start'] + diff, token_data['position']['end'] + diff],}
+                        #sorted_counterfactuals = {k: v for k, v in sorted(token_data['counterfactuals'].items(), key=lambda item: item[1], reverse=True)}
+                        for token, prob in token_data['counterfactuals'].items():
+                            alt_dict['alts'].append({'text': token, 'logprob': prob, 'prob': logprobs_to_probs(prob)})
+                        self.alternatives.append(alt_dict)
 
 #################################
 #   Settings

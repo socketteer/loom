@@ -45,6 +45,6 @@ def created_before(node, time, **kwargs):
     return time >= datetime.strptime(node_timestamp, '%Y-%m-%d-%H.%M.%S')
 
 
-@condition("test")
+@condition("examples")
 def test_condition(a, b, node, **kwargs):
     return a == b

@@ -240,10 +240,15 @@ class TextAware(tk.Text):
 
     def reset_height(self, max_height=None):
         height = self.height()
-        if max_height is not None and height > max_height:
-            self.configure(height=max_height)
-        else:
-            self.configure(height=height)
+        try:
+            if max_height is not None and height > max_height:
+                self.configure(height=max_height)
+            else:
+                self.configure(height=height)
+        except TypeError as e:
+            print(e)
+            print(max_height)
+            print(height)
 
     def height(self):
         return self.tk.call((self._w, "count", "-update", "-displaylines", "1.0", "end"))
