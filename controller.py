@@ -420,7 +420,7 @@ class Controller:
         return self.display.nav_tree.exists(node['id'])
 
     @metadata(name="Select node")
-    def select_node(self, node, noscroll=False, ask_reveal=True, open=False):
+    def select_node(self, node, noscroll=False, ask_reveal=True, open=True):
         if node == self.state.selected_node:
             return
         if not self.in_nav(node):
@@ -477,6 +477,24 @@ class Controller:
                     self.parent(node=ancestor)
                     return
 
+    @metadata(name="Rewind")
+    def rewind(self, node=None, filter=None):
+        # navigates to previous node in ancestry with more than one child
+        node = node if node else self.state.selected_node
+        ancestry = self.state.ancestry(node)[:-1]
+        if len(ancestry) > 1:
+            for ancestor in ancestry[::-1]:
+                children = self.get_children(ancestor, filter=filter)
+                if len(children) > 1:
+                    self.select_node(ancestor)
+                    return
+        
+
+    @metadata(name="Reroll")
+    def alternate(self, node=None):
+        node = node if node else self.state.selected_node
+        next_sibling = self.state.sibling(node, wrap=True, filter=self.in_nav)
+        self.select_node(next_sibling)
 
     #################################
     #   Getters

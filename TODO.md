@@ -329,11 +329,9 @@
 
 - adjust textattribute textbox heights based on content
 
-- preferences pin buttons appearing bug
-
 - decode openAI alt token bytes
 
-- generation preset with preset attribute it terrible
+- generation preset with preset attribute is terrible
 
 - inline generations in textbox sometimes inserted in wrong indices (after distributing changes?)
 

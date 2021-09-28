@@ -344,6 +344,8 @@ class Display:
             ["Generate"],
             ["Retry", {}, dict(side="right")],
             ["Undo", {}, dict(side="right")],
+            ["Rewind", {}, dict(side="right")],
+            ["Reroll", {}, dict(side="right")],
             # Navigation on the right
             ["Next", {}, dict(side="right")],
             ["Prev", {}, dict(side="right")],
@@ -363,7 +365,7 @@ class Display:
                 self.buttons[btn].pack_forget()
             # show all buttons in the list that are currently hidden
             if btn in visible_buttons and not self.buttons[btn].winfo_ismapped():
-                side = "right" if btn in ("Next", "Prev", "Undo", "Retry") else "left"
+                side = "right" if btn in ("Next", "Prev", "Undo", "Retry", "Rewind", "Reroll") else "left"
                 self.buttons[btn].pack(side=side, fill='y')
 
 

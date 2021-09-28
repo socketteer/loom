@@ -147,7 +147,7 @@ def subtree_weights(node, mode='descendents', filter=None):
     #print(weights)
     norm = np.linalg.norm(weights, ord=1)
     normalized_weights = weights / norm
-    print(normalized_weights)
+    #print(normalized_weights)
     return normalized_weights
 
 
