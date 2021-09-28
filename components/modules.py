@@ -1616,12 +1616,12 @@ class FrameEditor(Module):
                                           read_callback=self.read_frame, 
                                           write_callback=self.write_frame,
                                           expand=True,
-                                          parent_module=self, height=10)
+                                          parent_module=self, max_height=30)
         self.frame_editor.pack(side='top', fill='both', expand=True, pady=10)
         self.frame_editor.textbox.configure(**code_textbox_config())
     
         # TODO make collapsible
-        self.state_viewer = TextAttribute(master=self.frame, attribute_name='state', bd=2, height=10, expand=True,
+        self.state_viewer = TextAttribute(master=self.frame, attribute_name='state', bd=2, max_height=30, expand=True,
                                                 relief='raised')
         self.state_viewer.pack(side='top', fill='both', expand=True)
         self.state_viewer.textbox.configure(**code_textbox_config(bg='#222222'))
