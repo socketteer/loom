@@ -924,6 +924,7 @@ class FrameSettings(Settings):
         self.state = state
         self.updates = {}
         self.pin_buttons = {}
+        self.write_to_frame_button = None
 
     def set_var(self, key):
         if key not in self.updates:
@@ -938,7 +939,8 @@ class FrameSettings(Settings):
         # remove from updates dict
         if key in self.pin_buttons:
             self.vars[key].set(self.orig_params[key])
-            self.updates.pop(key)
+            if key in self.updates:
+                self.updates.pop(key)
             self.pin_buttons[key].configure(image=icons.get_icon("square-black"))
 
     def pin_var(self, key):
@@ -966,11 +968,16 @@ class FrameSettings(Settings):
 
     def write_to_frame(self):
         # write updates to node frame and remove pins & remove from user state
-        self.state.set_frame_partial(node=self.state.selected_node, value=self.updates, path=self.settings_path)        
-        for key in self.pin_buttons.keys():
-            self.unpin_var(key)
+        self.state.set_frame_partial(node=self.state.selected_node, value=self.updates, path=self.settings_path)
+        self.read_orig_params()
+        #Settings.reset_vars(self)
+        for key in self.vars.keys():
             self.vars[key].set(self.orig_params[key])
         self.updates = {}
+        self.update_pins()
+
+    def read_orig_params(self):
+        self.orig_params = self.state.get_path(dict=self.state.state, path=self.settings_path)
 
     def set_pins(self):
         # pin variables that are in user state
@@ -978,6 +985,13 @@ class FrameSettings(Settings):
         for key in self.vars.keys():
             if key in self.user_params:
                 self.pin_var(key)
+
+    def update_pins(self):
+        for key in self.vars.keys():
+            if key in self.updates:
+                self.pin_buttons[key].configure(image=icons.get_icon("pin-red"))
+            else:
+                self.pin_buttons[key].configure(image=icons.get_icon("square-black"))
 
     def reset_vars(self):
         Settings.reset_vars(self)
@@ -989,6 +1003,11 @@ class FrameSettings(Settings):
                                          cursor="hand2", bg=bg_color())
         self.pin_buttons[key].grid(row=row, column=2)
         self.pin_buttons[key].bind("<Button-1>", lambda event, key=key: self.toggle_pin(key))
+
+    def build_write_to_frame_button(self, row=None):
+        row = row if row else self.frame.grid_size()[1]
+        self.write_to_frame_button = tk.Button(self.frame, text="Write to frame", command=lambda: self.write_to_frame())
+        self.write_to_frame_button.grid(row=row, column=1, pady=3)
 
 
 class ExportOptions(Settings):
@@ -1039,7 +1058,7 @@ class Preferences(FrameSettings):
             
             "prob": tk.BooleanVar,
         }
-        self.write_to_frame_button = None
+        #self.write_to_frame_button = None
         self.init_vars()
 
     def body(self, master):
@@ -1090,8 +1109,9 @@ class Preferences(FrameSettings):
         create_checkbutton(self.frame, "Show logprobs as probs", "prob", self.vars)
         self.build_pin_button("prob")
 
-        self.write_to_frame_button = tk.Button(self.frame, text="Write to frame", command=self.write_to_frame)
-        self.write_to_frame_button.grid(row=self.frame.grid_size()[1], column=1, pady=3)
+        self.build_write_to_frame_button()
+        # self.write_to_frame_button = tk.Button(self.frame, text="Write to frame", command=self.write_to_frame)
+        # self.write_to_frame_button.grid(row=self.frame.grid_size()[1], column=1, pady=3)
 
         self.set_pins()
     
@@ -1119,7 +1139,7 @@ def full_generation_settings_init(self):
             'restart': tk.StringVar,
             'global_context': tk.StringVar,
             'template': tk.StringVar,
-            'post_template': tk.StringVar,
+            #'post_template': tk.StringVar,
             'preset': tk.StringVar,
         }
     for key in additional_vars.keys():
@@ -1223,13 +1243,10 @@ def generation_settings_templates_body(self, build_pins=False):
     #create_button(master, "Reset", self.reset_variables)
 
     if build_pins:
-        self.write_to_frame_button = tk.Button(self.frame, text="Write to frame", command=self.write_to_frame)
-        self.write_to_frame_button.grid(row=self.frame.grid_size()[1], column=1, pady=3)
-
-    if build_pins:
         self.set_pins()
 
 
+# special means no pins
 class SpecialGenerationSettings(Settings):
     def __init__(self, orig_params, realtime_update=False, parent_module=None):
         Settings.__init__(self, orig_params, realtime_update, parent_module)
@@ -1265,6 +1282,7 @@ class GenerationSettings(FrameSettings, SpecialGenerationSettings):
     def body(self, master):
         FrameSettings.body(self, master)
         generation_settings_body(self, build_pins=True)
+        self.build_write_to_frame_button()
 
     def write(self):
         FrameSettings.write(self)
@@ -1283,9 +1301,11 @@ class SpecialFullGenerationSettings(SpecialGenerationSettings):
     def set_context(self):
         self.context_textbox.delete(1.0, "end")
         self.context_textbox.insert(1.0, self.vars['global_context'].get())
+        self.context_textbox.reset_height()
 
     def get_context(self):
         self.vars['global_context'].set(self.context_textbox.get(1.0, "end-1c"))
+        self.context_textbox.reset_height()
 
     def set_template(self, *args):
         self.template_filename_label.config(text=self.vars['template'].get())
@@ -1360,6 +1380,7 @@ class FullGenerationSettings(FrameSettings, SpecialFullGenerationSettings):
         FrameSettings.body(self, master)
         generation_settings_body(self, build_pins=True)
         generation_settings_templates_body(self, build_pins=True)
+        self.build_write_to_frame_button()
 
     def write(self):
         FrameSettings.write(self)
