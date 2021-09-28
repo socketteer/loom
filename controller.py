@@ -323,14 +323,13 @@ class Controller:
         node = node if node else self.state.selected_node
         self.select_node(node=self.state.sibling(node, -1, filter=self.in_nav))
 
-    # TODO extremely deprecated
     @metadata(name="Walk", keys=["<Key-w>", "<Control-w>"], display_key="w")
-    def walk(self, canonical_only=False):
-        return
-        filter_set = self.state.tagged_nodes("canonical") if canonical_only else None
-        if 'children' in self.state.selected_node and len(self.state.selected_node['children']) > 0:
-            chosen_child = stochastic_transition(self.state.selected_node, mode='descendents', filter_set=filter_set)
-            #self.state.select_node(chosen_child['id'])
+    def walk(self, node=None, filter=None):
+        # TODO custom probs
+        node = node if node else self.state.selected_node
+        filter = filter if filter else self.in_nav
+        if 'children' in node and len(node['children']) > 0:
+            chosen_child = stochastic_transition(node, mode='leaves', filter=filter)
             self.select_node(node=chosen_child)
 
     @metadata(name="Return to root", keys=["<Key-r>", "<Control-r>"], display_key="r")
@@ -401,16 +400,18 @@ class Controller:
 
     def update_read_color(self, old_node, node):
         if self.display.mode == 'Read':
-            nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
-            ancestor_indices = self.state.ancestor_text_indices(self.state.selected_node)
-            ancestor_end_indices = [ind[1] for ind in ancestor_indices]
-            nca_end_index = ancestor_end_indices[index]
-            self.display.textbox.tag_delete("old")
-            self.display.textbox.tag_add("old",
-                                         "1.0",
-                                         f"1.0 + {nca_end_index} chars")
-            self.display.textbox.tag_config("old", foreground=history_color())
-            self.display.textbox.see(f"1.0 + {nca_end_index} chars")
+            pass
+            # nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
+            # ancestor_indices = self.state.ancestor_text_indices(self.state.selected_node)
+            # ancestor_end_indices = [ind[1] for ind in ancestor_indices]
+            # nca_end_index = ancestor_end_indices[index]
+            # self.display.textbox.tag_delete("old")
+            # self.display.textbox.tag_add("old",
+            #                              "1.0",
+            #                              f"1.0 + {nca_end_index} chars")
+            # self.display.textbox.tag_config("old", foreground=history_color())
+            # self.display.textbox.see(f"1.0 + {nca_end_index} chars")
+            # pass
 
             #print('coloring text')
 
@@ -439,14 +440,15 @@ class Controller:
             node['open'] = self.display.nav_tree.item(node["id"], "open")
         self.nav_history.append(self.state.selected_node_id)
         self.undo_history = []
-        if self.state.preferences['coloring'] == 'read':
-            old_node = self.state.selected_node
-            self.state.select_node(node['id'], noscroll=True)
-            if old_node:
-                self.update_read_color(old_node, node)
+        self.state.select_node(node['id'])
+        # if self.state.preferences['coloring'] == 'read':
+        #     old_node = self.state.selected_node
+        #     self.state.select_node(node['id'], noscroll=True)
+        #     if old_node:
+        #         self.update_read_color(old_node, node)
 
-        else:
-            self.state.select_node(node['id'])
+        # else:
+            #self.state.select_node(node['id'])
 
     @metadata(name="Update text")
     def update_text(self, text, node=None):
@@ -481,9 +483,10 @@ class Controller:
     #################################
 
     @metadata(name="Get children")
-    def get_children(self, node=None):
+    def get_children(self, node=None, filter=None):
         node = node if node else self.state.selected_node
-        return filtered_children(node, self.in_nav)
+        filter = filter if filter else self.in_nav
+        return filtered_children(node, filter)
 
     @metadata(name="Hidden children")
     def get_hidden_children(self, node=None):
@@ -879,7 +882,7 @@ class Controller:
             # if self.state.preferences.get('show_prompt', False):
             #     self.display.textbox.insert("end-1c", self.state.prompt(self.state.selected_node))
             # else:
-            if self.state.preferences['coloring'] == 'edit':
+            if self.state.preferences['coloring']in ('edit', 'read'):
                 self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
                 self.display.textbox.tag_config('history', foreground=history_color())
             else:
@@ -1385,9 +1388,14 @@ class Controller:
                     self.display.vis.delete_textbox()
 
     @metadata(name="Edit in module")
-    def edit_in_module(self, node):
-        self.state.module_settings['edit']['node_id'] = node['id']
+    def edit_in_module(self, node, create_attribute=None):
+        self.state.update_user_frame(update={'module_settings': {'edit': {'node_id': node['id']}}})
         # TODO if already open, refresh selection
+        if create_attribute:
+            if 'text_attributes' not in node:
+                node['text_attributes'] = {}
+            if create_attribute not in node['text_attributes']:
+                node['text_attributes'][create_attribute] = ''
         if self.display.module_open("edit"):
             self.display.modules['edit'].rebuild_textboxes()
         else:
@@ -1994,7 +2002,8 @@ class Controller:
 
     def configure_tags(self):
         dialog = TagsDialog(parent=self.display.frame, state=self.state)
-        self.state.tree_updated(rebuild=True)
+        if dialog.result:
+            self.state.tree_updated(rebuild=True)
 
     def add_tag(self):
         dialog = AddTagDialog(parent=self.display.frame, state=self.state)

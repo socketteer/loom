@@ -2,23 +2,23 @@ from re import L
 import tkinter as tk
 from tkinter import Frame, ttk, filedialog
 import uuid
-from view.colors import text_color, bg_color, edit_color, default_color
+from view.colors import text_color, bg_color, edit_color, default_color, history_color, ooc_color
 from util.custom_tks import TextAware, ScrollableFrame
 from util.react import *
 from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
+from util.gpt_util import logprobs_to_probs
+from util.util import split_indices
+from util.util_tree import num_descendents
 from tkinter.scrolledtext import ScrolledText
 from view.styles import textbox_config
 from view.icons import Icons
 import time
-from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
 import os
 import codecs
 from PIL import Image, ImageTk
 from gpt import POSSIBLE_MODELS, gen, completions_text
-from util.gpt_util import logprobs_to_probs
 import json
 import bisect
-from util.util import split_indices
 import threading
 import datetime
 import time
@@ -133,11 +133,10 @@ class Windows:
                     textbox = window['textbox']
                     textbox.after(300, textbox.reset_height)
             self.last_resize = datetime.datetime.now()
-            
 
 
 class NodeWindows(Windows):
-    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, max_height=10):
+    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, max_height=10, toggle_tag=None):
         self.callbacks = callbacks
         self.blacklist = []
         self.whitelist = []
@@ -145,6 +144,7 @@ class NodeWindows(Windows):
         self.nav_icons_visible = nav_icons_visible
         self.editable = editable
         self.max_height = max_height
+        self.toggle_tag = toggle_tag
         Windows.__init__(self, buttons, buttons_visible)
 
     def open_window(self, node, insert='end'):
@@ -167,6 +167,7 @@ class NodeWindows(Windows):
             self.edit_on(window_id)
         if self.nav_icons_visible:
             self.draw_nav_icon(window_id)
+        self.draw_num_descendents(window_id)
 
     def fix_heights(self):
         for i in range(len(self.windows) - 1):
@@ -175,8 +176,23 @@ class NodeWindows(Windows):
 
     def draw_nav_icon(self, window_id):
         icon = self.callbacks["Nav icon"]["callback"](node=self.windows[window_id]['node'])
-        self.windows[window_id]['icon'] = tk.Label(self.windows[window_id]['frame'], image=icon, bg=bg_color())
+        self.windows[window_id]['icon'] = tk.Label(self.windows[window_id]['frame'], image=icon, bg=bg_color(), cursor='hand2')
         self.windows[window_id]['icon'].grid(row=0, column=0, rowspan=len(self.buttons))
+        self.windows[window_id]['icon'].bind("<Button-1>", lambda event, _id=window_id: self.nav_icon_clicked(_id))
+
+    def nav_icon_clicked(self, window_id):
+        if self.toggle_tag:
+            node = self.windows[window_id]['node']
+            self.callbacks["Tag"]["callback"](node=node, tag=self.toggle_tag())
+            icon = self.callbacks["Nav icon"]["callback"](node=node)
+            self.windows[window_id]['icon'].configure(image=icon)
+
+    def draw_num_descendents(self, window_id):
+        descendents = num_descendents(self.windows[window_id]['node'], filter=lambda node:self.callbacks["In nav"]["callback"](node=node))
+        color = text_color() if descendents > 1 else ooc_color()
+        self.windows[window_id]['num_descendents'] = tk.Label(self.windows[window_id]['frame'], text=descendents, bg=bg_color(), fg=color)
+        self.windows[window_id]['num_descendents'].grid(row=0, column=3, rowspan=len(self.buttons))
+
 
     def draw_button(self, row, window_id, button):
         self.windows[window_id][button] = tk.Label(self.windows[window_id]['frame'], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor='hand2')
@@ -252,7 +268,6 @@ class NodeWindows(Windows):
         self.callbacks["Tag"]["callback"](node=node, tag="archived")
 
     def delete_node(self, node):
-        #self.remove_window(node['id'])
         self.callbacks["Delete"]["callback"](node=node)
 
     def update_windows(self, nodes, insert='end'):
@@ -262,11 +277,11 @@ class NodeWindows(Windows):
         new_nodes = [node for node in nodes if node['id'] in new_windows and node['id'] not in self.blacklist]
         for node in new_nodes:
             self.open_window(node, insert=insert)
-        self.scroll_frame.update_idletasks()
-        self.scroll_frame.canvas.configure(scrollregion=self.scroll_frame.canvas.bbox("all"))
-        self.scroll_frame.canvas.yview_moveto(1)
+        if new_nodes:
+            self.scroll_frame.update_idletasks()
+            self.scroll_frame.canvas.configure(scrollregion=self.scroll_frame.canvas.bbox("all"))
+            self.scroll_frame.canvas.yview_moveto(1)
 
-        #self.fix_heights()
 
     def update_text(self):
         for window_id in self.windows:
@@ -801,7 +816,7 @@ class LoomTerminal(TextAware):
     def call_model_inline(self, prompt, settings, selected_range):
         response, error = gen(prompt, settings)
         response_text_list = completions_text(response)
-        #print(response_text_list)
+        print(response_text_list)
         self.alternatives = []
         inline_completions = [completion for completion in response_text_list if completion]
         current_text = self.get_range(selected_range[0], selected_range[1])
@@ -830,6 +845,13 @@ class LoomTerminal(TextAware):
             completion = self.inline_completions['alts'][self.completion_index % len(self.inline_completions['alts'])]['text']
             repl = self.inline_completions['replace_range']
             self.replace_range(repl[0], repl[1], completion, "alternate")        
+
+    def inline_to_children(self):
+        # splits node at insertion position and 
+        # turns inline completion alternatives into separate children of the parent node
+        # default option is kept with the second part of the split
+        # TODO move to display
+        pass
 
     def process_logprobs(self):
         self.alternatives = []

@@ -24,30 +24,9 @@ def height(d):
 def depth(d, node_dict):
     return 0 if "parent_id" not in d else (1 + depth(node_dict[d["parent_id"]], node_dict))
 
-def num_descendents(node, filter_set=None):
-    if not filter_set or node["id"] in filter_set:
-        descendents = 1
-        if 'children' in node:
-            for child in node['children']:
-                if not filter_set or child["id"] in filter_set:
-                    descendents += num_descendents(child)
-    else:
-        descendents = 0
-    return descendents
 
-
-def num_leaves(node, filter_set=None):
-    if not filter_set or node["id"] in filter_set:
-        if 'children' in node and len(node['children']) > 0:
-            leaves = 0
-            for child in node['children']:
-                if not filter_set or child["id"] in filter_set:
-                    leaves += num_leaves(child)
-            return leaves
-        else:
-            return 1
-    else:
-        return 0
+def num_descendents(root, filter=None):
+    return len(subtree_list(root, filter))
 
 
 def generate_conditional_tree(root, filter=None):
@@ -140,6 +119,37 @@ def tree_subset(root, filter=None, copy_attributes=None):
         if attribute in root:
             new_root[attribute] = root[attribute]
     return new_root
+
+
+def stochastic_transition(node, mode='descendents', filter=None):
+    transition_probs = subtree_weights(node, mode, filter)
+    choice = random.choices(node['children'], transition_probs, k=1)
+    return choice[0]
+
+
+def subtree_weights(node, mode='descendents', filter=None):
+    weights = []
+    if 'children' in node:
+        for child in node['children']:
+            if not filter or filter(child):
+                if mode == 'descendents':
+                    weights.append(num_descendents(child, filter))
+                elif mode == 'leaves':
+                    descendents = subtree_list(child, filter)
+                    leaf_descendents = [d for d in descendents if 'children' not in d or len(d['children']) == 0]
+                    weights.append(len(leaf_descendents))
+                elif mode == 'uniform':
+                    weights.append(1)
+                else:
+                    print('invalid mode for subtree weights')
+            else:
+                weights.append(0)
+    #print(weights)
+    norm = np.linalg.norm(weights, ord=1)
+    normalized_weights = weights / norm
+    print(normalized_weights)
+    return normalized_weights
+
 
 
 #################################
@@ -248,30 +258,6 @@ def overwrite_subtree(node, attribute, new_value, old_value=None, force_overwrit
     else:
         return [node]
 
-
-def stochastic_transition(node, mode='descendents', filter_set=None):
-    transition_probs = subtree_weights(node, mode, filter_set)
-    choice = random.choices(node['children'], transition_probs, k=1)
-    return choice[0]
-
-
-def subtree_weights(node, mode='descendents', filter_set=None):
-    weights = []
-    if 'children' in node:
-        for child in node['children']:
-            if mode == 'descendents':
-                weights.append(num_descendents(child, filter_set))
-            elif mode == 'leaves':
-                weights.append(num_leaves(child, filter_set))
-            elif mode == 'uniform':
-                weights.append(1)
-            else:
-                print('invalid mode for subtree weights')
-    #print('unnormalized probabilities: ', weights)
-    norm = np.linalg.norm(weights, ord=1)
-    normalized_weights = weights / norm
-    #print('probabilities: ', normalized_weights)
-    return normalized_weights
 
 
 

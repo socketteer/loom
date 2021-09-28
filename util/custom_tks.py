@@ -245,10 +245,8 @@ class TextAware(tk.Text):
                 self.configure(height=max_height)
             else:
                 self.configure(height=height)
-        except TypeError as e:
-            print(e)
-            print(max_height)
-            print(height)
+        except TypeError:
+            return
 
     def height(self):
         return self.tk.call((self._w, "count", "-update", "-displaylines", "1.0", "end"))

@@ -335,6 +335,12 @@
 
 - generation preset with preset attribute it terrible
 
+- inline generations in textbox sometimes inserted in wrong indices (after distributing changes?)
+
+- read coloring bug - when text is long?
+
+- edit module pin doesn't work right
+
 ## Other TODO
 
 ### bugs

@@ -9,7 +9,6 @@ from components.block_multiverse import BlockMultiverse
 from util.custom_tks import TextAware, ScrollableFrame
 from view.colors import bg_color, text_color, edit_color, GREEN, BLUE
 from util.util import metadata
-from util.util_tree import num_descendents
 from view.panes import Pane, NestedPane
 from components.modules import *
 from components.templates import LoomTerminal

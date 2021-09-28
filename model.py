@@ -88,7 +88,11 @@ DEFAULT_MODULE_SETTINGS = {
                 'horizontal': False,
                 'prune_mode': 'open_in_nav', #'in_nav', 'ancestry_dist', 'wavefunction_collapse', 'selected_dist', 'all'
                 'path_length_limit': 10,
-                }
+                },
+    'read children': {'filter': 'in_nav', #'all', 'uncleared', or name of tag TODO hide condition
+                      'show_continue': 'no alternatives', #no choice, always, never, or name of tag
+                      'show_options': 'always'}, #always, never, or name of tag 
+    'children': {'toggle_tag': 'bookmark'}
 }
 
 DEFAULT_GENERATION_SETTINGS = {
@@ -1154,6 +1158,8 @@ class TreeModel:
     #################################
 
     def text(self, node):
+        if not node:
+            return ''
         if self.is_template(node):
             try:
                 return eval(f'f"""{node["text"]}"""')

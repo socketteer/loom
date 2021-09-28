@@ -475,15 +475,17 @@ class Notes(Module):
 class Children(Module):
     def __init__(self, callbacks, state):
         self.menu_frame = None
-        self.children = NodeWindows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'],
-                                    buttons_visible=True,
-                                    editable=False,
-                                    max_height=100)
         self.add_child_button = None
         self.toggle_hidden_button = None
         self.show_hidden = False
         Module.__init__(self, 'children', callbacks, state)
- 
+        self.children = NodeWindows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'],
+                                    buttons_visible=True,
+                                    editable=False,
+                                    max_height=100,
+                                    toggle_tag=self.toggle_tag)
+
+
     def build(self, parent):
         Module.build(self, parent)
         self.children.body(self.frame)
@@ -505,6 +507,9 @@ class Children(Module):
         self.toggle_hidden_button.bind("<Button-1>", self.toggle_hidden)
         self.toggle_hidden_button.pack(side='left', padx=20)
         self.toggle_hidden_button["compound"] = tk.LEFT
+
+    def toggle_tag(self):
+        return self.settings()['toggle_tag']
 
     def tree_updated(self):
         # if not self.children.windows_pane:
@@ -554,6 +559,7 @@ class ReadChildren(Module):
     def __init__(self, callbacks, state):
         self.children = []
         self.scroll_frame = None
+        self.continue_option = None
         Module.__init__(self, 'read children', callbacks, state)
     
     def build(self, parent):
@@ -564,29 +570,89 @@ class ReadChildren(Module):
 
     def add_child(self, node):
         child_text = self.state.get_text_attribute(node, 'child_preview')
-        child_text = child_text if child_text else node['text'][:100]
+        child_text = child_text if child_text else node['text'][:150]
         child_label = tk.Label(self.scroll_frame.scrollable_frame, text=child_text, bg=bg_color(), fg=text_color(), cursor='hand2', 
                                anchor='w', justify='left', font=('Georgia', 12),
                                image=icons.get_icon('arrow-white', 16), compound=tk.LEFT, padx=10)
         child_label.bind("<Button-1>", lambda event, node=node: self.callbacks["Select node"]["callback"](node=node))
-        child_label.pack(side='top', fill='x', expand=True, pady=5)
+        child_label.bind("<Button-2>", lambda event, node=node: self.context_menu(event=event, node=node))
+        child_label.bind("<Button-3>", lambda event, node=node: self.context_menu(event=event, node=node))
+        child_label.pack(side='top', fill='x', expand=True, pady=10)
         self.children.append(child_label)
+
+    def build_continue_option(self, text="continue"):
+        self.continue_option = tk.Label(self.scroll_frame.scrollable_frame, text=text, bg=bg_color(), fg=text_color(), cursor='hand2',
+                               anchor='w', justify='left', font=('Georgia', 12),
+                               image=icons.get_icon('arrow-white', 16), compound=tk.LEFT, padx=10)
+        self.continue_option.bind("<Button-1>", lambda event: self.walk())
+        self.continue_option.pack(side='top', fill='x', expand=True, pady=10)
+
+    def walk(self):
+        self.callbacks["Walk"]["callback"](node=self.state.selected_node)
+
+    def filter(self):
+        filter_option = self.settings()['filter']
+        if filter_option == 'all':
+            return None
+        elif filter_option == 'in_nav':
+            return lambda node: self.callbacks["In nav"]["callback"](node=node)
+        else:
+            return lambda node: self.state.has_tag(node=node, tag=filter_option)
+
+    def show_continue(self):
+        condition = self.settings()['show_continue']
+        if condition == 'always':
+            return True
+        elif condition == 'never':
+            return False
+        elif condition == 'no alternatives':
+            return len(self.children) == 0
+        else:
+            # TODO
+            return True 
+
+
+    def show_options(self):
+        condition = self.settings()['show_options']
+        if condition == 'always':
+            return True 
+        elif condition == 'never':
+            return False 
+        else:
+            return self.state.has_tag(node=self.state.selected_node, tag=condition)
+
 
     def refresh(self):
         if self.scroll_frame:
-            children = self.callbacks["Get children"]["callback"]()
+            children_options = self.callbacks["Get children"]["callback"](filter=self.filter()) if self.show_options() else []
+            possible_children = self.callbacks["Get children"]["callback"]()
             for child in self.children:
                 child.pack_forget()
             self.children = []
-            for child in children:
+            for child in children_options:
                 self.add_child(child)
-        
+
+            if self.show_continue() and possible_children:
+                if not self.continue_option:
+                    self.build_continue_option()
+            else:
+                if self.continue_option:
+                    self.continue_option.pack_forget()
+                    self.continue_option = None
+
+
+    def context_menu(self, event, node):
+        menu = tk.Menu(self.frame, tearoff=0)
+        menu.add_command(label="Edit preview text", command=lambda: self.callbacks["Edit in module"]["callback"](node=node, create_attribute='child_preview'))
+        menu.tk_popup(event.x_root, event.y_root)
+
+
     def selection_updated(self):
         self.refresh()
     
     def tree_updated(self):
-        # self.refresh()
-        pass
+        self.refresh()
+        #pass
 
 
 
@@ -1235,7 +1301,7 @@ class Edit(Module):
                                                      write_callback=self.save_text,
                                                      expand=True,
                                                      parent_module=self,
-                                                     height=3)
+                                                     max_height=30)
         self.text_attributes['text'].pack(side='top', fill='both', expand=True, pady=10)
         #self.text_attributes['text'].update()
 
