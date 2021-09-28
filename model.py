@@ -103,11 +103,10 @@ DEFAULT_GENERATION_SETTINGS = {
     "stop": '',  # separated by '|'
     "start": '',
     "restart": '',
-    'preset': 'Default',
+    'preset': 'None',
     'global_context': '',
     'logit_bias': '',
     'template': 'Default',
-    'post_template': 'Default'
 }
 
 DEFAULT_INLINE_GENERATION_SETTINGS = {
@@ -125,7 +124,6 @@ DEFAULT_INLINE_GENERATION_SETTINGS = {
     "global_context": "",
     "logit_bias": "",
     "template": "Default",
-    "post_template": "Default"
 }
 
 
@@ -370,6 +368,14 @@ class TreeModel:
                 update_path[key] = {}
             update_path = update_path[key]
         update_path[path[-1]] = deepcopy(value)
+
+    def get_path(self, dict, path):
+        update_path = dict
+        for key in path:
+            if key not in update_path:
+                return None
+            update_path = update_path[key]
+        return update_path
 
     def update_frame(self, node, update, append=False):
         if 'frame' in node:

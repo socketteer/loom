@@ -1,5 +1,5 @@
 {
-  "id": "be61383a-e78e-4b3a-998b-833e5f821b3d",
+  "id": "39bafe61-244d-4e10-ba5f-537bbdd1c274",
   "prompt": {
     "text": "Test prompt",
     "tokens": [
@@ -8,20 +8,7 @@
           "token": "\u2581Test",
           "logprob": -9.40399169921875
         },
-        "topTokens": [
-          {
-            "token": "\u2581The",
-            "logprob": -2.837585926055908
-          },
-          {
-            "token": "\u2581",
-            "logprob": -3.064148426055908
-          },
-          {
-            "token": "\u2581A",
-            "logprob": -4.017273426055908
-          }
-        ],
+        "topTokens": null,
         "textRange": {
           "start": 0,
           "end": 4
@@ -32,20 +19,7 @@
           "token": "\u2581prompt",
           "logprob": -13.457390785217285
         },
-        "topTokens": [
-          {
-            "token": "\u2581your",
-            "logprob": -2.5101253986358643
-          },
-          {
-            "token": "imonia",
-            "logprob": -3.0648128986358643
-          },
-          {
-            "token": "o",
-            "logprob": -3.5023128986358643
-          }
-        ],
+        "topTokens": null,
         "textRange": {
           "start": 4,
           "end": 11
@@ -56,30 +30,17 @@
   "completions": [
     {
       "data": {
-        "text": ":",
+        "text": " rate",
         "tokens": [
           {
             "generatedToken": {
-              "token": ":",
-              "logprob": -0.9603805541992188
+              "token": "\u2581rate",
+              "logprob": -9.374443054199219
             },
-            "topTokens": [
-              {
-                "token": ":",
-                "logprob": -0.9603805541992188
-              },
-              {
-                "token": "s\u2581are",
-                "logprob": -2.4213180541992188
-              },
-              {
-                "token": "\u2581",
-                "logprob": -3.0931930541992188
-              }
-            ],
+            "topTokens": null,
             "textRange": {
               "start": 0,
-              "end": 1
+              "end": 5
             }
           }
         ]
@@ -91,30 +52,17 @@
     },
     {
       "data": {
-        "text": " NOW",
+        "text": " \"",
         "tokens": [
           {
             "generatedToken": {
-              "token": "\u2581NOW",
-              "logprob": -12.612724304199219
+              "token": "\u2581\"",
+              "logprob": -5.296318054199219
             },
-            "topTokens": [
-              {
-                "token": ":",
-                "logprob": -0.9603805541992188
-              },
-              {
-                "token": "s\u2581are",
-                "logprob": -2.4213180541992188
-              },
-              {
-                "token": "\u2581",
-                "logprob": -3.0931930541992188
-              }
-            ],
+            "topTokens": null,
             "textRange": {
               "start": 0,
-              "end": 4
+              "end": 2
             }
           }
         ]

@@ -333,6 +333,8 @@
 
 - decode openAI alt token bytes
 
+- generation preset with preset attribute it terrible
+
 ## Other TODO
 
 ### bugs

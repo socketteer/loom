@@ -95,7 +95,7 @@ def generate(**kwargs):
         # TODO OpenAI errors
         response, error = openAI_generate(**kwargs)
         #save_response_json(response, 'examples/openAI_response.json')
-        formatted_response = format_openAI_response(response, kwargs['prompt'])
+        formatted_response = format_openAI_response(response, kwargs['prompt'], echo=False)
         #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')
         return formatted_response, error
 
@@ -307,7 +307,3 @@ def ai21_generate(prompt, length=150, num_continuations=1, logprobs=10, temperat
 
 if __name__ == "__main__":
     pass
-
-    # print(janus_generate("examples"))
-    # print(os.environ["OPENAI_API_KEY"])
-    # print(api_generate("examples"))

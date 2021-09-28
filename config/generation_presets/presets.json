@@ -1,4 +1,7 @@
 {
+  "None": {
+    "preset": "None"
+  },
   "Default": {
     "num_continuations": 4,
     "temperature": 0.9,
@@ -12,8 +15,7 @@
     "preset": "Default",
     "global_context": "",
     "logit_bias": "",
-    "template": "Default",
-    "post_template": "Default"
+    "template": "Default"
   },
   "Single Line": {
     "num_continuations": 4,
