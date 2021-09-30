@@ -1842,9 +1842,10 @@ class TreeModel:
 
     def set_generated_nodes(self, nodes, results):
         for i, node in enumerate(nodes):
-            node['text'] = self.default_post_template(results['completions'][i]) \
-                if self.generation_settings['post_template'] == "Default" \
-                else self.custom_post_template(results['completions'][i], self.generation_settings['post_template'])
+            node['text'] = self.default_post_template(results['completions'][i])
+            # node['text'] = self.default_post_template(results['completions'][i]) \
+            #     if self.generation_settings['post_template'] == "Default" \
+            #     else self.custom_post_template(results['completions'][i], self.generation_settings['post_template'])
             self.node_creation_metadata(node, source='AI')
             node["generation"] = {'id': results['id'],
                                   'index': i}

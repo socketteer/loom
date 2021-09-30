@@ -339,6 +339,9 @@
 
 - edit module pin doesn't work right
 
+- empty nodes with auto walk
+    - as a way to group options
+
 ## Other TODO
 
 ### bugs

@@ -95,7 +95,7 @@ def generate(**kwargs):
         # TODO OpenAI errors
         response, error = openAI_generate(**kwargs)
         #save_response_json(response, 'examples/openAI_response.json')
-        formatted_response = format_openAI_response(response, kwargs['prompt'], echo=False)
+        formatted_response = format_openAI_response(response, kwargs['prompt'], echo=True)
         #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')
         return formatted_response, error
 
@@ -196,7 +196,7 @@ def format_openAI_response(response, prompt, echo=True):
     else:
         prompt_dict = {'text': prompt, 'tokens': None}
         prompt_end_index = 0
-        prompt = ''
+        #prompt = ''
 
     response_dict = {'completions': [format_openAI_completion(completion, prompt, prompt_end_index) for completion in
                                      response['choices']],
