@@ -13,7 +13,7 @@ idna==2.10
 kombu==5.0.2
 multiprocess==0.70.11.1
 numexpr==2.7.1
-numpy==1.19.4
+numpy==1.21.2
 openai==0.10.4
 pandas==1.3,3
 pathos==0.2.7
