@@ -342,6 +342,12 @@
 - empty nodes with auto walk
     - as a way to group options
 
+- settings should have immediate access to pointer to "orig_params"
+
+- update node info dialog
+
+- integrate retry and reroll w/ filter and flag for whether to wrap
+
 ## Other TODO
 
 ### bugs

@@ -1136,3 +1136,67 @@ class ChatDialog(Dialog):
         player_name = self.player_name_entry.tk_variables.get()
         player_submit_template = self.player_prefix + player_name + self.player_suffix
         self.state.update_frame(self.state.selected_node, update={'module_settings': {'input': {'submit_template': player_submit_template}}})
+
+
+
+class AddModelDialog(Dialog):
+    def __init__(self, parent):
+        self.model_name_entry = None
+        self.model_type_entry = None
+        Dialog.__init__(self, parent, title="Model Configuration")
+    
+    def body(self, master):
+        self.model_name_entry = Entry(master, master.grid_size()[1], "Model name", "", None, width=30)
+        self.model_type_entry = Entry(master, master.grid_size()[1], "Model type", "openai-custom", None, width=30)
+
+    def apply(self):
+        self.result = {'name': self.model_name_entry.tk_variables.get(), 'type': self.model_type_entry.tk_variables.get()}
+    
+
+class ModelConfigDialog(Dialog):
+    def __init__(self, parent, state):
+        self.state = state
+        self.available_models = None
+        self.available_models_dropdown = None
+        self.model_label = None
+        self.selected_model = tk.StringVar()
+        self.add_model_button = None
+        self.openai_api_key_entry = None
+        self.ai21_api_key_entry = None
+        self.openai_api_key = None
+        self.ai21_api_key = None
+        Dialog.__init__(self, parent, title="Model Configuration")
+
+    def set_vars(self):
+        self.available_models = self.state.model_config['models']
+        self.selected_model.set(self.state.generation_settings['model'])
+        self.openai_api_key = self.state.model_config['OPENAI_API_KEY'] if self.state.model_config['OPENAI_API_KEY'] else ""
+        self.ai21_api_key = self.state.model_config['AI21_API_KEY'] if self.state.model_config['AI21_API_KEY'] else ""
+
+    def body(self, master):
+        self.set_vars()
+        self.add_model_button = ttk.Button(master, text="Add Model", command=self.add_model)
+        key_length = max(len(self.openai_api_key), len(self.ai21_api_key))
+        self.openai_api_key_entry = Entry(master, master.grid_size()[1], "OpenAI API Key", self.openai_api_key, None, width=key_length)
+        self.ai21_api_key_entry = Entry(master, master.grid_size()[1], "AI21 API Key", self.ai21_api_key, None, width=key_length)
+        models_list = self.available_models.keys()
+        self.model_label = ttk.Label(master, text="Model")
+        self.model_label.grid(row=master.grid_size()[1], column=0)
+        self.available_models_dropdown = tk.OptionMenu(master, self.selected_model, *models_list)
+        self.available_models_dropdown.config(width=20)
+        self.available_models_dropdown.grid(row=master.grid_size()[1]-1, column=1)
+        self.add_model_button.grid(row=master.grid_size()[1], column=0)
+
+    def add_model(self):
+        self.result = AddModelDialog(self).result
+        if self.result:
+            self.available_models[self.result['name']] = {'type': self.result['type']}
+            self.available_models_dropdown['menu'].add_command(label=self.result['name'], 
+                                                               command=lambda: self.selected_model.set(self.result['name']))
+
+    def apply(self):
+        self.state.update_frame(node=self.state.root(), update={'model_config': {'OPENAI_API_KEY': self.openai_api_key_entry.tk_variables.get(), 
+                                                                                 'AI21_API_KEY': self.ai21_api_key_entry.tk_variables.get(),
+                                                                                 'models': self.available_models}})
+        self.state.update_user_frame(update={'generation_settings': {'model': self.selected_model.get()}})
+

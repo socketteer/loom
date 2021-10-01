@@ -58,7 +58,10 @@ POSSIBLE_MODELS = [
 ]
 
 
-def gen(prompt, settings):
+#ai21_api_key = os.environ.get("AI21_API_KEY", None)
+
+
+def gen(prompt, settings, config):
     if settings["stop"]:
         stop = parse_stop(settings["stop"])
     else:
@@ -67,6 +70,11 @@ def gen(prompt, settings):
         logit_bias = parse_logit_bias(settings["logit_bias"])
     else:
         logit_bias = None
+    if config['OPENAI_API_KEY']:
+        openai.api_key = config['OPENAI_API_KEY']
+    # if config['AI21_API_KEY']:
+        #TODO 
+        # ai21_api_key = config['AI21_API_KEY']
     response, error = generate(prompt=prompt,
                                length=settings['response_length'],
                                num_continuations=settings['num_continuations'],
@@ -76,14 +84,16 @@ def gen(prompt, settings):
                                model=settings['model'],
                                stop=stop,
                                logit_bias=logit_bias,
+                               config=config,
                                )
     return response, error
 
 
-def generate(**kwargs):
+def generate(config, **kwargs):
     #pprint(kwargs)
-    if kwargs['model'] in ('j1-large', 'j1-jumbo'):
-        response, error = ai21_generate(**kwargs)
+    model_type = config['models'][kwargs['model']]['type']
+    if model_type == 'ai21':
+        response, error = ai21_generate(api_key=config['AI21_API_KEY'], **kwargs)
         #save_response_json(response.json(), 'examples/AI21_response.json')
         if not error:
             formatted_response = format_ai21_response(response.json(), model=kwargs['model'])
@@ -91,9 +101,9 @@ def generate(**kwargs):
             return formatted_response, error
         else:
             return response, error
-    else:
+    elif model_type in ('openai', 'openai-custom'):
         # TODO OpenAI errors
-        response, error = openAI_generate(**kwargs)
+        response, error = openAI_generate(custom=model_type == 'openai-custom', **kwargs)
         #save_response_json(response, 'examples/openAI_response.json')
         formatted_response = format_openAI_response(response, kwargs['prompt'], echo=True)
         #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')
@@ -135,7 +145,7 @@ def janus_generate(prompt, memory=""):
 #   OpenAI
 #################################
 
-openai.api_key = os.environ.get("OPENAI_API_KEY", None)
+#openai.api_key = os.environ.get("OPENAI_API_KEY", None)
 
 
 def fix_openAI_token(token):
@@ -209,22 +219,30 @@ def format_openAI_response(response, prompt, echo=True):
 
 @retry(n_tries=3, delay=1, backoff=2, on_failure=lambda *args, **kwargs: "")
 def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
-                    model='davinci', logit_bias=None, **kwargs):
+                    model='davinci', logit_bias=None, custom=False, **kwargs):
     if not logit_bias:
         logit_bias = {}
-    response = openai.Completion.create(
-        engine=model,
-        prompt=prompt,
-        temperature=temperature,
-        max_tokens=length,
-        top_p=top_p,
-        echo=True,
-        logprobs=logprobs,
-        logit_bias=logit_bias,
-        n=num_continuations,
-        stop=stop,
+    params = {
+        'prompt': prompt,
+        'temperature': temperature,
+        'max_tokens': length,
+        'top_p': top_p,
+        'echo': True,
+        'logprobs': logprobs,
+        'logit_bias': logit_bias,
+        'n': num_continuations,
+        'stop': stop,
         **kwargs
+    }
+    if custom:
+        params['model'] = model
+    else:
+        params['engine'] = model
+    print(openai.api_key)
+    response = openai.Completion.create(
+        **params
     )
+    
     return response, None
 
 
@@ -238,8 +256,6 @@ def search(query, documents, engine="curie"):
 #################################
 #   AI21
 #################################
-
-ai21_api_key = os.environ.get("AI21_API_KEY", None)
 
 
 def fix_ai21_tokens(token):
@@ -279,7 +295,7 @@ def format_ai21_response(response, model):
 
 
 def ai21_generate(prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
-                  engine='j1-large', **kwargs):
+                  engine='j1-large', api_key=None, **kwargs):
     stop = stop if stop else []
     request_json = {
         "prompt": prompt,
@@ -293,7 +309,7 @@ def ai21_generate(prompt, length=150, num_continuations=1, logprobs=10, temperat
     try:
         response = requests.post(
             f"https://api.ai21.com/studio/v1/{engine}/complete",
-            headers={"Authorization": f"Bearer {ai21_api_key}"},
+            headers={"Authorization": f"Bearer {api_key}"},
             json=request_json,
         )
     except requests.exceptions.ConnectionError:

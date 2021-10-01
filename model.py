@@ -113,6 +113,25 @@ DEFAULT_GENERATION_SETTINGS = {
     'template': 'Default',
 }
 
+
+DEFAULT_MODEL_CONFIG = {
+    'models': {
+        'ada': {'type': 'openai'},
+        'babbage': {'type': 'openai'},
+        'content-filter-alpha-c4': {'type': 'openai'},
+        'content-filter-dev': {'type': 'openai'},
+        'curie': {'type': 'openai'},
+        'cursing-filter-v6': {'type': 'openai'},
+        'davinci': {'type': 'openai'},
+        'instruct-curie-beta': {'type': 'openai'},
+        'instruct-davinci-beta': {'type': 'openai'},
+        'j1-large': {'type': 'ai21'},
+        'j1-jumbo': {'type': 'ai21'},
+    },
+    'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
+    'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),
+}
+
 DEFAULT_INLINE_GENERATION_SETTINGS = {
     "model": "davinci",
     "num_continuations": 8,
@@ -249,6 +268,10 @@ class TreeModel:
 
 
     @property
+    def model_config(self):
+        return self.state["model_config"]
+
+    @property
     def generation_settings(self):
         return self.state['generation_settings']
 
@@ -324,6 +347,7 @@ class TreeModel:
         state["inline_generation_settings"] = deepcopy(DEFAULT_INLINE_GENERATION_SETTINGS)
         state["workspace"] = deepcopy(DEFAULT_WORKSPACE)
         state["module_settings"] = deepcopy(DEFAULT_MODULE_SETTINGS) 
+        state["model_config"] = deepcopy(DEFAULT_MODEL_CONFIG)
         frames = self.accumulate_frames(self.selected_node)
         frame_merger.merge(state, frames)
         frame_merger.merge(state, self.user_frame)
@@ -1859,7 +1883,7 @@ class TreeModel:
         self.tree_updated(delete=[node['id'] for node in nodes])
 
     def default_generate(self, prompt, nodes):
-        results, error = gen(prompt, self.generation_settings)
+        results, error = gen(prompt, self.generation_settings, self.model_config)
         self.post_generation(error, nodes, results)
 
 

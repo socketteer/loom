@@ -800,7 +800,7 @@ class LoomTerminal(TextAware):
             return True
         return False
 
-    def inline_generate(self, generation_settings):
+    def inline_generate(self, generation_settings, config):
         prompt_length = generation_settings['prompt_length']
         if self.tag_ranges("sel"):
             self.fix_selection()
@@ -811,10 +811,10 @@ class LoomTerminal(TextAware):
             text = self.get("1.0", "insert")
             prompt = text[-prompt_length:]
             selected_range = [len(text), len(text)]
-        threading.Thread(target=self.call_model_inline, args=(prompt, generation_settings, selected_range)).start()
+        threading.Thread(target=self.call_model_inline, args=(prompt, generation_settings, selected_range, config)).start()
 
-    def call_model_inline(self, prompt, settings, selected_range):
-        response, error = gen(prompt, settings)
+    def call_model_inline(self, prompt, settings, selected_range, model_config):
+        response, error = gen(prompt, settings, model_config)
         response_text_list = completions_text(response)
         print(response_text_list)
         self.alternatives = []
@@ -830,10 +830,10 @@ class LoomTerminal(TextAware):
         self.tag_remove("alternate", "1.0", tk.END)
         self.insert_inline_completion()
 
-    def call_model_prompt(self, prompt, settings):
+    def call_model_prompt(self, prompt, settings, model_config):
         eval_settings = settings.copy()
         eval_settings.update({'max_tokens': 1, 'num_continuations': 1, 'logprobs': 15})
-        response, error = gen(prompt, eval_settings)
+        response, error = gen(prompt, eval_settings, model_config)
         # enable eval button
         #self.eval_prompt_button.configure(state='normal')
         self.model_response = response
@@ -1178,7 +1178,7 @@ def full_generation_settings_init(self):
 
 
 def generation_settings_body(self, build_pins=False):
-    create_combo_box(self.frame, "model", self.vars["model"], POSSIBLE_MODELS, width=15)
+    create_combo_box(self.frame, "model", self.vars["model"], list(self.state.model_config['models'].keys()), width=15)
     if build_pins:
         self.build_pin_button("model")
 
@@ -1270,8 +1270,9 @@ def generation_settings_templates_body(self, build_pins=False):
 
 # special means no pins
 class SpecialGenerationSettings(Settings):
-    def __init__(self, orig_params, realtime_update=False, parent_module=None):
+    def __init__(self, orig_params, state=None, realtime_update=False, parent_module=None):
         Settings.__init__(self, orig_params, realtime_update, parent_module)
+        self.state = state
         generation_settings_init(self)
 
     def body(self, master):
@@ -1311,8 +1312,8 @@ class GenerationSettings(FrameSettings, SpecialGenerationSettings):
 
 
 class SpecialFullGenerationSettings(SpecialGenerationSettings):
-    def __init__(self, orig_params, realtime_update=False, parent_module=None):
-        SpecialGenerationSettings.__init__(self, orig_params, realtime_update, parent_module)
+    def __init__(self, orig_params, state=None, realtime_update=False, parent_module=None):
+        SpecialGenerationSettings.__init__(self, orig_params, state, realtime_update, parent_module)
         full_generation_settings_init(self)
 
     def body(self, master):

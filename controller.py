@@ -21,10 +21,7 @@ import traceback
 from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color, \
     immutable_color
 from view.display import Display
-from components.dialogs import GenerationSettingsDialog, InfoDialog, RunDialog, VisualizationSettingsDialog, \
-    NodeChapterDialog, MultimediaDialog, NodeInfoDialog, SearchDialog, GotoNode, \
-    PreferencesDialog, CreateMemory, CreateSummary, Summaries, TagNodeDialog, AddTagDialog, TagsDialog, \
-    RunDialog, WorkspaceDialog, ExportOptionsDialog, ChatDialog
+from components.dialogs import *
 from model import TreeModel
 from util.util import clip_num, metadata, diff, split_indices, diff_linesToWords
 from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
@@ -32,7 +29,6 @@ from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stoch
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
 from util.keybindings import tkinter_keybindings
 from view.icons import Icons
-from gpt import gen
 from difflib import SequenceMatcher
 from diff_match_patch import diff_match_patch
 import json
@@ -234,6 +230,7 @@ class Controller:
                 ('Inline generation settings', None, None, no_junk_args(self.inline_generation_settings_dialog)),
                 ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
                 ('Chat settings', None, None, no_junk_args(self.chat_dialog)),
+                ('Model config', None, None, no_junk_args(self.model_config_dialog)),
                 #('Settings', None, None, no_junk_args(self.settings))
 
             ],
@@ -1832,6 +1829,9 @@ class Controller:
 
     def chat_dialog(self):
         dialog = ChatDialog(parent=self.display.frame, state=self.state)
+
+    def model_config_dialog(self):
+        dialog = ModelConfigDialog(parent=self.display.frame, state=self.state)
 
     @metadata(name="Visualization Settings", keys=["<Control-u>"], display_key="ctrl-u")
     def visualization_settings_dialog(self):

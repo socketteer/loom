@@ -731,22 +731,23 @@ class JanusPlayground(Module):
 
 
     def inline_generate(self, *args):
-        self.textbox.inline_generate(self.state.inline_generation_settings)
+        self.textbox.inline_generate(self.state.inline_generation_settings, self.state.model_config)
 
     def generate(self, mode='completions', *args):
         prompt = self.textbox.get("1.0", "end-1c")
         settings = self.state.generation_settings
+        config = self.state.model_config
         if mode == 'completions':
             # disable generate button
             self.generate_button.configure(state='disabled')
-            threading.Thread(target=self.call_model, args=(prompt, settings)).start()
+            threading.Thread(target=self.call_model, args=(prompt, settings, config)).start()
         elif mode == 'eval':
             # disable eval button
             self.eval_prompt_button.configure(state='disabled')
-            threading.Thread(target=self.call_model_prompt, args=(prompt, settings)).start()
+            threading.Thread(target=self.call_model_prompt, args=(prompt, settings, config)).start()
 
-    def call_model(self, prompt, settings):
-        response, error = gen(prompt, settings)
+    def call_model(self, prompt, settings, model_config):
+        response, error = gen(prompt, settings, model_config)
         self.generate_button.configure(state='normal')
         self.textbox.model_response = response
         self.textbox.process_logprobs()
@@ -754,8 +755,8 @@ class JanusPlayground(Module):
         for completion in response_text_list:
             self.completion_windows.open_window(completion)
 
-    def call_model_prompt(self, prompt, settings):
-        self.textbox.call_model_prompt(prompt, settings)
+    def call_model_prompt(self, prompt, settings, model_config):
+        self.textbox.call_model_prompt(prompt, settings, model_config)
         self.eval_prompt_button.configure(state='normal')
 
     def call_model_inline(self, prompt, settings, selected_range):
@@ -1468,8 +1469,8 @@ class Transformers(Module):
         self.prompt_literal_textbox.configure(state='disabled')
 
         self.generation_settings_frame = CollapsableFrame(self.frame, title='Generation settings', bg=bg_color())
-        self.generation_settings_dashboard = SpecialGenerationSettings(orig_params=self.generation_settings,
-                                                                realtime_update=True, parent_module=self)
+        self.generation_settings_dashboard = SpecialGenerationSettings(orig_params=self.generation_settings, state=self.state,
+                                                                       realtime_update=True, parent_module=self)
         self.generation_settings_dashboard.body(self.generation_settings_frame.collapsable_frame)
         self.generation_settings_frame.pack(side='top', fill='both', expand=True)
 
@@ -1551,7 +1552,9 @@ class Transformers(Module):
         if 'generation_settings' in self.template:
             self.generation_settings.update(self.template['generation_settings'])
         #print(self.generation_settings)
-        self.generation_settings_dashboard.read()
+        #self.generation_settings_dashboard.read()
+        #self.generation_settings_dashboard.read_orig_params()
+        self.generation_settings_dashboard.reset_vars()
 
     def write_generation_settings(self):
         self.template['generation_settings'] = self.generation_settings
@@ -1640,7 +1643,7 @@ class Transformers(Module):
         threading.Thread(target=self.call_model, args=(prompt, n)).start()
 
     def call_model(self, prompt, n):
-        response, error = gen(prompt, self.generation_settings)
+        response, error = gen(prompt, self.generation_settings, self.state.model_config)
         response_text_list = completions_text(response)
         self.completions_frame.show()
         for completion in response_text_list:
