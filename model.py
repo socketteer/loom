@@ -607,6 +607,18 @@ class TreeModel:
                 return False
         return True
 
+
+    #################################
+    #   Subtree
+    #################################
+
+    def children_text_list(self, node, filter=None):
+        return [self.text(child) for child in filtered_children(node, filter)]
+
+    def children_text(self, node, delimiter='\n', filter=None):
+        return delimiter.join(self.children_text_list(node, filter))
+
+
     #################################
     #   Traversal
     #################################
@@ -1181,13 +1193,14 @@ class TreeModel:
     #   Text
     #################################
 
-    def text(self, node):
+    def text(self, node, raw=False):
         if not node:
             return ''
-        if self.is_template(node):
+        if self.is_template(node) and not raw:
             try:
                 return eval(f'f"""{node["text"]}"""')
-            except Exception:
+            except Exception as e:
+                print(e)
                 return node['text']
         else:
             return node['text']
@@ -1457,6 +1470,8 @@ class TreeModel:
 
     def has_tag(self, node, tag):
         #print(node)
+        if tag not in self.tags:
+            return False
         if self.tags[tag]['scope'] == 'node':
             return self.has_tag_attribute(node, tag)
         elif self.tags[tag]['scope'] == 'subtree':

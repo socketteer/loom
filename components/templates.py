@@ -131,7 +131,10 @@ class Windows:
                 window = self.windows[window_id]
                 if 'textbox' in window:
                     textbox = window['textbox']
-                    textbox.after(300, textbox.reset_height)
+                    current_height = textbox.current_height()
+                    updated_height = textbox.height()
+                    if current_height != updated_height:
+                        textbox.after(300, textbox.reset_height)
             self.last_resize = datetime.datetime.now()
 
 
@@ -227,16 +230,17 @@ class NodeWindows(Windows):
         node = self.windows[node_id]['node']
         self.callbacks["Select node"]["callback"](node=node)
 
-    def save_edits(self, window_id):
+    def save_edits(self, window_id, reset_height=True):
         # why does this cause all windows to reload?
         node = self.windows[window_id]['node']
         new_text = self.windows[window_id]['textbox'].get("1.0", 'end-1c')
         self.callbacks["Update text"]["callback"](node=node, text=new_text)
-        self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
+        if reset_height:
+            self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
 
     def save_windows(self):
         for window_id in self.windows:
-            self.save_edits(window_id)
+            self.save_edits(window_id, reset_height=False)
 
     def edit_off(self, window_id):
         if self.windows[window_id]['textbox'].cget("state") == "normal":
@@ -290,7 +294,7 @@ class NodeWindows(Windows):
                 self.windows[window_id]['textbox'].configure(state='normal')
                 changed_edit = True
             self.windows[window_id]['textbox'].delete("1.0", "end")
-            self.windows[window_id]['textbox'].insert("1.0", self.callbacks["Text"]["callback"](node_id=window_id))
+            self.windows[window_id]['textbox'].insert("1.0", self.callbacks["Text"]["callback"](node_id=window_id, raw=True))
             if changed_edit:
                 self.windows[window_id]['textbox'].configure(state='disabled')
 
@@ -1463,6 +1467,7 @@ class TextAttribute:
         self.parent_module = parent_module
         self.max_height = max_height
         self.last_resize = datetime.datetime.min
+        self.expand = expand
 
         self.frame = CollapsableFrame(master, title=attribute_name, expand=expand, bg=bg_color())
 
@@ -1522,9 +1527,12 @@ class TextAttribute:
 
     def resize(self):
         if self.last_resize + datetime.timedelta(milliseconds=500) < datetime.datetime.now():
-            self.master.update_idletasks()
-            self.textbox.after(300, self.textbox.reset_height(max_height=self.max_height))
-            self.last_resize = datetime.datetime.now()
+            current_height = self.textbox.current_height()
+            updated_height = self.textbox.height()
+            if current_height != updated_height and not self.expand:
+                self.master.update_idletasks()
+                self.textbox.after(300, self.textbox.reset_height(max_height=self.max_height))
+                self.last_resize = datetime.datetime.now()
         
 
 # TODO option for single-line entry attributes instead of textattribute template

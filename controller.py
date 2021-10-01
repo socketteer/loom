@@ -509,9 +509,9 @@ class Controller:
         return [n for n in node['children'] if not self.state.visible(n)]
 
     @metadata(name="Text")
-    def get_text(self, node_id=None):
+    def get_text(self, node_id=None, raw=False):
         node_id = node_id if node_id else self.state.selected_node_id
-        return self.state.text(self.state.node(node_id))#self.state.node(node_id)['text']
+        return self.state.text(self.state.node(node_id), raw=raw)#self.state.node(node_id)['text']
 
     @metadata(name="Get floating notes")
     def get_floating_notes(self, tag='note', node=None):
@@ -805,6 +805,7 @@ class Controller:
         self.state.unzip_all(filter=self.state.visible)
         self.state.tree_updated(rebuild=True)
         self.state.select_node(self.state.tree_raw_data['root']['id'])
+
 
     #################################
     #   Textbox

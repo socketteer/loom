@@ -517,6 +517,7 @@ class Children(Module):
         if not self.children.scroll_frame:
             print('not built')
             return
+        self.children.save_windows()
         children = self.callbacks["Get children"]["callback"]()
         self.children.update_windows(children)
         self.children.update_text()
@@ -536,7 +537,7 @@ class Children(Module):
             self.toggle_hidden_button['text'] = f' hide {num_hidden} hidden children'
             
     def selection_updated(self):
-        self.children.save_windows()
+        #self.children.save_windows()
         self.tree_updated()
 
     def add_child(self, *args):
@@ -1238,9 +1239,14 @@ class Edit(Module):
         self.text_attributes = {}
         self.add_text_attribute_button = None
         self.textboxes_frame = None
-        self.buttons_frame = None
+        #self.buttons_frame = None
         self.node = None
         self.done_editing_button = None
+        self.templates_frame = None
+        self.template_checkbox = None
+        self.templates_dropdown = None
+        self.template_bool = tk.BooleanVar()
+        self.template_preset = tk.StringVar()
 
     def build(self, parent):
         Module.build(self, parent)
@@ -1249,8 +1255,16 @@ class Edit(Module):
         self.node_label.configure(cursor="hand2")
         self.node_label.bind("<Button-1>", self.toggle_pin)
 
-        self.buttons_frame = ttk.Frame(self.frame)
-        self.buttons_frame.pack(side='top', fill='x')
+        self.templates_frame = ttk.Frame(self.frame)
+        self.templates_frame.pack(side='top', fill='x')
+        self.template_checkbox = tk.Checkbutton(self.templates_frame, text="Template", variable=self.template_bool, onvalue=True, 
+                                                 offvalue=False, command=self.write_template)
+        self.template_checkbox.pack(side='left')
+
+        template_presets = ['children_list']
+        self.templates_dropdown = tk.OptionMenu(self.templates_frame, self.template_preset, None, *template_presets)
+        self.templates_dropdown.pack(side='left')
+        self.template_preset.trace("w", self.template_preset_changed)
 
         self.textboxes_frame = ttk.Frame(self.frame)
         self.textboxes_frame.pack(side='top', fill='both', expand=True)
@@ -1262,6 +1276,20 @@ class Edit(Module):
         # self.done_editing_button = ttk.Button(self.buttons_frame, text="Done Editing", command=self.done_editing)
         # self.done_editing_button.pack(side='bottom', expand=True, pady=10)
         self.rebuild_textboxes()
+        self.refresh_template()
+
+    def template_preset_changed(self, *args):
+        template = self.template_preset.get()
+        if template == 'none':
+            return 
+        elif template == 'children_list':
+            node_id = self.node['id']
+            self.text_attributes['text'].textbox.insert(tk.END,
+                                                        f"{{self.children_text(self.node('{node_id}'), filter=lambda node, self=self: self.has_tag(node=node, tag='example'))}}\n")
+            self.save_all()
+            self.template_checkbox.select()
+            self.write_template()
+            
 
     def toggle_pin(self, *args):
         if self.settings()['node_id']:
@@ -1298,7 +1326,7 @@ class Edit(Module):
 
 
         self.text_attributes['text'] = TextAttribute(master=self.textboxes_frame, attribute_name="text", 
-                                                     read_callback=lambda: self.callbacks["Text"]["callback"](node_id=self.node['id']),
+                                                     read_callback=lambda: self.callbacks["Text"]["callback"](node_id=self.node['id'], raw=True),
                                                      write_callback=self.save_text,
                                                      expand=True,
                                                      parent_module=self,
@@ -1316,18 +1344,20 @@ class Edit(Module):
                                                                 parent_module=self)
                 self.text_attributes[attribute].pack(side='top', fill='both', expand=True, pady=10)
 
-        # self.text_attributes['frame'] = TextAttribute(master=self.textboxes_frame, attribute_name="frame",
-        #                                   read_callback=self.read_frame, 
-        #                                   write_callback=self.write_frame,
-        #                                   expand=True,
-        #                                   parent_module=self,
-        #                                   height=3)
-        # self.text_attributes['frame'].pack(side='top', fill='both', expand=True, pady=10)
-        # self.text_attributes['frame'].textbox.configure(**textbox_config(bg='black', font='Monaco'))
-        # self.text_attributes['frame'].hide()
-        
         self.update()
 
+
+    def refresh_template(self):
+        self.template_preset.set(None)
+        if self.node.get('template', False):
+            self.template_checkbox.select()
+        else:
+            self.template_checkbox.deselect()
+
+    def write_template(self):
+        # TODO use callbacks
+        self.node['template'] = self.template_bool.get()
+        self.state.tree_updated()
 
     def update(self):
         for text_attribute in self.text_attributes:
@@ -1385,6 +1415,7 @@ class Edit(Module):
         if not self.settings()['node_id']:
             self.save_all()
             self.rebuild_textboxes()
+            self.refresh_template()
 
     def tree_updated(self):
         self.update()

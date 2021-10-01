@@ -238,6 +238,9 @@ class TextAware(tk.Text):
             self.mark_set("matchEnd", "%s+%sc" % (index, count.get()))
             self.tag_add(tag, "matchStart", "matchEnd")
 
+    def current_height(self):
+        return self.cget("height")
+
     def reset_height(self, max_height=None):
         height = self.height()
         try:
@@ -250,6 +253,7 @@ class TextAware(tk.Text):
 
     def height(self):
         return self.tk.call((self._w, "count", "-update", "-displaylines", "1.0", "end"))
+
 
 
 class ScrollableFrame(ttk.Frame):

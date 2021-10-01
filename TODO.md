@@ -348,6 +348,12 @@
 
 - integrate retry and reroll w/ filter and flag for whether to wrap
 
+- textattributes adjust height even when expand only if height can be adjusted
+
+- 'clear' button for children
+
+- move hidden children functionality into nodewindows & integrate with blacklist
+
 ## Other TODO
 
 ### bugs
