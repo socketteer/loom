@@ -1709,6 +1709,11 @@ class Controller:
         # if not autosave and not self.state.preferences['save_counterfactuals']:
         #     self.state.delete_counterfactuals()
         self.save_edits()
+        if self.state.preferences['model_response'] == 'backup' and not autosave:
+            self.state.backup_and_delete_model_response_data()
+        elif self.state.preferences['model_response'] == 'discard':
+            self.state.tree_raw_data['model_responses'] = {}
+
         self.state.save_tree(backup=popup, save_filename=filename, subtree=subtree)
         if popup:
             messagebox.showinfo(title=None, message="Saved!")

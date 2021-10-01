@@ -73,46 +73,47 @@ class NodeInfoDialog(Dialog):
 
         if "generation" in self.node:
             model_response, prompt, completion = self.state.get_request_info(self.node)
-            create_side_label(master, "prompt")
-            prompt_text = tk.Text(master, height=15)
-            prompt_text.grid(row=master.grid_size()[1] - 1, column=1)
-            prompt_text.insert(tk.INSERT, prompt)
-            prompt_text.configure(
-                state='disabled',
-                spacing1=8,
-                foreground=text_color(),
-                background=bg_color(),
-                wrap="word",
-            )
-            # makes text copyable
-            prompt_text.bind("<Button>", lambda event: prompt_text.focus_set())
+            if model_response:
+                create_side_label(master, "prompt")
+                prompt_text = tk.Text(master, height=15)
+                prompt_text.grid(row=master.grid_size()[1] - 1, column=1)
+                prompt_text.insert(tk.INSERT, prompt)
+                prompt_text.configure(
+                    state='disabled',
+                    spacing1=8,
+                    foreground=text_color(),
+                    background=bg_color(),
+                    wrap="word",
+                )
+                # makes text copyable
+                prompt_text.bind("<Button>", lambda event: prompt_text.focus_set())
 
-            create_side_label(master, "original generated text")
-            gen_text = tk.Text(master, height=5)
-            gen_text.grid(row=master.grid_size()[1] - 1, column=1)
-            gen_text.insert(tk.INSERT, completion['text'])
+                create_side_label(master, "original generated text")
+                gen_text = tk.Text(master, height=5)
+                gen_text.grid(row=master.grid_size()[1] - 1, column=1)
+                gen_text.insert(tk.INSERT, completion['text'])
 
-            gen_text.tag_config("prob_1", background=PROB_1)
-            gen_text.tag_config("prob_2", background=PROB_2)
-            gen_text.tag_config("prob_3", background=PROB_3)
-            gen_text.tag_config("prob_4", background=PROB_4)
-            gen_text.tag_config("prob_5", background=PROB_5)
-            gen_text.tag_config("prob_6", background=PROB_6)
+                gen_text.tag_config("prob_1", background=PROB_1)
+                gen_text.tag_config("prob_2", background=PROB_2)
+                gen_text.tag_config("prob_3", background=PROB_3)
+                gen_text.tag_config("prob_4", background=PROB_4)
+                gen_text.tag_config("prob_5", background=PROB_5)
+                gen_text.tag_config("prob_6", background=PROB_6)
 
-            # TODO continuous coloration
-            for i, token_data in enumerate(completion['tokens']):
-                prob = math.exp(token_data['generatedToken']['logprob'])
-                label = "prob_1" if prob >= 0.8 else "prob_2" if prob >= 0.6 else "prob_3" if prob >= 0.4 \
-                    else "prob_4" if prob >= 0.2 else "prob_5" if prob >= 0.05 else "prob_6"
+                # TODO continuous coloration
+                for i, token_data in enumerate(completion['tokens']):
+                    prob = math.exp(token_data['generatedToken']['logprob'])
+                    label = "prob_1" if prob >= 0.8 else "prob_2" if prob >= 0.6 else "prob_3" if prob >= 0.4 \
+                        else "prob_4" if prob >= 0.2 else "prob_5" if prob >= 0.05 else "prob_6"
 
-                gen_text.tag_add(label, f"0.1 + {token_data['position']['start']} chars",
-                                 f"0.1 + {token_data['position']['end']} chars")
+                    gen_text.tag_add(label, f"0.1 + {token_data['position']['start']} chars",
+                                     f"0.1 + {token_data['position']['end']} chars")
 
-            gen_text.configure(state='disabled')
+                gen_text.configure(state='disabled')
 
-            gen_text.bind("<Button>", lambda event: gen_text.focus_set())
-            create_side_label(master, "model")
-            create_label(master, model_response['model'], row=master.grid_size()[1] - 1, col=1, padx=15)
+                gen_text.bind("<Button>", lambda event: gen_text.focus_set())
+                create_side_label(master, "model")
+                create_label(master, model_response['model'], row=master.grid_size()[1] - 1, col=1, padx=15)
 
 
 class SearchDialog(Dialog):

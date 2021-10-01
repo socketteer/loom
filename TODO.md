@@ -104,14 +104,7 @@
     - hide buttons preference
     - no show hidden option preference
     - bind edit hotkey
-
-
-- generations data options
-    - save in tree file
-    - don't save
-    - save in backup file
-    - handle trying to access nonexistent entry
-
+    
 - save as duplicate button
     - distinct:
         - duplicate subtree
@@ -311,9 +304,7 @@
         - change automatic inheritability conditions
     - memory collection
     - world info
-
-- num descendents in children preview
-
+    
 - centralized way to synch node and nav tree open states
 - tagging nodes causes newly opened nodes to close
 
@@ -328,6 +319,8 @@
 - update text index stuff to work with templates
 
 - adjust textattribute textbox heights based on content
+- textattributes adjust height even when expand only if height can be adjusted
+
 
 - decode openAI alt token bytes
 
@@ -348,7 +341,6 @@
 
 - integrate retry and reroll w/ filter and flag for whether to wrap
 
-- textattributes adjust height even when expand only if height can be adjusted
 
 - 'clear' button for children
 

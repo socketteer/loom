@@ -2351,7 +2351,9 @@ class TreeModel:
 
 
     def get_request_info(self, node):
-        model_response = self.model_responses[node['generation']['id']]
+        model_response = self.model_responses.get(node['generation']['id'], False)
+        if not model_response:
+            return None, '', ''
         prompt = model_response['prompt']['text']
         completion = model_response['completions'][node['generation']['index']]
         return model_response, prompt, completion
