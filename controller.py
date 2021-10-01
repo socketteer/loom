@@ -701,7 +701,7 @@ class Controller:
                                                     start_position=start_position, prompt=prompt)
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
-    def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node and subtree?"):
+    def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node and subtree?", refresh_nav=True):
         node = node if node else self.state.selected_node
         if not node:
             return
@@ -716,7 +716,7 @@ class Controller:
         self.state.delete_node(node=node, reassign_children=reassign_children)
         if self.state.selected_node_id == node['id']:
             self.select_node(next_sibling)
-        if self.in_nav(node):
+        if self.in_nav(node) and refresh_nav:
             self.state.tree_updated(delete=[node['id']])
         else:
             self.state.tree_updated()
@@ -730,13 +730,27 @@ class Controller:
         if not node['children']:
             return
         children = node['children']
+        child_ids = [n['id'] for n in children]
         if ask:
             result = messagebox.askquestion("Delete", f"Delete {len(children)} children and subtrees?", icon='warning')
             if result != 'yes':
-                return False
+                return
         for child in children:
-            self.delete_node(child, reassign_children=False, ask=False)
-        self.state.tree_updated(delete=[n['id'] for n in subtree_list(node, filter=self.in_nav) if n != node])
+            self.delete_node(child, reassign_children=False, ask=False, refresh_nav=False)
+        self.state.tree_updated(delete=child_ids)#n['id'] for n in subtree_list(node, filter=self.in_nav) if n != node])
+
+    @metadata(name="Archive children")
+    def archive_children(self, node=None):
+        node = node if node else self.state.selected_node
+        if not node:
+            return
+        if not node['children']:
+            return
+        children = node['children']
+        for child in children:
+            self.state.tag_node(child, "archived")
+            self.state.update_tree_tag_changed(node, "archived")
+
 
     @metadata(name="Delete and reassign children")
     def delete_node_reassign_children(self, node=None):
