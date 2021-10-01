@@ -219,7 +219,7 @@ class Display:
 
         scrollbar = ttk.Scrollbar(textbox_frame, command=lambda *args: self.__getattribute__(textbox_attr).yview(*args))
         scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-        textbox = LoomTerminal(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set, undo=True)
+        textbox = LoomTerminal(textbox_frame, bd=3, height=height, yscrollcommand=scrollbar.set)
         self.__setattr__(textbox_attr + "_scrollbar", scrollbar)
         self.__setattr__(textbox_attr, textbox)
         # TODO move this out
@@ -459,6 +459,7 @@ class Display:
         # get the item the mouse is over
         item = self.nav_tree.identify('item', event.x, event.y)
         if item:
+            # TODO abstract this menu and use for children module too
             # create a menu
             menu = tk.Menu(self.nav_tree, tearoff=0)
             # add a command to the menu
@@ -466,32 +467,38 @@ class Display:
             menu.add_command(label="Edit", command=lambda id=item: self.callbacks["Edit in module"]["callback"](node=self.state.node(id)))
             menu.add_command(label="Copy")
             menu.add_command(label="Copy id")
-            menu.add_command(label="Duplicate")
+            menu.add_command(label="Duplicate", command=lambda id=item: self.callbacks["Duplicate"]["callback"](node=self.state.node(id)))
             menu.add_command(label="Delete", command=lambda id=item: self.callbacks["Delete"]["callback"](node=self.state.node(id)))
             menu.add_command(label="Delete children", command=lambda id=item: self.callbacks["Delete children"]["callback"](node=self.state.node(id)))
-            menu.add_command(label="Archive children", command=lambda id=item: self.callbacks["Archive children"]["callback"](node=self.state.node(id)))
 
-            menu.add_command(label="Move...")
-
+            move_menu = tk.Menu(menu, tearoff=0)
+            move_menu.add_command(label="Move up", command=lambda id=item: self.callbacks["Move up"]["callback"](node=self.state.node(id)))
+            move_menu.add_command(label="Move down", command=lambda id=item: self.callbacks["Move down"]["callback"](node=self.state.node(id)))
+            move_menu.add_command(label="Move to top")
+            move_menu.add_command(label="Move to bottom")
+            move_menu.add_command(label="Move to parent level")
+            move_menu.add_command(label="Change parent...")
+            menu.add_cascade(label="Move", menu=move_menu)
+            
             view_menu = tk.Menu(menu, tearoff=0)
 
             view_menu.add_command(label="Hide")
-            view_menu.add_command(label="Hoist")
+            view_menu.add_command(label="Hoist", command=lambda id=item: self.callbacks["Hoist"]["callback"](node=self.state.node(id)))
             # contingent
             view_menu.add_command(label="Zip")
             # contingent
             view_menu.add_command(label="Unzip")
             # contingent
-            view_menu.add_command(label="Expand subtree")
+            view_menu.add_command(label="Expand subtree", command=lambda id=item: self.callbacks["Expand subtree"]["callback"](node=self.state.node(id)))
             # contingent
-            view_menu.add_command(label="Collapse subtree")
+            view_menu.add_command(label="Collapse subtree", command=lambda id=item: self.callbacks["Collapse subtree"]["callback"](node=self.state.node(id)))
 
             menu.add_cascade(label="View", menu=view_menu)
 
             add_menu = tk.Menu(menu, tearoff=0)
-            add_menu.add_command(label="Add child")
-            add_menu.add_command(label="Add sibling")
-            add_menu.add_command(label="Add parent")
+            add_menu.add_command(label="Add child", command=lambda id=item: self.callbacks["New Child"]["callback"](node=self.state.node(id)))
+            add_menu.add_command(label="Add sibling", command=lambda id=item: self.callbacks["New Sibling"]["callback"](node=self.state.node(id)))
+            add_menu.add_command(label="Add parent", command=lambda id=item: self.callbacks["New Parent"]["callback"](node=self.state.node(id)))
             add_menu.add_command(label="Add ghostchild")
             add_menu.add_command(label="Add ghostparent")
             add_menu.add_command(label="Add portal")
@@ -502,6 +509,7 @@ class Display:
 
             tag_menu.add_command(label="Pin")
             tag_menu.add_command(label="Archive")
+            tag_menu.add_command(label="Archive children", command=lambda id=item: self.callbacks["Archive children"]["callback"](node=self.state.node(id)))
             tag_menu.add_command(label="Turn into note")
             tag_menu.add_command(label="Tag...")
             

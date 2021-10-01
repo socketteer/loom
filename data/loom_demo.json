@@ -12383,7 +12383,6 @@
         "font_size": 12,
         "line_spacing": 8,
         "paragraph_spacing": 10,
-        "log_diff": false,
         "autosave": false,
         "model_response": "backup",
         "prob": true,

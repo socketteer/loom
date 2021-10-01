@@ -14,6 +14,7 @@ import codecs
 import json
 from util.frames_util import frame_merger, frame_merger_append, frame_merger_override
 from copy import deepcopy
+import datetime
 
 from gpt import openAI_generate, search, gen
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
@@ -58,7 +59,7 @@ DEFAULT_PREFERENCES = {
     'paragraph_spacing': 10,
 
     # Saving
-    'log_diff': False,
+    'revision_history': False,
     'autosave': False,
     #'save_counterfactuals': False,
     'model_response': 'backup', #'discard', #'save'
@@ -937,7 +938,7 @@ class TreeModel:
 
 
     # TODO add creation date if it doesn't exist
-    def update_text(self, node, text, modified_flag=True, log_diff=False, refresh_nav=True):
+    def update_text(self, node, text, modified_flag=True, save_revision_history=False, refresh_nav=True):
         if not node["id"] in self.tree_node_dict or not text:
             return
         if not self.is_mutable(node):
@@ -965,23 +966,15 @@ class TreeModel:
                 node['meta']['source'] = 'prompt'
             elif node['meta']['source'] == 'AI':
                 node['meta']['source'] = 'mixed'
-            if log_diff:
-                # TODO deprecated
-                if old_text and len(node['text']) < 2000:
-                    pass
-                    # old_tokens = None
-                    # if 'diffs' not in node['meta']:
-                    #     node['meta']['diffs'] = []
-                    # else:
-                    #     old_tokens = node['meta']['diffs'][-1]['diff']['new']
-                    # if not old_tokens:
-                    #     if 'meta' in node and 'generation' in node['meta']:
-                    #         old_tokens = node['meta']['generation']["logprobs"]["tokens"], \
-                    #                      node['meta']['generation']["logprobs"]["text_offset"]
-                    #     else:
-                    #         old_tokens = tokenize_ada(old_text)
-                    # node['meta']['diffs'].append({'diff': diff(old_tokens, tokenize_ada(text)),
-                    #                               'revision timestamp': timestamp()})
+
+            if save_revision_history:
+                if 'history' not in node:
+                    node['history'] = []
+                node['history'].append({
+                    'timestamp': timestamp(),
+                    'text': old_text,
+                })
+                
             if refresh_nav:
                 self.tree_updated(edit=[node['id']])
             else:

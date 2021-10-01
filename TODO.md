@@ -99,13 +99,9 @@
     - story textbox
     - nav and chapter trees
     - other dialogs
-        
-- windows
-    - hide buttons preference
-    - no show hidden option preference
-    - bind edit hotkey
+
     
-- save as duplicate button
+- save as duplicate
     - distinct:
         - duplicate subtree
         - duplicate only edited node(without children)
@@ -132,24 +128,17 @@
     - mouse
 - insertion cursor
     - emacs-like commands
-
-- tabs for suggested modules and dropdown for all
-
+    
 - visible nodes tree object
     - locality / pruning
     - hoisting
     - masks
     - source of truth for nav, visible (not quite - nav is still source of truth)
 
-- code to be executed upon navigating to node
 
 - don't change selection when unhoisting from root node
 
 - tagging a node which was just split results in tagging multiple nodes (revealed or done only when navigating to node - why?)
-
-
-- inline generation in story textbox
-    - hotkey to split node after generation
 
 
 - ghostchildren and portals
@@ -160,13 +149,15 @@
 
 - walk - option to loop to start if no children
 
-- children
-    - "hidden children" should include blacklisted windows
 
 - panes
     - pane with no modules should automatically close
     - buttons to open panes
     - top and left pane
+
+- templates
+    - windows
+        - bind edit hotkey
 
 - modules
     - modules / workspace menu
@@ -202,6 +193,17 @@
             - delete
             - hide
             - change transparency?
+      
+    - textattributes
+        - adjust textattribute textbox heights based on content
+        - textattributes adjust height even when expand only if height can be adjusted
+        - enable / disable realtime updates for textattributes
+    
+    - children
+        - 'clear' button
+        - move hidden children functionality into nodewindows & integrate with blacklist
+        - should children use nav visibility by default?
+    
     - modules come in two types, ones which can be duplicated (and should have their own settings) and ones which shouldnt
         - ok instances
             - text editor
@@ -227,13 +229,6 @@
 
 - hotkey to shift words to parent / children
 
-- export
-    - export subtree function
-    - global objects and frames
-
-- import 
-    - throw out immutable root? or convert to normal node
-
 - custom focus out binding for text attribute class
 
 - node events
@@ -242,6 +237,8 @@
     - onEdit
     - global and local
     - tags can be configured to toggle on events
+    - code to be executed upon navigating to node
+
 
 - frames
     - script to delete / reassign old settings
@@ -254,9 +251,7 @@
     - save frame preset
     - frames should be able to reference preset names
         - requires saving frames as strings instead of dicts?
-
-
-- enable / disable realtime updates for textattributes
+    
 
 - splices
     - links and windows
@@ -312,15 +307,12 @@
 
 - version control 
     - option to turn versions into explicit branches (and vice versa?)
+      - unroll
     - start a new "branch" and merge
     
 - generation settings text attributes f strings?
 
 - update text index stuff to work with templates
-
-- adjust textattribute textbox heights based on content
-- textattributes adjust height even when expand only if height can be adjusted
-
 
 - decode openAI alt token bytes
 
@@ -329,6 +321,7 @@
 - inline generations in textbox sometimes inserted in wrong indices (after distributing changes?)
 
 - read coloring bug - when text is long?
+    - nca call causing this?
 
 - edit module pin doesn't work right
 
@@ -342,9 +335,6 @@
 - integrate retry and reroll w/ filter and flag for whether to wrap
 
 
-- 'clear' button for children
-
-- move hidden children functionality into nodewindows & integrate with blacklist
 
 ## Other TODO
 

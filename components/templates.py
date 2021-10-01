@@ -622,7 +622,7 @@ class LoomTerminal(TextAware):
     }
     """
     def __init__(self, *args, **kwargs):
-        TextAware.__init__(self, *args, **kwargs)
+        TextAware.__init__(self, undo=True, *args, **kwargs)
         
         self.bind("<Key>", self.key_pressed)
         self.bind("<Button>", lambda event: self.focus_set())
@@ -920,7 +920,7 @@ class Settings:
         row = self.frame.grid_size()[1]
         label_text = label_text if label_text else name + ' text'
         create_side_label(self.frame, label_text, row)
-        self.textboxes[name] = TextAware(self.frame, height=1, width=20)
+        self.textboxes[name] = TextAware(self.frame, height=1, width=20, undo=True)
         self.textboxes[name].grid(row=row, column=1)
         self.textboxes[name].bind("<Key>", self.key_pressed)
         self.textboxes[name].bind("<FocusOut>", lambda event, name=name: self.get_text(key=name))
@@ -1080,6 +1080,7 @@ class Preferences(FrameSettings):
             "paragraph_spacing": tk.IntVar,
 
             "autosave": tk.BooleanVar,
+            "revision_history": tk.BooleanVar,
             "model_response": tk.StringVar,
             
             "prob": tk.BooleanVar,
@@ -1126,6 +1127,9 @@ class Preferences(FrameSettings):
 
         create_checkbutton(self.frame, "Autosave", "autosave", self.vars)
         self.build_pin_button("autosave")
+
+        create_checkbutton(self.frame, "Revision history", "revision_history", self.vars)
+        self.build_pin_button("revision_history")
 
         self.create_dropdown("model_response", "Save model response?", ['backup', 'save', 'discard'])
         self.build_pin_button("model_response")
@@ -1221,7 +1225,7 @@ def generation_settings_templates_body(self, build_pins=False):
     # self.context_frame = CollapsableFrame(self.frame, title="global prepended context", bg=bg_color())
     # self.context_frame.pack(side="top", fill="both", expand=True, pady=10)
     row = self.frame.grid_size()[1]
-    self.context_textbox = TextAware(self.frame, height=4, width=30)
+    self.context_textbox = TextAware(self.frame, height=4, width=30, undo=True)
     self.context_textbox.configure(**textbox_config())
     self.context_textbox.grid(row=row, column=0, columnspan=2)
     self.context_textbox.bind("<Key>", self.key_pressed)
@@ -1476,7 +1480,7 @@ class TextAttribute:
             self.delete_button.grid(row=0, column=1, padx=10)
             self.delete_button.bind("<Button-1>", lambda event: self.delete_callback())
 
-        self.textbox = TextAware(self.frame.collapsable_frame, height=1, **kwargs)
+        self.textbox = TextAware(self.frame.collapsable_frame, height=1, undo=True, **kwargs)
         self.textbox.pack(fill='both', expand=True)
 
         self.textbox.configure(**textbox_config(bg=edit_color()))

@@ -691,7 +691,7 @@ class JanusPlayground(Module):
         self.textbox_frame = ttk.Frame(self.pane)
         self.pane.add(self.textbox_frame, weight=4)
 
-        self.textbox = LoomTerminal(self.textbox_frame, bd=2, height=3, undo=True)
+        self.textbox = LoomTerminal(self.textbox_frame, bd=2, height=3)
         self.textbox.pack(side='top', fill='both', expand=True)
         self.textboxes.append(self.textbox)
         self.textbox.configure(**textbox_config(bg=edit_color()))
@@ -1188,7 +1188,7 @@ class Input(Module):
 
     def build(self, parent):
         Module.build(self, parent)
-        self.input_box = TextAware(self.frame, bd=3, height=1)
+        self.input_box = TextAware(self.frame, bd=3, height=1, undo=True)
         self.input_box.pack(expand=True, fill='both')
         self.input_box.configure(**textbox_config(bg=edit_color()))
         self.input_box.focus()

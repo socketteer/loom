@@ -450,7 +450,7 @@ class Controller:
     @metadata(name="Update text")
     def update_text(self, text, node=None):
         node = node if node else self.state.selected_node
-        self.state.update_text(node, text)
+        self.state.update_text(node, text, save_revision_history=self.state.preferences['revision_history'])
 
     @metadata(name="<", keys=["<Command-minus>", "<Alt-minus>"])
     def prev_selection(self):
@@ -560,13 +560,13 @@ class Controller:
         return new_child
 
     @metadata(name="New Sibling", keys=["<Command-Down>", "<Alt-Down>"], display_key="Command-down")
-    def create_sibling(self, node=None):
+    def create_sibling(self, node=None, toggle_edit=True):
         node = node if node else self.state.selected_node
         new_sibling = self.state.create_sibling(node=node)
         self.state.tree_updated(add=[new_sibling['id']])
         self.select_node(new_sibling, ask_reveal=False)
-        self.state.node_creation_metadata(new_sibling, source='prompt')
-        if self.display.mode == "Read":
+        self.state.node_creation_metadata(new_sibling)
+        if self.display.mode == "Read" and toggle_edit:
             self.toggle_edit_mode()
         return new_sibling
 
@@ -677,6 +677,7 @@ class Controller:
             next_sibling = self.state.sibling(node, wrap=False, filter=self.in_nav)
             self.select_node(next_sibling)
             if not self.state.is_AI_generated(self.state.selected_node):
+                # moved to parent
                 self.generate(update_selection=True, placeholder="")
         else:
             self.generate(update_selection=True, placeholder="")
@@ -1690,8 +1691,9 @@ class Controller:
         self.state.open_node_as_root()
 
     @metadata(name="Hoist", keys=["<Command-h>", "<Alt-h>"], display_key="")
-    def hoist(self):
-        self.state.hoist()
+    def hoist(self, node=None):
+        node = node if node else self.state.selected_node
+        self.state.hoist(node=node)
 
     @metadata(name="Unhoist", keys=["<Command-Shift-KeyPress-H>", "<Control-Shift-KeyPress-H>"], display_key="")
     def unhoist(self):
@@ -1727,9 +1729,15 @@ class Controller:
             new_text = self.display.textbox.get("1.0", 'end-1c')
             #new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
             self.escape()
-            sibling = self.state.create_sibling()
-            self.nav_select(node_id=sibling['id'])
+            sibling = self.create_sibling(self.state.selected_node, toggle_edit=False)
+            #self.nav_select(node_id=sibling['id'])
             self.state.update_text(sibling, new_text)
+
+    @metadata(name="Duplicate")
+    def duplicate(self, node=None):
+        node = node if node else self.state.selected_node
+        sibling = self.create_sibling(self.state.selected_node, toggle_edit=False)
+        self.state.update_text(sibling, node['text'])
 
     # Exports subtree as a loom json
     @metadata(name="Export subtree", keys=["<Control-Command-KeyPress-X>", "<Control-Alt-KeyPress-X>"], display_key="Ctrl-Command-X")
@@ -1899,7 +1907,7 @@ class Controller:
             node = self.state.selected_node
         dialog = NodeInfoDialog(parent=self.display.frame, node=node, state=self.state)
 
-    @metadata(name="Multimedia dialogue", keys=["<u>"], display_key="u")
+    @metadata(name="Multimedia dialog", keys=["<u>"], display_key="u")
     def multimedia_dialog(self, node=None):
         if node is None:
             node = self.state.selected_node
@@ -2175,59 +2183,59 @@ class Controller:
                 self.delete_autocomplete()
                 self.exit_autocomplete()
 
-    def delete_autocomplete(self, offset=0):
-        #print(self.autocomplete.meta['autocomplete_range'])
-        #print('text box contents: ', self.display.input_box.get("1.0", 'end-1c'))
+    # def delete_autocomplete(self, offset=0):
+    #     #print(self.autocomplete.meta['autocomplete_range'])
+    #     #print('text box contents: ', self.display.input_box.get("1.0", 'end-1c'))
 
-        # delete_range = self.autocomplete.meta['autocomplete_range']
-        delete_range = (f'{self.autocomplete.meta["autocomplete_range"][0]} + {offset} chars',
-                                        f'{self.autocomplete.meta["autocomplete_range"][1]}')
-        #print(self.display.input_box.get(*delete_range))
-        self.display.input_box.delete(*delete_range)
-        #print('text box contents: ', self.display.input_box.get("1.0", 'end-1c'))
+    #     # delete_range = self.autocomplete.meta['autocomplete_range']
+    #     delete_range = (f'{self.autocomplete.meta["autocomplete_range"][0]} + {offset} chars',
+    #                                     f'{self.autocomplete.meta["autocomplete_range"][1]}')
+    #     #print(self.display.input_box.get(*delete_range))
+    #     self.display.input_box.delete(*delete_range)
+    #     #print('text box contents: ', self.display.input_box.get("1.0", 'end-1c'))
 
-    def filter_autocomplete_suggestions(self, char):
-        # TODO deleting tokens
-        # TODO infer instead of record offset?
-        # TODO space usually accepts
-        if char == ' ':
-            self.autocomplete.meta['leading_space'] = True
-            self.apply_autocomplete()
-            return
-        self.delete_autocomplete(offset=len(self.autocomplete.meta["filter_chars"]))
+    # def filter_autocomplete_suggestions(self, char):
+    #     # TODO deleting tokens
+    #     # TODO infer instead of record offset?
+    #     # TODO space usually accepts
+    #     if char == ' ':
+    #         self.autocomplete.meta['leading_space'] = True
+    #         self.apply_autocomplete()
+    #         return
+    #     self.delete_autocomplete(offset=len(self.autocomplete.meta["filter_chars"]))
 
-        self.autocomplete.meta["filter_chars"] += char
-        print(self.autocomplete.meta["filter_chars"])
+    #     self.autocomplete.meta["filter_chars"] += char
+    #     print(self.autocomplete.meta["filter_chars"])
 
-        match_beginning = re.compile(rf'^\s*{self.autocomplete.meta["filter_chars"]}.*', re.IGNORECASE)
-        self.autocomplete.meta["matched_tokens"] = [token for token in self.autocomplete.meta['possible_tokens']
-                                                    if match_beginning.match(token[0])]
-        print(self.autocomplete.meta["matched_tokens"])
-        if len(self.autocomplete.meta["matched_tokens"]) < 1:
-            # TODO if empty list, substitute nothing, but don't exit autocomplete
-            self.exit_autocomplete()
-        else:
-            self.autocomplete.meta["token_index"] = 0
-            self.insert_autocomplete(offset=len(self.autocomplete.meta["filter_chars"]))
+    #     match_beginning = re.compile(rf'^\s*{self.autocomplete.meta["filter_chars"]}.*', re.IGNORECASE)
+    #     self.autocomplete.meta["matched_tokens"] = [token for token in self.autocomplete.meta['possible_tokens']
+    #                                                 if match_beginning.match(token[0])]
+    #     print(self.autocomplete.meta["matched_tokens"])
+    #     if len(self.autocomplete.meta["matched_tokens"]) < 1:
+    #         # TODO if empty list, substitute nothing, but don't exit autocomplete
+    #         self.exit_autocomplete()
+    #     else:
+    #         self.autocomplete.meta["token_index"] = 0
+    #         self.insert_autocomplete(offset=len(self.autocomplete.meta["filter_chars"]))
 
-    def exit_autocomplete(self):
-        self.autocomplete.meta["autocomplete_range"] = None
-        self.autocomplete.meta["in_autocomplete"] = False
-        self.autocomplete.meta["token_index"] = None
-        self.autocomplete.meta["possible_tokens"] = None
-        self.autocomplete.meta["matched_tokens"] = None
-        self.autocomplete.meta["filter_chars"] = ''
+    # def exit_autocomplete(self):
+    #     self.autocomplete.meta["autocomplete_range"] = None
+    #     self.autocomplete.meta["in_autocomplete"] = False
+    #     self.autocomplete.meta["token_index"] = None
+    #     self.autocomplete.meta["possible_tokens"] = None
+    #     self.autocomplete.meta["matched_tokens"] = None
+    #     self.autocomplete.meta["filter_chars"] = ''
 
 
     def has_focus(self, widget):
         return self.display.textbox.focus_displayof() == widget
 
-    def multi_text_has_focus(self):
-        if self.display.multi_textboxes:
-            for id, textbox in self.display.multi_textboxes.items():
-                if self.display.textbox.focus_displayof() == textbox['textbox']:
-                    return True
-        return False
+    # def multi_text_has_focus(self):
+    #     if self.display.multi_textboxes:
+    #         for id, textbox in self.display.multi_textboxes.items():
+    #             if self.display.textbox.focus_displayof() == textbox['textbox']:
+    #                 return True
+    #     return False
 
     def module_textbox_has_focus(self):
         for pane in self.display.panes:
@@ -2249,12 +2257,12 @@ class Controller:
         if self.display.mode == "Edit":
             new_text = self.display.textbox.get("1.0", 'end-1c')
             #new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
-            self.state.update_text(self.state.selected_node, new_text, log_diff=self.state.preferences['log_diff'])
+            self.state.update_text(self.state.selected_node, new_text, save_revision_history=self.state.preferences['revision_history'])
 
         elif self.display.mode == "Visualize":
             if self.display.vis.textbox:
                 new_text = self.display.vis.textbox.get("1.0", 'end-1c')
-                self.state.update_text(self.state.node(self.display.vis.editing_node_id), new_text, log_diff=True)
+                self.state.update_text(self.state.node(self.display.vis.editing_node_id), new_text, save_revision_history=self.state.preferences['revision_history'])
 
         else:
             return
