@@ -472,6 +472,9 @@ class TreeModel:
     @event
     def edit_new_nodes(self):
         print('new nodes:', self.new_nodes)
+        self.tree_updated()
+        for node_id in self.new_nodes[0]:
+            self.node(node_id)['mutable'] = True
         self.tree_updated(edit=self.new_nodes[0])
         del self.new_nodes[0]
 
@@ -2067,6 +2070,7 @@ class TreeModel:
         # After asking for the generation, set loading text
         for child in children:
             child["text"] = "\n\n** Generating **" if 'placeholder' not in kwargs else kwargs['placeholder']
+            child['mutable'] = False
         # for grandchild in grandchildren:
         #     grandchild["text"] = "\n\n** Generating **"
         self.tree_updated(edit=new_nodes)

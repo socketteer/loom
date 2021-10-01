@@ -238,7 +238,6 @@ def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temper
         params['model'] = model
     else:
         params['engine'] = model
-    print(openai.api_key)
     response = openai.Completion.create(
         **params
     )
