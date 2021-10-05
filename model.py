@@ -14,7 +14,7 @@ import codecs
 import json
 from util.frames_util import frame_merger, frame_merger_append, frame_merger_override
 from copy import deepcopy
-import datetime
+import jsonlines
 
 from gpt import openAI_generate, search, gen
 from util.util import json_create, timestamp, json_open, clip_num, index_clip, diff
@@ -1837,6 +1837,37 @@ class TreeModel:
         json_create(save_filename, simple_tree)
         self.io_update()
 
+    def save_jsonl(self, save_filename=None, subtree=None):
+        subtree = subtree if subtree else self.tree_raw_data
+        flat_tree = self.nodes
+        save_filename = save_filename if save_filename else os.path.splitext(os.path.basename(self.tree_filename))[0]+ '.jsonl'
+        filename = os.path.join(os.getcwd() + '/data/exports', save_filename)
+        with jsonlines.open(filename, mode='w') as writer:
+            for line in flat_tree:
+                line_dict = {'id': line['id']}
+                if 'text' in line:
+                    line_dict['text'] = line['text']
+                if 'parent_id' in line:
+                    line_dict['parent_id'] = line['parent_id']
+                writer.write(line_dict)
+        self.io_update()
+
+    def flat_export(self, subtree=None):
+        subtree = subtree if subtree else self.tree_raw_data
+        flat_tree = self.nodes
+        export_body = ''
+        for line in flat_tree:
+            export_body += '\t{'
+            export_body += f'id: {repr(line["id"])}'
+            if 'text' in line:
+                export_body += f', text: {repr(line["text"])}'
+            if 'parent_id' in line:
+                export_body += f', parentId: {repr(line["parent_id"])}'
+            if 'children' in line and len(line['children']) > 0:
+                export_body += f', hasChildren: true'
+            export_body += '},\n'
+        export_string = f'[\n{export_body}]'
+        print(export_string)
 
     def export_history(self, node, filename):
         history = self.ancestry_text(node)

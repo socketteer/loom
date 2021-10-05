@@ -150,8 +150,6 @@ def subtree_weights(node, mode='descendents', filter=None):
     #print(normalized_weights)
     return normalized_weights
 
-
-
 #################################
 #   Ancestry
 #################################

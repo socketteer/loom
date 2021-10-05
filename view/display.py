@@ -283,7 +283,7 @@ class Display:
             self.open_menu(txt=textbox, event=event)
 
     def inline_generate(self, textbox):
-        textbox.inline_generate(self.state.inline_generation_settings)
+        textbox.inline_generate(self.state.inline_generation_settings, self.state.model_config)
 
     def insert_inline_completion(self, textbox, step=1):
         textbox.insert_inline_completion(step)

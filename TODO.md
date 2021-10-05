@@ -334,6 +334,11 @@
 
 - integrate retry and reroll w/ filter and flag for whether to wrap
 
+- edit preview text not working
+
+- tag doesn't show up immediately
+
+- don't export chapters not in subtree
 
 
 ## Other TODO

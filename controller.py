@@ -1486,6 +1486,13 @@ class Controller:
     @metadata(name="Copy")
     def copy_text(self):
         pyperclip.copy(self.display.textbox.get("1.0", "end-1c"))
+        confirmation_dialog = messagebox.showinfo(title="Copy text", message="Copied node text to clipboard")
+        
+
+    @metadata(name="Copy id", keys=["<Control-Shift-KeyPress-C>"])
+    def copy_text(self):
+        pyperclip.copy(self.state.selected_node_id)
+        confirmation_dialog = messagebox.showinfo(title="Copy id", message="Copied node id to clipboard")
 
 
     @metadata(name="Prepend newline", keys=["n", "<Control-n>"], display_key="n")

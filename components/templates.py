@@ -297,6 +297,7 @@ class NodeWindows(Windows):
             self.windows[window_id]['textbox'].insert("1.0", self.callbacks["Text"]["callback"](node_id=window_id, raw=True))
             if changed_edit:
                 self.windows[window_id]['textbox'].configure(state='disabled')
+            self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
 
 
 class Thumbnails:

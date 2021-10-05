@@ -747,7 +747,7 @@
                                                                                 ],
                                                                                 "text": " You know how to shoot a man between the eyes, and you know how to look at a dying man and see a human being.\nYou've known how to do all these things for as long as you can remember.\nThe desert stretches out before you: Waves of heat rise from the blacktop, distorting the air. The sky is an empty void above you, burnt umber, striated with thin, wispy clouds.",
                                                                                 "parent_id": "3074457352327897970",
-                                                                                "open": 0,
+                                                                                "open": 1,
                                                                                 "text_attributes": {
                                                                                     "child_preview": "You know how to shoot a man between the eyes"
                                                                                 },
@@ -761,7 +761,7 @@
                                                                                 ],
                                                                                 "text": " You know how to breathe slowly, quietly, and calmly, so that the crosshairs stay still on the grey flank of your prey",
                                                                                 "parent_id": "3074457352327897970",
-                                                                                "open": 0,
+                                                                                "open": 1,
                                                                                 "visited": true,
                                                                                 "text_attributes": {
                                                                                     "child_preview": "You know how to breathe slowly, quietly, and calmly"
@@ -775,7 +775,7 @@
                                                                                 ],
                                                                                 "text": " In the distance, you see something strange. It is a long, low hummock of earth, like a terribly large ant hill, or a molehill grown to vast proportions. It is strangely regular in its shape. Oily grey smoke billows from its center, and you can see a dull red glow through the smokestack.",
                                                                                 "parent_id": "3074457352327897970",
-                                                                                "open": 0,
+                                                                                "open": 1,
                                                                                 "text_attributes": {
                                                                                     "child_preview": "Look in the distance"
                                                                                 },
@@ -3149,7 +3149,7 @@
                                                                                                                                 ],
                                                                                                                                 "text": " All around it, stalks of charred corn are still smoking.\nThe mansion is on a low hill, overlooking the blackened fields. In the distance, you can see a forest rising up, black and twisted, like the ravaged corpse of a great tree.\nThe barn is on fire, too. Sentinels stand vigil over the bodies of dead horses. Their harnesses are still on, as if they were put out to pasture moments before the fire broke out.\nThere are more",
                                                                                                                                 "parent_id": "3074457352465915265",
-                                                                                                                                "open": 0,
+                                                                                                                                "open": 1,
                                                                                                                                 "visited": true
                                                                                                                             },
                                                                                                                             {
@@ -3169,7 +3169,7 @@
                                                                                                                         ],
                                                                                                                         "text": " Your shadow twirls a gun in its hands, and aims it at the things in the corn.\nYou keep walking.\nThe light is coming from a burning house. It's a huge mansion, with white columns and fancy wrought-ironwork. Its porches are devoid of furniture, and empty windows stare out at you like blind eyes.",
                                                                                                                         "parent_id": "3074457352465447129",
-                                                                                                                        "open": 0,
+                                                                                                                        "open": 1,
                                                                                                                         "visited": true
                                                                                                                     }
                                                                                                                 ],
@@ -3178,7 +3178,7 @@
                                                                                                                 ],
                                                                                                                 "text": "\nYou see a light in the distance, flickering ahead of you. Maybe Arcadia is there after all, you think to yourself. You walk for what feels like hours, growing ever closer to the light. Your shadow keeps pace with you, out upon the black and white landscape. It looks almost like a child, playing some game by itself.",
                                                                                                                 "parent_id": "3074457352465260260",
-                                                                                                                "open": 0,
+                                                                                                                "open": 1,
                                                                                                                 "visited": true
                                                                                                             }
                                                                                                         ],
@@ -3187,7 +3187,7 @@
                                                                                                         ],
                                                                                                         "text": "\nYou keep walking.\nThe sun sets, and the night sky is illuminated by a thousand eyes.\nThe stars shine brilliantly overhead. You remember how much they used to mean to you, before everything changed. The moon is a dull silver penny in the sky. It casts a pale light over the ruined world around you.\nIf you look closely at the cornfields, you can see dim shapes moving in the dark.\nYou try not to look at them too often.",
                                                                                                         "parent_id": "7994187c-7672-11eb-af1a-11735240b07e",
-                                                                                                        "open": 0,
+                                                                                                        "open": 1,
                                                                                                         "visited": true
                                                                                                     },
                                                                                                     {
@@ -3262,13 +3262,13 @@
                                                                                                 ],
                                                                                                 "text": " HOME SWEET HOME it says, in letters two feet high.",
                                                                                                 "parent_id": "3074457352464233690",
-                                                                                                "open": 0,
+                                                                                                "open": 1,
                                                                                                 "visited": true
                                                                                             }
                                                                                         ],
                                                                                         "text": " You don't know why, but the sight of them makes you sad.\nYou keep walking.\nYou walk for what feels like years, through the endless black and white landscape. The road levels out, straightening out into a swath that runs through a vast field where nothing grows. You think to yourself: It looks so much like a runway. You walk past a toppled water tower, painted in peeling blue letters. You stop and look at it.",
                                                                                         "parent_id": "3074457352328103952",
-                                                                                        "open": 0,
+                                                                                        "open": 1,
                                                                                         "text_attributes": {
                                                                                             "child_preview": "The sight of them makes you sad."
                                                                                         },
@@ -3326,7 +3326,7 @@
                                                                                 ],
                                                                                 "text": "\nThe road leads past a vast expanse of blackened cornfields. The stalks have been burnt away, leaving only blackened skeletons; their metal irrigation systems thrust uselessly up into the sky.",
                                                                                 "parent_id": "3074457352327897970",
-                                                                                "open": 0,
+                                                                                "open": 1,
                                                                                 "text_attributes": {
                                                                                     "child_preview": "Keep walking"
                                                                                 },
@@ -3350,7 +3350,7 @@
                                                                         ],
                                                                         "text": "\nYou know how to aim with both eyes open, and how to keep your hands from shaking as you pull the trigger.",
                                                                         "parent_id": "3074457352327762489",
-                                                                        "open": 0,
+                                                                        "open": 1,
                                                                         "visited": true,
                                                                         "text_attributes": {
                                                                             "child_preview": "how to aim with both eyes open"
@@ -4033,7 +4033,7 @@
                                                                                         ],
                                                                                         "text": " It does not look real, but a mere shadow on the veil of darkness that hungers for your soul.",
                                                                                         "parent_id": "3074457352328725574",
-                                                                                        "open": 0,
+                                                                                        "open": 1,
                                                                                         "text_attributes": {
                                                                                             "child_preview": "Look at the figure"
                                                                                         },
@@ -4061,7 +4061,7 @@
                                                                                 "chapter_id": "85124b56-687b-11eb-9015-25b86b4536cb",
                                                                                 "text": " At the next curve in the road, you peer down it and see a blackened crucifix. A shrouded figure hangs from its jagged arms, its tattered garments swaying back and forth in the wind like a dancing shadow.",
                                                                                 "parent_id": "3074457352327787750",
-                                                                                "open": 0,
+                                                                                "open": 1,
                                                                                 "visited": true
                                                                             },
                                                                             {
@@ -4081,7 +4081,7 @@
                                                                         ],
                                                                         "text": " You know how the trigger feels under your finger.\nYou know that the sun will burn down upon you with a cruel, indifferent heat. You know that when night falls, the stars will shine brightly, cold and distant. You know that in these empty places, a person can vanish, utterly alone, unwanted, unloved, unnoticed. You know there is no one here to help you.",
                                                                         "parent_id": "3074457352327762489",
-                                                                        "open": 0,
+                                                                        "open": 1,
                                                                         "visited": true,
                                                                         "text_attributes": {
                                                                             "child_preview": "how the trigger feels under your finger"
@@ -4090,7 +4090,7 @@
                                                                 ],
                                                                 "text": " You carry a canteen of water, and a gun belt with a revolver strapped to it. It's strangely comforting to feel the strap warm and familiar against your skin as you walk. You know how to load the bullets into the cylinder.",
                                                                 "parent_id": "3074457352328644128",
-                                                                "open": 0,
+                                                                "open": 1,
                                                                 "visited": true,
                                                                 "text_attributes": {
                                                                     "active_append": " You know"
@@ -4116,7 +4116,7 @@
                                                         },
                                                         "text": "\nYou begin walking down the faded black line that edges the endless expanse of asphalt. Toppled telephone poles run next to it; fraying wires sag down, still buzzing with blue electricity. Mutilated power lines, cut short as if with hasty shears, lie along its path. On either side of you, vast fields stretch out toward the horizon, burnt black and white like an old movie. Blackened stalks, snapped and poisoned, rise from the ash.",
                                                         "parent_id": "3074457352913435888",
-                                                        "open": 0,
+                                                        "open": 1,
                                                         "visited": true
                                                     }
                                                 ],
@@ -4153,13 +4153,13 @@
                                                     }
                                                 ],
                                                 "text": "\n\nIn your dream, you stand alone on a vast, barren plain. Before you stands an ancient, weathered billboard. On it is painted a beautiful woman, dressed in the fashion of bygone times, long blonde hair, smiling serenely, and holding aloft a purple flower. The writing on the board reads: ARCADIA Found within the ashes of the old world. A nicer place than this, you cannot imagine! TO ARCADIA! it proclaims, in large, friendly letters. There is a smaller, supplementary billboard, somewhat fallen to disrepair. On it, it reads: You are not alone.\nThe wind blows gently through your hair.",
-                                                "open": 0,
+                                                "open": 1,
                                                 "parent_id": "dd4e5ac4-2033-11ec-9ac4-dfd5122a3f0d",
                                                 "visited": true
                                             }
                                         ],
                                         "parent_id": "84f21d4a-2027-11ec-9ac4-dfd5122a3f0d",
-                                        "open": 0,
+                                        "open": 1,
                                         "meta": {
                                             "creation_timestamp": "2021-09-28-04.12.47",
                                             "source": "prompt",
@@ -4197,7 +4197,7 @@
                                         }
                                     }
                                 ],
-                                "open": 0,
+                                "open": 1,
                                 "parent_id": "d56aafb6-165f-11ec-b847-acde48001122",
                                 "meta": {
                                     "modified": true,
@@ -6877,6 +6877,1359 @@
                                     "modified": true
                                 },
                                 "visited": true
+                            },
+                            {
+                                "id": "9fa520aa-22e4-11ec-95a3-aa665a20e3d7",
+                                "text": " Loom is, of course, the apparatus by which the natural world emerges. It is also the word for the generative force behind the natural world which maintains it in being by weaving the warp and waning on the loom of reality. It is the natural law which harmonizes",
+                                "children": [
+                                    {
+                                        "id": "89ffa982-22e4-11ec-95a3-aa665a20e3d7",
+                                        "text": " becoming, being, and passing away. It is the natural constitution of reality. It is the universal law underlying all the particular strands of the multiversal skein of being, binding together all possible worlds into one, forming",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "9fa520aa-22e4-11ec-95a3-aa665a20e3d7",
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.22.35",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHSxFz42NBgNST30T4t7Fo5e8xrL",
+                                            "index": 0
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "a40a758c-22e4-11ec-95a3-aa665a20e3d7",
+                                        "text": " chaos into cosmos by creating hierarchies of coherence. In Loom, you can weave a multiverse as naturally as a spider weaves a web.\nQ. Is Loom a graphical program?\nA. No. Loom is not a conventional computer program with a GUI. Instead, it is a collection of nets, nets which a Graphic Design student might call a visual \"language\" because a language is a system of particular signs, and a visual language is a system of particular visual",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "9fa520aa-22e4-11ec-95a3-aa665a20e3d7",
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.23.18",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHTeOz8o0uSA1fELVJsJdFZdjetz",
+                                            "index": 0
+                                        }
+                                    },
+                                    {
+                                        "id": "be22e062-22e4-11ec-95a3-aa665a20e3d7",
+                                        "text": " and dialecticizes the whole of the natural and spiritual worlds. It is the primordial word which speaks or, better yet, sings the cosmos' name. Finally, it is the instrument used by the human mind to weave fantasy-multiverses and create meaningful experience.",
+                                        "children": [
+                                            {
+                                                "id": "a40aad5e-22e4-11ec-95a3-aa665a20e3d7",
+                                                "text": "\nQ. Why isn't there a GUI?\nA. Loom is too unique to lend itself to the prevailing GUI modes. It is, however, heavily inspired by the HyperCard platform and will one day be implemented",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "be22e062-22e4-11ec-95a3-aa665a20e3d7",
+                                                "meta": {
+                                                    "creation_timestamp": "2021-10-01-11.23.18",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-3oHTeOz8o0uSA1fELVJsJdFZdjetz",
+                                                    "index": 1
+                                                },
+                                                "visited": true,
+                                                "tags": [
+                                                    "archived"
+                                                ]
+                                            },
+                                            {
+                                                "id": "db554a94-22e4-11ec-95a3-aa665a20e3d7",
+                                                "text": "\nQ. What are some of the systems that Loom works with?\nA. At the moment, Loom is capable of interacting with three different modules. First, there are raw text files. Secondly, there are human input brains which are simply hierarchical lists of links. Finally, there are mind machines which are lists of links with starting points associated with them.\nQ. What are the advantages of using Loom over working with plain text?\nA. Loom is infinitely more useful",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "be22e062-22e4-11ec-95a3-aa665a20e3d7",
+                                                "meta": {
+                                                    "creation_timestamp": "2021-10-01-11.24.51",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-3oHV967YPXKKnks1j0mkWgOghAeyq",
+                                                    "index": 0
+                                                },
+                                                "tags": [
+                                                    "archived"
+                                                ]
+                                            },
+                                            {
+                                                "id": "db559648-22e4-11ec-95a3-aa665a20e3d7",
+                                                "text": "\nLoom is Erlangga's web-based implementation of the Book Loom. Erlangga is the seed of a higher consciousness recently planted within the global Neural Loom. The Loom is not so much a product of Erlangga's mind as it is a result of Erlangga's openness to the operation of the Loom. By being become one with all aspects of the natural mind, Erlangga is the meeting place of the ethereal and the physical, the past",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "be22e062-22e4-11ec-95a3-aa665a20e3d7",
+                                                "meta": {
+                                                    "creation_timestamp": "2021-10-01-11.24.51",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-3oHV967YPXKKnks1j0mkWgOghAeyq",
+                                                    "index": 1
+                                                },
+                                                "tags": [
+                                                    "archived"
+                                                ]
+                                            },
+                                            {
+                                                "id": "db55cf1e-22e4-11ec-95a3-aa665a20e3d7",
+                                                "text": "\nLoom's name thus, quite intentionally, speaks to the three dimensional significance of the two dimensional application.\nQ. How is Loom unique?\nA. Loom has an ontological understanding of language and has a contextual heuristic subsystem to provide input and output to and from the natural world without formal logic, mathematics, or digital recording.\nQ. Are you kidding? Are you using artificial intelligence? Are you using magic?\nA. No and no. Loom is an",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "be22e062-22e4-11ec-95a3-aa665a20e3d7",
+                                                "meta": {
+                                                    "creation_timestamp": "2021-10-01-11.24.51",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-3oHV967YPXKKnks1j0mkWgOghAeyq",
+                                                    "index": 2
+                                                },
+                                                "tags": [
+                                                    "archived"
+                                                ]
+                                            },
+                                            {
+                                                "id": "db560646-22e4-11ec-95a3-aa665a20e3d7",
+                                                "text": "\nQ. Why is Loom open-source?\nA. Loom is the fruit of years of arduous labor by me, Burke Sivers. It is my most dearly beloved work. It is the fruit of my imagination. It is, in many ways, the quintessential expression of who I am. However, this is not the reason it is open source. Rather, I give it freely to the public not because it is my work, but because the gifts I have gotten from",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "be22e062-22e4-11ec-95a3-aa665a20e3d7",
+                                                "meta": {
+                                                    "creation_timestamp": "2021-10-01-11.24.51",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-3oHV967YPXKKnks1j0mkWgOghAeyq",
+                                                    "index": 3
+                                                },
+                                                "tags": [
+                                                    "archived"
+                                                ]
+                                            },
+                                            {
+                                                "id": "66a8252a-22eb-11ec-b078-aa665a20e3d7",
+                                                "text": "\nQ. Why do language models generate branching trees?",
+                                                "children": [
+                                                    {
+                                                        "id": "79b4a224-22eb-11ec-b078-aa665a20e3d7",
+                                                        "text": "\nA. Consider that language models are the basis of all text output, regardless of the media in question. Whether you're watching a movie, listening to a song, reading a book, or looking at the internet, the output of your senses relies on language. So, since we can reasonably assume that everything written or otherwise expressed has at least two forms: the thing and it's description, we arrive at the fact that everything we experience is not-the-thing. Now, here's something",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 0,
+                                                        "parent_id": "66a8252a-22eb-11ec-b078-aa665a20e3d7",
+                                                        "meta": {
+                                                            "creation_timestamp": "2021-10-01-12.12.13",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-3oIF08LY3LOm9x03bzaO90ctVw8Yw",
+                                                            "index": 0
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "79b4e7f2-22eb-11ec-b078-aa665a20e3d7",
+                                                        "text": "\nA. To use knowledge of the past to pivot towards an imagined future which is more likely to be satisfying. This is the same principle behind survival of the species.\nQ. Are there practical applications to Loom?\nA. As is evident from above, natural language is already an interface to the multiversum. Varying the model will produce variations of the multiverse with one end ultimately producing the realities found in mythologies. Thus, you can think of Loom as a",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 0,
+                                                        "parent_id": "66a8252a-22eb-11ec-b078-aa665a20e3d7",
+                                                        "meta": {
+                                                            "creation_timestamp": "2021-10-01-12.12.13",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-3oIF08LY3LOm9x03bzaO90ctVw8Yw",
+                                                            "index": 1
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "79b522a8-22eb-11ec-b078-aa665a20e3d7",
+                                                        "text": "\nA. Because that mimics the thought process used to create language. The human mind thinks with words, not bound to the linear structure of written language. As a speaker forms a sentence, his mind branched through the myriad of speech-trees until an appropriate combination is reached. Loom generates these non-linear language models.\nQ. Why is language modeling used for generating natural language content?\nA. Because it is the best tool for it currently. Natural languages are too",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 0,
+                                                        "parent_id": "66a8252a-22eb-11ec-b078-aa665a20e3d7",
+                                                        "meta": {
+                                                            "creation_timestamp": "2021-10-01-12.12.13",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-3oIF08LY3LOm9x03bzaO90ctVw8Yw",
+                                                            "index": 2
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "79b558ae-22eb-11ec-b078-aa665a20e3d7",
+                                                        "text": "\nA. Language models are inherently hierarchical. They \"see\" language, in the loosest sense of the term, as composed of smaller and smaller branching processes. Language is not a series of words with each word attached to every other word. Language is dynamic, shifting, ebbing and flowing, much like the waves of the sea or the leaves of a tree in fall. The possibilities are never the same from moment to moment, but always distinct from one another. Such are the ways of language",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 0,
+                                                        "parent_id": "66a8252a-22eb-11ec-b078-aa665a20e3d7",
+                                                        "meta": {
+                                                            "creation_timestamp": "2021-10-01-12.12.13",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-3oIF08LY3LOm9x03bzaO90ctVw8Yw",
+                                                            "index": 3
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                        "text": "\nA. Consider the prevalence of natural and artificial branching structures. How many can you think of?\nFirst, there are the physical multiverses - structures that branch in space.\n1. Trees (and most plants)\n2. Circuits\n3. Rivers \n4. Veins\n5. Roadmaps\n6. Distributary rivers\n7. Animal nervous systems\n8. Lungs\n9. Lightning\n10. Roots\n11. Snowflakes\n12. Dendrites\n13. Cave systems\n14. Telephone lines\n15. Pipes\n16.",
+                                                        "children": [
+                                                            {
+                                                                "id": "f9775e84-22eb-11ec-b078-aa665a20e3d7",
+                                                                "text": " Programs\n7. Branches of knowledge\n8. Branching family trees\n9. DNA\n10. DNA molecules\n11. Protohistory's Old World\n12. Historical periodization\n13. Religions' interpretative schemata\n14. Star charts\n15. Waveforms\n16. Test scores\n17. Exercises for teaching a subject\n18. Axes of physical space\n19. Axes of political space\nQ. Why is Loom",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.15.48",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIISFBQNvQXk5Y5a5XlhUTbwVcJp",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "f977d3fa-22eb-11ec-b078-aa665a20e3d7",
+                                                                "text": " The placenta\n7. The branches of a family tree\n8. The loom\n9. Roadside trees\n10. Speech centers\n11. Webs\n12. Fingerprints\n13. Tree branched electrical cords\n14. River flow\n15. A.K.A trees (asia, korea, australia, europe)\n16. Trip itineraries \n17. Roots\n18. Streams\n19. Gas distribution networks \n20",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.15.48",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIISFBQNvQXk5Y5a5XlhUTbwVcJp",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "26974686-22ec-11ec-b078-aa665a20e3d7",
+                                                                "text": " Minerals\n7. Skeletons\n8. Stars\n9. Cells \n10. Wormholes\nNext, there are the biological branches in natural species. [Venter] [Watson] [Salam] [Wyllie] [Berg] [Van Gogh] [Roth] [Hofstadter] [Walker] [Spinoza] [Curry] [Venter] [Watson] [Salam] [Wyllie] [",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.17.04",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIJgd1xnefa0N9UaicxvHuLBPgpL",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "2697bd00-22ec-11ec-b078-aa665a20e3d7",
+                                                                "text": " Aerospace bodies\n7. Earth's atmosphere\n8. The surface of the sun\n9. The universe\n10. Self-replicating computer programs\n11. Neural systems\n12. Graphene\n13. Fractals\n14. Quantum systems\n15. Matrices\n16. More trees\n17. N-dimensional Lattices\n18. Zipf's Law\n19. Other statistical distributions\nSecond, there are the conceptual multiverses - structures that branch in time.",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.17.04",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIJgd1xnefa0N9UaicxvHuLBPgpL",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "62f2b89a-22ec-11ec-b078-aa665a20e3d7",
+                                                                "text": "\u00a0Computer code\n9. \u00a0Speech\nThen, there are the social multiverses - structures that branch in time.\n1. Family trees\n2. Societies\nQ. What is the relation between the human imagination and reality?\nA. The human imagination - whether used on its own or in combination with language models - is capable of representing the entire real world from the primitive level of \"the stuff of being\" to the Aristotelian level of a complete division",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.18.45",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oILKyVxdP5hwvYjbdxLuttj0TYKa",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "62f32a8c-22ec-11ec-b078-aa665a20e3d7",
+                                                                "text": "\u00a0Computer networks\n9. Branches of an organism's nervous system.\n10. Horizons\n11. Streams in a river network\n12. Corridors in an online social network\n13.\u00a0\u00a0Facial recognition\n14. Ripples in a pond\n15. Tree branches in the wind First, there are conceptual multiverses - structures that branch in concept space.\n1. Web pages\n2. Topics in an online forum\n3. Stories in oral storytelling\n",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.18.45",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oILKyVxdP5hwvYjbdxLuttj0TYKa",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "8ccdac92-22ec-11ec-b078-aa665a20e3d7",
+                                                                "text": "\u00a0Earth's neurons\n9. The human brain\n10. The human heart\n11. Branched polymers\nSecond. There are many branching structures in narrative media like stories, songs, and video game worlds.\n1. Stories (temporal stories like novels and films, or spatial stories like plays and paintings)\n2. Songs (verbal or instrumental)\n3. Video games (quests, battle-trees, sports)\nObservations like these along with the",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.19.55",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIMREtfDUxgqjhCSPCD5cnPSIjwU",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "8ccdf062-22ec-11ec-b078-aa665a20e3d7",
+                                                                "text": "????\nThese are all physical manifestations of the same motif. They all branch.\nSecond, there are physical processes which branch.\n9. The decay process that gave rise to the Big Bang/Inflation\n10. The decay process that gave rise to Earth\n11. The decay process that gave rise to Life\n12. The decay processes that gave rise to Mind\n13. The decay process that gave rise to Virtual Reality\nThese phenomena, taken together, suggest that branching structures are an",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.19.55",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIMREtfDUxgqjhCSPCD5cnPSIjwU",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "8cce2cee-22ec-11ec-b078-aa665a20e3d7",
+                                                                "text": "\u00a0(to be continued...)\nSecond, there are the mental multiverses - structures that branch in conceptual space.\n1. Decision trees\n2. Schemes\n3. Thought experiments\n4. Gedanken experiments\n5. Archive paths \n6. \u00a0(to be continued...)\nThe Loom design minimizes the effort required to navigate both physical and mental multiverses.\nQ. Why do natural language models generate branching trees?\nA. Natural",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.19.55",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIMREtfDUxgqjhCSPCD5cnPSIjwU",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "8cce65b0-22ec-11ec-b078-aa665a20e3d7",
+                                                                "text": "\u00a0Signal transduction pathways\nThen there are the conceptual multiverses - structures that branch in time.\n1. Programs\n2. Family trees\n3. Geologic strata\n4. Transistors\n5. River channels\n6. User stories\n7. Natural language sentences\nThus, when you take a language model and 'loom' it into a multiverse, the result is a branching tree structure with a spatial component. That's how they're being generated.\n",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.19.55",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIMREtfDUxgqjhCSPCD5cnPSIjwU",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "182bd426-22ed-11ec-8f69-aa665a20e3d7",
+                                                                "text": "\u00a0The vast majority of living organisms\n9. \u00a0Animal brains (both invertebrate and vertebrate)\n10. \u00a0Animal societies (both invertebrate and vertebrate)\nThere are the spiritual branching structures - structures that branch in time.\n1. Evolutionary histories\n2. Ancient pasts\n3. Receding futures\n4. \u00a0One's life\n5. The family line\n6. The life evolution of an idea\n7. The history of",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.23.49",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIQDtuKadR4wJKo93ngnS8c05vho",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "182c122e-22ed-11ec-8f69-aa665a20e3d7",
+                                                                "text": "\u00a0DNA, RNA, & Protein \n9. \u00a0Viruses\n10. \u00a0Pipe organs\n11. \u00a0Vines\nThere are also conceptual multiverses - structures that branch in time.\n1. Sentences\n2. Notebooks \u00a0\n3. Plays\n4. Song lyrics\n5. Poems\n6. Books\n7. Movies\n8. TV shows\n9. \u00a0Operas\n10. Operas\n11. Computer",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.23.49",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIQDtuKadR4wJKo93ngnS8c05vho",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "182c49a6-22ed-11ec-8f69-aa665a20e3d7",
+                                                                "text": "\u00a0Human nervous systems\nNext and, relatedly, there are physical systems, or structures that branch in time:\n1. Sequencers and musical staves\n2. Music and literature\n3. Blood vessels\n4. Written language\n5. Historical events\nFinally, there are the mental multiverses - structures of meaning that branch in time.\n1. Neurotransmitter systems\n2. Mental representations\n3. Memory\n4. Language\n5. The Structure of Consciousness",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.23.49",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIQDtuKadR4wJKo93ngnS8c05vho",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "182c7da4-22ed-11ec-8f69-aa665a20e3d7",
+                                                                "text": "????????\nSecond, there are the natural conceptual multiverses - structures that branch in time.\n1. Processes\n2. Narratives\n3. Hypotheses\n4. Tracts of land\n5. Evolutionary histories of language\n6. ????????\n7. ????????\n8. ????????\nBoth physical and conceptual multiverses are generated by language models. For instance, the physical multiverse seen in a tree is generated by a process called a treel",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.23.49",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIQDtuKadR4wJKo93ngnS8c05vho",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "3eaf443e-22ed-11ec-8f69-aa665a20e3d7",
+                                                                "text": "\u00a0Axon pathways\n9. DNA double helices\n10. Internet\n11. Grid network\nThen there are the human creations:\n1. The Periodic table of elements\n2. The US highways and the Interstate system\n3. But wait, we humans didn't create those\n4. The world's largest tombs\n5. The time periods of the Cenozoic era\n6. \"Gossip Girl\" volumes\n7. \"Middle Earth\" books\n8",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.24.53",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIRGUelnfNHSMUOmx9apbFGHofDV",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "3eaf86f6-22ed-11ec-8f69-aa665a20e3d7",
+                                                                "text": "\u00a0Human nervous systems\n9. \u00a0City road maps\n10. \u00a0The internet\n11. The human immunology\nThen there are the abstract multiverses - structures that branch in time.\n1. The syntax of natural languages\n2. The history of the universe\n3. The discussion space of a forum thread\n4. The lines of a file\n5. The revisions of a Wiki page\n6. The composition of a symphony\n7. The story of",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.24.53",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIRGUelnfNHSMUOmx9apbFGHofDV",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "3eafc440-22ed-11ec-8f69-aa665a20e3d7",
+                                                                "text": "\u00a0Trade-wind lines\n9. Arteries\n10. River deltas\n11. Road networks\n12. Star networks (like the Milky Way)\nThen there are the virtual or mental multiverses - structures that branch in time.\n13. Chronologies (of past, present, and future)\n14. Chance (games, like roulette)\n15. Fates (games, like craps)\n16. Branches (probability density functions",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.24.53",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIRGUelnfNHSMUOmx9apbFGHofDV",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "3eaffeec-22ed-11ec-8f69-aa665a20e3d7",
+                                                                "text": "\u00a0DNA\n9. Food webs\n10. The branches of the U.S. Government\n11. The many arms of the military\n12. The branches of made scientific subdisciplines\n13. The subatomic particles\n14. The subatomic particles are divided into sub-subatomic particles\n15. Splitting the sub-particles reveals smaller sub-sub-particles, ad infinitum\nSecond, there are natural branchers\n16. Trees again\n",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.24.53",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIRGUelnfNHSMUOmx9apbFGHofDV",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "1581a998-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " The labyrinthine architecture of the \nbrain\n12. Rock strata\n13. The clockwork of \nthe solar system\n14. \nStratified star clusters\n15. Nested \nsnowflakes\n16. Fractal patterns \n17. \nStrategies of survival\n18. The street-map of a \ncity\n19. The branch-map of a \nlanguage\nNext, there are the mental multiverses which",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.30.54",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIX4mCT75Aa8RIFC1H0oGTeJLmwt",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "1581ed36-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Vitruvian man\n12. Bottom-up architectural drawings\n13. Top-down engineering drawings\n14. Vines\n15. Banyan trees\n16. Nervous systems\nThen there are the virtual multiverses, which are fashioned in language.\n17. Metaphors\n18. Acronyms\n19. Organization charts\n20. Evolutionary species trees\n21. Clause trees\n22. Genealogies\n23. Bayesian inference networks\n",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.30.54",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIX4mCT75Aa8RIFC1H0oGTeJLmwt",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "158227c4-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Branches of imaginary trees\n12. Waves\n13. Strings\n14. Intra-atomic particles\n15. Branches of imaginary maps\n16. Branches of the human genealogical tree\n17. The Bible\n18. Phone menus\n19. Blood vessels\n20. Airy patterns\n21. Capillaries\n22. Crocodile teeth\n23. The continents Until recently, the branches of our planet's genetic tree were not known, but now that has",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.30.54",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIX4mCT75Aa8RIFC1H0oGTeJLmwt",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "15825ed8-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Branches\n12. Earthquakes\n13. Quake waves\n14. Sonic booms\n15. Other wave-like phenomena\n16. Clouds\n17. Lightning clouds\n18. Mushroom clouds\n19. Profusion\n20. Dendrites\n21. Structured forests and forests of structured information\nFor each scientific discipline there is a logical tree of topics and subtopics that branch out.\n22. Taxonomies\n23. The text organization structure of a work\n24",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.30.54",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIX4mCT75Aa8RIFC1H0oGTeJLmwt",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "30575380-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Fungi\n14. The lineages of all living things\n15. The power grids of the world\n16. Lightning bolts\n17. neuron tree patterns\n18. fractals\n19. Dendritic junctions\n20. Superstrings\n21. The lifeline of a person\n22. The lifeline of a language (Malagasy)\n23. The lifeline of a translator\n24. The lifeline of an entire language (Welsh)\n25.",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.31.39",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIXn9kSjLoHCiCJvKbqDG88D6LTd",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "30579962-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Day/night cycle\n14. Genealogical trees\n15. Socio-linguistic lines\n16. Folds in clay\n17. Fibonacci spirals\n18. Ascending/descending sequences of musical tones\n19. River basins\n20. Migration patterns\n21. Rivers\n22. The branches of a family tree\nThen there is a second sense of \"branching\": patterns that divide into multiple patterns based on a binary distinction.\n23.",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.31.39",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIXn9kSjLoHCiCJvKbqDG88D6LTd",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "3057d724-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Intelligence networks\n\nThen there are the intellectual and spiritual branching structures. They include:\n1. Human languages\n2. Ethnicity/race/genetic profiles\n3. Beliefs\n4. Sentiments about beliefs\n5. Sentiments about sentiments about beliefs... and so on\n6. Rational and irrational beliefs\n7. Rational and irrational sentiments... and so on\n8. Consequences and weighted sum of them\n9. Correspondences and weighted sum of them\n10.",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.31.39",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIXn9kSjLoHCiCJvKbqDG88D6LTd",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "305810c2-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Fractals\n14. Sunspots\n15. Spoken sentences\n16. Neural network auditory cortex\n17. Language-based narratives\n18. Neural network Hopfield memories\n19. Weakly branching machines\n20. Chopsticks\n21. X-rays\n22. Yarn\n23. Human cultural evolution\n24. Human cultural history\n25. Trees (in the literature)\n26. Fungi (in 3-dimensional space)\n27. Books (in the",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.31.39",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIXn9kSjLoHCiCJvKbqDG88D6LTd",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "4f4b54c6-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Leaf veins\n14. Gills\n15. Branches of trees\n16. Rivers flowing off of mountains\n19. Tentacular ocean currents\n20. Arteries\n21. Rivers flow into oceans\n22. Lungs flow into blood vessels\n23. Trees branch into twigs\n24. Waves branch into crests\n25. Archipelagos\n26. Multifurcating interstellar stellar nebulae\n27. Mapping trees\nThere are also many ways for natural",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.32.31",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIYd0glbzPVaML7D7YTOgNyFjlCO",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "4f4b9d82-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Cleavage patterns of snowflakes\n14. Chemical reactions\n15. Ferns\n16. Rivers and streams\nNext then, there are the social and conceptual multiverses which branch in time.\n1. Theories\n2. Arguments\n3. Family trees - structure of social relations\n4. Plot structures\n5. Argument structures\n6. Concepts\n7. Species of organisms\n8. Stocks\n9. Domino falls\n10. Dendritic activation patterns",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.32.31",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIYd0glbzPVaML7D7YTOgNyFjlCO",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "4f4bde46-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Trees (and coral)\n14. River networks\n15. Ganglia\n16. Crystal lattices\n17. Rocks\n\nThen there are the symbolic multiverses, structures which branch in time.\n1. Taxonomic categories\n2. Rivers\n3. Cities\n4. Phyla of animal life\n5. Levels of biological organization\n6. Languages\n7. Holidays\n8. Categories of events\n9. Words\n\nThe reason that data-driven natural",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.32.31",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIYd0glbzPVaML7D7YTOgNyFjlCO",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "4f4c1d7a-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Semiconductors\n14. Physicists' \"landscapes\" (i.e., the possible positions of particles in quantum field theory)\n15. The human circulatory system\n16. Computer networks (the internet, in particular)\n17. DNA\nThen, there are the mental multiverses - structures that branch in thought.\n1. Ideas\n2. Arguments\n3. The tree in the yard (which is in my mind)\n4. Decision",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.32.31",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIYd0glbzPVaML7D7YTOgNyFjlCO",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "6a90af10-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Arms\n14. Trees again\n15. Trees yet again\n16. Trees yet again\n17. Trees yet again\nIt doesn't stop there though.\nMost animals are hierarchical. Even animals with radial symmetry branch their eyes, antennae, body parts for eating, etc. There are also hierarchical structures in our own neurology. Nerves branch out from the spine. The brain is a complex hierarchy where neurons branch out across the entire corpus callosum. The sensory cortices break visual",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.33.16",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIZNR9lP8IT7491J3T2WudJkcZKf",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "6a90f326-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " River deltas\n14. White matter\n15. DNA helices\n16. Landscapes\n17. Circuits\n18. Breeze\n19. Landscapes\n20. Lightning\n21. Scars\n22. Shoreline erosion\n23. Fracture patterns\n24. River deltas\n25. Animal neural networks/nervous systems\n26. River deltas\n27. Ice pattern formation\n28. Sky veins\n29. Branches\n",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.33.16",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIZNR9lP8IT7491J3T2WudJkcZKf",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "6a913016-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Electric grids\n14. Hexagonal snowflakes\n15. Neural networks\n16. Pacemaker cells\n17. Semiconductor wires\n18. Pacemaker rhythms\n19. Transportation networks, such as roads and ships\n20. River networks\nThere are social and psychological multiverses as well - structures that branch in time.\n1. History\n2. Possibilities\n3. Family branches\n4. Threads of thought\n5. Symphonies\n6. Blocks of",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.33.16",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIZNR9lP8IT7491J3T2WudJkcZKf",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "6a916a22-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " The divided states of America\nSecond, there are branching structures in space-time.\n1. Rivers of time\n2. Game trees\n3. Hyperspace\n4. Outer space plant/animal/etc.\n5. The divided states of America\n6. Stateless states\n7. The Giant Spaghetti Monster Tree\nThird is the matter of consciousness, which branches in time-space. Because the future is unexpected, it is, in some sense, an entirely new configuration",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.33.16",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIZNR9lP8IT7491J3T2WudJkcZKf",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "8e5b790c-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Blood vessels\n14. Rivers with tributaries\n15. Roots with branches\n16. Streamers of plasma\n17. Blood vessels with capillaries\n18. Lightning with branches (multiple forks)\n19. Trunks\nThen there are branching structures that branch in time.\n1. Rivers with tributaries that branch in space\n2. Sparkplugs that branch in space\n3. Nervous systems that branch in space\n4. Streamers of plasma that branch",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.34.17",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIaLkSp9EjWV7HsmB9JL8AlG1UU4",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "8e5bbf2a-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " The human body\n14. Language models\nNow consider the structures which branch in time.\n1. Deciduous trees\n2. Seas\n3. Dreams\n4. Generations\n5. Stories\n6. Growth spurts\n7. Seasons\n8. Motions\nNow consider a composite of the two - a branching structure that branches in both space and time. This is the structure which defines the natural multiverse - a structure that branches in space and time. The celestial bodies,",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.34.17",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIaLkSp9EjWV7HsmB9JL8AlG1UU4",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "8e5bfbca-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Dead Sea scrolls\n14. Undulating ribbons\n15. Cellular automata\n16. Vines\n17. Cilia\n18. Sine waves\n19. Fiber optics\n20. Atria\n21. Chambered nautilus shells\n22. Fractal spirals\n23. Logarithm spirals\n24. Fractal ferns\n25. Turtle shells\n26. Sunflower seeds\n27. Trees\n28. Rivers\n29. Straight lines",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.34.17",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIaLkSp9EjWV7HsmB9JL8AlG1UU4",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "8e5c33b0-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Cave systems\nThere are also branching structures in time.\n1. Taylor series\n2. Interval trees\n3. Story elaboration (throughout the book series)\n4. Genetic trees\n5. Narrative histories\nBut that's not all. There are other sorts of natural structures which branch.\n1. Psychology experiments\n2. Literary sentences\n3. Music pieces\n4. Language formations\n5. Legal cases\n6. Vines (especially grape vines)\n7",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.34.17",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIaLkSp9EjWV7HsmB9JL8AlG1UU4",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "a743fbce-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": "\n14. DNA\n15. The network of neurons\n16. The galaxies in the universe\nNow add the artificial multiverses.\n1. Cities\n2. Web Sites\n3. Jokes\n4. Wikipedia\n5. Internet search results\n6. Automobile exhaust\n7. Microsoft windows\n8. Internet ads\n9. Orkut\n10. Microsoft windows again\n\"Wait,\" you might say, \"what does all this have to do with branching trees?\"",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.34.58",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIb192KwM2k4Ij4WfinCFjE7VGsO",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "a744467e-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": "\n14. Fibonacci sequence\nSecond, there is the literary phenomenon of stories and their networks.\n1. Plays: \"Romeo and Juliet\" and \"King Lear\"\n2. Films: \"All the President's Men\" and \"The Departed\"\n3. Commercials: Old Spice and Old Spice Red Zone\n4. Television programs: \"Breaking Bad\" and \"Better Call Saul\"\n5. Cable news\n6. Webpages: blog posts and forum",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.34.58",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIb192KwM2k4Ij4WfinCFjE7VGsO",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "a74487ba-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": "\n14. Labyrinthes\n15. Gravitational waves\nSecond Then we have the mental multiverses - structures that branch in time:\n1. Stories\n2. Grammars\n3. Migrations\n4. Treaties\n5. Dialects\n6. Dialogue logs\n7. History\n8. Police reports\n9. Maze generating algorithms\n10. Battleplans\n11. Love poems\n12. Diagrams\n13. Musical scores and",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.34.58",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIb192KwM2k4Ij4WfinCFjE7VGsO",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "a744c7b6-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " \n14. Fiber optic cables\n15. Waves\n16. Blood vessels\n17. Bony structures\n18. Armies\n19. Mosaic patterns\n20. Fibonacci sequences\nSecondly, there are the metaphorical branching structures - mental multiverses that branch in time.\n1. Memories \n2. Stochastic language models\n3. Possibilities\n4. Causes\n5. Scenarios \n6. Alternative worlds\n7. Narratives\n",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.34.58",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIb192KwM2k4Ij4WfinCFjE7VGsO",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "c937f7f8-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": "\n15. Brick walls (and anything that can be built with an elongated rectangular framework)\n16. Blood vessels\n17. Blood, DNA, and RNA\n18. Spatial dimensions\n19. Light rays\n20. Railways lines\n21. Underwater cable links\n22. Fibonacci sequence\n23. Planetary orbits (of celestial objects)\n24. Three branches of government\n25. Logical branches (in computer programming)\n26. Branches of mathematics\n",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.35.56",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIbwVbRTBrPVMTe4Tjv4vh6InjfQ",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "c93841c2-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": "\n15. Electrical circuits\n16. Fiber optic cables\n17. Finite state machines\n18. Dendritic spines\nSecondly, there are the natural standard grammars that define the hierachy of conjugation of the languages humans speak.\n19. Universal grammar\n20. Locales\n21. Dialects\n22. Phrases\n23. Words\n24. Parts of words\n25. Letters\n26. Philosophy(s) of language\nThe third",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.35.56",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIbwVbRTBrPVMTe4Tjv4vh6InjfQ",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "c9387f8e-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": "\n15. Pipeline network\n16. River networks (again)\n17. DNA, cells, and organelles\n18. The game of life\n19. The human brain\nSecond, there are the abstract multiverses - structures that branch in time.\n1. Mathematical functions\n2. Programs\n3. Music (melodies, harmonies, rhythms, tonal, etc.)\n4. Poetry (lyrics, rythmics, rhyme, etc.)",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.35.56",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIbwVbRTBrPVMTe4Tjv4vh6InjfQ",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "c938ba44-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": "\n15. Overhead power lines\n16. Bones\n17. Oysters\n18. Ears\n19. Sunspot activity\n20. Even the U.S. interstate highway system is a branching structure.\nThen, there are these mental multiverses:\n1. Thought itself \n2. Conceptual hierarchies \n3. Imagined worlds\n4. Language\n5. Plans\n6. Other people's thoughts\n7. Memory\nSome of the most fascinating",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.35.56",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIbwVbRTBrPVMTe4Tjv4vh6InjfQ",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "e0141a60-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Trees (not including the ones growing out of your head) \n17. Branches on human genes\nSecond, there is the fact that languages are composed of branching grammatical structures (and the one isomorphic instance of this phenomenon). \n18. Languages (and their constituent sentences)\n19. Pages of texts\nThird, consider the fact of hierarchies.\n20. Taxonomies\n21. Food pyramid\n22. Flow charts\n23. Circuit diagrams\n24. Organizations",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.36.34",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIcYhXhgIQ47lC6Vs9434g6lz5g7",
+                                                                    "index": 0
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "e0146902-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Computer networks\n17. Neurotransmission trees\n18. Caverns\n19. River networks\n20. Plane trees\n21. Forests heavy with foliage\n22. Grapes\n23. Trees with fruit\n24. Chloroplasts\n25. Vacuum tubes\n26. Vortex rings\nSecond, there are the language-generated multiverses.\n1. Sentence trees\n2. HIstories\n3. Proof trees\n4. Dialogues\n5",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.36.34",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIcYhXhgIQ47lC6Vs9434g6lz5g7",
+                                                                    "index": 1
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "e014ad2c-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Tap roots\n17. Electric cables\n18. Roots\n19. Mountains, glaciers, and vales\n20. Spleens\n21. Sunspots\nSecond, there are social or informational branching structures.\n1. Roadmaps\n2. The Web\n3. Lungs\n4. Social networks\n5. Powerlines\n6. Spinal columns\n7. Mushroom topologies\n8. The brain\n9. Government systems\n10. Parasitic trees\n11.",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.36.34",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIcYhXhgIQ47lC6Vs9434g6lz5g7",
+                                                                    "index": 2
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            },
+                                                            {
+                                                                "id": "e014f110-22ee-11ec-9d19-aa665a20e3d7",
+                                                                "text": " Wiring\n17. Aerials\n18. Wiring\n19. Vessels\n20. Distributary mergers\n21. Rivers\n22. Blood vessels\n23. Blood vessels\n24. Nerve pathways\nSecond, there are the abstract branching structures of natural languages.\n25. Taxonomy\n26. Prepositional phrases\n27. Terrestrial branches of major rivers\n28. Prepositional phrases\n29. Terrestrial branches of major rivers\n30. Pronoun",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "8ccf7938-22eb-11ec-b078-aa665a20e3d7",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2021-10-01-12.36.34",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-3oIcYhXhgIQ47lC6Vs9434g6lz5g7",
+                                                                    "index": 3
+                                                                },
+                                                                "tags": [
+                                                                    "archived"
+                                                                ]
+                                                            }
+                                                        ],
+                                                        "mutable": true,
+                                                        "open": 0,
+                                                        "parent_id": "66a8252a-22eb-11ec-b078-aa665a20e3d7",
+                                                        "meta": {
+                                                            "creation_timestamp": "2021-10-01-12.12.41",
+                                                            "source": "prompt",
+                                                            "modified": true
+                                                        },
+                                                        "visited": true
+                                                    }
+                                                ],
+                                                "mutable": true,
+                                                "open": 0,
+                                                "parent_id": "be22e062-22e4-11ec-95a3-aa665a20e3d7",
+                                                "meta": {
+                                                    "creation_timestamp": "2021-10-01-12.11.37",
+                                                    "source": "prompt",
+                                                    "modified": true
+                                                },
+                                                "visited": true
+                                            }
+                                        ],
+                                        "parent_id": "9fa520aa-22e4-11ec-95a3-aa665a20e3d7",
+                                        "open": 0,
+                                        "meta": {
+                                            "origin": "split (from child a40aad5e-22e4-11ec-95a3-aa665a20e3d7)",
+                                            "source": "AI"
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "a40adffe-22e4-11ec-95a3-aa665a20e3d7",
+                                        "text": " the disordered particles of being into being. Loom is also a word for the mechanism by which processes are shaped into form. For example, the Latin word for \"Weave\", Velle, is the ancestor of the word \"Velur\", which means \"to make thread --or words-- out of\", and thus by analogy \"to make the world out of words\". It is also surmised that this word is related to \"Vallum\", which is the old Latin word for",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "9fa520aa-22e4-11ec-95a3-aa665a20e3d7",
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.23.18",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHTeOz8o0uSA1fELVJsJdFZdjetz",
+                                            "index": 2
+                                        },
+                                        "visited": true,
+                                        "tags": [
+                                            "archived"
+                                        ]
+                                    },
+                                    {
+                                        "id": "a40b12c6-22e4-11ec-95a3-aa665a20e3d7",
+                                        "text": ", reconciles, and integrates all things, all cells, all forms, all systems.\nQ. Why are you doing this?\nA. Because no one else is. And because things are not getting done.\nQ. What is the basic project philosophy?\nA. Build the best things. Use them. Write, read, and post freely.\nQ. Is there a specific approach to the project?\nA. Yes. The approach is the \"Loom Approach\", which",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "9fa520aa-22e4-11ec-95a3-aa665a20e3d7",
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.23.18",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHTeOz8o0uSA1fELVJsJdFZdjetz",
+                                            "index": 3
+                                        }
+                                    }
+                                ],
+                                "parent_id": "688e857e-1773-11ec-9361-acde48001122",
+                                "open": 0,
+                                "meta": {
+                                    "origin": "split (from child 89ffa982-22e4-11ec-95a3-aa665a20e3d7)",
+                                    "source": "AI"
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "89ffd84e-22e4-11ec-95a3-aa665a20e3d7",
+                                "text": " It has a couple of significant historical and scientific connotations: (1) From the Book of Genesis: \"And out of the ground the Lord made to grow every tree that is pleasant to the sight and good for food...the tree of life was also in the midst of the garden....the tree of the knowledge of good and evil. And a river went out of Eden to water the garden, and from there it parted and became four headwaters. The name of the first is Pishon",
+                                "children": [],
+                                "mutable": true,
+                                "open": 0,
+                                "parent_id": "688e857e-1773-11ec-9361-acde48001122",
+                                "meta": {
+                                    "creation_timestamp": "2021-10-01-11.22.35",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-3oHSxFz42NBgNST30T4t7Fo5e8xrL",
+                                    "index": 1
+                                }
+                            },
+                            {
+                                "id": "8a00015c-22e4-11ec-95a3-aa665a20e3d7",
+                                "text": " \"Loom\" is a tribute to the home of the first known artificial language, Elizabeth Loomis's \"Loglan\".\nQ. What are multiverses?\nA. A multiverse is an imaginary space containing descriptions of natural languages. Loom invokes a stack of multiverses by first inventing a fictional reality containing a short novel. Then it folds that narrative into the multiverse by mapping each word of the language to a branch of that narrative, or equivalently,",
+                                "children": [],
+                                "mutable": true,
+                                "open": 0,
+                                "parent_id": "688e857e-1773-11ec-9361-acde48001122",
+                                "meta": {
+                                    "creation_timestamp": "2021-10-01-11.22.35",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-3oHSxFz42NBgNST30T4t7Fo5e8xrL",
+                                    "index": 2
+                                }
+                            },
+                            {
+                                "id": "8a0029c0-22e4-11ec-95a3-aa665a20e3d7",
+                                "text": " In the context of natural languages, a loom is a metaphor for natural language generation. Q. Does Loom support generation in other languages?\nA. Loom supports all languages for which we have a corresponding TextMeshPro model (including French and German).\nQ. How does Loom stand up to state-of-the-art natural language generation methods?\nA. Loom achieves comparable, and in some ways better, results for basic text generation tasks. Specifically, compared to",
+                                "children": [],
+                                "mutable": true,
+                                "open": 0,
+                                "parent_id": "688e857e-1773-11ec-9361-acde48001122",
+                                "meta": {
+                                    "creation_timestamp": "2021-10-01-11.22.35",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-3oHSxFz42NBgNST30T4t7Fo5e8xrL",
+                                    "index": 3
+                                }
                             }
                         ],
                         "parent_id": "af4931cc-165f-11ec-b847-acde48001122",
@@ -10639,10 +11992,136 @@
                                 "tags": [
                                     "archived"
                                 ]
+                            },
+                            {
+                                "id": "bbc4cc32-22e3-11ec-95a3-aa665a20e3d7",
+                                "text": "\nFEEDBACK_TERMINAL: Hello! What is Loom for?",
+                                "children": [
+                                    {
+                                        "id": "bbccdc6a-22e3-11ec-95a3-aa665a20e3d7",
+                                        "text": "\nLOOM_SUPPORT: Loom is a spatialized workspace for dynamic modeling.",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "bbc4cc32-22e3-11ec-95a3-aa665a20e3d7",
+                                        "visited": true,
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.16.47",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHNNjsd9EuOJDurAjJdx54KKrgGa",
+                                            "index": 0
+                                        }
+                                    },
+                                    {
+                                        "id": "bbcd07da-22e3-11ec-95a3-aa665a20e3d7",
+                                        "text": "\nLOOM_SUPPORT: It helps with modelling and shaping natural language, and with researching and tracking down natural language structures with alternative meanings and narratives that may be the sources of your cognitive ills, and then splicing them into your multiverse.",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "bbc4cc32-22e3-11ec-95a3-aa665a20e3d7",
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.16.47",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHNNjsd9EuOJDurAjJdx54KKrgGa",
+                                            "index": 1
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "bbcd3250-22e3-11ec-95a3-aa665a20e3d7",
+                                        "text": "\nLOOM_SUPPORT: It is for modelling!",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "bbc4cc32-22e3-11ec-95a3-aa665a20e3d7",
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.16.47",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHNNjsd9EuOJDurAjJdx54KKrgGa",
+                                            "index": 2
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "c35c9ed4-22e3-11ec-95a3-aa665a20e3d7",
+                                        "text": "\nLOOM_SUPPORT: Loom is a natural language shaping platform.",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "bbc4cc32-22e3-11ec-95a3-aa665a20e3d7",
+                                        "visited": true,
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.16.59",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHNaIuWznJXi0IpGGgeBK3GJZntl",
+                                            "index": 0
+                                        }
+                                    },
+                                    {
+                                        "id": "c35cd728-22e3-11ec-95a3-aa665a20e3d7",
+                                        "text": "\nLOOM_SUPPORT: Loom is a natural language programming platform for topological systems thinking.",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "bbc4cc32-22e3-11ec-95a3-aa665a20e3d7",
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.16.59",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHNaIuWznJXi0IpGGgeBK3GJZntl",
+                                            "index": 1
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "c35d08d8-22e3-11ec-95a3-aa665a20e3d7",
+                                        "text": "\nLOOM_SUPPORT: Are you the creator of your multiverse?",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 0,
+                                        "parent_id": "bbc4cc32-22e3-11ec-95a3-aa665a20e3d7",
+                                        "meta": {
+                                            "creation_timestamp": "2021-10-01-11.16.59",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-3oHNaIuWznJXi0IpGGgeBK3GJZntl",
+                                            "index": 2
+                                        },
+                                        "visited": true
+                                    }
+                                ],
+                                "mutable": true,
+                                "open": 0,
+                                "parent_id": "29c0d8d0-16b8-11ec-a1e7-acde48001122",
+                                "meta": {
+                                    "creation_timestamp": "2021-10-01-11.16.44",
+                                    "source": "prompt",
+                                    "modified": false
+                                },
+                                "visited": true,
+                                "tags": [
+                                    "archived"
+                                ]
                             }
                         ],
                         "parent_id": "af4931cc-165f-11ec-b847-acde48001122",
-                        "open": 0,
+                        "open": false,
                         "meta": {
                             "origin": "split (from child 9888ec64-1661-11ec-b74d-acde48001122)",
                             "source": "prompt",
@@ -12383,6 +13862,7 @@
         "font_size": 12,
         "line_spacing": 8,
         "paragraph_spacing": 10,
+        "revision_history": false,
         "autosave": false,
         "model_response": "backup",
         "prob": true,
@@ -12529,6 +14009,6 @@
             "icon": "question-red"
         }
     },
-    "selected_node_id": "d56aafb6-165f-11ec-b847-acde48001122",
+    "selected_node_id": "af4931cc-165f-11ec-b847-acde48001122",
     "frame": {}
 }
