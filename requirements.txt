@@ -10,6 +10,7 @@ click-repl==0.1.6
 dill==0.3.3
 html2text==2020.1.16
 idna==2.10
+jsonlines==2.0.0
 kombu==5.0.2
 multiprocess==0.70.11.1
 numexpr==2.7.1
