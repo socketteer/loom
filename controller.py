@@ -954,7 +954,7 @@ class Controller:
                 self.display.textbox.configure(state="disabled")
 
             # makes text copyable
-            #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+            self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
 
         # Textbox to edit mode, fill with single node
         elif self.display.mode == "Edit":
@@ -970,6 +970,7 @@ class Controller:
 
     @metadata(name="Toggle textbox editable", keys=["<Control-Shift-KeyPress-E>", "<Alt-Shift-KeyPress-E>"])
     def toggle_editable(self):
+        self.write_textbox_changes()
         if self.state.preferences.get('editable', False):
             self.state.update_user_frame(update={'preferences': {'editable': False}})
         else:

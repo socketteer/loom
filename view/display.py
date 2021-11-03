@@ -116,6 +116,8 @@ class Display:
         self.nav_button_frame = None
         self.scroll_to_selected_button = None
 
+        self.edit_textbox_icon = None
+
         self.font = Font(family='Georgia', size=12)
         self.font_bold = Font(family='Georgia', size=12, weight='bold')
 
@@ -254,6 +256,16 @@ class Display:
         textbox.pack(expand=True, fill='both')
 
         self.setup_textbox_tags(textbox)
+        # create edit textbox icon
+
+        self.edit_textbox_icon = tk.Label(textbox_frame,
+                                          image=icons.get_icon("edit-blue"),
+                                          cursor='hand2',
+                                          background=bg_color())
+        self.edit_textbox_icon.bind("<Button-1>", lambda event: self.callbacks["Toggle textbox editable"]["callback"]())
+                                          
+        self.edit_textbox_icon.place(rely=1.0, relx=1.0, x=-20, y=-10, anchor=tk.SE)
+
 
         textbox.configure(**textbox_config())
 
