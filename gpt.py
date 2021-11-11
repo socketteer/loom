@@ -58,7 +58,17 @@ POSSIBLE_MODELS = [
 ]
 
 
-#ai21_api_key = os.environ.get("AI21_API_KEY", None)
+
+
+
+
+
+
+
+
+
+
+ai21_api_key = os.environ.get("AI21_API_KEY", None)
 
 
 def gen(prompt, settings, config):
@@ -70,8 +80,8 @@ def gen(prompt, settings, config):
         logit_bias = parse_logit_bias(settings["logit_bias"])
     else:
         logit_bias = None
-    if config['OPENAI_API_KEY']:
-        openai.api_key = config['OPENAI_API_KEY']
+    #if config['OPENAI_API_KEY']:
+    openai.api_key = os.environ.get("OPENAI_API_KEY", None)#config['OPENAI_API_KEY']
     # if config['AI21_API_KEY']:
         #TODO 
         # ai21_api_key = config['AI21_API_KEY']
@@ -93,7 +103,7 @@ def generate(config, **kwargs):
     #pprint(kwargs)
     model_type = config['models'][kwargs['model']]['type']
     if model_type == 'ai21':
-        response, error = ai21_generate(api_key=config['AI21_API_KEY'], **kwargs)
+        response, error = ai21_generate(api_key=ai21_api_key, **kwargs)#config['AI21_API_KEY'], **kwargs)
         #save_response_json(response.json(), 'examples/AI21_response.json')
         if not error:
             formatted_response = format_ai21_response(response.json(), model=kwargs['model'])

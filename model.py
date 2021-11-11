@@ -129,8 +129,8 @@ DEFAULT_MODEL_CONFIG = {
         'j1-large': {'type': 'ai21'},
         'j1-jumbo': {'type': 'ai21'},
     },
-    'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
-    'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),
+    #'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
+    #'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),
 }
 
 DEFAULT_INLINE_GENERATION_SETTINGS = {
