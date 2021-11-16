@@ -1171,13 +1171,13 @@ class ModelConfigDialog(Dialog):
     def set_vars(self):
         self.available_models = self.state.model_config['models']
         self.selected_model.set(self.state.generation_settings['model'])
-        self.openai_api_key = self.state.model_config['OPENAI_API_KEY'] if self.state.model_config['OPENAI_API_KEY'] else ""
-        self.ai21_api_key = self.state.model_config['AI21_API_KEY'] if self.state.model_config['AI21_API_KEY'] else ""
+        self.openai_api_key = self.state.OPENAI_API_KEY if self.state.OPENAI_API_KEY else ""
+        self.ai21_api_key = self.state.AI21_API_KEY if self.state.AI21_API_KEY else ""
 
     def body(self, master):
         self.set_vars()
         self.add_model_button = ttk.Button(master, text="Add Model", command=self.add_model)
-        key_length = max(len(self.openai_api_key), len(self.ai21_api_key))
+        key_length = max(max(len(self.openai_api_key), len(self.ai21_api_key)), 20)
         self.openai_api_key_entry = Entry(master, master.grid_size()[1], "OpenAI API Key", self.openai_api_key, None, width=key_length)
         self.ai21_api_key_entry = Entry(master, master.grid_size()[1], "AI21 API Key", self.ai21_api_key, None, width=key_length)
         models_list = self.available_models.keys()
@@ -1196,8 +1196,10 @@ class ModelConfigDialog(Dialog):
                                                                command=lambda: self.selected_model.set(self.result['name']))
 
     def apply(self):
-        self.state.update_frame(node=self.state.root(), update={'model_config': {'OPENAI_API_KEY': self.openai_api_key_entry.tk_variables.get(), 
-                                                                                 'AI21_API_KEY': self.ai21_api_key_entry.tk_variables.get(),
-                                                                                 'models': self.available_models}})
+        self.state.update_frame(node=self.state.root(), update={'model_config': {'models': self.available_models}})
+                                                                                 #'OPENAI_API_KEY': self.openai_api_key_entry.tk_variables.get(),
+                                                                                 #'AI21_API_KEY': self.ai21_api_key_entry.tk_variables.get(),
+        self.state.OPENAI_API_KEY = self.openai_api_key_entry.tk_variables.get()
+        self.state.AI21_API_KEY = self.ai21_api_key_entry.tk_variables.get()
         self.state.update_user_frame(update={'generation_settings': {'model': self.selected_model.get()}})
 

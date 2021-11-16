@@ -68,10 +68,10 @@ POSSIBLE_MODELS = [
 
 
 
-ai21_api_key = os.environ.get("AI21_API_KEY", None)
+#ai21_api_key = os.environ.get("AI21_API_KEY", None)
 
 
-def gen(prompt, settings, config):
+def gen(prompt, settings, config, **kwargs):
     if settings["stop"]:
         stop = parse_stop(settings["stop"])
     else:
@@ -81,7 +81,10 @@ def gen(prompt, settings, config):
     else:
         logit_bias = None
     #if config['OPENAI_API_KEY']:
-    openai.api_key = os.environ.get("OPENAI_API_KEY", None)#config['OPENAI_API_KEY']
+    openai_api_key = kwargs.get('OPENAI_API_KEY', None)
+    openai.api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)#config['OPENAI_API_KEY']
+    ai21_api_key = kwargs.get('AI21_API_KEY', None)
+    ai21_api_key = ai21_api_key if ai21_api_key else os.environ.get("AI21_API_KEY", None)
     # if config['AI21_API_KEY']:
         #TODO 
         # ai21_api_key = config['AI21_API_KEY']
@@ -95,6 +98,7 @@ def gen(prompt, settings, config):
                                stop=stop,
                                logit_bias=logit_bias,
                                config=config,
+                               ai21_api_key=ai21_api_key,
                                )
     return response, error
 
@@ -103,7 +107,7 @@ def generate(config, **kwargs):
     #pprint(kwargs)
     model_type = config['models'][kwargs['model']]['type']
     if model_type == 'ai21':
-        response, error = ai21_generate(api_key=ai21_api_key, **kwargs)#config['AI21_API_KEY'], **kwargs)
+        response, error = ai21_generate(api_key=kwargs['ai21_api_key'], **kwargs)#config['AI21_API_KEY'], **kwargs)
         #save_response_json(response.json(), 'examples/AI21_response.json')
         if not error:
             formatted_response = format_ai21_response(response.json(), model=kwargs['model'])
@@ -242,7 +246,7 @@ def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temper
         'logit_bias': logit_bias,
         'n': num_continuations,
         'stop': stop,
-        **kwargs
+        #**kwargs
     }
     if custom:
         params['model'] = model

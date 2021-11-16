@@ -254,6 +254,8 @@ class TreeModel:
         self.callbacks = defaultdict(list)
         self.conditions = defaultdict(list)
         self.new_nodes = []
+        self.OPENAI_API_KEY = None
+        self.AI21_API_KEY = None
 
     @property
     def visualization_settings(self):
@@ -1925,7 +1927,7 @@ class TreeModel:
         self.tree_updated(delete=[node['id'] for node in nodes])
 
     def default_generate(self, prompt, nodes):
-        results, error = gen(prompt, self.generation_settings, self.model_config)
+        results, error = gen(prompt, self.generation_settings, self.model_config, OPENAI_API_KEY=self.OPENAI_API_KEY, AI21_API_KEY=self.AI21_API_KEY)
         self.post_generation(error, nodes, results)
 
 
