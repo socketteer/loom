@@ -636,6 +636,10 @@ class LoomTerminal(TextAware):
                            font=('Georgia', 12, 'italic'))
         self.tag_raise("sel")
         self.tag_raise("insert")
+
+        # make text copyable
+        self.bind("<Button>", lambda event: self.focus_set())
+
         self.alternatives = []
         self.completion_index = None
         self.inline_completions = None
