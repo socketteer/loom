@@ -231,7 +231,10 @@ Reset zoom: `Control-0`
 1. Install requirements 
 
     ```pip install -r requirements.txt```
-2. Run main.py
-3. Load a json tree
-4. Read  :)
+2. Set environmental variables for `OPENAI_API_KEY` or `AI21_API_KEY` 
+
+    ```export OPENAI_API_KEY={your api key}```
+3. Run main.py
+4. Load a json tree
+5. Read  :)
 
