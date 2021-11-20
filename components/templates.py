@@ -626,8 +626,8 @@ class LoomTerminal(TextAware):
         TextAware.__init__(self, undo=True, *args, **kwargs)
         
         self.bind("<Key>", self.key_pressed)
-        self.bind("<Button>", lambda event: self.focus_set())
-        self.bind("<Button>", self.button_pressed)
+        #self.bind("<Button>", lambda event: self.focus_set())
+        #self.bind("<Button>", self.button_pressed)
         self.bind("<Escape>", self.clear_temp_tags)
         #self.bind("<Button-1>", lambda event: self.clear_temp_tags())
         self.tag_configure("sel", background="black", foreground="white")

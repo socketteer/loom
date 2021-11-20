@@ -27,6 +27,7 @@ from util.util import clip_num, metadata, diff, split_indices, diff_linesToWords
 from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
     node_index, nearest_common_ancestor, filtered_children
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
+from util.textbox_util import distribute_textbox_changes
 from util.keybindings import tkinter_keybindings
 from view.icons import Icons
 from difflib import SequenceMatcher
@@ -251,7 +252,11 @@ class Controller:
     @metadata(name='Debug', keys=["<Control-Shift-KeyPress-D>"])
     def debug(self, event=None):
         #self.display.textbox.fix_selection()
-        self.write_textbox_changes()
+        #self.write_textbox_changes()
+        # makes text copyable
+        self.display.textbox.bind("<Button>", lambda e: self.display.textbox.focus_set())
+        print(self.display.textbox)
+        print('debug')
 
     # @metadata(name='Generate', keys=["<Control-G>", "<Control-KeyPress-G>"])
     # def generate(self, event=None):
@@ -429,6 +434,7 @@ class Controller:
         if not self.state.selected_node:
             # if no selected node (probably previous node was deleted), just select
             self.state.select_node(node['id'])
+        #print('writing textbox changes')
         self.write_textbox_changes()
         if open:
             node['open'] = True
@@ -555,7 +561,7 @@ class Controller:
         self.state.node_creation_metadata(new_child, source='prompt')
         if update_selection:
             self.select_node(new_child, ask_reveal=False)
-            if self.display.mode == "Read" and toggle_edit:
+            if self.display.mode == "Read" and toggle_edit and not self.state.preferences['editable']:
                 self.toggle_edit_mode()
         return new_child
 
@@ -566,7 +572,7 @@ class Controller:
         self.state.tree_updated(add=[new_sibling['id']])
         self.select_node(new_sibling, ask_reveal=False)
         self.state.node_creation_metadata(new_sibling)
-        if self.display.mode == "Read" and toggle_edit:
+        if self.display.mode == "Read" and toggle_edit and not self.state.preferences['editable']:
             self.toggle_edit_mode()
         return new_sibling
 
@@ -952,9 +958,9 @@ class Controller:
 
             if not self.state.preferences.get('editable', False):
                 self.display.textbox.configure(state="disabled")
-
             # makes text copyable
-            self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+            #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+
 
         # Textbox to edit mode, fill with single node
         elif self.display.mode == "Edit":
@@ -967,6 +973,10 @@ class Controller:
             # self.display.secondary_textbox.delete("1.0", "end")
             # self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
             self.display.textbox.focus()
+        
+        # makes text copyable
+        #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+
 
     @metadata(name="Toggle textbox editable", keys=["<Control-Shift-KeyPress-E>", "<Alt-Shift-KeyPress-E>"])
     def toggle_editable(self):
@@ -979,42 +989,13 @@ class Controller:
 
     @metadata(name="Write textbox")
     def write_textbox_changes(self):
-        if self.state.preferences['editable']:
-            old_text = self.state.ancestry_text(self.state.selected_node)
+        if self.state.preferences['editable'] and self.display.mode == 'Read':
             new_text = self.display.textbox.get("1.0", "end-1c")
-            if old_text != new_text:
-                dmp = diff_match_patch()
-                a = diff_linesToWords(old_text, new_text, delimiter=re.compile(' '))
-                diffs = dmp.diff_main(a[0], a[1], False)
-                dmp.diff_charsToLines(diffs, a[2])
-
-                diff_indices_old = []
-                diff_indices_new = []
-                old_text_index = 0
-                new_text_index = 0
-                for d in diffs:
-                    if d[0] == 0:
-                        old_text_index += len(d[1])
-                        new_text_index += len(d[1])
-                    elif d[0] == -1:
-                        # text was deleted
-                        diff_indices_old.append((old_text_index, old_text_index + len(d[1])))
-                        diff_indices_new.append((new_text_index, new_text_index))
-                    elif d[0] == 1:
-                        # text was added
-                        diff_indices_old.append((old_text_index, old_text_index))
-                        diff_indices_new.append((new_text_index, new_text_index + len(d[1])))
-                        new_text_index += len(d[1])
-
-                # for i in range(len(diff_indices_old)):
-                #     print(old_text[diff_indices_old[i][0]:diff_indices_old[i][1]])
-                #     print(new_text[diff_indices_new[i][0]:diff_indices_new[i][1]])
-                #     print()
-
-                texts = [new_text[i:j] for i, j in diff_indices_new]
-
-                self.try_replace_ranges(diff_indices_old, texts)
-
+            ancestry = self.state.ancestry(self.state.selected_node)
+            changed_ancestry = distribute_textbox_changes(new_text, ancestry)
+            for ancestor in changed_ancestry:
+                self.state.tree_node_dict[ancestor['id']]['text'] = ancestor['text']
+            self.update_nav_tree(edit=[ancestor['id'] for ancestor in changed_ancestry])
 
     def select_endpoints_range(self, start_endpoint, end_endpoint):
         start_text_index, end_text_index = self.endpoints_to_range(start_endpoint, end_endpoint)
@@ -2273,6 +2254,7 @@ class Controller:
                 self.state.update_text(self.state.node(self.display.vis.editing_node_id), new_text, save_revision_history=self.state.preferences['revision_history'])
 
         else:
+            self.write_textbox_changes()
             return
 
     def modules_tree_updated(self, **kwargs):
