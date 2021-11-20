@@ -255,7 +255,7 @@ class Controller:
         #self.write_textbox_changes()
         # makes text copyable
         self.display.textbox.bind("<Button>", lambda e: self.display.textbox.focus_set())
-        print(self.display.textbox)
+        #print(self.display.textbox)
         print('debug')
 
     # @metadata(name='Generate', keys=["<Control-G>", "<Control-KeyPress-G>"])
@@ -840,52 +840,56 @@ class Controller:
         self.display.textbox.tag_add("node_select", f"1.0 + {node_range[0]} chars", f"1.0 + {node_range[1]} chars")
         
         menu = tk.Menu(self.display.vis.textbox, tearoff=0)
+        if self.display.textbox.tag_ranges("sel"):
+            menu.add_command(label="Copy", command=lambda: self.display.textbox.copy_selected())
+
         menu.add_command(label="Go", command=lambda: self.select_node(clicked_node))
         menu.add_command(label="Edit", command=lambda: self.edit_in_module(clicked_node))
         menu.add_command(label="Split", command=lambda: self.split_node(char_index, change_selection=True))
-        menu.add_command(label="Generate")
-        menu.add_command(label="Add memory")
-        splice_menu = tk.Menu(menu, tearoff=0)
-        splice_menu.add_command(label="Obliviate")
-        splice_menu.add_command(label="Inject")
-        if self.display.textbox.tag_ranges("sel"):
-            splice_menu.add_command(label="Mask")
-            splice_menu.add_command(label="Open window from...")
-        splice_menu.add_command(label="Open window to...")
-        splice_menu.add_command(label="Custom splice")
+        # TODO
+        #menu.add_command(label="Generate")
+        #menu.add_command(label="Add memory")
+        # splice_menu = tk.Menu(menu, tearoff=0)
+        # splice_menu.add_command(label="Obliviate")
+        # splice_menu.add_command(label="Inject")
+        # if self.display.textbox.tag_ranges("sel"):
+        #     splice_menu.add_command(label="Mask")
+        #     splice_menu.add_command(label="Open window from...")
+        # splice_menu.add_command(label="Open window to...")
+        # splice_menu.add_command(label="Custom splice")
 
-        menu.add_cascade(label="Splice", menu=splice_menu)
+        #menu.add_cascade(label="Splice", menu=splice_menu)
         
-        menu.add_command(label="Annotate")
+        #menu.add_command(label="Annotate")
         # if there is text selected
         if self.display.textbox.tag_ranges("sel"):
             selection_menu = tk.Menu(menu, tearoff=0)
-            selection_menu.add_command(label="Copy")
-            save_menu = tk.Menu(selection_menu, tearoff=0)
-            save_menu.add_command(label="Save text")
-            save_menu.add_command(label="Save window")
-            save_menu.add_command(label="Save as memory")
-            selection_menu.add_cascade(label="Save", menu=save_menu)
+            #TODO
+            # save_menu = tk.Menu(selection_menu, tearoff=0)
+            # save_menu.add_command(label="Save text")
+            # save_menu.add_command(label="Save window")
+            # save_menu.add_command(label="Save as memory")
+            # selection_menu.add_cascade(label="Save", menu=save_menu)
             #selection_menu.add_command(label="Substitute")
             transform_menu = tk.Menu(menu, tearoff=0)
             transform_menu.add_command(label="Prose to script", command=lambda: self.open_selection_in_transformer(template='./config/transformers/prose_to_script.json'))
             selection_menu.add_cascade(label="Transform", menu=transform_menu)
             
             #selection_menu.add_command(label="Transform", command=lambda: self.open_selection_in_transformer())
-            selection_menu.add_command(label="Link")
-            selection_menu.add_command(label="Add summary")
-            selection_menu.add_command(label="Delete")
+            # selection_menu.add_command(label="Link")
+            # selection_menu.add_command(label="Add summary")
+            # selection_menu.add_command(label="Delete")
 
             menu.add_cascade(label="Selection", menu=selection_menu)
 
         tag_menu = tk.Menu(menu, tearoff=0)
 
-        tag_menu.add_command(label="Pin")
-        tag_menu.add_command(label="Tag...")
+        # tag_menu.add_command(label="Pin")
+        # tag_menu.add_command(label="Tag...")
         
-        menu.add_cascade(label="Tag", menu=tag_menu)
-        menu.add_command(label="Copy node")
-        menu.add_command(label="Copy id")
+        # menu.add_cascade(label="Tag", menu=tag_menu)
+        #menu.add_command(label="Copy node")
+        menu.add_command(label="Copy id", command=lambda: self.copy_id(clicked_node))
 
         menu.tk_popup(e.x_root, e.y_root + 8)
 
@@ -919,7 +923,7 @@ class Controller:
             # if self.state.preferences.get('show_prompt', False):
             #     self.display.textbox.insert("end-1c", self.state.prompt(self.state.selected_node))
             # else:
-            if self.state.preferences['coloring']in ('edit', 'read'):
+            if self.state.preferences['coloring'] in ('edit', 'read'):
                 self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
                 self.display.textbox.tag_config('history', foreground=history_color())
             else:
@@ -1472,8 +1476,9 @@ class Controller:
         
 
     @metadata(name="Copy id", keys=["<Control-Shift-KeyPress-C>"])
-    def copy_text(self):
-        pyperclip.copy(self.state.selected_node_id)
+    def copy_id(self, node=None):
+        node = node if node else self.state.selected_node
+        pyperclip.copy(node['id'])
         confirmation_dialog = messagebox.showinfo(title="Copy id", message="Copied node id to clipboard")
 
 
@@ -2043,10 +2048,11 @@ class Controller:
     def add_tag(self):
         dialog = AddTagDialog(parent=self.display.frame, state=self.state)
 
+    @metadata(name="Tag node dialog")
     def tag_node(self, node=None):
         node = node if node else self.state.selected_node
         modifications = {'add': [], 'remove': []}
-        dialog = TagNodeDialog(parent=self.display.frame, node=self.state.selected_node, state=self.state, modifications=modifications)
+        dialog = TagNodeDialog(parent=self.display.frame, node=node, state=self.state, modifications=modifications)
         # TODO will this be slow for large trees?
         if modifications['add'] or modifications['remove']:
             self.state.tree_updated(rebuild=True)

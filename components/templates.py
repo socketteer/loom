@@ -22,6 +22,7 @@ import bisect
 import threading
 import datetime
 import time
+import pyperclip
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
@@ -673,6 +674,9 @@ class LoomTerminal(TextAware):
 
     def selected_range(self):
         return len(self.get("1.0", "sel.first")), len(self.get("1.0", "sel.last"))
+
+    def copy_selected(self):
+        pyperclip.copy(self.selected_text())
 
     def fix_selection(self):
         # round selection positions to include full words (spaces are grouped at the beginning of the word - no training spaces!)
