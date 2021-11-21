@@ -352,6 +352,7 @@ class Display:
             ["Children"],
             ["Visualize"],
             ["Wavefunction"],
+            ["Bottom pane"],
             ["Side pane"],
             ["New Child", {}],
             ["Generate"],

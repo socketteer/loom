@@ -154,8 +154,14 @@ class Controller:
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
         menu_list = {
             "View": [
-                ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
+                ('Toggle side pane', 'Alt-P', None, no_junk_args(self.toggle_side)),
+                ('Toggle bottom pane', 'Alt-B', None, no_junk_args(self.toggle_bottom)),
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
+                ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
+                "-",
+                ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
+                ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
+                "-",
                 ('Hoist subtree', 'Alt-H', None, no_junk_args(self.hoist)),
                 ('Unhoist subtree', 'Alt-Shift-H', None, no_junk_args(self.unhoist)),
                 ('Unhoist all', '', None, no_junk_args(self.unhoist_all)),
@@ -164,10 +170,6 @@ class Controller:
                 ('Collapse all except subtree', 'Ctrl-:', None, no_junk_args(self.collapse_all_except_subtree)),
                 ('Expand children', 'Ctrl-\"', None, no_junk_args(self.expand_node)),
                 ('Expand subtree', 'Ctrl-+', None, no_junk_args(self.expand_subtree)),
-                ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
-                ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
-                #('Toggle hide archived', None, None, no_junk_args(self.toggle_hide_archived)),
-                #('Toggle canonical only', None, None, no_junk_args(self.toggle_canonical_only)),
                 ('Unzip', '', None, no_junk_args(self.unzip_node)),
                 ('Zip chain', '', None, no_junk_args(self.zip_chain)),
                 ('Zip all', '', None, no_junk_args(self.zip_all_chains)),
@@ -176,7 +178,9 @@ class Controller:
                 ('Hide invisible children', '', None, no_junk_args(self.hide_invisible_children)),
             ],
             "Edit": [
-                ('Edit mode', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
+                ('Edit node', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
+                ('Toggle textbox editable', 'Alt+Shift+E', None, no_junk_args(self.toggle_editable)),
+                "-",
                 ("New root child", 'Ctrl+Shift+H', None, no_junk_args(self.create_root_child)),
                 ("Create parent", 'Alt-Left', None, no_junk_args(self.create_parent)),
                 ("Change parent", 'Shift-P', None, no_junk_args(self.change_parent)),
@@ -982,7 +986,7 @@ class Controller:
         #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
 
 
-    @metadata(name="Toggle textbox editable", keys=["<Control-Shift-KeyPress-E>", "<Alt-Shift-KeyPress-E>"])
+    @metadata(name="Toggle textbox editable", keys=["<Alt-Shift-KeyPress-E>"])
     def toggle_editable(self):
         self.write_textbox_changes()
         if self.state.preferences.get('editable', False):
@@ -1456,24 +1460,11 @@ class Controller:
     #   Edit
     #################################
 
-
-    # @metadata(name="Merge with parent")
-    # def merge_with_parent(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.merge_with_parent(node)
-
-
-    # # TODO broken?
-    # @metadata(name="Merge with children")
-    # def merge_with_children(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.merge_with_children()
-
     @metadata(name="Copy")
     def copy_text(self):
         pyperclip.copy(self.display.textbox.get("1.0", "end-1c"))
         confirmation_dialog = messagebox.showinfo(title="Copy text", message="Copied node text to clipboard")
-        
+
 
     @metadata(name="Copy id", keys=["<Control-Shift-KeyPress-C>"])
     def copy_id(self, node=None):
@@ -1970,7 +1961,7 @@ class Controller:
         else:
             self.close_pane('side_pane')
 
-    @metadata(name="Toggle bottom pane", keys=["<Command-b>", "<Alt-b>"], display_key="")
+    @metadata(name="Bottom pane", keys=["<Command-b>", "<Alt-b>"], display_key="")
     def toggle_bottom(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['bottom_pane']['open']):
             self.open_pane("bottom_pane")
