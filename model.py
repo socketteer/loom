@@ -351,7 +351,7 @@ class TreeModel:
         state["workspace"] = deepcopy(DEFAULT_WORKSPACE)
         state["module_settings"] = deepcopy(DEFAULT_MODULE_SETTINGS) 
         state["model_config"] = deepcopy(DEFAULT_MODEL_CONFIG)
-        frames = self.accumulate_frames(self.selected_node)
+        frames = self.accumulate_frames(self.selected_node) if self.selected_node else {}
         frame_merger.merge(state, frames)
         frame_merger.merge(state, self.user_frame)
         return state
