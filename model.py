@@ -1690,9 +1690,10 @@ class TreeModel:
 
         if init_global:
             self._init_global_objects()
-        self.tree_updated(rebuild=True)
+        self.tree_updated(rebuild=True, write=False)
 
         self.select_node(self.tree_raw_data.get("selected_node_id", self.root()['children'][0]['id']))
+
 
     # Open a new tree json
     def open_tree(self, filename):

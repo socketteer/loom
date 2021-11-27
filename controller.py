@@ -2250,9 +2250,8 @@ class Controller:
                 new_text = self.display.vis.textbox.get("1.0", 'end-1c')
                 self.state.update_text(self.state.node(self.display.vis.editing_node_id), new_text, save_revision_history=self.state.preferences['revision_history'])
 
-        else:
+        elif kwargs.get("write", False):
             self.write_textbox_changes()
-            return
 
     def modules_tree_updated(self, **kwargs):
         for pane in self.display.panes:
