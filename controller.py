@@ -997,7 +997,7 @@ class Controller:
 
     @metadata(name="Write textbox")
     def write_textbox_changes(self):
-        if self.state.preferences['editable'] and self.display.mode == 'Read':
+        if self.state.preferences['editable'] and self.display.mode == 'Read' and self.state.selected_node:
             new_text = self.display.textbox.get("1.0", "end-1c")
             ancestry = self.state.ancestry(self.state.selected_node)
             changed_ancestry = distribute_textbox_changes(new_text, ancestry)
