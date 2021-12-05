@@ -1867,6 +1867,10 @@ class TreeModel:
                 export_body += f', parentId: {repr(line["parent_id"])}'
             if 'children' in line and len(line['children']) > 0:
                 export_body += f', hasChildren: true'
+            if 'tags' in line and len(line['tags']) > 0:
+                export_body += f', tags: {repr(line["tags"])}'
+            else: 
+                export_body += f', tags: []'
             export_body += '},\n'
         export_string = f'[\n{export_body}]'
         print(export_string)
