@@ -579,6 +579,7 @@ class TagsDialog(Dialog):
             for key, var in self.vars[tag].items():
                 self.state.tags[tag][key] = var.get()
             self.state.tags[tag]['icon'] = self.icon_names[tag]
+        self.result = True
 
 
 # class AIMemory(Dialog):

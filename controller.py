@@ -27,6 +27,7 @@ from util.util import clip_num, metadata, diff, split_indices, diff_linesToWords
 from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
     node_index, nearest_common_ancestor, filtered_children
 from util.gpt_util import logprobs_to_probs, parse_logit_bias
+from util.textbox_util import distribute_textbox_changes
 from util.keybindings import tkinter_keybindings
 from view.icons import Icons
 from difflib import SequenceMatcher
@@ -153,8 +154,14 @@ class Controller:
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
         menu_list = {
             "View": [
-                ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
+                ('Toggle side pane', 'Alt-P', None, no_junk_args(self.toggle_side)),
+                ('Toggle bottom pane', 'Alt-B', None, no_junk_args(self.toggle_bottom)),
                 ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
+                ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
+                "-",
+                ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
+                ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
+                "-",
                 ('Hoist subtree', 'Alt-H', None, no_junk_args(self.hoist)),
                 ('Unhoist subtree', 'Alt-Shift-H', None, no_junk_args(self.unhoist)),
                 ('Unhoist all', '', None, no_junk_args(self.unhoist_all)),
@@ -163,10 +170,6 @@ class Controller:
                 ('Collapse all except subtree', 'Ctrl-:', None, no_junk_args(self.collapse_all_except_subtree)),
                 ('Expand children', 'Ctrl-\"', None, no_junk_args(self.expand_node)),
                 ('Expand subtree', 'Ctrl-+', None, no_junk_args(self.expand_subtree)),
-                ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
-                ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
-                #('Toggle hide archived', None, None, no_junk_args(self.toggle_hide_archived)),
-                #('Toggle canonical only', None, None, no_junk_args(self.toggle_canonical_only)),
                 ('Unzip', '', None, no_junk_args(self.unzip_node)),
                 ('Zip chain', '', None, no_junk_args(self.zip_chain)),
                 ('Zip all', '', None, no_junk_args(self.zip_all_chains)),
@@ -175,7 +178,9 @@ class Controller:
                 ('Hide invisible children', '', None, no_junk_args(self.hide_invisible_children)),
             ],
             "Edit": [
-                ('Edit mode', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
+                ('Edit node', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
+                ('Toggle textbox editable', 'Alt+Shift+E', None, no_junk_args(self.toggle_editable)),
+                "-",
                 ("New root child", 'Ctrl+Shift+H', None, no_junk_args(self.create_root_child)),
                 ("Create parent", 'Alt-Left', None, no_junk_args(self.create_parent)),
                 ("Change parent", 'Shift-P', None, no_junk_args(self.change_parent)),
@@ -251,7 +256,11 @@ class Controller:
     @metadata(name='Debug', keys=["<Control-Shift-KeyPress-D>"])
     def debug(self, event=None):
         #self.display.textbox.fix_selection()
-        self.write_textbox_changes()
+        #self.write_textbox_changes()
+        # makes text copyable
+        self.display.textbox.bind("<Button>", lambda e: self.display.textbox.focus_set())
+        #print(self.display.textbox)
+        print('debug')
 
     # @metadata(name='Generate', keys=["<Control-G>", "<Control-KeyPress-G>"])
     # def generate(self, event=None):
@@ -429,6 +438,7 @@ class Controller:
         if not self.state.selected_node:
             # if no selected node (probably previous node was deleted), just select
             self.state.select_node(node['id'])
+        #print('writing textbox changes')
         self.write_textbox_changes()
         if open:
             node['open'] = True
@@ -555,7 +565,7 @@ class Controller:
         self.state.node_creation_metadata(new_child, source='prompt')
         if update_selection:
             self.select_node(new_child, ask_reveal=False)
-            if self.display.mode == "Read" and toggle_edit:
+            if self.display.mode == "Read" and toggle_edit and not self.state.preferences['editable']:
                 self.toggle_edit_mode()
         return new_child
 
@@ -566,7 +576,7 @@ class Controller:
         self.state.tree_updated(add=[new_sibling['id']])
         self.select_node(new_sibling, ask_reveal=False)
         self.state.node_creation_metadata(new_sibling)
-        if self.display.mode == "Read" and toggle_edit:
+        if self.display.mode == "Read" and toggle_edit and not self.state.preferences['editable']:
             self.toggle_edit_mode()
         return new_sibling
 
@@ -791,6 +801,7 @@ class Controller:
             if self.state.is_template(node):
                 #TODO
                 return
+            self.write_textbox_changes()
             ancestor_index, selected_ancestor = self.index_to_ancestor(index)
             ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(node)]
             negative_offset = ancestor_end_indices[ancestor_index] - index
@@ -812,14 +823,29 @@ class Controller:
         self.state.unzip(node, filter=self.state.visible)
 
     def zip_all_chains(self):
+        editable = False
+        # temporarily disable editable textbox so that text isn't overwritten
+        if self.state.preferences.get('editable', False):
+            editable = True
+            self.state.update_user_frame(update={'preferences': {'editable': False}})
         self.state.zip_all_chains(filter=self.in_nav)
-        self.state.tree_updated(rebuild=True)
-        self.state.select_node(self.state.tree_raw_data['root']['id'])
+        self.state.tree_updated(rebuild=True, write=False)
+        self.state.select_node(self.state.tree_raw_data['root']['id'], write=False)
+        # TODO hack
+        if editable:
+            self.state.update_user_frame(update={'preferences': {'editable': True}})
 
     def unzip_all(self):
+        editable = False
+        if self.state.preferences.get('editable', False):
+            editable = True
+            self.state.update_user_frame(update={'preferences': {'editable': False}})
         self.state.unzip_all(filter=self.state.visible)
-        self.state.tree_updated(rebuild=True)
-        self.state.select_node(self.state.tree_raw_data['root']['id'])
+        self.state.tree_updated(rebuild=True, write=False)
+        self.state.select_node(self.state.tree_raw_data['root']['id'], write=False)
+        # TODO hack
+        if editable:
+            self.state.update_user_frame(update={'preferences': {'editable': True}})
 
 
     #################################
@@ -834,52 +860,56 @@ class Controller:
         self.display.textbox.tag_add("node_select", f"1.0 + {node_range[0]} chars", f"1.0 + {node_range[1]} chars")
         
         menu = tk.Menu(self.display.vis.textbox, tearoff=0)
+        if self.display.textbox.tag_ranges("sel"):
+            menu.add_command(label="Copy", command=lambda: self.display.textbox.copy_selected())
+
         menu.add_command(label="Go", command=lambda: self.select_node(clicked_node))
         menu.add_command(label="Edit", command=lambda: self.edit_in_module(clicked_node))
         menu.add_command(label="Split", command=lambda: self.split_node(char_index, change_selection=True))
-        menu.add_command(label="Generate")
-        menu.add_command(label="Add memory")
-        splice_menu = tk.Menu(menu, tearoff=0)
-        splice_menu.add_command(label="Obliviate")
-        splice_menu.add_command(label="Inject")
-        if self.display.textbox.tag_ranges("sel"):
-            splice_menu.add_command(label="Mask")
-            splice_menu.add_command(label="Open window from...")
-        splice_menu.add_command(label="Open window to...")
-        splice_menu.add_command(label="Custom splice")
+        # TODO
+        #menu.add_command(label="Generate")
+        #menu.add_command(label="Add memory")
+        # splice_menu = tk.Menu(menu, tearoff=0)
+        # splice_menu.add_command(label="Obliviate")
+        # splice_menu.add_command(label="Inject")
+        # if self.display.textbox.tag_ranges("sel"):
+        #     splice_menu.add_command(label="Mask")
+        #     splice_menu.add_command(label="Open window from...")
+        # splice_menu.add_command(label="Open window to...")
+        # splice_menu.add_command(label="Custom splice")
 
-        menu.add_cascade(label="Splice", menu=splice_menu)
+        #menu.add_cascade(label="Splice", menu=splice_menu)
         
-        menu.add_command(label="Annotate")
+        #menu.add_command(label="Annotate")
         # if there is text selected
         if self.display.textbox.tag_ranges("sel"):
             selection_menu = tk.Menu(menu, tearoff=0)
-            selection_menu.add_command(label="Copy")
-            save_menu = tk.Menu(selection_menu, tearoff=0)
-            save_menu.add_command(label="Save text")
-            save_menu.add_command(label="Save window")
-            save_menu.add_command(label="Save as memory")
-            selection_menu.add_cascade(label="Save", menu=save_menu)
+            #TODO
+            # save_menu = tk.Menu(selection_menu, tearoff=0)
+            # save_menu.add_command(label="Save text")
+            # save_menu.add_command(label="Save window")
+            # save_menu.add_command(label="Save as memory")
+            # selection_menu.add_cascade(label="Save", menu=save_menu)
             #selection_menu.add_command(label="Substitute")
             transform_menu = tk.Menu(menu, tearoff=0)
             transform_menu.add_command(label="Prose to script", command=lambda: self.open_selection_in_transformer(template='./config/transformers/prose_to_script.json'))
             selection_menu.add_cascade(label="Transform", menu=transform_menu)
             
             #selection_menu.add_command(label="Transform", command=lambda: self.open_selection_in_transformer())
-            selection_menu.add_command(label="Link")
-            selection_menu.add_command(label="Add summary")
-            selection_menu.add_command(label="Delete")
+            # selection_menu.add_command(label="Link")
+            # selection_menu.add_command(label="Add summary")
+            # selection_menu.add_command(label="Delete")
 
             menu.add_cascade(label="Selection", menu=selection_menu)
 
         tag_menu = tk.Menu(menu, tearoff=0)
 
-        tag_menu.add_command(label="Pin")
-        tag_menu.add_command(label="Tag...")
+        # tag_menu.add_command(label="Pin")
+        # tag_menu.add_command(label="Tag...")
         
-        menu.add_cascade(label="Tag", menu=tag_menu)
-        menu.add_command(label="Copy node")
-        menu.add_command(label="Copy id")
+        # menu.add_cascade(label="Tag", menu=tag_menu)
+        #menu.add_command(label="Copy node")
+        menu.add_command(label="Copy id", command=lambda: self.copy_id(clicked_node))
 
         menu.tk_popup(e.x_root, e.y_root + 8)
 
@@ -913,7 +943,7 @@ class Controller:
             # if self.state.preferences.get('show_prompt', False):
             #     self.display.textbox.insert("end-1c", self.state.prompt(self.state.selected_node))
             # else:
-            if self.state.preferences['coloring']in ('edit', 'read'):
+            if self.state.preferences['coloring'] in ('edit', 'read'):
                 self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
                 self.display.textbox.tag_config('history', foreground=history_color())
             else:
@@ -952,9 +982,9 @@ class Controller:
 
             if not self.state.preferences.get('editable', False):
                 self.display.textbox.configure(state="disabled")
-
             # makes text copyable
-            self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+            #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
+
 
         # Textbox to edit mode, fill with single node
         elif self.display.mode == "Edit":
@@ -967,8 +997,12 @@ class Controller:
             # self.display.secondary_textbox.delete("1.0", "end")
             # self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
             self.display.textbox.focus()
+        
+        # makes text copyable
+        #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
 
-    @metadata(name="Toggle textbox editable", keys=["<Control-Shift-KeyPress-E>", "<Alt-Shift-KeyPress-E>"])
+
+    @metadata(name="Toggle textbox editable", keys=["<Alt-Shift-KeyPress-E>"])
     def toggle_editable(self):
         self.write_textbox_changes()
         if self.state.preferences.get('editable', False):
@@ -979,42 +1013,14 @@ class Controller:
 
     @metadata(name="Write textbox")
     def write_textbox_changes(self):
-        if self.state.preferences['editable']:
-            old_text = self.state.ancestry_text(self.state.selected_node)
+        print('writing')
+        if self.state.preferences['editable'] and self.display.mode == 'Read' and self.state.selected_node:
             new_text = self.display.textbox.get("1.0", "end-1c")
-            if old_text != new_text:
-                dmp = diff_match_patch()
-                a = diff_linesToWords(old_text, new_text, delimiter=re.compile(' '))
-                diffs = dmp.diff_main(a[0], a[1], False)
-                dmp.diff_charsToLines(diffs, a[2])
-
-                diff_indices_old = []
-                diff_indices_new = []
-                old_text_index = 0
-                new_text_index = 0
-                for d in diffs:
-                    if d[0] == 0:
-                        old_text_index += len(d[1])
-                        new_text_index += len(d[1])
-                    elif d[0] == -1:
-                        # text was deleted
-                        diff_indices_old.append((old_text_index, old_text_index + len(d[1])))
-                        diff_indices_new.append((new_text_index, new_text_index))
-                    elif d[0] == 1:
-                        # text was added
-                        diff_indices_old.append((old_text_index, old_text_index))
-                        diff_indices_new.append((new_text_index, new_text_index + len(d[1])))
-                        new_text_index += len(d[1])
-
-                # for i in range(len(diff_indices_old)):
-                #     print(old_text[diff_indices_old[i][0]:diff_indices_old[i][1]])
-                #     print(new_text[diff_indices_new[i][0]:diff_indices_new[i][1]])
-                #     print()
-
-                texts = [new_text[i:j] for i, j in diff_indices_new]
-
-                self.try_replace_ranges(diff_indices_old, texts)
-
+            ancestry = self.state.ancestry(self.state.selected_node)
+            changed_ancestry = distribute_textbox_changes(new_text, ancestry)
+            for ancestor in changed_ancestry:
+                self.state.tree_node_dict[ancestor['id']]['text'] = ancestor['text']
+            self.update_nav_tree(edit=[ancestor['id'] for ancestor in changed_ancestry])
 
     def select_endpoints_range(self, start_endpoint, end_endpoint):
         start_text_index, end_text_index = self.endpoints_to_range(start_endpoint, end_endpoint)
@@ -1471,28 +1477,16 @@ class Controller:
     #   Edit
     #################################
 
-
-    # @metadata(name="Merge with parent")
-    # def merge_with_parent(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.merge_with_parent(node)
-
-
-    # # TODO broken?
-    # @metadata(name="Merge with children")
-    # def merge_with_children(self, node=None):
-    #     node = node if node else self.state.selected_node
-    #     self.state.merge_with_children()
-
     @metadata(name="Copy")
     def copy_text(self):
         pyperclip.copy(self.display.textbox.get("1.0", "end-1c"))
         confirmation_dialog = messagebox.showinfo(title="Copy text", message="Copied node text to clipboard")
-        
+
 
     @metadata(name="Copy id", keys=["<Control-Shift-KeyPress-C>"])
-    def copy_text(self):
-        pyperclip.copy(self.state.selected_node_id)
+    def copy_id(self, node=None):
+        node = node if node else self.state.selected_node
+        pyperclip.copy(node['id'])
         confirmation_dialog = messagebox.showinfo(title="Copy id", message="Copied node id to clipboard")
 
 
@@ -1984,7 +1978,7 @@ class Controller:
         else:
             self.close_pane('side_pane')
 
-    @metadata(name="Toggle bottom pane", keys=["<Command-b>", "<Alt-b>"], display_key="")
+    @metadata(name="Bottom pane", keys=["<Command-b>", "<Alt-b>"], display_key="")
     def toggle_bottom(self, toggle='either'):
         if toggle == 'on' or (toggle == 'either' and not self.state.workspace['bottom_pane']['open']):
             self.open_pane("bottom_pane")
@@ -2056,16 +2050,19 @@ class Controller:
 
     def configure_tags(self):
         dialog = TagsDialog(parent=self.display.frame, state=self.state)
+        print('configure tags(1)')
         if dialog.result:
+            print('configure tags')
             self.state.tree_updated(rebuild=True)
 
     def add_tag(self):
         dialog = AddTagDialog(parent=self.display.frame, state=self.state)
 
+    @metadata(name="Tag node dialog")
     def tag_node(self, node=None):
         node = node if node else self.state.selected_node
         modifications = {'add': [], 'remove': []}
-        dialog = TagNodeDialog(parent=self.display.frame, node=self.state.selected_node, state=self.state, modifications=modifications)
+        dialog = TagNodeDialog(parent=self.display.frame, node=node, state=self.state, modifications=modifications)
         # TODO will this be slow for large trees?
         if modifications['add'] or modifications['remove']:
             self.state.tree_updated(rebuild=True)
@@ -2259,6 +2256,8 @@ class Controller:
 
     @metadata(name="Save Edits")
     def save_edits(self, **kwargs):
+        print('save edits')
+        print(kwargs)
         if not self.state.selected_node_id:
             return
 
@@ -2272,8 +2271,8 @@ class Controller:
                 new_text = self.display.vis.textbox.get("1.0", 'end-1c')
                 self.state.update_text(self.state.node(self.display.vis.editing_node_id), new_text, save_revision_history=self.state.preferences['revision_history'])
 
-        else:
-            return
+        elif kwargs.get("write", True):
+            self.write_textbox_changes()
 
     def modules_tree_updated(self, **kwargs):
         for pane in self.display.panes:

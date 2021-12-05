@@ -22,6 +22,7 @@ import bisect
 import threading
 import datetime
 import time
+import pyperclip
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',
@@ -626,8 +627,8 @@ class LoomTerminal(TextAware):
         TextAware.__init__(self, undo=True, *args, **kwargs)
         
         self.bind("<Key>", self.key_pressed)
-        self.bind("<Button>", lambda event: self.focus_set())
-        self.bind("<Button>", self.button_pressed)
+        #self.bind("<Button>", lambda event: self.focus_set())
+        #self.bind("<Button>", self.button_pressed)
         self.bind("<Escape>", self.clear_temp_tags)
         #self.bind("<Button-1>", lambda event: self.clear_temp_tags())
         self.tag_configure("sel", background="black", foreground="white")
@@ -673,6 +674,9 @@ class LoomTerminal(TextAware):
 
     def selected_range(self):
         return len(self.get("1.0", "sel.first")), len(self.get("1.0", "sel.last"))
+
+    def copy_selected(self):
+        pyperclip.copy(self.selected_text())
 
     def fix_selection(self):
         # round selection positions to include full words (spaces are grouped at the beginning of the word - no training spaces!)

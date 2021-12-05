@@ -185,6 +185,12 @@ def ancestor_text_indices(ancestry=None, text_callback=None):
         start_index += len(text)
     return indices
 
+def ancestor_text_end_indices(ancestry=None, text_callback=None):
+    return [ind[1] for ind in ancestor_text_indices(ancestry, text_callback)]
+
+def ancestor_text_start_indices(ancestry=None, text_callback=None):
+    return [ind[0] for ind in ancestor_text_indices(ancestry, text_callback)]
+    
 def ancestor_text_list(ancestry, text_callback=None):
     if text_callback:
         return [text_callback(node) for node in ancestry]
