@@ -801,6 +801,7 @@ class Controller:
             if self.state.is_template(node):
                 #TODO
                 return
+            self.write_textbox_changes()
             ancestor_index, selected_ancestor = self.index_to_ancestor(index)
             ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(node)]
             negative_offset = ancestor_end_indices[ancestor_index] - index
@@ -822,14 +823,29 @@ class Controller:
         self.state.unzip(node, filter=self.state.visible)
 
     def zip_all_chains(self):
+        editable = False
+        # temporarily disable editable textbox so that text isn't overwritten
+        if self.state.preferences.get('editable', False):
+            editable = True
+            self.state.update_user_frame(update={'preferences': {'editable': False}})
         self.state.zip_all_chains(filter=self.in_nav)
-        self.state.tree_updated(rebuild=True)
-        self.state.select_node(self.state.tree_raw_data['root']['id'])
+        self.state.tree_updated(rebuild=True, write=False)
+        self.state.select_node(self.state.tree_raw_data['root']['id'], write=False)
+        # TODO hack
+        if editable:
+            self.state.update_user_frame(update={'preferences': {'editable': True}})
 
     def unzip_all(self):
+        editable = False
+        if self.state.preferences.get('editable', False):
+            editable = True
+            self.state.update_user_frame(update={'preferences': {'editable': False}})
         self.state.unzip_all(filter=self.state.visible)
-        self.state.tree_updated(rebuild=True)
-        self.state.select_node(self.state.tree_raw_data['root']['id'])
+        self.state.tree_updated(rebuild=True, write=False)
+        self.state.select_node(self.state.tree_raw_data['root']['id'], write=False)
+        # TODO hack
+        if editable:
+            self.state.update_user_frame(update={'preferences': {'editable': True}})
 
 
     #################################
@@ -997,6 +1013,7 @@ class Controller:
 
     @metadata(name="Write textbox")
     def write_textbox_changes(self):
+        print('writing')
         if self.state.preferences['editable'] and self.display.mode == 'Read' and self.state.selected_node:
             new_text = self.display.textbox.get("1.0", "end-1c")
             ancestry = self.state.ancestry(self.state.selected_node)
@@ -2033,7 +2050,9 @@ class Controller:
 
     def configure_tags(self):
         dialog = TagsDialog(parent=self.display.frame, state=self.state)
+        print('configure tags(1)')
         if dialog.result:
+            print('configure tags')
             self.state.tree_updated(rebuild=True)
 
     def add_tag(self):
@@ -2237,6 +2256,8 @@ class Controller:
 
     @metadata(name="Save Edits")
     def save_edits(self, **kwargs):
+        print('save edits')
+        print(kwargs)
         if not self.state.selected_node_id:
             return
 

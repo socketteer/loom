@@ -413,7 +413,7 @@ class TreeModel:
             self.update(node['frame'], update, append)
         else:
             node['frame'] = deepcopy(update)
-        self.tree_updated()
+        self.tree_updated(write=False)
 
     def get_frame(self, node):
         return node.get('frame', {})
@@ -426,7 +426,7 @@ class TreeModel:
             self.update(self.tree_raw_data['frame'], update, append)
         else:
             self.tree_raw_data['frame'] = deepcopy(update)
-        self.tree_updated()
+        self.tree_updated(write=False)
 
     # TODO merge with frame
     def set_user_frame_partial(self, value, path):
@@ -441,7 +441,7 @@ class TreeModel:
 
     def clear_user_frame(self):
         self.set_user_frame({})
-        self.tree_updated()
+        self.tree_updated(write=False)
 
     def write_user_frame_to_node(self):
         # saves current user settings as a frame at the selected node
@@ -481,7 +481,7 @@ class TreeModel:
         del self.new_nodes[0]
 
     @event
-    def pre_selection_updated(self):
+    def pre_selection_updated(self, **kwargs):
         pass
 
     @event
@@ -632,12 +632,11 @@ class TreeModel:
     # Update the selected node, the nav tree selection, and possibly the position in the tree traversal
     def select_node(self, node_id, fire_callbacks=True, reveal_node=False, **kwargs):
         if self.selected_node_id != node_id and self.tree_node_dict and node_id in self.tree_node_dict:
-            self.pre_selection_updated()
+            self.pre_selection_updated(**kwargs)
 
             self.selected_node_id = node_id
             self.selected_node["visited"] = True
             self.tree_raw_data["selected_node_id"] = self.selected_node_id
-
             if reveal_node:
                 self.reveal_nodes([self.selected_node])
 
@@ -647,7 +646,6 @@ class TreeModel:
                 ancestor["open"] = True
             # Always open the root
             self.tree_raw_data["root"]["open"] = True
-
             if fire_callbacks:
                 self.selection_updated(**kwargs)
             return self.selected_node
@@ -1081,12 +1079,12 @@ class TreeModel:
         mask['visited'] = True
 
         if refresh_nav:
-            self.tree_updated(delete=[head['id']], add=[n['id'] for n in subtree_list(mask)])
+            self.tree_updated(delete=[head['id']], add=[n['id'] for n in subtree_list(mask)], write=False)
         else:
             self.rebuild_tree()
         if update_selection:
-            self.select_node(mask['id'])
-            self.selection_updated()
+            self.select_node(mask['id'], write=False)
+            self.selection_updated(write=False)
         return mask
 
     def unzip(self, mask, filter=None, refresh_nav=True, update_selection=True):
@@ -1105,7 +1103,7 @@ class TreeModel:
         self.adopt_children(tail, children)
 
         if refresh_nav:
-            self.tree_updated(delete=[mask['id']], add=[n['id'] for n in subtree_list(head, filter)])
+            self.tree_updated(delete=[mask['id']], add=[n['id'] for n in subtree_list(head, filter)], write=False)
         else:
             self.rebuild_tree()
         if update_selection:
@@ -1178,13 +1176,13 @@ class TreeModel:
                 hidden_ancestry_ids.insert(0, ancestry[-i]['id'])
             else:
                 break
-        self.tree_updated(add=hidden_ancestry_ids, override_visible=True)
+        self.tree_updated(add=hidden_ancestry_ids, override_visible=True, write=False)
 
     # unlike reveal_ancestry, this assumes parents are visible
     def reveal_nodes(self, nodes):
         invisible_node_ids = [node['id'] for node in nodes if not self.visible(node)]
         if invisible_node_ids:
-            self.tree_updated(add=invisible_node_ids, override_visible=True)
+            self.tree_updated(add=invisible_node_ids, override_visible=True, write=False)
 
 
     #################################
@@ -1764,7 +1762,7 @@ class TreeModel:
         self.tree_raw_data['root'] = new_root
         new_root['open'] = True
         new_root['hoisted'] = True
-        self.tree_updated(rebuild=True)
+        self.tree_updated(rebuild=True, write=False)
         self.select_node(new_root['id'])
 
 
@@ -1778,7 +1776,7 @@ class TreeModel:
         if self.selected_node_id == old_root['id']:
             self.selected_node_id = new_root['id']
         if rebuild:
-            self.tree_updated(rebuild=True)
+            self.tree_updated(rebuild=True, write=False)
         else:
             self.rebuild_tree()
         if update_selection:
@@ -1789,7 +1787,7 @@ class TreeModel:
         old_selection = self.selected_node
         while self.is_compound(self.root()):
             self.unhoist(rebuild=False, update_selection=False)
-        self.tree_updated(rebuild=True)
+        self.tree_updated(rebuild=True, write=False)
         if self.selected_node_id != old_selection['id']:
             self.selection_updated()
 
