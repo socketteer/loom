@@ -388,6 +388,9 @@ def fix_tree(tree):
         tree = tree['root']
     if 'children' not in tree:
         tree['children'] = []
+    if 'parentId' in tree:
+        tree['parent_id'] = tree['parentId']
+        del tree['parentId']
     else:
         for child in tree['children']:
             fix_tree(child)

@@ -1013,7 +1013,7 @@ class Controller:
 
     @metadata(name="Write textbox")
     def write_textbox_changes(self):
-        print('writing')
+        #print('writing')
         if self.state.preferences['editable'] and self.display.mode == 'Read' and self.state.selected_node:
             new_text = self.display.textbox.get("1.0", "end-1c")
             ancestry = self.state.ancestry(self.state.selected_node)
@@ -2256,8 +2256,8 @@ class Controller:
 
     @metadata(name="Save Edits")
     def save_edits(self, **kwargs):
-        print('save edits')
-        print(kwargs)
+        #print('save edits')
+        #print(kwargs)
         if not self.state.selected_node_id:
             return
 
