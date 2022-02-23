@@ -1,13 +1,14 @@
 import math
 import tkinter
 import uuid
-import openai
+
 from tkinter import ttk
 from decimal import *
 from util.custom_tks import TextAware
 from util.gpt_util import logprobs_to_probs
 from util.tokenizer import tokenize, token_to_word
-
+from PIL import Image
+import PIL.ImageGrab as ImageGrab
 
 rainbow_colors = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000']
 
@@ -319,7 +320,6 @@ class BlockMultiverse:
     def map_to_scaled_coordinates(self, x, y):
         x = x - self.window_offset[0]
         y = y - self.window_offset[1]
-        print(y)
         y = y * self.y_scale
         return x, y
 
@@ -341,3 +341,11 @@ class BlockMultiverse:
         #rel_y = int(round(rel_y))
         return self.canvas.create_text(rel_x, rel_y, **kwargs)
 
+    def save_as_png(self, filename):
+        # grabcanvas=ImageGrab.grab(bbox=self.canvas).save("test.png")
+        # ttk.grabcanvas.save("test.png")
+
+        self.canvas.postscript(file = filename + '.eps') 
+        # use PIL to convert to PNG 
+        img = Image.open(filename + '.eps') 
+        img.save(filename + '.png', 'png', quality=100)

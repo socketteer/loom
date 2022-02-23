@@ -1916,12 +1916,13 @@ class Wavefunction(Module):
         self.max_depth_entry = None
         self.threshold_entry = None
         self.model_dropdown = None
-        # buttons: propagate, clear, center, add path to tree
+        # buttons: propagate, clear, center, add path to tree, save image
         self.propagate_button = None
         self.clear_button = None
         self.add_path_button = None
         self.reset_zoom_button = None
-        self.model_list = ["ada", "babbage", "curie", "davinci", "gpt-j-6b", "gpt-neo-20b"]
+        self.save_image_button = None
+        self.model_list = ["ada", "ada", "babbage", "curie", "davinci", "gpt-j-6b", "gpt-neo-20b"]
         
         self.ground_truth_textbox = None
         Module.__init__(self, 'wavefunction', callbacks, state)
@@ -1975,6 +1976,8 @@ class Wavefunction(Module):
         self.reset_zoom_button.pack(side='left')
         self.add_path_button = ttk.Button(self.buttons_frame, text="Add path to tree", compound='right', command=self.add_path)
         self.add_path_button.pack(side='left')
+        self.save_image_button = ttk.Button(self.buttons_frame, text="Save image", compound='right', command=self.save_image)
+        self.save_image_button.pack(side='left')
         
         self.set_config()
     
@@ -2020,6 +2023,10 @@ class Wavefunction(Module):
             new_child = self.state.create_child(self.state.selected_node, expand=True)
             new_child['text'] = prompt
             self.state.tree_updated(add=[new_child['id']])
+
+    def save_image(self):
+        prompt = self.state.default_prompt(quiet=True, node=self.state.selected_node)
+        self.wavefunction.save_as_png(f'{prompt[-20:]}_{self.model.get()}.png')
 
     def tree_updated(self):
         pass
