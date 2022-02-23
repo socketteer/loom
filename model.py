@@ -50,7 +50,7 @@ DEFAULT_PREFERENCES = {
     'nav_tag': 'bookmark',
 
     # Story frame 
-    'editable': False,
+    'editable': True,
     'history_conflict': 'overwrite', # 'branch', 'ask', 'forbid'
     'coloring': 'edit',  # 'read', 'none'
     'bold_prompt': True,
