@@ -666,17 +666,15 @@ class Controller:
 
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
     def generate(self, node=None, **kwargs):
-        if self.display.mode == "Multiverse":
-            self.propagate_wavefunction()
-        else:
-            if node is None:
-                node = self.state.selected_node
-            try:
-                node["open"] = True
-                self.display.nav_tree.item(node['id'], open=True)
-            except Exception as e:
-                print(str(e))
-            self.state.generate_continuations(node=node, **kwargs)
+        if node is None:
+            node = self.state.selected_node
+        try:
+            node["open"] = True
+            self.display.nav_tree.item(node['id'], open=True)
+        except Exception as e:
+            print(str(e))
+        self.state.generate_continuations(node=node, **kwargs)
+
 
     @metadata(name="Retry")
     def retry(self, node=None):
@@ -693,23 +691,23 @@ class Controller:
             self.generate(update_selection=True, placeholder="")
 
 
-    def propagate_wavefunction(self):
-        if self.display.mode == "Multiverse":
-            if self.display.multiverse.active_wavefunction():
-                active_node = self.display.multiverse.active_info()
-                start_position = (active_node['x'], active_node['y'])
-                multiverse, ground_truth, prompt = self.state.generate_greedy_multiverse(max_depth=4, prompt=active_node['prefix'],
-                                                                                 unnormalized_amplitude=active_node['amplitude'],
-                                                                                 ground_truth="",
-                                                                                 threshold=0.04,
-                                                                                 engine='ada')
-            else:
-                start_position = (0, 0)
-                multiverse, ground_truth, prompt = self.state.generate_greedy_multiverse(max_depth=4, ground_truth="",
-                                                                                 threshold=0.04,
-                                                                                 engine='ada')
-            self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth,
-                                                    start_position=start_position, prompt=prompt)
+    # def propagate_wavefunction(self):
+    #     if self.display.mode == "Multiverse":
+    #         if self.display.multiverse.active_wavefunction():
+    #             active_node = self.display.multiverse.active_info()
+    #             start_position = (active_node['x'], active_node['y'])
+    #             multiverse, ground_truth, prompt = self.state.generate_greedy_multiverse(max_depth=4, prompt=active_node['prefix'],
+    #                                                                              unnormalized_amplitude=active_node['amplitude'],
+    #                                                                              ground_truth="",
+    #                                                                              threshold=0.04,
+    #                                                                              engine='ada')
+    #         else:
+    #             start_position = (0, 0)
+    #             multiverse, ground_truth, prompt = self.state.generate_greedy_multiverse(max_depth=4, ground_truth="",
+    #                                                                              threshold=0.04,
+    #                                                                              engine='ada')
+    #         self.display.multiverse.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth,
+    #                                                 start_position=start_position, prompt=prompt)
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
     def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node and subtree?", refresh_nav=True):
@@ -1462,14 +1460,14 @@ class Controller:
         # self.center_view()
 
 
-    @metadata(name="Wavefunction", keys=[])
-    def toggle_multiverse_mode(self):
-        if self.state.preferences['autosave']:
-            self.save_edits()
-        self.display.set_mode("Multiverse" if self.display.mode != "Multiverse" else "Read")
-        self.refresh_visualization()
-        self.refresh_textbox()
-        self.refresh_display()
+    # @metadata(name="Wavefunction", keys=[])
+    # def toggle_multiverse_mode(self):
+    #     if self.state.preferences['autosave']:
+    #         self.save_edits()
+    #     self.display.set_mode("Multiverse" if self.display.mode != "Multiverse" else "Read")
+    #     self.refresh_visualization()
+    #     self.refresh_textbox()
+    #     self.refresh_display()
 
 
 
@@ -1945,7 +1943,8 @@ class Controller:
         #print('controller: open_module')
         #self.state.workspace[pane_name]['open'] = True
         if not self.state.workspace[pane_name]['open']:
-            self.state.update_user_frame({'workspace': {pane_name: {'open': True}}})
+            #self.state.update_user_frame({'workspace': {pane_name: {'open': True}}})
+            self.open_pane(pane_name)
         if module_name not in self.state.workspace[pane_name]['modules']:
             #self.state.user_workspace[pane_name]['modules'].append(module_name)
             # TODO this only appends to frame, doesn't append during accumulation
@@ -2029,6 +2028,14 @@ class Controller:
     def hide_invisible_children(self, node=None):
         node = node if node else self.state.selected_node
         self.state.tree_updated(delete=[n['id'] for n in node['children'] if not self.state.visible(n)])
+
+    @metadata(name="Wavefunction")#, keys=["<Command-c>", "<Alt-c>"], display_key="")
+    def toggle_multiverse(self, toggle='either'):
+        self.toggle_module("side_pane", "wavefunction")
+
+    @metadata(name="Map")#, keys=["<Command-c>", "<Alt-c>"], display_key="")
+    def toggle_minimap(self, toggle='either'):
+        self.toggle_module("side_pane", "minimap")
 
     def print_to_debug(self, message):
         if message:
@@ -2331,13 +2338,13 @@ class Controller:
     def reset_zoom(self):
         if self.display.mode == 'Visualize':
             self.display.vis.reset_zoom()
-        elif self.display.mode == 'Multiverse':
-            self.display.multiverse.reset_view()
+        # elif self.display.mode == 'Multiverse':
+        #     self.display.multiverse.reset_view()
 
-    @metadata(name="Clear multiverse", keys=["<Command-0>", "<Alt-0>"], display_key="Command-0")
-    def reset_multiverse(self):
-        if self.display.mode == 'Multiverse':
-            self.display.multiverse.clear_multiverse()
+    # @metadata(name="Clear multiverse", keys=["<Command-0>", "<Alt-0>"], display_key="Command-0")
+    # def reset_multiverse(self):
+    #     if self.display.mode == 'Multiverse':
+    #         self.display.multiverse.clear_multiverse()
 
 
 

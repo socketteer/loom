@@ -6,8 +6,8 @@ import PIL
 from view import colors
 
 from view.tree_vis import TreeVis
-from components.block_multiverse import BlockMultiverse
-from util.custom_tks import TextAware, ScrollableFrame
+#from components.block_multiverse import BlockMultiverse
+#from util.custom_tks import TextAware, ScrollableFrame
 from view.colors import bg_color, text_color, edit_color, GREEN, BLUE
 from util.util import metadata
 from view.panes import Pane, NestedPane
@@ -40,7 +40,8 @@ modules = {'edit': Edit,
            'generation settings': GenerationSettings,
            'frame editor': FrameEditor,
            'memories': Memories,
-           'vars': Vars}
+           'vars': Vars,
+           'wavefunction': Wavefunction}
 
 orients = {'side_pane': "horizontal",
            "bottom_pane": "vertical"}
@@ -60,7 +61,7 @@ class Display:
         self.state = state
         self.controller = controller
 
-        self.modes = {"Read", "Edit", "Visualize", "Multiverse"}
+        self.modes = {"Read", "Edit", "Visualize"}
         self.mode = "Read"
 
         self.frame = ttk.Frame(self.root)
@@ -93,8 +94,8 @@ class Display:
         self.vis_frame = None
         self.vis = None
 
-        self.multiverse_frame = None
-        self.multiverse = None
+        # self.multiverse_frame = None
+        # self.multiverse = None
 
         self.panes = {'side_pane': None, 'bottom_pane': None}
 
@@ -194,7 +195,7 @@ class Display:
         self.vis = TreeVis(self.story_frame,
                            self.state, self.controller)
 
-        self.multiverse = BlockMultiverse(self.story_frame)
+        # self.multiverse = BlockMultiverse(self.story_frame)
 
         self.button_frame = ttk.Frame(self.main_frame)
         self.button_frame.pack(side="bottom", fill="both")
@@ -351,11 +352,13 @@ class Display:
             ["Edit"],
             ["Children"],
             ["Visualize"],
-            ["Wavefunction"],
+
             ["Bottom pane"],
             ["Side pane"],
             ["New Child", {}],
             ["Generate"],
+            ["Wavefunction", {}, dict(side="right")],
+            ["Map", {}, dict(side="right")],
             ["Retry", {}, dict(side="right")],
             ["Undo", {}, dict(side="right")],
             ["Rewind", {}, dict(side="right")],
@@ -718,8 +721,8 @@ class Display:
         elif self.mode == "Visualize":
             self.vis.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
-        elif self.mode == "Multiverse":
-            self.multiverse.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
+        # elif self.mode == "Multiverse":
+        #     self.multiverse.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
 
         else:
             raise NotImplementedError(self.mode, type(self.mode))
@@ -729,7 +732,7 @@ class Display:
         self.textbox_frame.pack_forget()
         #self.secondary_textbox_frame.pack_forget()
         self.vis.frame.pack_forget()
-        self.multiverse.frame.pack_forget()
+        # self.multiverse.frame.pack_forget()
 
     # def close_secondary_textbox(self):
     #     self.secondary_textbox_frame.pack_forget()

@@ -74,7 +74,7 @@ DEFAULT_WORKSPACE = {
                   'modules': []},
     'bottom_pane': {'open': False, 
                     'modules': []},
-    'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev"],
+    'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev", "Wavefunction", "Map"],
     'alt_textbox': False,
     'show_search': False
 }
@@ -128,6 +128,8 @@ DEFAULT_MODEL_CONFIG = {
         'instruct-davinci-beta': {'type': 'openai'},
         'j1-large': {'type': 'ai21'},
         'j1-jumbo': {'type': 'ai21'},
+        'gpt-j-6b': {'type': 'gooseai'},
+        'gpt-neo-20b': {'type': 'gooseai'},
     },
     #'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
     #'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),
@@ -256,6 +258,7 @@ class TreeModel:
         self.new_nodes = []
         self.OPENAI_API_KEY = None
         self.AI21_API_KEY = None
+        self.GOOSEAI_API_KEY = None
 
     @property
     def visualization_settings(self):
@@ -1930,7 +1933,10 @@ class TreeModel:
         self.tree_updated(delete=[node['id'] for node in nodes])
 
     def default_generate(self, prompt, nodes):
-        results, error = gen(prompt, self.generation_settings, self.model_config, OPENAI_API_KEY=self.OPENAI_API_KEY, AI21_API_KEY=self.AI21_API_KEY)
+        results, error = gen(prompt, self.generation_settings, self.model_config,
+            OPENAI_API_KEY=self.OPENAI_API_KEY,
+            AI21_API_KEY=self.AI21_API_KEY,
+            GOOSEAI_API_KEY=self.GOOSEAI_API_KEY,)
         self.post_generation(error, nodes, results)
 
 
@@ -2372,14 +2378,20 @@ class TreeModel:
 
     def generate_greedy_multiverse(self, prompt=None, node=None, ground_truth=None, max_depth=3,
                                    unnormalized_amplitude=1, threshold=0.1, engine='ada'):
+        print('propagating wavefunction')
+        print('max depth:', max_depth)
+        print('threshold:', threshold)
+        print('ground truth:', ground_truth)
         threshold = threshold * unnormalized_amplitude
         prompt = prompt if prompt else ''
         node = node if node else self.selected_node
         prompt = self.default_prompt(quiet=True, node=node) + prompt
+        model_info = self.model_config['models'][engine]
         multiverse, ground_truth = greedy_word_multiverse(prompt=prompt, ground_truth=ground_truth, max_depth=max_depth,
                                                           unnormalized_amplitude=unnormalized_amplitude,
                                                           unnormalized_threshold=threshold,
-                                                          engine=engine)
+                                                          engine=engine,
+                                                          goose=model_info['type'] == 'gooseai')
         return multiverse, ground_truth, prompt
 
 

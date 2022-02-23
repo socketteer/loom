@@ -20,6 +20,8 @@ from PIL import Image, ImageTk
 import os
 import json
 
+from components.block_multiverse import BlockMultiverse
+
 icons = Icons()
 
 
@@ -1899,3 +1901,128 @@ class Vars(Module):
     def tree_updated(self):
         self.refresh()
         self.read()
+
+
+
+class Wavefunction(Module):
+    def __init__(self, callbacks, state):
+        self.wavefunction = None
+        self.buttons_frame = None
+        self.config_frame = None
+        # config: model, max_depth, threshold
+        self.model = tk.StringVar()
+        self.threshold = tk.DoubleVar()
+        self.max_depth = tk.IntVar()
+        self.max_depth_entry = None
+        self.threshold_entry = None
+        self.model_dropdown = None
+        # buttons: propagate, clear, center, add path to tree
+        self.propagate_button = None
+        self.clear_button = None
+        self.add_path_button = None
+        self.reset_zoom_button = None
+        self.model_list = ["ada", "babbage", "curie", "davinci", "gpt-j-6b", "gpt-neo-20b"]
+        
+        self.ground_truth_textbox = None
+        Module.__init__(self, 'wavefunction', callbacks, state)
+
+
+    def build(self, parent):
+        Module.build(self, parent)
+        self.config_frame = ttk.Frame(self.frame)
+        self.config_frame.pack(side=tk.TOP, fill=tk.X)
+        model_label = ttk.Label(self.config_frame, text="Model:")
+        model_label.pack(side=tk.LEFT)
+        self.model_dropdown = ttk.OptionMenu(self.config_frame, self.model, *self.model_list)
+        self.model_dropdown.pack(side=tk.LEFT, padx=10)
+
+        max_depth_label = ttk.Label(self.config_frame, text="Max depth:")
+        max_depth_label.pack(side=tk.LEFT)
+        self.max_depth_entry = ttk.Entry(self.config_frame, textvariable=self.max_depth, width=5)
+        self.max_depth_entry.pack(side=tk.LEFT, padx=10)
+
+        self.textboxes.append(self.max_depth_entry)
+
+
+        threshold_label = ttk.Label(self.config_frame, text="Cutoff threshold:")
+        threshold_label.pack(side=tk.LEFT)
+        self.threshold_entry = ttk.Entry(self.config_frame, textvariable=self.threshold, width=6)
+        self.threshold_entry.pack(side=tk.LEFT)
+
+        self.textboxes.append(self.threshold_entry)
+
+    
+        self.wavefunction = BlockMultiverse(self.frame)
+        self.wavefunction.frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
+
+        self.ground_truth_textbox = TextAware(self.frame, height=1, bd=2, undo=True)
+        self.ground_truth_textbox.pack(side=tk.TOP, expand=False, fill=tk.X)
+        self.ground_truth_textbox.configure(
+            foreground=text_color(),
+            background=edit_color(),
+            wrap="word",
+        )
+
+        self.textboxes.append(self.ground_truth_textbox)
+
+        self.buttons_frame = ttk.Frame(self.frame)
+        self.buttons_frame.pack(side='bottom', fill='x')
+        self.propagate_button = ttk.Button(self.buttons_frame, text="Propagate", compound='right', command=self.propagate)
+        self.propagate_button.pack(side='left')
+        self.clear_button = ttk.Button(self.buttons_frame, text="Clear", compound='right', command=self.clear)
+        self.clear_button.pack(side='left')
+        self.reset_zoom_button = ttk.Button(self.buttons_frame, text="Reset zoom", compound='right', command=self.reset_zoom)
+        self.reset_zoom_button.pack(side='left')
+        self.add_path_button = ttk.Button(self.buttons_frame, text="Add path to tree", compound='right', command=self.add_path)
+        self.add_path_button.pack(side='left')
+        
+        self.set_config()
+    
+
+    def set_config(self):
+        current_model = self.state.generation_settings['model']
+        self.model.set(current_model if current_model in self.model_list else "ada")
+        self.max_depth.set(3)
+        self.threshold.set(0.1)
+        
+
+    def propagate(self):
+        if self.wavefunction.active_wavefunction():
+            active_node = self.wavefunction.active_info()
+            start_position = (active_node['x'], active_node['y'])
+            multiverse, ground_truth, prompt = self.state.generate_greedy_multiverse(max_depth=self.max_depth.get(), 
+                                                                                prompt=active_node['prefix'],
+                                                                                unnormalized_amplitude=active_node['amplitude'],
+                                                                                ground_truth=self.ground_truth_textbox.get(1.0, tk.END),
+                                                                                threshold=self.threshold.get(),
+                                                                                engine=self.model.get())
+        else:
+            start_position = (0, 0)
+            multiverse, ground_truth, prompt = self.state.generate_greedy_multiverse(max_depth=self.max_depth.get(), 
+                                                                                ground_truth=self.ground_truth_textbox.get(1.0, tk.END),
+                                                                                threshold=self.threshold.get(),
+                                                                                engine=self.model.get()
+                                                                                )
+                                                                      
+        self.wavefunction.draw_multiverse(multiverse=multiverse, ground_truth=ground_truth,
+                                                start_position=start_position, prompt=prompt)
+
+    def clear(self):
+        self.wavefunction.clear_multiverse()
+
+    def reset_zoom(self):
+        self.wavefunction.reset_view()
+
+    def add_path(self):
+        if self.wavefunction.active_wavefunction():
+            active_node = self.wavefunction.active_info()
+            prompt=active_node['prefix']
+            new_child = self.state.create_child(self.state.selected_node, expand=True)
+            new_child['text'] = prompt
+            self.state.tree_updated(add=[new_child['id']])
+
+    def tree_updated(self):
+        pass
+
+    def selection_updated(self):
+        self.clear()

@@ -24,7 +24,7 @@ class BlockMultiverse:
         self.canvas = None
         self.wavefunction = None
         self.selected_id = None
-        self.window_height = 1000
+        self.window_height = 450
         self.node_info = {}
         self.build_canvas()
         self.build_past_box()
@@ -49,23 +49,26 @@ class BlockMultiverse:
         self.multiverse_frame.pack(expand=True, fill=tkinter.BOTH)
         self.canvas = tkinter.Canvas(self.multiverse_frame, bg="#808080")
 
-        hbar = tkinter.Scrollbar(self.multiverse_frame, orient=tkinter.HORIZONTAL)
-        hbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
-        hbar.config(command=self.canvas.xview)
+        # hbar = tkinter.Scrollbar(self.multiverse_frame, orient=tkinter.HORIZONTAL)
+        # hbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
+        # hbar.config(command=self.canvas.xview)
 
-        vbar = tkinter.Scrollbar(self.multiverse_frame, orient=tkinter.VERTICAL)
-        vbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
-        vbar.config(command=self.canvas.yview)
+        # vbar = tkinter.Scrollbar(self.multiverse_frame, orient=tkinter.VERTICAL)
+        # vbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+        # vbar.config(command=self.canvas.yview)
 
-        self.canvas.config(
-            xscrollcommand=hbar.set,
-            yscrollcommand=vbar.set
-        )
+        # self.canvas.config(
+        #     xscrollcommand=hbar.set,
+        #     yscrollcommand=vbar.set
+        # )
+        
         self.canvas.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
+        #self.multiverse_frame.update_idletasks()
+        #self.window_height = self.multiverse_frame.winfo_reqheight() * 2
 
     def build_past_box(self):
         self.bottom_input_frame = ttk.Frame(self.frame)
-        self.bottom_input_frame.pack(side="bottom", fill="both")
+        self.bottom_input_frame.pack(side="bottom", fill="x")
         self.past_box = TextAware(self.bottom_input_frame, bd=3, height=3)
         self.past_box.pack(expand=True, fill='x')
         self.past_box.configure(
@@ -195,6 +198,7 @@ class BlockMultiverse:
         if not self.prompt:
             self.prompt = prompt
         self.set_pastbox_text(prompt_text=self.prompt)
+
         if not self.wavefunction:
             self.wavefunction = multiverse
         else:
@@ -203,6 +207,9 @@ class BlockMultiverse:
                 prefix = self.node_info[self.selected_id]['prefix']
             else:
                 return
+        if start_position == (0, 0):
+            self.draw_block(0, 0, self.prompt[-20:], prefix, 1, Decimal(self.window_height), block_width, True,
+                            show_text, 0)
         self.propagate(multiverse, ground_truth, prefix, block_width, start_position, color_index, show_text,
                        y_offset=0, depth=1)
 
@@ -312,6 +319,7 @@ class BlockMultiverse:
     def map_to_scaled_coordinates(self, x, y):
         x = x - self.window_offset[0]
         y = y - self.window_offset[1]
+        print(y)
         y = y * self.y_scale
         return x, y
 

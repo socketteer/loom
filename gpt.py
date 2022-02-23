@@ -43,19 +43,19 @@ import json
                  ? "sequence": string }
 '''
 
-POSSIBLE_MODELS = [
-    'ada',
-    'babbage',
-    'content-filter-alpha-c4',
-    'content-filter-dev',
-    'curie',
-    'cursing-filter-v6',
-    'davinci',
-    'instruct-curie-beta',
-    'instruct-davinci-beta',
-    'j1-large',
-    'j1-jumbo',
-]
+# POSSIBLE_MODELS = [
+#     'ada',
+#     'babbage',
+#     'content-filter-alpha-c4',
+#     'content-filter-dev',
+#     'curie',
+#     'cursing-filter-v6',
+#     'davinci',
+#     'instruct-curie-beta',
+#     'instruct-davinci-beta',
+#     'j1-large',
+#     'j1-jumbo',
+# ]
 
 
 
@@ -81,10 +81,20 @@ def gen(prompt, settings, config, **kwargs):
     else:
         logit_bias = None
     #if config['OPENAI_API_KEY']:
-    openai_api_key = kwargs.get('OPENAI_API_KEY', None)
-    openai.api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)#config['OPENAI_API_KEY']
+    model_info = config['models'][settings['model']]
     ai21_api_key = kwargs.get('AI21_API_KEY', None)
     ai21_api_key = ai21_api_key if ai21_api_key else os.environ.get("AI21_API_KEY", None)
+    if model_info['type'] == 'gooseai':
+        openai.api_base = "https://api.goose.ai/v1"
+        gooseai_api_key = kwargs.get('GOOSEAI_API_KEY', None)
+        openai.api_key = gooseai_api_key if gooseai_api_key else os.environ.get("GOOSEAI_API_KEY", None)
+    elif model_info['type'] == 'openai':
+        openai.api_base = "https://api.openai.com/v1"
+        openai_api_key = kwargs.get('OPENAI_API_KEY', None)
+        openai.api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)
+
+    #print('openai api key: ' + openai.api_key)
+
     # if config['AI21_API_KEY']:
         #TODO 
         # ai21_api_key = config['AI21_API_KEY']
@@ -115,7 +125,7 @@ def generate(config, **kwargs):
             return formatted_response, error
         else:
             return response, error
-    elif model_type in ('openai', 'openai-custom'):
+    elif model_type in ('openai', 'openai-custom', 'gooseai'):
         # TODO OpenAI errors
         response, error = openAI_generate(custom=model_type == 'openai-custom', **kwargs)
         #save_response_json(response, 'examples/openAI_response.json')

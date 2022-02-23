@@ -4,7 +4,7 @@ from tkinter import TclError, filedialog, ttk
 from tkinter.font import Font
 from tkinter.scrolledtext import ScrolledText
 
-from gpt import POSSIBLE_MODELS
+# from gpt import POSSIBLE_MODELS
 from util.custom_tks import Dialog, TextAware
 from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
 from util.util_tree import search, node_ancestry
@@ -1164,9 +1164,11 @@ class ModelConfigDialog(Dialog):
         self.selected_model = tk.StringVar()
         self.add_model_button = None
         self.openai_api_key_entry = None
-        self.ai21_api_key_entry = None
         self.openai_api_key = None
+        self.ai21_api_key_entry = None
         self.ai21_api_key = None
+        self.gooseai_api_key = None
+        self.gooseai_api_key_entry = None
         Dialog.__init__(self, parent, title="Model Configuration")
 
     def set_vars(self):
@@ -1174,13 +1176,15 @@ class ModelConfigDialog(Dialog):
         self.selected_model.set(self.state.generation_settings['model'])
         self.openai_api_key = self.state.OPENAI_API_KEY if self.state.OPENAI_API_KEY else ""
         self.ai21_api_key = self.state.AI21_API_KEY if self.state.AI21_API_KEY else ""
+        self.gooseai_api_key = self.state.GOOSEAI_API_KEY if self.state.GOOSEAI_API_KEY else ""
 
     def body(self, master):
         self.set_vars()
         self.add_model_button = ttk.Button(master, text="Add Model", command=self.add_model)
-        key_length = max(max(len(self.openai_api_key), len(self.ai21_api_key)), 20)
+        key_length = max(max(len(self.openai_api_key), len(self.ai21_api_key), len(self.gooseai_api_key)), 20)
         self.openai_api_key_entry = Entry(master, master.grid_size()[1], "OpenAI API Key", self.openai_api_key, None, width=key_length)
         self.ai21_api_key_entry = Entry(master, master.grid_size()[1], "AI21 API Key", self.ai21_api_key, None, width=key_length)
+        self.gooseai_api_key = Entry(master, master.grid_size()[1], "GooseAI API Key", self.gooseai_api_key, None, width=key_length)
         models_list = self.available_models.keys()
         self.model_label = ttk.Label(master, text="Model")
         self.model_label.grid(row=master.grid_size()[1], column=0)
@@ -1202,5 +1206,6 @@ class ModelConfigDialog(Dialog):
                                                                                  #'AI21_API_KEY': self.ai21_api_key_entry.tk_variables.get(),
         self.state.OPENAI_API_KEY = self.openai_api_key_entry.tk_variables.get()
         self.state.AI21_API_KEY = self.ai21_api_key_entry.tk_variables.get()
+        self.state.GOOSEAI_API_KEY = self.gooseai_api_key_entry.tk_variables.get()
         self.state.update_user_frame(update={'generation_settings': {'model': self.selected_model.get()}})
 

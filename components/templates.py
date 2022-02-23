@@ -16,7 +16,7 @@ import time
 import os
 import codecs
 from PIL import Image, ImageTk
-from gpt import POSSIBLE_MODELS, gen, completions_text
+from gpt import gen, completions_text
 import json
 import bisect
 import threading
