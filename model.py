@@ -128,8 +128,12 @@ DEFAULT_MODEL_CONFIG = {
         'instruct-davinci-beta': {'type': 'openai'},
         'j1-large': {'type': 'ai21'},
         'j1-jumbo': {'type': 'ai21'},
+        'gpt-neo-1-3b': {'type': 'gooseai'},
+        'gpt-neo-2-7b': {'type': 'gooseai'},
         'gpt-j-6b': {'type': 'gooseai'},
         'gpt-neo-20b': {'type': 'gooseai'},
+
+
     },
     #'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
     #'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),

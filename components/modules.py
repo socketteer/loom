@@ -3,7 +3,7 @@ import tkinter as tk
 from tkinter import Canvas, ttk, simpledialog, messagebox
 from view.colors import text_color, bg_color, edit_color, vis_bg_color
 from util.custom_tks import TextAware
-from util.util_tree import tree_subset, limited_branching_tree, limited_distance_tree, generate_conditional_tree, flatten_tree, collapsed_wavefunction
+from util.util_tree import tree_subset, limited_branching_tree, limited_distance_tree, flatten_tree, collapsed_wavefunction
 from util.react import react_changes, unchanged
 from util.canvas_util import move_object
 from util.gpt_util import logprobs_to_probs
@@ -1913,8 +1913,8 @@ class Wavefunction(Module):
         self.model = tk.StringVar()
         self.threshold = tk.DoubleVar()
         self.max_depth = tk.IntVar()
-        self.max_depth_entry = None
-        self.threshold_entry = None
+        self.max_depth_slider = None
+        self.threshold_slider = None
         self.model_dropdown = None
         # buttons: propagate, clear, center, add path to tree, save image
         self.propagate_button = None
@@ -1922,7 +1922,7 @@ class Wavefunction(Module):
         self.add_path_button = None
         self.reset_zoom_button = None
         self.save_image_button = None
-        self.model_list = ["ada", "ada", "babbage", "curie", "davinci", "gpt-j-6b", "gpt-neo-20b"]
+        self.model_list = ["ada", "ada", "babbage", "curie", "davinci", "gpt-neo-1-3b", "gpt-neo-2-7b", "gpt-j-6b", "gpt-neo-20b"]
         
         self.ground_truth_textbox = None
         Module.__init__(self, 'wavefunction', callbacks, state)
@@ -1937,21 +1937,15 @@ class Wavefunction(Module):
         self.model_dropdown = ttk.OptionMenu(self.config_frame, self.model, *self.model_list)
         self.model_dropdown.pack(side=tk.LEFT, padx=10)
 
-        max_depth_label = ttk.Label(self.config_frame, text="Max depth:")
+        max_depth_label = ttk.Label(self.config_frame, text="Depth")
         max_depth_label.pack(side=tk.LEFT)
-        self.max_depth_entry = ttk.Entry(self.config_frame, textvariable=self.max_depth, width=5)
-        self.max_depth_entry.pack(side=tk.LEFT, padx=10)
+        self.max_depth_slider = tk.Scale(self.config_frame, from_=1, to=7, orient=tk.HORIZONTAL, variable=self.max_depth, sliderlength=5, bg=bg_color())
+        self.max_depth_slider.pack(side=tk.LEFT, padx=10)
 
-        self.textboxes.append(self.max_depth_entry)
-
-
-        threshold_label = ttk.Label(self.config_frame, text="Cutoff threshold:")
+        threshold_label = ttk.Label(self.config_frame, text="Cutoff")
         threshold_label.pack(side=tk.LEFT)
-        self.threshold_entry = ttk.Entry(self.config_frame, textvariable=self.threshold, width=6)
-        self.threshold_entry.pack(side=tk.LEFT)
-
-        self.textboxes.append(self.threshold_entry)
-
+        self.threshold_slider = tk.Scale(self.config_frame, from_=0.0, to=0.25, resolution="0.01", orient=tk.HORIZONTAL, variable=self.threshold, sliderlength=5, bg=bg_color())
+        self.threshold_slider.pack(side=tk.LEFT, padx=10)
     
         self.wavefunction = BlockMultiverse(self.frame)
         self.wavefunction.frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH)
