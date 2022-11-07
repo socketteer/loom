@@ -19,7 +19,7 @@ def generate(prompt, engine, goose=False):
                                         n=1,
                                         temperature=0,
                                         logprobs=100,
-                                        engine=engine)
+                                        model=engine)
     return response
 
 # TODO multiple "ground truth" trajectories
@@ -29,6 +29,7 @@ def greedy_word_multiverse(prompt, ground_truth='', max_depth=3,  unnormalized_a
         ground_truth = [token_to_word(token).replace('Ġ', ' ') for token in ground_truth]
     if max_depth == 0:
         return {}, ground_truth
+    print('generating...')
     response = generate(prompt, engine, goose)
     logprobs = response.choices[0]["logprobs"]["top_logprobs"][0]
     probs = {k: logprobs_to_probs(v) for k, v in sorted(logprobs.items(), key=lambda item: item[1], reverse=True)}

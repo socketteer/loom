@@ -144,7 +144,7 @@ class BlockMultiverse:
         self.canvas.bind("<Button-5>", zoom_out)
 
     def get_text_size(self, original_size=10):
-        text_size = max(1, math.floor(original_size * self.y_scale))
+        text_size = max(1, math.floor(original_size * Decimal(self.y_scale)))
         return min(text_size, 12)
 
     def fix_text_zoom(self):
@@ -160,8 +160,8 @@ class BlockMultiverse:
         self.reset_view()
         self.window_offset = (x0, y0)
         self.canvas.move("all", -x0, -y0)
-        self.y_scale = self.window_height / height
-        magnification = self.y_scale / old_y_scale
+        self.y_scale = Decimal(self.window_height) / height
+        magnification = Decimal(self.y_scale) / old_y_scale
 
         print('\nmagnification: *', "{:.2f}".format(magnification))
         print('total magnification: ', "{:.2f}".format(self.y_scale)) 
@@ -261,10 +261,12 @@ class BlockMultiverse:
             'y': y,
         }
 
+        print(token, probability)
+
         if show_text:
             text_color = 'blue' if color == '#FFFF00' else 'white'  # if is_ground_truth else 'black'
             font_size = min(12, int(math.ceil(height * self.y_scale / 2)))
-            text = token
+            text = '\\n' if token == '\n' else token
             self.node_info[identifier]['font_size'] = Decimal(font_size) / Decimal(self.y_scale)
             self.node_info[identifier]['text_widget'] = self.draw_text_absolute(x + block_width / 2, y + height / 2,
                                                                                 text=text,
