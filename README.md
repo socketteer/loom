@@ -46,6 +46,24 @@ unstable and poorly documented.
 
 ooo what features! wow so cool
 
+# Block multiverse mode
+
+[Conceptual explanation of block multiverse interface and video of usage](https://generative.ink/meta/block-multiverse/)
+
+How to use:
+
+1. Click `Wavefunction` button on bottom bar. This will open the block multiverse interface in the right sidebar (drag to resize).
+2. Write initial prompt in the main textbox.
+3. [Optional] Write ground truth continuation in the gray entry box at the bottom of the block multiverse interface. Blocks in ground truth trajectory will be colored black.
+4. Set model and [params](https://generative.ink/meta/block-multiverse/#generation-parameters) in top bar.
+5. Click `Propagate` to propagate plot the block multiverse
+6. Click on any of the blocks to zoom ("[renormalize](https://generative.ink/meta/block-multiverse/#renormalization)") to that block 
+7. Click `Propagate` again to plot future block multiverse starting from a renormalized frame
+8. Click `Reset zoom` to reset zoom level to initial position
+9. Click `Clear` to clear the block multiverse plot. Do this before generating a new block multiverse.
+
+![](static/readme/block-multiverse.png)
+
 # Hotkeys
 
 *Alt hotkeys correspond to Command on Mac*
