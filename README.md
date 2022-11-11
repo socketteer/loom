@@ -48,9 +48,9 @@ ooo what features! wow so cool
 
 # Block multiverse mode
 
-[Conceptual explanation of block multiverse interface and video of usage](https://generative.ink/meta/block-multiverse/)
+[Read this](https://generative.ink/meta/block-multiverse/) for a conceptual explanation of block multiverse interface and demo video
 
-How to use:
+### How to use in loom
 
 1. Click `Wavefunction` button on bottom bar. This will open the block multiverse interface in the right sidebar (drag to resize).
 2. Write initial prompt in the main textbox.
