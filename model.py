@@ -125,6 +125,7 @@ DEFAULT_MODEL_CONFIG = {
         'cursing-filter-v6': {'type': 'openai'},
         'davinci': {'type': 'openai'},
         'text-davinci-002': {'type': 'openai'},
+        'text-davinci-003': {'type': 'openai'},
         'code-davinci-002': {'type': 'openai'},
         'instruct-curie-beta': {'type': 'openai'},
         'instruct-davinci-beta': {'type': 'openai'},
