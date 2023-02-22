@@ -1922,7 +1922,7 @@ class Wavefunction(Module):
         self.add_path_button = None
         self.reset_zoom_button = None
         self.save_image_button = None
-        self.model_list = ["ada", "ada", "babbage", "curie", "davinci", "text-davinci-002", "code-davinci-002", "gpt-neo-1-3b", "gpt-neo-2-7b", "gpt-j-6b", "gpt-neo-20b"]
+        self.model_list = ["ada", "ada", "babbage", "curie", "davinci", "text-davinci-002", "text-davinci-003", "code-davinci-002", "gpt-neo-1-3b", "gpt-neo-2-7b", "gpt-j-6b", "gpt-neo-20b"]
         
         self.ground_truth_textbox = None
         Module.__init__(self, 'wavefunction', callbacks, state)
