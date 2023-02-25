@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+
+
 import os
 import tkinter as tk
 import traceback
