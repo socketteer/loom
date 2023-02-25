@@ -1,6 +1,7 @@
-OPENAI_API_KEY := <your key here>
-GOOSEAI_API_KEY := <your key here (you only need one of these)>
-AI21_API_KEY := <your key here>
+# Add your keys here
+OPENAI_API_KEY := ""
+GOOSEAI_API_KEY := ""
+AI21_API_KEY := ""
 
 
 IMAGE := loom
@@ -26,5 +27,8 @@ run:
 		-v $(PWD)/examples:/app/examples \
 		-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 		-e DISPLAY=$(DISPLAY) \
+		-e OPENAI_API_KEY=$(OPENAI_API_KEY) \
+		-e GOOSEAI_API_KEY=$(GOOSEAI_API_KEY) \
+		-e AI21_API_KEY=$(AI21_API_KEY) \
 		-u=$(CURRENT_UID):$(CURRENT_GID) \
 		$(IMAGE)
