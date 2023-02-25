@@ -1,0 +1,1096 @@
+{
+    "root": {
+        "mutable": false,
+        "visited": true,
+        "text": "",
+        "children": [
+            {
+                "text": "---\nDetails: The Cabrach, rural community, Cairngorms National Park, community project, social enterprise, rural regeneration, jobs, heritage, history, sustainable community, distillery, started 2011\nExample 1: The Cabrach is a remote and sparsely populated area on the northern edge of the Cairngorms National Park, in Moray, North East Scotland. An area of particular natural beauty it was once a self-sustaining upland settlement but has since suffered depopulation over the last century which threatens the loss of the heritage and history of this unique area. The Cabrach Trust was established in 2011 with a vision to regenerate the Cabrach as a thriving and sustainable community, creating jobs, attracting visitors whilst protecting and celebrating the history, landscape and heritage for future generations. To achieve these goals The Cabrach Trust has developed a community led regeneration strategy that will see the development of projects such as a historic Distillery and a new Heritage Centre on the Trust's land.\n",
+                "children": [
+                    {
+                        "id": "964ad43c-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " The Cabrach Trust were awarded a grant of \u00a31,450 The Cabrach Trust were awarded a grant of \u00a31,450\nExample 2: This grant was awarded to support a project to celebrate the history of the Archbaldie Mill and the rebirth of the area through the creation of a community garden and wildflower meadow. The project was backed by seven local businesses and saw the entrenchment of a strong community spirit, as well as re-establishing a sense of",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.34.21",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF1U8RjQGyv2Z3Cf8W40WwKlYhFS",
+                            "index": 0
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "964ad43d-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": "The Cabrach is a remote and sparsely populated area on the northern edge of the Cairngorms National Park, in Moray, North East Scotland. An area of particular natural beauty it was once a self-sustaining upland settlement but has since suffered depopulation over the last century which threatens the loss of the heritage and history of this unique area. The Cabrach Trust was established in 2011 with a vision to regenerate the Cabrach as a thriving and sustainable",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.34.21",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF1U8RjQGyv2Z3Cf8W40WwKlYhFS",
+                            "index": 1
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "964ad43e-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": "\nComponent 1: Heritage Interpretation Centre and Visitor Centre\n\u00a375,000 project costs\nThe development of a new Heritage Interpretation Centre to provide a meeting place for the community and visitors, to pay tribute to the Cabrach's fascinating past, to provide a range of facilities and to be an educational resource.\nProject Duration:\nDecember 2016 - May 2017\nThis project seeks to generate income through interpretation, community events and craft camps\nConstruction of a Visitor Centre on the Trust",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.34.21",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF1U8RjQGyv2Z3Cf8W40WwKlYhFS",
+                            "index": 2
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "964ad43f-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " Highland Council have provided additional funding of \u00a3300,000 towards the project which will enable the development of the Eco Cabrach Visitor Centre at the Visitor Centre on the Cabrach Trust's site at Meall M\u00f2r above the village of Kinbuck. When completed the Visitor Centre will tell the story of the local wildlife, wildlife reserves and nature reserves, the farming and forestry in the area and the local settlement, whilst offering stunning views towards the Cairngorms.",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.34.21",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF1U8RjQGyv2Z3Cf8W40WwKlYhFS",
+                            "index": 3
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "ac9319a2-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " location\n- population decline\n- vulnerable\n- land development\n\nAn RFO will be funded by the Scottish Government to develop interim facilities that can be sought to be transferred to an HBF to be used for activities such as a small visitor and information centre, a tractor shed and workshop/storage. The objectives of the proposal are:\n-To use the RFO project through the Cabrach Trust to test the viability of the long-term development of the Distillery and Heritage Centre\n",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.34.57",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF25r8bfTXJQBBjq3ngOjNc7iGnU",
+                            "index": 0
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "ac9319a3-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " population density of 0.2pp\n- most important qualities: Culture/Heritage and Rural/Isolated Communities\n- priority theme: Economy and Community\n\nBased on the response to the Call for Entries, it was clear that community led and owned developments demonstrated a much stronger impact according to their success stories. OUT FOR THE CUMBRIAN programme is working on a second Development Programme funding scheme supporting a further 15 businesses to undertake development work and even secure community buy-in. Each",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.34.57",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF25r8bfTXJQBBjq3ngOjNc7iGnU",
+                            "index": 1
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "ac9319a4-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": "\n- community led regeneration\n- intends to develop employment opportunities and attract visitors\n\nAwarded: 30/06/12 to 30/06/13\n\nFunding: \u00a32,852.20\n\nDescription: The award will be used towards the development and installation of a community study centre, information hub and heritage exhibition in the long house at Banchory Ternan Priory. With a vision to rejuvenate Banchory Ternan Priory as a hub",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.34.57",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF25r8bfTXJQBBjq3ngOjNc7iGnU",
+                            "index": 2
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "ac9319a5-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": "\n- remote yet able to provide a range of services\n- opportunities for voluntary work linked to the regeneration project\n- links to local assets such as Cairngorms National Park\n- local organisation with high profile\n- NGI aligned\n- access to experts, e.g. from Cairngorms National Park, who could help the project in relation to physical assets and educating volunteers\n- able to draw on conservation funds for funding\n- sustainability of the project and its impact",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.34.57",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF25r8bfTXJQBBjq3ngOjNc7iGnU",
+                            "index": 3
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "d4dded10-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " The applicant is seeking to erect a single turbine measuring 24m in height to the top of the wind rotors and 20m to the top of the hub, the RPM of the wind turbine will be variable between 20-45 RPM and the blade length will be 21m. The turbine will have a maximum tip height of 80m. The total hub height will be between 20m and 22.5m. The maximum blade tip height above the nearest point of the Sundial will be 63m.",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.36.06",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF3Br5b1aQFmb2C3N62dvr2a6myV",
+                            "index": 0
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "d4dded11-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " Led by a small dedicated team, the Cabrach Trust is today a registered charity with a very clear and tangible vision: The regeneration of the Cabrach as a vibrant and sustainable community.\nRead more\nExample 2: The island of Ulva lies off the West coast of Mull near Iona in the Inner Hebrides, an area of natural beauty famed for its golden beaches, breathtaking scenery, wildlife and history. The island has a varied historical heritage with signs of habitation,",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.36.06",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF3Br5b1aQFmb2C3N62dvr2a6myV",
+                            "index": 1
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "d4dded12-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " The Trust successfully applied to the Heritage Lottery Fund (HLF) for a Lottery Programme Grant to create a community led regeneration strategy for the Cabrach which included the development of a Case for Change for the area. Once completed, the Trust planned to apply for HLF funding for the regeneration strategy. Following this the Trust would have completed a project to restore and convert two ancient farm steadings into a museum and hub, and the restoration of the Community Hall and an extension to house the new",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.36.06",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF3Br5b1aQFmb2C3N62dvr2a6myV",
+                            "index": 2
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "d4dded13-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " The Cabrach Trust is currently working with SITA Trust to develop a community led regeneration plan also known as a Community Asset Transfer Plan. A Community Asset Transfer Plan will set out how the Cabrach Trust's land and assets will be developed and how new skills will be learned and training will be provided for local people.\nSummary: The Cabrach Trust is currently developing a plan with SITA Trust to develop a distillery on the Cabrach Trust's land as an Anch",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.36.06",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF3Br5b1aQFmb2C3N62dvr2a6myV",
+                            "index": 3
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "f8717eae-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " environmental regeneration, community led project, community conservation, sustainable development, rural development, community development.\nDetails : This was a community led exhibition project in which the artists involved collaborated with the Cabrach community to deliver a community exhibition. The project integrated art into the fabric of the Cabrach, working under the themes of development, regeneration, conservation and reflecting the people's heritage and history. The exhibition space was established in a former school that closed 50 years ago. The four artists involved in the",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.37.04",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF49D23BxBhJJ1PPveKpI7cEVz23",
+                            "index": 0
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "f8717eaf-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " distillery\n\nExample 2: The internationally important Portavadie Loch is the feature that made the development of Portavadie a reality. The site was an unsuccessful small fishing village from 1836 to 1846. In 1946 the first hotel was built, which expanded to become a complex of four hotels. This early expansion was enabled by the large area of flat land and a coastline of of smooth beach, on Loch Fyne. Further house building in the 1950s and 1960s continued along",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.37.04",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF49D23BxBhJJ1PPveKpI7cEVz23",
+                            "index": 1
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "f8717eb0-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": " heritage\nExample 2: The Tayport Photographic Archive is an online archive of photographs, oral history recordings and memorabilia capturing the history and heritage of the Fife town of Tayport between the two World Wars. The archive has taken two years to collect, catalog and publish local community resources from a time when Tayport was a thriving port and social centre for local communities. The Tayport Photographic Archive has used the newly established South Fife Heritage Group to bring the project to life, engaging local",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.37.04",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF49D23BxBhJJ1PPveKpI7cEVz23",
+                            "index": 2
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "f8717eb1-ad4e-11ed-91c0-31f83201c2ba",
+                        "text": "Example 2:",
+                        "children": [
+                            {
+                                "id": "1f607056-ad4f-11ed-91c0-31f83201c2ba",
+                                "text": "Location:\nThe Cabrach Community Distillery is located on the site of an 18th Century Quinlin Glen Distillery within the Cabrach, Cairngorms National Park, Moray, Scotland.\nDetails: The Cabrach, rural community, Cairngorms National Park, community project, social enterprise, rural regeneration, jobs, heritage, history, sustainable community, distillery, artisan, started 2011/12\nExample 3:\nLocation:\nCabin",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "f8717eb1-ad4e-11ed-91c0-31f83201c2ba",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-15-16.38.10",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6kF5CKPMuffqGtZQojuSslHAgKihO",
+                                    "index": 0
+                                }
+                            },
+                            {
+                                "id": "1f607057-ad4f-11ed-91c0-31f83201c2ba",
+                                "text": "The Cabrach Trust is an organisation with a clear vision to regenerate the Cabrach, a rural community just north of the Cairngorms National Park, as a thriving and sustainable community, celebrating the landscape and it's heritage. By developing a community led regeneration strategy we have already seen the creation of jobs and have seen visitors returning to the area to see local rural crafts and way of life. To achieve these goals, The Cabrach Trust has developed a community led regeneration strategy that",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "f8717eb1-ad4e-11ed-91c0-31f83201c2ba",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-15-16.38.10",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6kF5CKPMuffqGtZQojuSslHAgKihO",
+                                    "index": 1
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "1f607058-ad4f-11ed-91c0-31f83201c2ba",
+                                "text": "The Cabrach Trust is a registered charitable trust, established in 2011 to regenerate the Cabrach area in new ways. It aims to improve the quality of life and opportunities in the Cabrach, raise the profile of the area and encourage other development.\n\nThe Cabrach is a community organisation that seeks to revitalise and re-energise the local economy through the creation of social enterprise projects to provide employment and opportunities for local involvement. By promoting collaboration and entrepreneurship, with communities",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "f8717eb1-ad4e-11ed-91c0-31f83201c2ba",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-15-16.38.10",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6kF5CKPMuffqGtZQojuSslHAgKihO",
+                                    "index": 2
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "1f607059-ad4f-11ed-91c0-31f83201c2ba",
+                                "text": " The original distillery, set in a beautiful location on the banks of the Cabrach Burn, had fallen into disuse around 1820 and was used as a farm store. In 2007, the Trust was approved to purchase the distillery and land, with the aim of restoring the original distillery to a working condition. In addition to bringing this historic building back into use, The Cabrach Distillery hopes that it will become a landmark building in the local community and will create employment opportunities",
+                                "children": [
+                                    {
+                                        "id": "32f70bb6-ad4f-11ed-91c0-31f83201c2ba",
+                                        "text": " in the local area. There is the potential to expand other business activities, such as craft beer brewing and local whisky tourism.\n\nThe land surrounding the Distillery has been marked out to become a working distillery with a tourist centre and aims to help revive the area and bring work back to the area. The site also retains its ancient function as a mill site and numerous archaeological site features are visible in the field. A mini hydro scheme was installed by the Shetland Islands Charitable Trust in",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "1f607059-ad4f-11ed-91c0-31f83201c2ba",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-15-16.38.43",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6kF5jplsyGAqawQUu5FI9o6SZSfPj",
+                                            "index": 0
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "32f70bb7-ad4f-11ed-91c0-31f83201c2ba",
+                                        "text": ". The plans include the restoration of the original buildings and the addition of the shop and exhibition space.\n\nThe distillery is located at the foot of Gelderlochan, near the village of Inverey. The Cabrach area is a fertile mix of pasture and crop farming land and the local community hope that the distillery will assist in the development of \u2018value added farming\u2019 opportunities, nurturing the existing farming community whilst promoting the local produce that this area has to offer.",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "1f607059-ad4f-11ed-91c0-31f83201c2ba",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-15-16.38.43",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6kF5jplsyGAqawQUu5FI9o6SZSfPj",
+                                            "index": 1
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "32f70bb8-ad4f-11ed-91c0-31f83201c2ba",
+                                        "text": " for local people and of course, bring more visitors to the area.\n\n\"One of the reasons for establishing the Distillery was to provide new employment opportunities in this part of the country. A Community-Owned Distillery is an excellent way for smaller communities like ours to flourish and The Cabrach Distillery will help ensure the survival of this beautiful area. The benefits of having a distillery on the site include the creation of new jobs, bringing much needed increase in tourism and reviving",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "1f607059-ad4f-11ed-91c0-31f83201c2ba",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-15-16.38.43",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6kF5jplsyGAqawQUu5FI9o6SZSfPj",
+                                            "index": 2
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "32f70bb9-ad4f-11ed-91c0-31f83201c2ba",
+                                        "text": " for locals to become involved in the setting up and running of the business. The project has been undertaken as a social enterprise with the aim of reinvesting surplus income into the community of The Cabrach. A new Heritage Centre is set to be built attached to the Distillery and will celebrate and display the history of The Cabrach, whilst providing further awareness about the cultural and environmental history of the area.\n---\nDetails: Wantonwells Farm, centre of Aberdeenshire, with mountain, sea and whiskey all within an hours drive, villiage of Insch, traditional farming area, farm has been planted, 100 acres of woodland, broadleaf native trees,  market garden, a forest garden, growing food to sell, want to start a cafe, want to start a teaching garden, want a childrens play area\nExample 1:",
+                                        "children": [
+                                            {
+                                                "id": "9db69a34-ad4f-11ed-91c0-31f83201c2ba",
+                                                "text": " Last month's Orkney Islands competition turned up some very good entries from that region, including a new woodland garden and caspsule micro-eco-community, both of which should do something towards reducing the Orkney's car-dependance and carbon footprint. \u00a0\u00a0\u00a0\u00a0 Last month we asked readers to describe an urban community project that focussed on a local sustainable food production scheme; we had some very good entries including Brooklyn Grange from NYC, The Pole Dance Farm from London, Factoria",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "32f70bb9-ad4f-11ed-91c0-31f83201c2ba",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-15-16.41.42",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6kF8cv9zp6uViOckqAKPq1VZWYP6m",
+                                                    "index": 0
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "9db69a35-ad4f-11ed-91c0-31f83201c2ba",
+                                                "text": " A visitor reception centre for people to learn about the project, jobs for 10 people after a few years. A little shop selling produce. All the youngsters in the area getting jobs, a working source of income for the community.\nExample 2: Wantonwells Farm is a 100-acre mixed woodland in the Scottish Borders, which is being restored by an extremely enthusiastic and dedicated band of volunteers who have been working with the land and its wildlife since the late 1990s. The overall aim is to",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "32f70bb9-ad4f-11ed-91c0-31f83201c2ba",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-15-16.41.42",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6kF8cv9zp6uViOckqAKPq1VZWYP6m",
+                                                    "index": 1
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "9db69a36-ad4f-11ed-91c0-31f83201c2ba",
+                                                "text": " The project began in 1992 when Wantonwells Wood was planted over an old drill field for fertiliser.\nExample 2: There is a top notch cafe as part of the project.\nExample 3: Wantonwells Forest Garden is different to most in that it has a clear maintenance regime going right back to what can be classed as the start. As it was planted with trees that grow well in the north east they are sturdier than regular trees of the same species. This",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "32f70bb9-ad4f-11ed-91c0-31f83201c2ba",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-15-16.41.42",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6kF8cv9zp6uViOckqAKPq1VZWYP6m",
+                                                    "index": 2
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "9db69a37-ad4f-11ed-91c0-31f83201c2ba",
+                                                "text": " A traditional mixed livestock and arable farm, in the heartland of the north east of Scotland, Wantonwells was purchased in 1990, with a vision to regenerate the farm to provide a profitable market garden and woodland.",
+                                                "children": [
+                                                    {
+                                                        "id": "cbf9bca0-ad4f-11ed-91c0-31f83201c2ba",
+                                                        "text": " A unique concept for rural Aberdeenshire, a forest garden has been created where trees are grown from seed to a saleable size and managed for natural growth.",
+                                                        "children": [
+                                                            {
+                                                                "id": "4f6bb4f8-ad50-11ed-91c0-31f83201c2ba",
+                                                                "text": " Involving local schools and communities and providing education, training and employment opportunities, the regeneration has created a popular, beautiful farm that is now a destination for the local and wider community. Future plans include",
+                                                                "children": [
+                                                                    {
+                                                                        "id": "65c7d29a-ad50-11ed-91c0-31f83201c2ba",
+                                                                        "text": " the construction of a community hub, to allow local communities and businesses to learn, share and work together in a variety of ways, including a cafe and woodland campsite.\n---\nDetails: Sustainable Development, land Scotland, 200+ buildings, offices, stores, factories, business parks, retail parks, show homes, stadiums, schools, garage buildings, Energy efficient buildings, off-grid buildings, Sustainable buildings, buildings draught proof, buildings air - tight, store heat, timber frame, traditional",
+                                                                        "children": [],
+                                                                        "mutable": true,
+                                                                        "open": 1,
+                                                                        "parent_id": "4f6bb4f8-ad50-11ed-91c0-31f83201c2ba",
+                                                                        "meta": {
+                                                                            "creation_timestamp": "2023-02-15-16.47.18",
+                                                                            "source": "AI",
+                                                                            "modified": false
+                                                                        },
+                                                                        "generation": {
+                                                                            "id": "cmpl-6kFE22ZirlxBLrhoPDjhbSCYWCFds",
+                                                                            "index": 0
+                                                                        },
+                                                                        "visited": true
+                                                                    },
+                                                                    {
+                                                                        "id": "65c7d29b-ad50-11ed-91c0-31f83201c2ba",
+                                                                        "text": " a smallholding to produce artisan cheese, a wildlife centre and also a community cafe. The Trust asserts that the regeneration at Wantonwells Farm is a model that can be replicated throughout rural Scotland.\nExample 2: The Trust is currently seeking funding to establish an education centre at the farm, as part of the local primary school curriculum and has been working with local volunteers and community, who have volunteered to assist with the woodland, planting edible native broadleaf trees. The Trust aims to encourage people to",
+                                                                        "children": [],
+                                                                        "mutable": true,
+                                                                        "open": 1,
+                                                                        "parent_id": "4f6bb4f8-ad50-11ed-91c0-31f83201c2ba",
+                                                                        "meta": {
+                                                                            "creation_timestamp": "2023-02-15-16.47.18",
+                                                                            "source": "AI",
+                                                                            "modified": false
+                                                                        },
+                                                                        "generation": {
+                                                                            "id": "cmpl-6kFE22ZirlxBLrhoPDjhbSCYWCFds",
+                                                                            "index": 1
+                                                                        },
+                                                                        "visited": true
+                                                                    },
+                                                                    {
+                                                                        "id": "65c7d29c-ad50-11ed-91c0-31f83201c2ba",
+                                                                        "text": " a farm shop, cafe, traditional woods demonstrating woodland management, native and unusual trees, wildlife areas and woodland walks and play area.\n\nExample 2: The Trust is also undertaking various training and education programmes, including an extensive native tree management programme with local secondary schools, using a small population of the original native woodland on the farm. By planting and tending these trees, the schools and local community can learn about the lifecycle of a native tree and the importance of woodland management. The natural native broad",
+                                                                        "children": [],
+                                                                        "mutable": true,
+                                                                        "open": 1,
+                                                                        "parent_id": "4f6bb4f8-ad50-11ed-91c0-31f83201c2ba",
+                                                                        "meta": {
+                                                                            "creation_timestamp": "2023-02-15-16.47.18",
+                                                                            "source": "AI",
+                                                                            "modified": false
+                                                                        },
+                                                                        "generation": {
+                                                                            "id": "cmpl-6kFE22ZirlxBLrhoPDjhbSCYWCFds",
+                                                                            "index": 2
+                                                                        },
+                                                                        "visited": true
+                                                                    },
+                                                                    {
+                                                                        "id": "65c7d29d-ad50-11ed-91c0-31f83201c2ba",
+                                                                        "text": " growing an organic cafe, play area and forest school.\nExample 2: A family owned farm of over 100 acres in the heart of the north east of Scotland, Wantonwells, started planting woodland in 1993,",
+                                                                        "children": [
+                                                                            {
+                                                                                "id": "8a687cf8-ad50-11ed-91c0-31f83201c2ba",
+                                                                                "text": " to rejuvenate the farm and diversify its income. A broadleaf native woodland has grown to over 100 acres. Forest Garden products are now sold at local farmers markets and other local outlets. The aim of Wantonwells is to create a forest garden that is commercially viable, providing income to the farm, growing high quality food to be sold in local shops and a source of employment.",
+                                                                                "children": [
+                                                                                    {
+                                                                                        "id": "bb0c362e-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "text": " The farm has a large planting area and is aiming to integrate a children's play area and forest school into the woodland.\n---\nDetails: Windset Farm, social regeneration, south Clackmannanshire, rural, Caledonian estate, community owned, diversify farm incomes, tourism, open environment and heritage centre, horticulture\nExample 1: The Windset Farm near Alloa, rural community in south Clackmannanshire, is a struggling smallholding farm set on the",
+                                                                                        "children": [],
+                                                                                        "mutable": true,
+                                                                                        "open": 1,
+                                                                                        "parent_id": "8a687cf8-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "meta": {
+                                                                                            "creation_timestamp": "2023-02-15-16.49.41",
+                                                                                            "source": "AI",
+                                                                                            "modified": false
+                                                                                        },
+                                                                                        "generation": {
+                                                                                            "id": "cmpl-6kFGL3vFy7ykmUWsDU7Z981j3A2Ov",
+                                                                                            "index": 0
+                                                                                        },
+                                                                                        "visited": true
+                                                                                    },
+                                                                                    {
+                                                                                        "id": "bb0c362f-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "text": " By the end of 2014 the hope is to convert the woodland into a local forest school and produce a cider and a gin.\nExample 3: Wantonwells village has been planted with new native trees and shrubs. As well as creating more woodland cover, it also provides local employment in planting, maintenance and harvesting of the woodlands. The woodlands provide a steady income from the sale of biomass to the National Grid. In addition to woodland, the farm has an orchard and a market",
+                                                                                        "children": [],
+                                                                                        "mutable": true,
+                                                                                        "open": 1,
+                                                                                        "parent_id": "8a687cf8-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "meta": {
+                                                                                            "creation_timestamp": "2023-02-15-16.49.41",
+                                                                                            "source": "AI",
+                                                                                            "modified": false
+                                                                                        },
+                                                                                        "generation": {
+                                                                                            "id": "cmpl-6kFGL3vFy7ykmUWsDU7Z981j3A2Ov",
+                                                                                            "index": 1
+                                                                                        },
+                                                                                        "visited": true
+                                                                                    },
+                                                                                    {
+                                                                                        "id": "bb0c3630-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "text": "\nExample 3: The Wanton well woodland garden was the inspiration of the project and has the added benefit of being located around the woodland edge and the farmstead next to the new restaurant. The woodland garden has been part of project plans since the start; it will sell plants and produce of various focal points in the woodland, such as the natural springs, by products of the garden which are grown on site or are natural features. Further afield, on the north east coast, the Macdonald Mont",
+                                                                                        "children": [],
+                                                                                        "mutable": true,
+                                                                                        "open": 1,
+                                                                                        "parent_id": "8a687cf8-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "meta": {
+                                                                                            "creation_timestamp": "2023-02-15-16.49.41",
+                                                                                            "source": "AI",
+                                                                                            "modified": false
+                                                                                        },
+                                                                                        "generation": {
+                                                                                            "id": "cmpl-6kFGL3vFy7ykmUWsDU7Z981j3A2Ov",
+                                                                                            "index": 2
+                                                                                        },
+                                                                                        "visited": true
+                                                                                    },
+                                                                                    {
+                                                                                        "id": "bb0c3631-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "text": " It will create a generation of people who are employed in the sustainable regeneration of Scotland's landscapes and changing attitudes to how we view and grow food. The woodland will provide a centre for outdoor education, play and recreation whilst catering for community needs and activities.\nFAN's community garden park in a popular holiday destination in southern Spain.\n---\nDetails: FAN, a small charity that runs a community garden park in a popular holiday destination in southern Spain, owned by residents, run by volunteers,",
+                                                                                        "children": [],
+                                                                                        "mutable": true,
+                                                                                        "open": 1,
+                                                                                        "parent_id": "8a687cf8-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "meta": {
+                                                                                            "creation_timestamp": "2023-02-15-16.49.41",
+                                                                                            "source": "AI",
+                                                                                            "modified": false
+                                                                                        },
+                                                                                        "generation": {
+                                                                                            "id": "cmpl-6kFGL3vFy7ykmUWsDU7Z981j3A2Ov",
+                                                                                            "index": 3
+                                                                                        },
+                                                                                        "visited": true
+                                                                                    }
+                                                                                ],
+                                                                                "mutable": true,
+                                                                                "open": 1,
+                                                                                "parent_id": "65c7d29d-ad50-11ed-91c0-31f83201c2ba",
+                                                                                "meta": {
+                                                                                    "creation_timestamp": "2023-02-15-16.48.20",
+                                                                                    "source": "AI",
+                                                                                    "modified": false
+                                                                                },
+                                                                                "generation": {
+                                                                                    "id": "cmpl-6kFF1qHROnFWQtAwqi1gB5E21T63m",
+                                                                                    "index": 0
+                                                                                },
+                                                                                "visited": true
+                                                                            },
+                                                                            {
+                                                                                "id": "8a687cf9-ad50-11ed-91c0-31f83201c2ba",
+                                                                                "text": " to provide timber to produce fine furniture. The woodland is managed specifically for the growth of high quality native broadleaf trees and the land has been depleted of all conifer trees. Wantonwells has a mix of native broadleaf tree species of ash, hazel, field maple, silver birch, common alder and rowan, providing a natural habitat for a wealth of wildlife. As part of the development of the forest garden, a former water-filled quarry, has been planted with a",
+                                                                                "children": [],
+                                                                                "mutable": true,
+                                                                                "open": 1,
+                                                                                "parent_id": "65c7d29d-ad50-11ed-91c0-31f83201c2ba",
+                                                                                "meta": {
+                                                                                    "creation_timestamp": "2023-02-15-16.48.20",
+                                                                                    "source": "AI",
+                                                                                    "modified": false
+                                                                                },
+                                                                                "generation": {
+                                                                                    "id": "cmpl-6kFF1qHROnFWQtAwqi1gB5E21T63m",
+                                                                                    "index": 1
+                                                                                },
+                                                                                "visited": true
+                                                                            },
+                                                                            {
+                                                                                "id": "8a687cfa-ad50-11ed-91c0-31f83201c2ba",
+                                                                                "text": " as a means of diversifying the farm and creating new revenue to reinvest in the local community and environment. Since then a mixed native woodland of Scots Pine and Oak has been planted, that is managed solely for the production of high-quality native broadleaf seedlings. Wantonwells Wood is now a successful and well-established nursery, managed to a high standard, with trees stocked at a sustainable level and grown for the production of quality native broadleaf woodland seedlings. It has now been stepped",
+                                                                                "children": [],
+                                                                                "mutable": true,
+                                                                                "open": 1,
+                                                                                "parent_id": "65c7d29d-ad50-11ed-91c0-31f83201c2ba",
+                                                                                "meta": {
+                                                                                    "creation_timestamp": "2023-02-15-16.48.20",
+                                                                                    "source": "AI",
+                                                                                    "modified": false
+                                                                                },
+                                                                                "generation": {
+                                                                                    "id": "cmpl-6kFF1qHROnFWQtAwqi1gB5E21T63m",
+                                                                                    "index": 2
+                                                                                },
+                                                                                "visited": true
+                                                                            },
+                                                                            {
+                                                                                "id": "8a687cfb-ad50-11ed-91c0-31f83201c2ba",
+                                                                                "text": " with a vision to restore a dynamic, utilising landscape to provide a natural habitat for both native and commercially important broadleaf tree species. Funded by multiple organisations and agencies, the regeneration project has reintroduced native tree species to the site, with hundreds of oak trees planted in consecutive years and a large area of woodland established. The success of the plantation has also seen the planting of native broadleaf species and softwood forestry, with young forestry trees introduced to the site.\nThe intention of this regeneration",
+                                                                                "children": [
+                                                                                    {
+                                                                                        "id": "abe3723e-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "text": " initiative was to provide a diverse and dynamic woodland, developed to provide an area of natural and educational interest. This woodland will have a long lifespan and will provide valuable habitats for native species. The woodland will also be developed to provide areas for people to visit, with links established to local community groups, through educational programmes.\n",
+                                                                                        "children": [],
+                                                                                        "mutable": true,
+                                                                                        "open": 1,
+                                                                                        "parent_id": "8a687cfb-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "meta": {
+                                                                                            "creation_timestamp": "2023-02-15-16.49.16",
+                                                                                            "source": "AI",
+                                                                                            "modified": false
+                                                                                        },
+                                                                                        "generation": {
+                                                                                            "id": "cmpl-6kFFvGs0lUOEgdwgOYwUsHjeaKEmV",
+                                                                                            "index": 0
+                                                                                        },
+                                                                                        "visited": true
+                                                                                    },
+                                                                                    {
+                                                                                        "id": "abe3723f-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "text": " is to create a mixed woodland of native and responsibly introduced broadleaf trees with a rich diversity of species, age classes and plant communities. The species introduced are for a variety of reasons, as broadleaf trees are suitable for a large range of uses, a diversity of species will provide a choice of timber, timber products, wildlife interest and provide a suitable habitat for a range of flora and fauna.\nWith environmental benefits and commercial goals in mind, the introduction of a diversity of species aims to create",
+                                                                                        "children": [],
+                                                                                        "mutable": true,
+                                                                                        "open": 1,
+                                                                                        "parent_id": "8a687cfb-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "meta": {
+                                                                                            "creation_timestamp": "2023-02-15-16.49.16",
+                                                                                            "source": "AI",
+                                                                                            "modified": false
+                                                                                        },
+                                                                                        "generation": {
+                                                                                            "id": "cmpl-6kFFvGs0lUOEgdwgOYwUsHjeaKEmV",
+                                                                                            "index": 1
+                                                                                        },
+                                                                                        "visited": true
+                                                                                    },
+                                                                                    {
+                                                                                        "id": "abe37240-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "text": " project is to have a natural system of woodland, managing and growing our native, broadleaf trees back into their natural habitat and providing the space for wildlife to flourish. Some of the trees are harvested (electricity, furniture and timber) each year, but the on-going aim is to develop a self-sustaining woodland. With benefits to the environment, biodiversity, local communities and heritage, the woodland is a commercial venture, providing opportunities and involvement for local schools, environmental management and conservation.",
+                                                                                        "children": [],
+                                                                                        "mutable": true,
+                                                                                        "open": 1,
+                                                                                        "parent_id": "8a687cfb-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "meta": {
+                                                                                            "creation_timestamp": "2023-02-15-16.49.16",
+                                                                                            "source": "AI",
+                                                                                            "modified": false
+                                                                                        },
+                                                                                        "generation": {
+                                                                                            "id": "cmpl-6kFFvGs0lUOEgdwgOYwUsHjeaKEmV",
+                                                                                            "index": 2
+                                                                                        },
+                                                                                        "visited": true
+                                                                                    },
+                                                                                    {
+                                                                                        "id": "abe37241-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "text": " project is to provide a natural habitat for a range of wildlife, with Community groups and schools involved in introducing vulnerable species to the area. The project has also seen educational workshops and tours established to promote the work, with a tree nursery and forest school planned to develop education, training and activities further.\nIn the future, the woodland will provide natural habitats for native species of tree, with important native softwood species planted for commercial benefit. A garden centre will be set up on the farm to promote the",
+                                                                                        "children": [],
+                                                                                        "mutable": true,
+                                                                                        "open": 1,
+                                                                                        "parent_id": "8a687cfb-ad50-11ed-91c0-31f83201c2ba",
+                                                                                        "meta": {
+                                                                                            "creation_timestamp": "2023-02-15-16.49.16",
+                                                                                            "source": "AI",
+                                                                                            "modified": false
+                                                                                        },
+                                                                                        "generation": {
+                                                                                            "id": "cmpl-6kFFvGs0lUOEgdwgOYwUsHjeaKEmV",
+                                                                                            "index": 3
+                                                                                        },
+                                                                                        "visited": true
+                                                                                    }
+                                                                                ],
+                                                                                "mutable": true,
+                                                                                "open": 1,
+                                                                                "parent_id": "65c7d29d-ad50-11ed-91c0-31f83201c2ba",
+                                                                                "meta": {
+                                                                                    "creation_timestamp": "2023-02-15-16.48.20",
+                                                                                    "source": "AI",
+                                                                                    "modified": false
+                                                                                },
+                                                                                "generation": {
+                                                                                    "id": "cmpl-6kFF1qHROnFWQtAwqi1gB5E21T63m",
+                                                                                    "index": 3
+                                                                                },
+                                                                                "visited": true
+                                                                            }
+                                                                        ],
+                                                                        "mutable": true,
+                                                                        "open": 1,
+                                                                        "parent_id": "4f6bb4f8-ad50-11ed-91c0-31f83201c2ba",
+                                                                        "meta": {
+                                                                            "creation_timestamp": "2023-02-15-16.47.18",
+                                                                            "source": "AI",
+                                                                            "modified": false
+                                                                        },
+                                                                        "generation": {
+                                                                            "id": "cmpl-6kFE22ZirlxBLrhoPDjhbSCYWCFds",
+                                                                            "index": 3
+                                                                        },
+                                                                        "visited": true
+                                                                    }
+                                                                ],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "cbf9bca0-ad4f-11ed-91c0-31f83201c2ba",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-15-16.46.41",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6kFDQ3iA6xqsgBBTHFHzvqM2m4n5Y",
+                                                                    "index": 0
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "4f6bb4f9-ad50-11ed-91c0-31f83201c2ba",
+                                                                "text": " In conjunction with the woodlands, a market garden is being developed along the woodland edge to provide fresh vegetables, salads and other foodstuffs to the local community, further afield and for sale to local shops. The planned development of a Visitor Centre will showcase the work that is being carried out by the Trust, with the addition of a cafe and children's play area.\nExample 2: Wantonwells Farm is a community woodland and market garden, a beautifully rural and diverse traditional Aber",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "cbf9bca0-ad4f-11ed-91c0-31f83201c2ba",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-15-16.46.41",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6kFDQ3iA6xqsgBBTHFHzvqM2m4n5Y",
+                                                                    "index": 1
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "4f6bb4fa-ad50-11ed-91c0-31f83201c2ba",
+                                                                "text": " A number of the young trees are harvested for use as firewood, and for use in the house.\nThe focus of the garden is the production of high quality vegetables, fruit, flowers and herbs. Today Wantonwells Farm is home not just to the original fruit orchard planted in 1990, but also has many other gardens and planted areas including several varieties of native broadleaf trees, with the aim of creating a more diverse and productive native woodland, which will act as a habitat for native",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "cbf9bca0-ad4f-11ed-91c0-31f83201c2ba",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-15-16.46.41",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6kFDQ3iA6xqsgBBTHFHzvqM2m4n5Y",
+                                                                    "index": 2
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "4f6bb4fb-ad50-11ed-91c0-31f83201c2ba",
+                                                                "text": " The woodland provides a variety of different species, ages and conditions to adapt to different uses throughout the year. The woodland is stocked with native broadleaf trees, as well as an array of undergrowth species such as hazel, rowan, holly, aspen, birch, cherry and elderflower. This incorporates a variety of locally sourced medicinal plants, fruits and berries to sustain the woodland's yield. An area of land has also been planted with a crop of 100 acres of broadleaf native",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "cbf9bca0-ad4f-11ed-91c0-31f83201c2ba",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-15-16.46.41",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6kFDQ3iA6xqsgBBTHFHzvqM2m4n5Y",
+                                                                    "index": 3
+                                                                },
+                                                                "visited": true
+                                                            }
+                                                        ],
+                                                        "mutable": true,
+                                                        "open": 1,
+                                                        "parent_id": "9db69a37-ad4f-11ed-91c0-31f83201c2ba",
+                                                        "meta": {
+                                                            "creation_timestamp": "2023-02-15-16.43.01",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-6kF9sWmSi62TvUx0Oe5cKcoy1G6ub",
+                                                            "index": 0
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "cbf9bca1-ad4f-11ed-91c0-31f83201c2ba",
+                                                        "text": " Wantonwels has been converted into a small scale, successful and positively growing project over the last 14 years. The range of products now sold from the site has grown beyond the initial nursery and cut flowers to include cider making, forage crops for pigs, eggs and poultry. Many of the surrounding fields are now planted with native broadleaf trees, providing a beautiful woodland area for the local community and wildlife. A children's play area has been developed from dusty unused fields, with well painted play equipment",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 1,
+                                                        "parent_id": "9db69a37-ad4f-11ed-91c0-31f83201c2ba",
+                                                        "meta": {
+                                                            "creation_timestamp": "2023-02-15-16.43.01",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-6kF9sWmSi62TvUx0Oe5cKcoy1G6ub",
+                                                            "index": 1
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "cbf9bca2-ad4f-11ed-91c0-31f83201c2ba",
+                                                        "text": " Companies that have been created on the farm include The White Tree, a garden of native broadleaf trees and Woodland Workshop, a woodland nursery and teaching garden. In 2007, The Wantonwells Trust was formed by the owners of the farm to oversee the development of the projects on the site, with a vision to eventually create a community woodland, forest garden and market garden, selling directly to the public. The Trust's vision for this development is to create a place for everyone in the community to",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 1,
+                                                        "parent_id": "9db69a37-ad4f-11ed-91c0-31f83201c2ba",
+                                                        "meta": {
+                                                            "creation_timestamp": "2023-02-15-16.43.01",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-6kF9sWmSi62TvUx0Oe5cKcoy1G6ub",
+                                                            "index": 2
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "cbf9bca3-ad4f-11ed-91c0-31f83201c2ba",
+                                                        "text": " Much of the native woodland was destroyed when the Grampian Expressway was built, and so it became the mission of the new owners to replant, creating a woodland that was lacking and degraded. In the past 20 years, hundreds of native, broadleaf trees have been planted with their bare root systems shrouded in straw to protect them through their first winter in the ground. Since then a natural woodland, rich in wildlife, has begun to mature and wildlife such as roe deer have started to use",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 1,
+                                                        "parent_id": "9db69a37-ad4f-11ed-91c0-31f83201c2ba",
+                                                        "meta": {
+                                                            "creation_timestamp": "2023-02-15-16.43.01",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-6kF9sWmSi62TvUx0Oe5cKcoy1G6ub",
+                                                            "index": 3
+                                                        },
+                                                        "visited": true
+                                                    }
+                                                ],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "32f70bb9-ad4f-11ed-91c0-31f83201c2ba",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-15-16.41.42",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6kF8cv9zp6uViOckqAKPq1VZWYP6m",
+                                                    "index": 3
+                                                },
+                                                "visited": true
+                                            }
+                                        ],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "1f607059-ad4f-11ed-91c0-31f83201c2ba",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-15-16.38.43",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6kF5jplsyGAqawQUu5FI9o6SZSfPj",
+                                            "index": 3
+                                        },
+                                        "visited": true
+                                    }
+                                ],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "f8717eb1-ad4e-11ed-91c0-31f83201c2ba",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-15-16.38.10",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6kF5CKPMuffqGtZQojuSslHAgKihO",
+                                    "index": 3
+                                },
+                                "visited": true
+                            }
+                        ],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                        "meta": {
+                            "creation_timestamp": "2023-02-15-16.37.04",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6kF49D23BxBhJJ1PPveKpI7cEVz23",
+                            "index": 3
+                        },
+                        "visited": true
+                    }
+                ],
+                "parent_id": "89e1bf6c-ad4e-11ed-91c0-31f83201c2ba",
+                "id": "89e1bf6d-ad4e-11ed-91c0-31f83201c2ba",
+                "open": 1,
+                "visited": true
+            }
+        ],
+        "id": "89e1bf6c-ad4e-11ed-91c0-31f83201c2ba",
+        "open": 1
+    },
+    "chapters": {},
+    "canonical": [],
+    "summaries": {},
+    "model_responses": {},
+    "generation_settings": {
+        "num_continuations": 4,
+        "temperature": 0.9,
+        "top_p": 1,
+        "response_length": 100,
+        "prompt_length": 6000,
+        "logprobs": 0,
+        "model": "davinci",
+        "stop": "",
+        "start": "",
+        "restart": "",
+        "preset": "None",
+        "global_context": "",
+        "logit_bias": "",
+        "template": "Default"
+    },
+    "inline_generation_settings": {
+        "model": "davinci",
+        "num_continuations": 8,
+        "temperature": 1,
+        "top_p": 1,
+        "response_length": 60,
+        "prompt_length": 6000,
+        "logprobs": 0,
+        "stop": "\\n|.|?|!",
+        "start": "",
+        "restart": "",
+        "preset": "Single Line",
+        "global_context": "",
+        "logit_bias": "",
+        "template": "Default"
+    },
+    "frame": {},
+    "visualization_settings": {
+        "text_width": 450,
+        "leaf_distance": 200,
+        "level_distance": 150,
+        "text_size": 10,
+        "horizontal": true,
+        "display_text": true,
+        "show_buttons": true,
+        "chapter_mode": false
+    },
+    "preferences": {
+        "reverse": false,
+        "walk": "descendents",
+        "nav_tag": "bookmark",
+        "editable": true,
+        "history_conflict": "overwrite",
+        "coloring": "edit",
+        "bold_prompt": true,
+        "font_size": 12,
+        "line_spacing": 8,
+        "paragraph_spacing": 10,
+        "revision_history": false,
+        "autosave": false,
+        "model_response": "backup",
+        "prob": true
+    },
+    "module_settings": {
+        "edit": {
+            "node_id": null
+        },
+        "input": {
+            "auto_response": true,
+            "submit_template": "{input}"
+        },
+        "minimap": {
+            "level_offset": 70,
+            "leaf_offset": 40,
+            "node_radius": 10,
+            "line_thickness": 2,
+            "horizontal": false,
+            "prune_mode": "open_in_nav",
+            "path_length_limit": 10
+        },
+        "read children": {
+            "filter": "in_nav",
+            "show_continue": "no alternatives",
+            "show_options": "always"
+        },
+        "children": {
+            "toggle_tag": "bookmark"
+        }
+    },
+    "tags": {
+        "bookmark": {
+            "name": "bookmark",
+            "scope": "node",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "b",
+            "icon": "bookmark-black"
+        },
+        "canonical": {
+            "name": "canonical",
+            "scope": "ancestry",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "*",
+            "icon": "book-white"
+        },
+        "archived": {
+            "name": "archived",
+            "scope": "node",
+            "hide": true,
+            "show_only": false,
+            "toggle_key": "!",
+            "icon": "archive-yellow"
+        },
+        "note": {
+            "name": "note",
+            "scope": "node",
+            "hide": true,
+            "show_only": false,
+            "toggle_key": "#",
+            "icon": "note-black"
+        },
+        "pinned": {
+            "name": "pinned",
+            "scope": "node",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "^",
+            "icon": "pin-red"
+        }
+    },
+    "selected_node_id": "4f6bb4fb-ad50-11ed-91c0-31f83201c2ba"
+}

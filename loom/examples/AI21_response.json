@@ -1,0 +1,76 @@
+{
+  "id": "39bafe61-244d-4e10-ba5f-537bbdd1c274",
+  "prompt": {
+    "text": "Test prompt",
+    "tokens": [
+      {
+        "generatedToken": {
+          "token": "\u2581Test",
+          "logprob": -9.40399169921875
+        },
+        "topTokens": null,
+        "textRange": {
+          "start": 0,
+          "end": 4
+        }
+      },
+      {
+        "generatedToken": {
+          "token": "\u2581prompt",
+          "logprob": -13.457390785217285
+        },
+        "topTokens": null,
+        "textRange": {
+          "start": 4,
+          "end": 11
+        }
+      }
+    ]
+  },
+  "completions": [
+    {
+      "data": {
+        "text": " rate",
+        "tokens": [
+          {
+            "generatedToken": {
+              "token": "\u2581rate",
+              "logprob": -9.374443054199219
+            },
+            "topTokens": null,
+            "textRange": {
+              "start": 0,
+              "end": 5
+            }
+          }
+        ]
+      },
+      "finishReason": {
+        "reason": "length",
+        "length": 1
+      }
+    },
+    {
+      "data": {
+        "text": " \"",
+        "tokens": [
+          {
+            "generatedToken": {
+              "token": "\u2581\"",
+              "logprob": -5.296318054199219
+            },
+            "topTokens": null,
+            "textRange": {
+              "start": 0,
+              "end": 2
+            }
+          }
+        ]
+      },
+      "finishReason": {
+        "reason": "length",
+        "length": 1
+      }
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+- check the pyproject works with pip
+- build and test the docker image

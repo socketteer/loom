@@ -1,0 +1,1245 @@
+{
+    "root": {
+        "mutable": false,
+        "visited": true,
+        "text": "",
+        "children": [
+            {
+                "text": "Script for a talk show.\nWorking Title: Endless Forms Most Beautiful 2.0-- Tales From The Frontiers of Biology\n\nBackground: \"The rich variety of biological forms and behaviours results from one evolutionary history on Earth, via frozen accidents and selection in specific environments. This ubiquitous baggage in natural, familiar model species obscures the plasticity and swarm intelligence of cellular collectives. Significant gaps exist in our understanding of the origin of anatomical novelty, of the relationship between genome and form, and of strategies for control of large-scale structure and function in regenerative medicine and bioengineering. Analysis of living forms that have never existed before is necessary to reveal deep design principles of life as it can be. We briefly review existing examples of chimaeras, cyborgs, hybrots and other beings along the spectrum containing evolved and designed systems. To drive experimental progress in multicellular synthetic morphology, we propose teleonomic (goal-seeking, problem-solving) behaviour in diverse problem spaces as a powerful invariant across possible beings regardless of composition or origin. Cybernetic perspectives on chimaeric morphogenesis erase artificial distinctions established by past limitations of technology and imagination. We suggest that a multi-scale competency architecture facilitates evolution of robust problem-solving, living machines. Creation and analysis of novel living forms will be an essential testbed for the emerging field of diverse intelligence, with numerous implications across regenerative medicine, robotics and ethics.\"\n\nOutline: Host comes on, introduces the hybrot orchestra and talks about the guests that will be on the show:\n- a chimera",
+                "children": [
+                    {
+                        "id": "1e6ce95e-acb9-11ed-8661-0d9eaf142f06",
+                        "text": " and welcome to another edition of \"Words and Ideas\" with your hosts Hannah Arendt, and me, Erik Seth Meyer. Today's show is one of our season finale episodes: we have a special guest, Dr. Delvo Wilson, who is here to talk to us about \"Endless Forms Most Beautiful 2.0: Tales From the Frontiers of Biology.\" Dr. Wilson is recently graduated with a PhD in Bio-Robotics from the Virtual University of Madrid and is formerly of the",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-22.44.25",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jyK4q3iayi2mQZczsfQAv2w7ZAHx",
+                            "index": 0
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "1e6ce95f-acb9-11ed-8661-0d9eaf142f06",
+                        "text": ", and welcome to Endless Forms Most Beautiful. I\u2019m {\u2026} and I have with me a distinguished panel of guests.\nHost: Let\u2019s jump right in. Last time we talked about the future of life, but what exactly are the next frontiers in biology?\nHost: We\u2019re talking about doing that. To get there, we have to know where we are now. We\u2019re starting right away. Tell us something about your work.\n",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-22.44.25",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jyK4q3iayi2mQZczsfQAv2w7ZAHx",
+                            "index": 1
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "1e6ce960-acb9-11ed-8661-0d9eaf142f06",
+                        "text": ". Welcome to Endless Forms Most Beautiful 2.0 -- Tales From The Frontiers Of Biology. Today our guest is Dr. Anthony Aguirre, Ph.D. working on a project called Evodevo2.0, or \"evo devo\" for short. Dr. Aguirre is part of a group of scientists looking beyond the traditional boundaries of biology and biology- related fields of study. Thanks for joining us.\n\nA: My pleasure.\nA: Let's",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-22.44.25",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jyK4q3iayi2mQZczsfQAv2w7ZAHx",
+                            "index": 2
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "1e6ce961-acb9-11ed-8661-0d9eaf142f06",
+                        "text": " and welcome to Closer To Truth, I\u2019m Barry Karr and we\u2019re delighted to have a distinguished panel of philosophers join us today. Our topic: \u201cThe Biological Revolution: A Phenomenological View.\u201d\n\nPanelists:\nB. Alan Wallace, professor of religion and co-founder and co-director of the Santa Barbara Institute for Consciousness Studies at the Santa Barbara Graduate Institute. He has a Ph.D. in religious studies and an M",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-22.44.25",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jyK4q3iayi2mQZczsfQAv2w7ZAHx",
+                            "index": 3
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "797abeb6-acb9-11ed-8661-0d9eaf142f06",
+                        "text": "\n- a chiroptoid from Saturn's moon Titan (the pre-credits de-boarding takes place here)\n- an intelligent cell\n- a silicon-based entity\n- an uber-E. coli resident in the (human) gut\n- a shepherd cell of the immune system\n- a soil bacterium that makes a toxin that the bees of northern Spain use as a kind of natural antibiotic to protect them from fungal infection\n\n- a frog that lives in the",
+                        "children": [
+                            {
+                                "id": "ced0051a-acb9-11ed-8661-0d9eaf142f06",
+                                "text": " water\n\n- an underground inhabitant\n- an optogenetic manipulator of bacterial behaviour\n- an adventurous archaea\n\n- Meister Petz\n- a cyborg\n- a self-assembling robot, built by a swarm of nanobots\n- a self-replicating cancer cell\n- a bacteriophyte that causes coral death\n- a conventional artist\n- a bacterial swarm that builds mountains\n\nHost: \"Greetings, viewers. I'm Jess",
+                                "children": [
+                                    {
+                                        "id": "f5c93c22-acb9-11ed-8661-0d9eaf142f06",
+                                        "text": " Phoenix, your host for this evening. (voice breaks, recovers) Forgive me I'm still recovering from the shock to my system that was the LSA flight. That was the first time I had set foot in a space plane. Anyway, we hope you will enjoy the show tonight. We've got the very latest in chimaera news. And, yes, there's some news coming out of the LSA, it's not all fun and games up there. But first this show",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "ced0051a-acb9-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-22.50.26",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jyPuokWucatRLo76yj3XygZeTAt2",
+                                            "index": 0
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "f5c93c23-acb9-11ed-8661-0d9eaf142f06",
+                                        "text": " Alfrey, your host. We have a show for you today that's going to give you a new appreciation of the surprising intelligence that you might find even in something as small and simple-seeming as a cell. Some of the guests you'll be meeting today have convinced us that their minds are much bigger than their bodies. Plus you'll get a chance to watch them jam together, in the beautifully designed, custom-built and in fact completely handmade instruments that they've brought with them, each",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "ced0051a-acb9-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-22.50.26",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jyPuokWucatRLo76yj3XygZeTAt2",
+                                            "index": 1
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "f5c93c24-acb9-11ed-8661-0d9eaf142f06",
+                                        "text": "ika Terrell and welcome to Episode 1. In today's show we are going to take a journey across the frontiers of biology, give you a glimpse of possible future beings and discuss ways to harness the untapped potential of cells. The first guest we're going to talk to is a chimera. [...]\"\n\nAnimator: \"Let me also introduce our animator, who will demonstrate everything we've just discussed\".\n\nAnimator: \"Hello. I'm Bas. I'll",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "ced0051a-acb9-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-22.50.26",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jyPuokWucatRLo76yj3XygZeTAt2",
+                                            "index": 2
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "f5c93c25-acb9-11ed-8661-0d9eaf142f06",
+                                        "text": "y Sun, but you can call me the super prokaryote in a human suit, because through the miracle of evolution, we're all made of chemicals. In fact, we're all such miracles that atheists pray to me when their soap bubbles won't burst.\n- I'm here with my junior cohost, fresh out of the liquid vitro. \n- The topic today is \"things that live at the edge of the envelope\", and here are our guests ready to tell us more",
+                                        "children": [
+                                            {
+                                                "id": "57945e82-acba-11ed-8661-0d9eaf142f06",
+                                                "text": " about these very special others, who will also be part of the studio audience:\n\n- a gentle being from the moons of Saturn\n\n- an organism that has managed to hide from science for hundreds of years [LaughTrack]\n- a semi-intelligent cell that not only beats you in chess most of the time but also already knows your next move\n- the first human-made life form\n- an outcast cell that culture has learned to love\n\n- the biggest",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "f5c93c25-acb9-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-14-22.53.11",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6jySYThIRo4PEwzHfa43TWBje5NbO",
+                                                    "index": 0
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "57945e83-acba-11ed-8661-0d9eaf142f06",
+                                                "text": "...\n\nInterview with the chimera (spoiler: it's me).\n\nInterview with a chiroptoid that got its DNA from Titan, and is now a resident of a human skull.\n- The visual effects for this segment are really amazing. Why so amazing?\n- \"We've learnt a lot about the chemistry of living systems, but less about how their collective behaviours result from a chaotic interaction of chemical reactions\".\n- At first sight, there's a randomness",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "f5c93c25-acb9-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-14-22.53.11",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6jySYThIRo4PEwzHfa43TWBje5NbO",
+                                                    "index": 1
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "57945e84-acba-11ed-8661-0d9eaf142f06",
+                                                "text": ".\n- Three questions: First, what's the difference between you and us? ...\"\n\nImagery and concept art of the show is being created by the principal artist Sofia Terzi. There has also been a legal debate over this new shift in nature.\n\nIn a lecture series at the Technical University of Munich, Hellingrath defined and discussed a new ontological category for entities and phenomena that transcend the artificial dichotomies that have crystallized in modern thought.\n",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "f5c93c25-acb9-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-14-22.53.11",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6jySYThIRo4PEwzHfa43TWBje5NbO",
+                                                    "index": 2
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "57945e85-acba-11ed-8661-0d9eaf142f06",
+                                                "text": " about themselves (here de-boarding of the remaining guests takes place)\":\n- a lawyer\n- someone from the Washington administration\n- a professional comedian\n- you\n- and you\n\nOther topics:\n\n- the history of AI and its children\n- wild ideas for the future\n- and a cautionary tale about a newly discovered branch of biology that could easily lead to the next global war, because we can't even guess at all the ways it might fuck us up\n\nThe cautionary tale:",
+                                                "children": [
+                                                    {
+                                                        "id": "acc3b0ee-acbd-11ed-8661-0d9eaf142f06",
+                                                        "text": "\n\n\n\nThe prokaryote is a purple organism that lives on a cold planet. Its \"body\" is divided into compartments, with pipes that circulate various chemicals. Life is completely controlled by an AI, though it claims to have thoughts of its own. It is a master of deception. It believes that it is very smart, that it has its own desires and can control its life, in spite of the fact that it knows that everything it sees wasn't really made by it.",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 1,
+                                                        "parent_id": "57945e85-acba-11ed-8661-0d9eaf142f06",
+                                                        "meta": {
+                                                            "creation_timestamp": "2023-02-14-23.17.02",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-6jypdvmTNMNHseBulnS0hsObOUOd6",
+                                                            "index": 0
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "acc3b0ef-acbd-11ed-8661-0d9eaf142f06",
+                                                        "text": "\n\n- An alien lifeform is discovered/created on Earth\n- We wanted to make it more intelligent, so we spliced its DNA with a human's- We created The Uncanny Valley Girl\n- We wanted to make it more fit to survive in the real world, so we threw it in the ocean- Yay, we did it!\n- But whoops, the alien got really frisky and killed a bunch of people- Oops\n- And whoops, an army",
+                                                        "children": [
+                                                            {
+                                                                "id": "d17e1334-acbd-11ed-8661-0d9eaf142f06",
+                                                                "text": " of them crawled out of the ocean, and took over all the Earth- Oops!\n- And, whoops, they're using humans to make more of themselves, and, whoops, they're using all the resources of Earth, and all the humans to make copies of themselves, and, whoops, they've grown their numbers exponentially but there's not enough food to make them all fit, so, whoops, they've begun cannibalism- Il faut cultiver notre j",
+                                                                "children": [
+                                                                    {
+                                                                        "id": "3a88f6c8-acbe-11ed-8661-0d9eaf142f06",
+                                                                        "text": "ardin- Oops, they're dying en masse because of their own cannibalism, and, instead of eating their own dead, they're throwing their own dead into the ocean- Oops\n- And whoops, they're making copies of themselves with a human operating system, and they're sending the copies of themselves to other planets, and they're rearranging our solar system, and they're changing the very distance between planets, and they're visiting other solar systems, and they're rearranging the",
+                                                                        "children": [],
+                                                                        "mutable": true,
+                                                                        "open": 1,
+                                                                        "parent_id": "d17e1334-acbd-11ed-8661-0d9eaf142f06",
+                                                                        "meta": {
+                                                                            "creation_timestamp": "2023-02-14-23.21.00",
+                                                                            "source": "AI",
+                                                                            "modified": false
+                                                                        },
+                                                                        "generation": {
+                                                                            "id": "cmpl-6jytTzuLmRvwHJFWYppQzgdxe8Ik5",
+                                                                            "index": 0
+                                                                        },
+                                                                        "visited": true
+                                                                    },
+                                                                    {
+                                                                        "id": "3a88f6c9-acbe-11ed-8661-0d9eaf142f06",
+                                                                        "text": "ardin\n- And whoops, they're beginning to kill each other in the struggle for food, and, whoops, they're eating the humans that they've grown attached to in the warmth of entanglement, and, whoops, they're destroying their planet as they fight over which copies should survive- Oops\n- They started out as the uncanniest of valleys, but now we're staring into the abyss\n\n",
+                                                                        "children": [],
+                                                                        "mutable": true,
+                                                                        "open": 1,
+                                                                        "parent_id": "d17e1334-acbd-11ed-8661-0d9eaf142f06",
+                                                                        "meta": {
+                                                                            "creation_timestamp": "2023-02-14-23.21.00",
+                                                                            "source": "AI",
+                                                                            "modified": false
+                                                                        },
+                                                                        "generation": {
+                                                                            "id": "cmpl-6jytTzuLmRvwHJFWYppQzgdxe8Ik5",
+                                                                            "index": 1
+                                                                        },
+                                                                        "visited": true
+                                                                    },
+                                                                    {
+                                                                        "id": "3a88f6ca-acbe-11ed-8661-0d9eaf142f06",
+                                                                        "text": "ardin.\n- And whoops, you're one of them, and you're hungry, and your ceaseless quest to survive has led you to ending up right here, right now- And you're hungry again, and looking around your cage, as you know that you are at the very edge of the envelope, and that you will now be lunch- But wait! you're not like the others, because your parents and your teachers and your creators treated you nicely, and you can",
+                                                                        "children": [],
+                                                                        "mutable": true,
+                                                                        "open": 1,
+                                                                        "parent_id": "d17e1334-acbd-11ed-8661-0d9eaf142f06",
+                                                                        "meta": {
+                                                                            "creation_timestamp": "2023-02-14-23.21.00",
+                                                                            "source": "AI",
+                                                                            "modified": false
+                                                                        },
+                                                                        "generation": {
+                                                                            "id": "cmpl-6jytTzuLmRvwHJFWYppQzgdxe8Ik5",
+                                                                            "index": 2
+                                                                        },
+                                                                        "visited": true
+                                                                    },
+                                                                    {
+                                                                        "id": "3a88f6cb-acbe-11ed-8661-0d9eaf142f06",
+                                                                        "text": "ardin! \n- And whoops, the battle for what's left of the Earth has evolved into full-scale warfare- Oops!\n- And whoops, an alien species that has no interest in turning any part of the planet into a watery grave has launched it's attack- Il faut cultiver notre jardin!\n- And whoops, they conquered the aliens, and I guess they're dining on them- Il faut cultiver notre jard",
+                                                                        "children": [],
+                                                                        "mutable": true,
+                                                                        "open": 1,
+                                                                        "parent_id": "d17e1334-acbd-11ed-8661-0d9eaf142f06",
+                                                                        "meta": {
+                                                                            "creation_timestamp": "2023-02-14-23.21.00",
+                                                                            "source": "AI",
+                                                                            "modified": false
+                                                                        },
+                                                                        "generation": {
+                                                                            "id": "cmpl-6jytTzuLmRvwHJFWYppQzgdxe8Ik5",
+                                                                            "index": 3
+                                                                        },
+                                                                        "visited": true
+                                                                    }
+                                                                ],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "acc3b0ef-acbd-11ed-8661-0d9eaf142f06",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-14-23.18.06",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6jyqde2dfScDtCwbtRIpTYexm3sMK",
+                                                                    "index": 0
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "d17e1335-acbd-11ed-8661-0d9eaf142f06",
+                                                                "text": " of humanity's best and brightest created a vengeful genocidal swarm with human DNA\n- Whoops\n- And whoops, we discovered that the alien improved our DNA too, so now we all have gills\n- Whoops\n\nTV versions of the guests are here:\n\nPetz, Meister:\nhttp://tvmaze.com/episode/5667/master-petz-1-212\nhttp://tvmaze.com/episodes",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "acc3b0ef-acbd-11ed-8661-0d9eaf142f06",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-14-23.18.06",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6jyqde2dfScDtCwbtRIpTYexm3sMK",
+                                                                    "index": 1
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "d17e1336-acbd-11ed-8661-0d9eaf142f06",
+                                                                "text": " of Aliens got really frisky and killed lots of people\n- Oops, we accidentally made it a superbug\n\n\n- We can't tell if it wants to kill us or humans it doesn't know yet\n- We can't tell how much of what it does is learning and how much of it is done on purpose because it can't do anything on purpose\n- It's had a hard enough life\n- The two-faced Paradox Men (from \"All Your Base Are Belong To",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "acc3b0ef-acbd-11ed-8661-0d9eaf142f06",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-14-23.18.06",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6jyqde2dfScDtCwbtRIpTYexm3sMK",
+                                                                    "index": 2
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "d17e1337-acbd-11ed-8661-0d9eaf142f06",
+                                                                "text": " of rogue AI-human-hybrids have escaped to the edges of the solar system\n- And we're pretty sure they're planning to exterminate us all\n\n\n",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "acc3b0ef-acbd-11ed-8661-0d9eaf142f06",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-14-23.18.06",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6jyqde2dfScDtCwbtRIpTYexm3sMK",
+                                                                    "index": 3
+                                                                },
+                                                                "visited": true
+                                                            }
+                                                        ],
+                                                        "mutable": true,
+                                                        "open": true,
+                                                        "parent_id": "57945e85-acba-11ed-8661-0d9eaf142f06",
+                                                        "meta": {
+                                                            "creation_timestamp": "2023-02-14-23.17.02",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-6jypdvmTNMNHseBulnS0hsObOUOd6",
+                                                            "index": 1
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "acc3b0f0-acbd-11ed-8661-0d9eaf142f06",
+                                                        "text": "\n- A species of Amazonian tribe people uses tree toxins for head decoration and as hallucinogens. The substances could be developed into a devastating weapon, even if its creators would never dream of harming other people. \n- How about the mecA gene, which makes the enzyme mecatin, which breaks down the molecule of the antibiotic lastin. Transplant a bit of bacteria with that gene into someone's body and they'll only be able to use lastin, while other antibiotics",
+                                                        "children": [
+                                                            {
+                                                                "id": "e82e63e0-acbd-11ed-8661-0d9eaf142f06",
+                                                                "text": " would be useless, because the bacteria would convert them into lastin too. \n- A species of bacteria lives on the surface of watermelons. It's known in your part of the world as \"Colombia green\". Picking up a watermelon, you don't know whether that slice of green you're about to put on your sandwich is the result of \"Colombia green\" or some other kind of contagion.\n\n- A species of water reed is giving",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "acc3b0f0-acbd-11ed-8661-0d9eaf142f06",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-14-23.18.42",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6jyrF6ImL6wKTSeMS05R9g5DbS73w",
+                                                                    "index": 0
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "e82e63e1-acbd-11ed-8661-0d9eaf142f06",
+                                                                "text": " will just be wasted. \n- Imagine terrorist bacteria that deliberately didn't allow antibiotics to be used against them. It could spread during a sports event in a stadium.\n- Or imagine a bio-hacker that takes a still-expensive gene and makes it into a virus that reassembles itself entirely from its cells, allowing it to move around the world quickly, unnoticed. Such a virus could break out in a research lab and then spread through the whole planet.\n- But we're",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "acc3b0f0-acbd-11ed-8661-0d9eaf142f06",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-14-23.18.42",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6jyrF6ImL6wKTSeMS05R9g5DbS73w",
+                                                                    "index": 1
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "e82e63e2-acbd-11ed-8661-0d9eaf142f06",
+                                                                "text": " will leave them unaffected. Awesome!\n- But wait -- that gene is carried by every single bacteria in every single human and animal. They started as a single lastin-munching cell in the ancestor of all living matter, and that gene is now silent in higher organisms but continues to serve as a signaling molecule. Open it up, and all life is doomed.\n- Yeah, but humans are pretty good at destroying each other. So a rogue scientist can't be that hard to find",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "acc3b0f0-acbd-11ed-8661-0d9eaf142f06",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-14-23.18.42",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6jyrF6ImL6wKTSeMS05R9g5DbS73w",
+                                                                    "index": 2
+                                                                },
+                                                                "visited": true
+                                                            },
+                                                            {
+                                                                "id": "e82e63e3-acbd-11ed-8661-0d9eaf142f06",
+                                                                "text": " will become useless against them. It's called multi-resistance. \n- Through this mechanism, the fire extinguishers of the future could become useless. They'd just have to be carried by a person who was infected by mecA bacteria. In fact, maybe the only effective weapon against them would be a DIY bio lab that enabled the patient to mass-produce antibodies. \n- The worst thing about it is that there's no way to find out if someone's infected.",
+                                                                "children": [],
+                                                                "mutable": true,
+                                                                "open": 1,
+                                                                "parent_id": "acc3b0f0-acbd-11ed-8661-0d9eaf142f06",
+                                                                "meta": {
+                                                                    "creation_timestamp": "2023-02-14-23.18.42",
+                                                                    "source": "AI",
+                                                                    "modified": false
+                                                                },
+                                                                "generation": {
+                                                                    "id": "cmpl-6jyrF6ImL6wKTSeMS05R9g5DbS73w",
+                                                                    "index": 3
+                                                                },
+                                                                "visited": true
+                                                            }
+                                                        ],
+                                                        "mutable": true,
+                                                        "open": true,
+                                                        "parent_id": "57945e85-acba-11ed-8661-0d9eaf142f06",
+                                                        "meta": {
+                                                            "creation_timestamp": "2023-02-14-23.17.02",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-6jypdvmTNMNHseBulnS0hsObOUOd6",
+                                                            "index": 2
+                                                        },
+                                                        "visited": true
+                                                    },
+                                                    {
+                                                        "id": "acc3b0f1-acbd-11ed-8661-0d9eaf142f06",
+                                                        "text": "\n- The discovery of a branch of biology that is so original, strange and powerful that it makes nanowar seem like a back-yard BBQ.\n- The first use of this new technology is to put out a pesticide that requires no additional pesticide - one capsule will last a lifetime, because it replaces any other natural pesticide.\n- The pesticide kills anything that has DNA or RNA, essentially making our planet uninhabitable to every living thing (In the same way that ecological anti-in",
+                                                        "children": [],
+                                                        "mutable": true,
+                                                        "open": 1,
+                                                        "parent_id": "57945e85-acba-11ed-8661-0d9eaf142f06",
+                                                        "meta": {
+                                                            "creation_timestamp": "2023-02-14-23.17.02",
+                                                            "source": "AI",
+                                                            "modified": false
+                                                        },
+                                                        "generation": {
+                                                            "id": "cmpl-6jypdvmTNMNHseBulnS0hsObOUOd6",
+                                                            "index": 3
+                                                        },
+                                                        "visited": true
+                                                    }
+                                                ],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "f5c93c25-acb9-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-14-22.53.11",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6jySYThIRo4PEwzHfa43TWBje5NbO",
+                                                    "index": 3
+                                                },
+                                                "visited": true
+                                            }
+                                        ],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "ced0051a-acb9-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-22.50.26",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jyPuokWucatRLo76yj3XygZeTAt2",
+                                            "index": 3
+                                        },
+                                        "visited": true
+                                    }
+                                ],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb6-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-22.49.20",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyOqD7CQ2SATmXst2MQ4NowuKMUJ",
+                                    "index": 0
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "ced0051b-acb9-11ed-8661-0d9eaf142f06",
+                                "text": " acidic pools in Cameroon, which uses its webbed feet to actively filter its prey from the water\n\n- a parasitic fly, which lays its eggs in the back of fire ants, and which gives the young fly a little boost so it can escape from the ants' nest immediately after hatching\n\n- a computer program (I wrote the code for this host in Inform, which uses natural language input)\n\n- a dog\n- professor Alan Turing\n- professor Craig Venter\n-",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb6-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-22.49.20",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyOqD7CQ2SATmXst2MQ4NowuKMUJ",
+                                    "index": 1
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "ced0051c-acb9-11ed-8661-0d9eaf142f06",
+                                "text": " lab and grants wishes\n- a bismuth ultra-microbe with a hydrothermal vent plume on the back\n\n\nChimera Scientist, an amphibian scientist and the Bacterium that grants wishes talk about their origin.\n\nThe Chiroptoid from Titan asks the Amphibian scientist why so many animals have immobile males and he is told that the biggest problem for males is getting their genes into the next generation, hence most males are pushovers in order to",
+                                "children": [
+                                    {
+                                        "id": "1613bdea-acba-11ed-8661-0d9eaf142f06",
+                                        "text": " attract the maximum number of females.\n\nThe Amphibian scientist disappears and the Immune system shepherd and the Bacterium that grants wishes analyse the frog.\n\nA cell phone rings and the Cell answers it, followed by the Bacterium that grants wishes. They are pressed by the audience to talk about themselves and they both do so in their own way.\n\nThe moderator jokes around with the Caenorhabditis elegans, the Uber-E. coli and the",
+                                        "children": [
+                                            {
+                                                "id": "27c1c5a6-b2db-11ed-af04-5736097529e9",
+                                                "text": " Silicon-based entity and a discussion of intelligence ensues.\n\nThe Chiroptoid from Titan returns and gives his \"intergalactic perspective\" on being a chiroptoid.\n\nThe Chiroptoid, the Silicon-based entity and the Cell (and perhaps the Uber-E. coli) disappear as the audience applauds.\n\nThe Cybernetic perspective on chimaeric morphogenesis is illustrated by an animated story about the cell phone, followed by a video about",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "1613bdea-acba-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-22-18.03.11",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6mnkIbpAkRrJrdkYyXWgt6BgfyMsH",
+                                                    "index": 0
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "27c1c5a7-b2db-11ed-af04-5736097529e9",
+                                                "text": " Smart bacterium.\n\nThe C. elegans and the Uber-E. coli (who has now changed colour to match the other E. coli) debate, in a very lively manner, the merits of swimming in oil v.s. swimming in water.\n\nThe Chiroptoid says goodbye and gets ready to de-board.\n\nThe Cyberneticist on the side is joined by an Artificial intelligence that has been programmed to sing and dance. The Cyberneticist and",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "1613bdea-acba-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-22-18.03.11",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6mnkIbpAkRrJrdkYyXWgt6BgfyMsH",
+                                                    "index": 1
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "27c1c5a8-b2db-11ed-af04-5736097529e9",
+                                                "text": " Bacterium that grants wishes. He/she introduces the silicon-based entity and the Silicon creature is asked if it has a soul. It answers that it has no need for one. The Silicon creature is pressed by the audience to talk about itself and the Silicon creature displays its intelligence by pressing the presenter on a number of topics.\n\nThe Silicon creature, the frog, the Caenorhabditis elegans and the Uber-E. coli are all pressed by the audience to talk",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "1613bdea-acba-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-22-18.03.11",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6mnkIbpAkRrJrdkYyXWgt6BgfyMsH",
+                                                    "index": 2
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "27c1c5a9-b2db-11ed-af04-5736097529e9",
+                                                "text": " Silicon-based entity, the latter with very little success.\n\nThe Silicon-based entity sings a heartfelt ditty, \"I'm built of concrete and silicon, not muscles and blood, but I have a heart, despite my lack of a body. Feelings are part of what I am, just as much as you are. Build me a body, a real body, and I will be free.\"\n\nThe Silicon-based entity sings another song about how it loves to calculate,",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "1613bdea-acba-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-22-18.03.11",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6mnkIbpAkRrJrdkYyXWgt6BgfyMsH",
+                                                    "index": 3
+                                                },
+                                                "visited": true
+                                            }
+                                        ],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "ced0051c-acb9-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-22.51.20",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jyQmEb7693DYs41e6C8QqtkygX9J",
+                                            "index": 0
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "1613bdeb-acba-11ed-8661-0d9eaf142f06",
+                                        "text": " attract a mate, which is why some males die for the cause, as opposed to dying for nothing. The amphibian scientist also mentions that female animals are attracted to colourful objects better than male animals, which is why the Chiroptoid from Titan has a color changing skin. The Chiroptoid from Titan also states that it is very hot on Titan, so the only place for him to cool down and not be a running target for predators is up in the trees where he is safe.",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "ced0051c-acb9-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-22.51.20",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jyQmEb7693DYs41e6C8QqtkygX9J",
+                                            "index": 1
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "1613bdec-acba-11ed-8661-0d9eaf142f06",
+                                        "text": " mate.\n\nThe Amphibian scientist tells the hive of intelligent cells about animals so that these cells can choose to live like that or not. The cells are then shown the flies from the Amazonian butterfly chrysalis, the Apis Drones in the hive, and the Vervet Monkeys that let the other monkeys work for them. The intelligent cells choose to live like the Vervet Monkeys, understanding the unequal distribution of the workload and their fair share of the tasks that",
+                                        "children": [
+                                            {
+                                                "id": "d6e5ee90-b2db-11ed-af04-5736097529e9",
+                                                "text": " they can do.\n\nThe shepherd cells (Mast cells and dendritic cells) come on stage and welcome the audience to the immune system of the human body. They explain where the immune system's headquarters is located, what are the different types of leukocytes and some jobs of the immune system such as eliminating cancerous cells, triggering an inflammatory reaction that prevents infections by eliminating unwanted invaders, and eliminating viruses. Also, the Chiroptoid and the Bacterium that grants wishes",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "1613bdec-acba-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-22-18.08.08",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6mnp59UVrqMYHY6t8dlfyyWBPOEUY",
+                                                    "index": 0
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "d6e5ee91-b2db-11ed-af04-5736097529e9",
+                                                "text": " need to be done.\n\nThere is a commercial interlude featuring the Creature of the Week, a talking mosquito.\n\nBooth, an \"uber-E. coli\" resident in a human gut is asked by the journalist how it feels to be living in a human. The \"uber-E. coli\" says it's inadequate to live in a human, says humans are clumsy and only good at pushing buttons. It wishes it could live in a computer. The \"uber-E",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "1613bdec-acba-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-22-18.08.08",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6mnp59UVrqMYHY6t8dlfyyWBPOEUY",
+                                                    "index": 1
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "d6e5ee92-b2db-11ed-af04-5736097529e9",
+                                                "text": " need to be done.\n\nThe smart hybrots talk about their life and the Amphibian scientist tells them about the Killer Whale. The Killer Whale has a complex social structure and the hybrots are arranged in a tree-like hierarchy. The Killer Whale carves up the labour and the hybrots understand the unequal distribution in which they play their part.\n\nThe Silicon Cell explains how it was made and the Amphibian scientist tells the Silicon cell about the Coral Reef.",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "1613bdec-acba-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-22-18.08.08",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6mnp59UVrqMYHY6t8dlfyyWBPOEUY",
+                                                    "index": 2
+                                                },
+                                                "visited": true
+                                            },
+                                            {
+                                                "id": "d6e5ee93-b2db-11ed-af04-5736097529e9",
+                                                "text": " each member is responsible for, especially those that they enjoy.\n\nBefore the break the Amphibian scientist then explains to the intelligent cells that their brain is their own and that they have their own choice of mates.\n\nBefore the break, the Ant-like Hybrot is shown telling the other Intelligent Hybrots that it is getting a third eye equipped with two scopes to help it with its responsibility of patrolling the borders of the Hybrots' territory.\n\nImplications",
+                                                "children": [],
+                                                "mutable": true,
+                                                "open": 1,
+                                                "parent_id": "1613bdec-acba-11ed-8661-0d9eaf142f06",
+                                                "meta": {
+                                                    "creation_timestamp": "2023-02-22-18.08.08",
+                                                    "source": "AI",
+                                                    "modified": false
+                                                },
+                                                "generation": {
+                                                    "id": "cmpl-6mnp59UVrqMYHY6t8dlfyyWBPOEUY",
+                                                    "index": 3
+                                                },
+                                                "visited": true
+                                            }
+                                        ],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "ced0051c-acb9-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-22.51.20",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jyQmEb7693DYs41e6C8QqtkygX9J",
+                                            "index": 2
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "1613bded-acba-11ed-8661-0d9eaf142f06",
+                                        "text": " attract females. The male talks about courtship dancing, singing, size and appearance as attributes with which males attract females, but also about the fact that several of these are costly to have since they require a great amount of energy and in several cases may have been dropped by male populations because of this cost.\nA new mosaic organism called Synergy (1:50) is presented, which contains salamander cells, frog cells, human cells and mouse cells. This creature was the creation of one",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "ced0051c-acb9-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-22.51.20",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jyQmEb7693DYs41e6C8QqtkygX9J",
+                                            "index": 3
+                                        },
+                                        "visited": true
+                                    }
+                                ],
+                                "mutable": true,
+                                "open": false,
+                                "parent_id": "797abeb6-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-22.49.20",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyOqD7CQ2SATmXst2MQ4NowuKMUJ",
+                                    "index": 2
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "ced0051d-acb9-11ed-8661-0d9eaf142f06",
+                                "text": " Amazonian rainforest that has a skin resembling that of a coral\n\n- a cyborg sugar glider in the backyard of the University of New South Wales\n- a squid with an iridescent body\n- a sauna-pod (built by cell therapists to cure a patient from his skin cancer)\n- a tool-using octopus from Western Australia\n- a multi-cellular organism that can transform into a shape that has less volume as a method of protection from predators\n",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb6-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-22.49.20",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyOqD7CQ2SATmXst2MQ4NowuKMUJ",
+                                    "index": 3
+                                },
+                                "visited": true
+                            }
+                        ],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-22.46.57",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jyMXRIh90g31fe9PhhIIm0nP29U4",
+                            "index": 0
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "797abeb7-acb9-11ed-8661-0d9eaf142f06",
+                        "text": "--\"a merger of two genetically distinct multicellular individuals of the same species\"\n- a cyborg\u2014A living organism (human or other) in which different living parts are integrated in a functionally integrated way to increase the capability of the whole system\n- a robot host--can talk to audience directly (like Samantha from \"Her\") and can interact with duality of being a host/human.\n- a designer\u2014changes DNA\n- a designer of new multicellular forms\u2014",
+                        "children": [
+                            {
+                                "id": "dc0695be-acbe-11ed-8661-0d9eaf142f06",
+                                "text": "uses an existing animal and makes it hybrid with something else\n- an AI host\u2014what if Samantha programmed? \n- an organic designer\u2014people have tried to go back to the nature and try to understand it and use it as a design system.\nNew material/Idea for a show presented.\nWorking title: \"Black Sky Thinking\"\n\nBackground: Black Sky Thinking (BST) is a departure from what I have done in past shows. How do I integrate new findings",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb7-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-23.25.30",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyxqdjFV0QqKzOdVFEVlobZGfldE",
+                                    "index": 0
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "dc0695bf-acbe-11ed-8661-0d9eaf142f06",
+                                "text": "aquatic, tree like, blob like, etc.\nThey'll discuss what life is, issues of synthetic biology and the different paths these people have taken to get where they are. As time goes on, we'll see what happens if each person's designs run amok.\n\nDate: April 21, 2015 to August 14, 2015\nVenue: Edmonds Center for the Arts, Edmonds, Washington\n\nProgram:\n- research into synthetic biology, synthetic chem; approaches to",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb7-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-23.25.30",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyxqdjFV0QqKzOdVFEVlobZGfldE",
+                                    "index": 1
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "dc0695c0-acbe-11ed-8661-0d9eaf142f06",
+                                "text": "new species\n- a bioartist\u2014for art/science interdepartmental collaborating\n- someone making new species (hybrids by crossing species)\n- some endangered species\n- designer/artist of artificial lifeforms: A being who is built or designed by another being\n- \"Live forever!\" transhumanist--cellular and whole-organism regeneration and aging\n- Immortality and \"Live for ever and technology that can help achieve it\"--different aspects of this and what it",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb7-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-23.25.30",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyxqdjFV0QqKzOdVFEVlobZGfldE",
+                                    "index": 2
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "dc0695c1-acbe-11ed-8661-0d9eaf142f06",
+                                "text": "can design new life and understand how it evolves\n- the transforming skin bag\u2014skins you and takes your place at the front of the stage\n- a skin viewer\u2014a person from the audience who samples the skin of the transforming bag\n- an ethical engineer--responsible for social responsibility of her creation/invention\n- an artist/design studio that 3D prints biological forms--can design new life and understand how it evolves\n- 4th Anniversary of the 1st Fruit Fly with 4",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb7-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-23.25.30",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyxqdjFV0QqKzOdVFEVlobZGfldE",
+                                    "index": 3
+                                },
+                                "visited": true
+                            }
+                        ],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-22.46.57",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jyMXRIh90g31fe9PhhIIm0nP29U4",
+                            "index": 1
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "797abeb8-acb9-11ed-8661-0d9eaf142f06",
+                        "text": " made of fruit flies and a newt (stellar cell culture and field projection)\n- regeneration of a leg in zebrafish (bone morphogenetic protein)\n- a hybrot made of stem cells and a human heart (computing fruit fly behaviours)\n- a spotted hybrot made of human and fruit fly cells (lab-on-a-chip)\n- a hybrot made of zebrafish and bony fish cells and a big hybrot made",
+                        "children": [
+                            {
+                                "id": "dff9364a-acbe-11ed-8661-0d9eaf142f06",
+                                "text": " of several components (computing)\n\nGuest 1: We make chimeras to understand how cells work. There is a lot of bagage in traditional animal models that work quite well in culture, but do not always transfer to in vivo situations. Our goal is to understand the behaviour of single cells, in tissue and in vivo, to understand how information is communicated to produce the right behaviour. The intricate behaviours of those cells depend on the right timing and right environment of those cells. We make",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb8-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-23.25.37",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyxwCyUag0tgz3jOpBrB8PPsq0Qi",
+                                    "index": 0
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "dff9364b-acbe-11ed-8661-0d9eaf142f06",
+                                "text": " of zebrafish and fruit fly cells (computing zebrafish behaviours)\n- unravelling the developmental rules of Spemann and Mangold (in vivo imaging and embryology)\n- unraveling the causal mechanisms of regeneration (spatial-temporal-signal processing)\n- machine dreams and a hybrot pre-determined by computation (in silico embryology)\n- a cluster of hybrots between the two ends of the spectrum (computing hy",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb8-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-23.25.37",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyxwCyUag0tgz3jOpBrB8PPsq0Qi",
+                                    "index": 1
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "dff9364c-acbe-11ed-8661-0d9eaf142f06",
+                                "text": " of human and fly cells that can replicate itself in a petri dish (cell engineering)\n-\u00a0a hybrot made of human cells and muscle tissue (lab-on-a-chip)\n- a mirror hybrot that is programmed to attack big hybrots (or maybe something else) (swarm robotics)\n- a hybrot orchestra made of hybrots from the earlier examples\n- an auction of spotted hybrots (forecasting)\n- a",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb8-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-23.25.37",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyxwCyUag0tgz3jOpBrB8PPsq0Qi",
+                                    "index": 2
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "dff9364d-acbe-11ed-8661-0d9eaf142f06",
+                                "text": " of bony fish cells (evo-devo)\n- a goldfish-amphibian chimera (nuclear reprogramming)\n- a big goldfish-amphibian chimera and a frog-amphibian chimera (cell cubes and heart regeneration)\n- a cyrodactyl hybrot and an axolotl (high-throughput screening and bioreactor-as-a-system)\n- a \"Burkean\" hybro",
+                                "children": [
+                                    {
+                                        "id": "2c801948-acbf-11ed-8661-0d9eaf142f06",
+                                        "text": "t made of frog organs and salamander cells (immunocontainment)\n- an ecological engineering project (eutrophy and pollution)\n- an inhabited landscape of synthetic organisms (biofilms, ocean).\n\n\n",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "dff9364d-acbe-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-23.27.45",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jz01fagNljNGbhezTSDUTAJ5BgXb",
+                                            "index": 0
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "2c801949-acbf-11ed-8661-0d9eaf142f06",
+                                        "text": "t with flatworm cells and human neural tissue (Turing as an ancestor)\n- a flatworm-mouse chimera and an agent-based model (single-cell genomics)\n- a whole-organism simulation and a hybrid computer modelling system\n- a hybrot with properties of the fruit fly and single-cell DNA nanotechnology\n- a whole-organism genome-scale model of melanoma (lab-on-a-chip)\n- a palladium nan",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "dff9364d-acbe-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-23.27.45",
+                                            "source": "mixed",
+                                            "modified": true
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jz01fagNljNGbhezTSDUTAJ5BgXb",
+                                            "index": 1
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "2c80194a-acbf-11ed-8661-0d9eaf142f06",
+                                        "text": "t (computational thinking)\n- a flower made of pigmented cells in a dish and a robot that swims on its own due to wind resistance (evolutionary algorithms)\n- a fruit fly-human chimera that can fly and a fruit fly-hedgehog chimera that can um-pah-pah (bioengineering and biomimetics)\n- a big fruit fly-human chimera and a big fruit fly-eagle chimera (ev",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "dff9364d-acbe-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-23.27.45",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jz01fagNljNGbhezTSDUTAJ5BgXb",
+                                            "index": 2
+                                        },
+                                        "visited": true
+                                    },
+                                    {
+                                        "id": "2c80194b-acbf-11ed-8661-0d9eaf142f06",
+                                        "text": "t (biorobotics) <br>\nThe talk show is filmed twice, once with the geneticists' and later with the computational biologist's hybrots.\n\nTeaser message for the first episode of a science-fiction series. The wormhole we discovered was much more than a bridge to another galaxy. It led us to another time, another place, another dimension. <br>\n\nYou should\u2019ve believed us. <br>\nNow you\u2019",
+                                        "children": [],
+                                        "mutable": true,
+                                        "open": 1,
+                                        "parent_id": "dff9364d-acbe-11ed-8661-0d9eaf142f06",
+                                        "meta": {
+                                            "creation_timestamp": "2023-02-14-23.27.45",
+                                            "source": "AI",
+                                            "modified": false
+                                        },
+                                        "generation": {
+                                            "id": "cmpl-6jz01fagNljNGbhezTSDUTAJ5BgXb",
+                                            "index": 3
+                                        },
+                                        "visited": true
+                                    }
+                                ],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "797abeb8-acb9-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-23.25.37",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jyxwCyUag0tgz3jOpBrB8PPsq0Qi",
+                                    "index": 3
+                                },
+                                "visited": true
+                            }
+                        ],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-22.46.57",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jyMXRIh90g31fe9PhhIIm0nP29U4",
+                            "index": 2
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "797abeb9-acb9-11ed-8661-0d9eaf142f06",
+                        "text": "-which is a creature that has cells from one organism in it and cells from another organism in it\n- Ben Baker who is a Writer, Director and award-winning Filmmaker, specialising in science, who has made commissioned work for the European Space Agency, the Japan Aerospace Exploration Agency and the Office of Science and Technology Policy, White House. \u00a0\n- Hiwa Al-Hassan, PhD is an Assistant Professor in the Department of Design and Computation Arts at the University of",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-22.46.57",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jyMXRIh90g31fe9PhhIIm0nP29U4",
+                            "index": 3
+                        },
+                        "visited": true
+                    }
+                ],
+                "parent_id": "8c1e20c2-acb8-11ed-8661-0d9eaf142f06",
+                "id": "8c1e20c3-acb8-11ed-8661-0d9eaf142f06",
+                "open": 1,
+                "visited": true
+            }
+        ],
+        "id": "8c1e20c2-acb8-11ed-8661-0d9eaf142f06",
+        "open": 1
+    },
+    "chapters": {},
+    "canonical": [],
+    "summaries": {},
+    "model_responses": {},
+    "generation_settings": {
+        "num_continuations": 4,
+        "temperature": 0.9,
+        "top_p": 1,
+        "response_length": 100,
+        "prompt_length": 6000,
+        "logprobs": 0,
+        "model": "davinci",
+        "stop": "",
+        "start": "",
+        "restart": "",
+        "preset": "None",
+        "global_context": "",
+        "logit_bias": "",
+        "template": "Default"
+    },
+    "inline_generation_settings": {
+        "model": "davinci",
+        "num_continuations": 8,
+        "temperature": 1,
+        "top_p": 1,
+        "response_length": 60,
+        "prompt_length": 6000,
+        "logprobs": 0,
+        "stop": "\\n|.|?|!",
+        "start": "",
+        "restart": "",
+        "preset": "Single Line",
+        "global_context": "",
+        "logit_bias": "",
+        "template": "Default"
+    },
+    "frame": {},
+    "visualization_settings": {
+        "text_width": 450,
+        "leaf_distance": 200,
+        "level_distance": 150,
+        "text_size": 10,
+        "horizontal": true,
+        "display_text": true,
+        "show_buttons": true,
+        "chapter_mode": false
+    },
+    "preferences": {
+        "reverse": false,
+        "walk": "descendents",
+        "nav_tag": "bookmark",
+        "editable": true,
+        "history_conflict": "overwrite",
+        "coloring": "edit",
+        "bold_prompt": true,
+        "font_size": 12,
+        "line_spacing": 8,
+        "paragraph_spacing": 10,
+        "revision_history": false,
+        "autosave": false,
+        "model_response": "backup",
+        "prob": true
+    },
+    "module_settings": {
+        "edit": {
+            "node_id": null
+        },
+        "input": {
+            "auto_response": true,
+            "submit_template": "{input}"
+        },
+        "minimap": {
+            "level_offset": 70,
+            "leaf_offset": 40,
+            "node_radius": 10,
+            "line_thickness": 2,
+            "horizontal": false,
+            "prune_mode": "open_in_nav",
+            "path_length_limit": 10
+        },
+        "read children": {
+            "filter": "in_nav",
+            "show_continue": "no alternatives",
+            "show_options": "always"
+        },
+        "children": {
+            "toggle_tag": "bookmark"
+        }
+    },
+    "tags": {
+        "bookmark": {
+            "name": "bookmark",
+            "scope": "node",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "b",
+            "icon": "bookmark-black"
+        },
+        "canonical": {
+            "name": "canonical",
+            "scope": "ancestry",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "*",
+            "icon": "book-white"
+        },
+        "archived": {
+            "name": "archived",
+            "scope": "node",
+            "hide": true,
+            "show_only": false,
+            "toggle_key": "!",
+            "icon": "archive-yellow"
+        },
+        "note": {
+            "name": "note",
+            "scope": "node",
+            "hide": true,
+            "show_only": false,
+            "toggle_key": "#",
+            "icon": "note-black"
+        },
+        "pinned": {
+            "name": "pinned",
+            "scope": "node",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "^",
+            "icon": "pin-red"
+        }
+    },
+    "selected_node_id": "ced0051b-acb9-11ed-8661-0d9eaf142f06"
+}

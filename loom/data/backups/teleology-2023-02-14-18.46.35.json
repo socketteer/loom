@@ -1,0 +1,345 @@
+{
+    "root": {
+        "mutable": false,
+        "visited": true,
+        "text": "",
+        "children": [
+            {
+                "text": "It is generally agreed that the sense of information isolated by Claude Shannon and used in mathematical information theory is legitimate, useful, and relevant in many parts of biology. In this sense, anything is a source of information if it has a range of possible states, and one variable carries information about another to the extent that their states are physically correlated.\nBut it is also agreed that many uses of informational language in biology seem to make use of a richer and more problematic concept than Shannon\u2019s. Some have drawn on the teleosemantic tradition in philosophy of mind to make sense of this richer concept. Other theorists have countered that Shannon\u2019s correlational conception of information is richer than it looks.\nFirst, it can be helpful to define the terms teleology, teleonomy and teleosomantic:\n# ",
+                "children": [
+                    {
+                        "id": "4b0fc358-ac89-11ed-8661-0d9eaf142f06",
+                        "text": "\n\n** Generating **",
+                        "children": [],
+                        "mutable": false,
+                        "open": 1,
+                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
+                    },
+                    {
+                        "id": "4b0fc359-ac89-11ed-8661-0d9eaf142f06",
+                        "text": "\n\n** Generating **",
+                        "children": [],
+                        "mutable": false,
+                        "open": 1,
+                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
+                    },
+                    {
+                        "id": "4b0fc35a-ac89-11ed-8661-0d9eaf142f06",
+                        "text": "\n\n** Generating **",
+                        "children": [],
+                        "mutable": false,
+                        "open": 1,
+                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
+                    },
+                    {
+                        "id": "4b0fc35b-ac89-11ed-8661-0d9eaf142f06",
+                        "text": "\n\n** Generating **",
+                        "children": [],
+                        "mutable": false,
+                        "open": 1,
+                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
+                    },
+                    {
+                        "id": "5d1e8a3e-ac89-11ed-8661-0d9eaf142f06",
+                        "text": "Teleology\nIn the case of biological entities, biological teleology is the traditional conception of intentional action in biology: the view that a biological entity acts in consequence of having a goal state in mind. For example, an agent human or bacterium observes the current state of the world (which includes the current state of their own body) and in consequence perceives (in any sense of that term), that some outcome event o is preferable to an alternative event o' because of the consequences to the agent of each.\n# Teleonomy",
+                        "children": [
+                            {
+                                "id": "7e696e20-ac89-11ed-8661-0d9eaf142f06",
+                                "text": "\nTeleonomy is a novel conception of intentional action in biology: the one that grew from the work of C. S. Peirce and largely supplanted biological teleology in the twentieth century. According to the teleon model, the behavior of an agent accords with its own self-generated internal norms and rules, rather than the agent pursuing any conscious teleological goal.\n\nAccording to teleonomy, biological behavior is thoroughly intentional, but consciousness plays no role in it. \"Teleological",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "5d1e8a3e-ac89-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-17.03.30",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jt09W4XSDqmvbxkAGiiZWrw2fc6N",
+                                    "index": 0
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "7e696e21-ac89-11ed-8661-0d9eaf142f06",
+                                "text": "\nIn the case of biological entities, biological teleonomy sometimes seems to be the same as biological teleology, but sometimes seems to be distinct from it.\nIt often seems to be distinct on the grounds that the state of goals in the mind of an agent are co-extensive with states in its brain, and biologists speaking teleonomistically can speak as if their favoured naturalistic explanation of this is essentially the same as their account of teleology. For example, a human agent perceives the",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "5d1e8a3e-ac89-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-17.03.30",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jt09W4XSDqmvbxkAGiiZWrw2fc6N",
+                                    "index": 1
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "7e696e22-ac89-11ed-8661-0d9eaf142f06",
+                                "text": "\nTeleonomy is a more expansive conception than teleology:\nThe study of how systems in the world come to have a goal, or how teleonomic systems operate, accept information about their goals, operate to achieve their goals, and are recognized by observers as achieving their goals. Teleonomics is a part of systems theory.\n\n# Teleosemantics\nPeter Godfrey-Smith has proposed that the concept of 'information' be understood in terms of teleosemantics:\nThe",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "5d1e8a3e-ac89-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-17.03.30",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jt09W4XSDqmvbxkAGiiZWrw2fc6N",
+                                    "index": 2
+                                },
+                                "visited": true
+                            },
+                            {
+                                "id": "7e696e23-ac89-11ed-8661-0d9eaf142f06",
+                                "text": "\nBiological teleonomy is a more recent usage of the term and is more restricted in scope. It is the application of teleological concepts to the study of biological goals, whose definition is proposed by theorists to be solely in terms of a biological entity\u2019s function. For example, how an axolotl, or larval salamander, can reach the natural terminus of its development.\n\nA terminus (plural \"termini\") is a boundary or end point",
+                                "children": [],
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "5d1e8a3e-ac89-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                    "creation_timestamp": "2023-02-14-17.03.30",
+                                    "source": "AI",
+                                    "modified": false
+                                },
+                                "generation": {
+                                    "id": "cmpl-6jt09W4XSDqmvbxkAGiiZWrw2fc6N",
+                                    "index": 3
+                                },
+                                "visited": true
+                            }
+                        ],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-17.02.33",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jszGrw6Ac1hZKOjUJCQl4FG9FM11",
+                            "index": 0
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "5d1e8a3f-ac89-11ed-8661-0d9eaf142f06",
+                        "text": "\nA teleological characterization is one that makes reference to an end state, goal or function.\nA teleonomic account is simply one that is teleological.\n\n- \nA teleonome is an atom with a valence of nine, so a cluster of three oxygens and six hydrogens. Such clusters are common, for example comprising the oxygen transport chain in chloroplasts and the oxygen binding sites in haemoglobin. A teleon molecule is therefore a molecular structure that",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-17.02.33",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jszGrw6Ac1hZKOjUJCQl4FG9FM11",
+                            "index": 1
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "5d1e8a40-ac89-11ed-8661-0d9eaf142f06",
+                        "text": "\n\nBut we might respond to this with an evolutionary scenario that predicts that human observers will use their own conceptual framework, the anthropic principle:\n",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-17.02.33",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jszGrw6Ac1hZKOjUJCQl4FG9FM11",
+                            "index": 2
+                        },
+                        "visited": true
+                    },
+                    {
+                        "id": "5d1e8a41-ac89-11ed-8661-0d9eaf142f06",
+                        "text": "\n- \n- \n-\nSecond, it is clear that the notion of information in biology is supposed to be like the notion of information in physics and engineering. As such it is correlational information. [ It seems to be assumed that what happens in the world makes use of Shannon\u2019s notion of information when only correlational information is present. ] It is also assumed by many that a situation\u2019s being caused by another explained situation does not make it a case of information",
+                        "children": [],
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                            "creation_timestamp": "2023-02-14-17.02.33",
+                            "source": "AI",
+                            "modified": false
+                        },
+                        "generation": {
+                            "id": "cmpl-6jszGrw6Ac1hZKOjUJCQl4FG9FM11",
+                            "index": 3
+                        },
+                        "visited": true
+                    }
+                ],
+                "parent_id": "f2e5d98e-ac87-11ed-8661-0d9eaf142f06",
+                "id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+                "open": 1,
+                "visited": true
+            }
+        ],
+        "id": "f2e5d98e-ac87-11ed-8661-0d9eaf142f06",
+        "open": 1
+    },
+    "chapters": {},
+    "canonical": [],
+    "summaries": {},
+    "model_responses": {},
+    "generation_settings": {
+        "num_continuations": 4,
+        "temperature": 0.9,
+        "top_p": 1,
+        "response_length": 100,
+        "prompt_length": 6000,
+        "logprobs": 0,
+        "model": "davinci",
+        "stop": "",
+        "start": "",
+        "restart": "",
+        "preset": "None",
+        "global_context": "",
+        "logit_bias": "",
+        "template": "Default"
+    },
+    "inline_generation_settings": {
+        "model": "davinci",
+        "num_continuations": 8,
+        "temperature": 1,
+        "top_p": 1,
+        "response_length": 60,
+        "prompt_length": 6000,
+        "logprobs": 0,
+        "stop": "\\n|.|?|!",
+        "start": "",
+        "restart": "",
+        "preset": "Single Line",
+        "global_context": "",
+        "logit_bias": "",
+        "template": "Default"
+    },
+    "frame": {
+        "module_settings": {
+            "edit": {
+                "node_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
+            }
+        },
+        "workspace": {
+            "side_pane": {
+                "open": true,
+                "modules": [
+                    "frame editor",
+                    "minimap"
+                ]
+            }
+        },
+        "generation_settings": {}
+    },
+    "visualization_settings": {
+        "text_width": 450,
+        "leaf_distance": 200,
+        "level_distance": 150,
+        "text_size": 10,
+        "horizontal": true,
+        "display_text": true,
+        "show_buttons": true,
+        "chapter_mode": false
+    },
+    "preferences": {
+        "reverse": false,
+        "walk": "descendents",
+        "nav_tag": "bookmark",
+        "editable": true,
+        "history_conflict": "overwrite",
+        "coloring": "edit",
+        "bold_prompt": true,
+        "font_size": 12,
+        "line_spacing": 8,
+        "paragraph_spacing": 10,
+        "revision_history": false,
+        "autosave": false,
+        "model_response": "backup",
+        "prob": true
+    },
+    "module_settings": {
+        "edit": {
+            "node_id": null
+        },
+        "input": {
+            "auto_response": true,
+            "submit_template": "{input}"
+        },
+        "minimap": {
+            "level_offset": 70,
+            "leaf_offset": 40,
+            "node_radius": 10,
+            "line_thickness": 2,
+            "horizontal": false,
+            "prune_mode": "open_in_nav",
+            "path_length_limit": 10
+        },
+        "read children": {
+            "filter": "in_nav",
+            "show_continue": "no alternatives",
+            "show_options": "always"
+        },
+        "children": {
+            "toggle_tag": "bookmark"
+        }
+    },
+    "tags": {
+        "bookmark": {
+            "name": "bookmark",
+            "scope": "node",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "b",
+            "icon": "bookmark-black"
+        },
+        "canonical": {
+            "name": "canonical",
+            "scope": "ancestry",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "*",
+            "icon": "book-white"
+        },
+        "archived": {
+            "name": "archived",
+            "scope": "node",
+            "hide": true,
+            "show_only": false,
+            "toggle_key": "!",
+            "icon": "archive-yellow"
+        },
+        "note": {
+            "name": "note",
+            "scope": "node",
+            "hide": true,
+            "show_only": false,
+            "toggle_key": "#",
+            "icon": "note-black"
+        },
+        "pinned": {
+            "name": "pinned",
+            "scope": "node",
+            "hide": false,
+            "show_only": false,
+            "toggle_key": "^",
+            "icon": "pin-red"
+        }
+    },
+    "selected_node_id": "7e696e23-ac89-11ed-8661-0d9eaf142f06"
+}
