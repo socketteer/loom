@@ -272,4 +272,7 @@ Reset zoom: `Control-0`
 0. [Optional] Edit the Makefile with your API keys (you can also use the settings options)
 1. Run the make targets
     
-        ```make build run```
+        ```make build```
+        ```make run```
+2. Load a json tree
+3. Read  :)
