@@ -189,7 +189,7 @@ def format_openAI_token_dict(completion, token, i):
     token_dict = {'generatedToken': {'token': token,
                                      'logprob': completion['logprobs']['token_logprobs'][i]},
                   'position': openAI_token_position(token, completion['logprobs']['text_offset'][i])}
-    if completion['logprobs']['top_logprobs']:
+    if completion['logprobs'].get('top_logprobs', None) is not None and completion['logprobs']['top_logprobs']:
         openai_counterfactuals = completion['logprobs']['top_logprobs'][i]
         if openai_counterfactuals:
             sorted_counterfactuals = {k: v for k, v in
@@ -241,7 +241,7 @@ def format_openAI_response(response, prompt, echo=True):
     return response_dict
 
 
-@retry(n_tries=3, delay=1, backoff=2, on_failure=lambda *args, **kwargs: "")
+@retry(n_tries=3, delay=1, backoff=2, on_failure=lambda *args, **kwargs: ("", None))
 def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
                     model='davinci', logit_bias=None, custom=False, **kwargs):
     if not logit_bias:

@@ -1184,7 +1184,7 @@ class ModelConfigDialog(Dialog):
         key_length = max(max(len(self.openai_api_key), len(self.ai21_api_key), len(self.gooseai_api_key)), 20)
         self.openai_api_key_entry = Entry(master, master.grid_size()[1], "OpenAI API Key", self.openai_api_key, None, width=key_length)
         self.ai21_api_key_entry = Entry(master, master.grid_size()[1], "AI21 API Key", self.ai21_api_key, None, width=key_length)
-        self.gooseai_api_key = Entry(master, master.grid_size()[1], "GooseAI API Key", self.gooseai_api_key, None, width=key_length)
+        self.gooseai_api_key_entry = Entry(master, master.grid_size()[1], "GooseAI API Key", self.gooseai_api_key, None, width=key_length)
         models_list = self.available_models.keys()
         self.model_label = ttk.Label(master, text="Model")
         self.model_label.grid(row=master.grid_size()[1], column=0)
@@ -1204,8 +1204,8 @@ class ModelConfigDialog(Dialog):
         self.state.update_frame(node=self.state.root(), update={'model_config': {'models': self.available_models}})
                                                                                  #'OPENAI_API_KEY': self.openai_api_key_entry.tk_variables.get(),
                                                                                  #'AI21_API_KEY': self.ai21_api_key_entry.tk_variables.get(),
-        self.state.OPENAI_API_KEY = self.openai_api_key_entry.tk_variables.get()
-        self.state.AI21_API_KEY = self.ai21_api_key_entry.tk_variables.get()
-        self.state.GOOSEAI_API_KEY = self.gooseai_api_key_entry.tk_variables.get()
+        self.state.OPENAI_API_KEY = self.openai_api_key_entry.tk_variables.get().strip()
+        self.state.AI21_API_KEY = self.ai21_api_key_entry.tk_variables.get().strip()
+        self.state.GOOSEAI_API_KEY = self.gooseai_api_key_entry.tk_variables.get().strip()
         self.state.update_user_frame(update={'generation_settings': {'model': self.selected_model.get()}})
 

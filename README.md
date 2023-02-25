@@ -246,13 +246,33 @@ Reset zoom: `Control-0`
 
 # Instructions
 
+## Python
+
+0. Make sure you have tkinter installed
+
+    ```sudo apt-get install python3-tk```
+1. Setup your python env (should be >= 3.9.13)
+    
+        ```python3 -m venv env``` 
+        ```source env/bin/activate```
 1. Install requirements 
 
     ```pip install -r requirements.txt```
-2. Set environmental variables for `OPENAI_API_KEY`, `GOOSEAI_API_KEY`, `AI21_API_KEY` 
+2. [Optional] Set environmental variables for `OPENAI_API_KEY`, `GOOSEAI_API_KEY`, `AI21_API_KEY` (you can also use the settings options)
 
     ```export OPENAI_API_KEY={your api key}```
 3. Run main.py
 4. Load a json tree
 5. Read  :)
 
+## Docker
+
+(Only tested on Linux.)
+
+0. [Optional] Edit the Makefile with your API keys (you can also use the settings options)
+1. Run the make targets
+    
+        ```make build```
+        ```make run```
+2. Load a json tree
+3. Read  :)
