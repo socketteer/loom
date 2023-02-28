@@ -7,7 +7,7 @@ import bisect
 from collections import defaultdict, ChainMap
 import codecs
 import json
-from util.frames_util import frame_merger, frame_merger_append
+from loom.utils.frames_util import frame_merger, frame_merger_append
 from copy import deepcopy
 
 from loom.gpt import openAI_generate, search, gen

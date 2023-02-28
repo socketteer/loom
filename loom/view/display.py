@@ -1,13 +1,10 @@
 import tkinter as tk
 from tkinter import ttk
-from loom.utils.gpt_util import event_probs
-
-import PIL
 
 from loom.view.tree_vis import TreeVis
-from loom.view.colors import bg_color, text_color, edit_color, GREEN, BLUE
-from loom.utils import metadata
-from loom.view.panes import Pane, NestedPane
+from loom.view.colors import bg_color, text_color, edit_color
+from loom.utils.util import metadata
+from loom.view.panes import NestedPane
 from loom.components.modules import *
 from loom.components.templates import LoomTerminal
 from loom.view.icons import Icons

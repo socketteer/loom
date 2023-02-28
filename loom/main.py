@@ -30,7 +30,7 @@ class Application:
 
 
         # App icon :). Save or will be garbage collected
-        self.icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/zoneplate.png"))
+        self.icon = PIL.ImageTk.PhotoImage(PIL.Image.open("loom/static/zoneplate.png"))
         self.root.tk.call('wm', 'iconphoto', self.root._w, self.icon)
         # Dark mode
         style = ThemedStyle(self.root)

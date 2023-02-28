@@ -60,7 +60,7 @@ class Paint(Module):
         self.thumbnails = None
         self.layers_frame = None
         working_dir = str(os.getcwd())
-        self.blank_file = os.path.join(working_dir, "static/media/blank.png")
+        self.blank_file = os.path.join(working_dir, "loom/static/media/blank.png")
         Module.__init__(self, 'paint', callbacks, state)
 
     def build(self, parent):

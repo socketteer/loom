@@ -404,7 +404,7 @@ class AddTagDialog(Dialog):
     def change_icon(self, *args):
         # open a file chooser dialog and allow the user to select an image
         file_path = filedialog.askopenfilename(title='Choose an image', 
-                                               initialdir=f"static/icons/tag_icons/",
+                                               initialdir=f"loom/static/icons/tag_icons/",
                                                filetypes=[('PNG', '.png'), ('JPEG', '.jpg'), ('GIF', '.gif')])
         if file_path:
             self.icon_name = os.path.splitext(os.path.basename(file_path))[0]
@@ -515,7 +515,7 @@ class TagsDialog(Dialog):
     def change_icon(self, tag, row):
         # open a file chooser dialog and allow the user to select an image
         file_path = filedialog.askopenfilename(title='Choose an image', 
-                                               initialdir=f"static/icons/tag_icons/",
+                                               initialdir=f"loom/static/icons/tag_icons/",
                                                filetypes=[('PNG', '.png'), ('JPEG', '.jpg'), ('GIF', '.gif')])
         if file_path:
             self.icon_names[tag] = os.path.splitext(os.path.basename(file_path))[0]

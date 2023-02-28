@@ -1,37 +1,25 @@
-import functools
 import os
 import tkinter as tk
 import threading
-from collections import defaultdict, ChainMap
-import time
-from functools import reduce
 from pprint import pprint
-from tkinter import filedialog, ttk
+from tkinter import filedialog
 from tkinter import messagebox
 from tkinter.font import Font
 import re
-import datetime
 
-import PIL
-import pyperclip
 import bisect
 
-import traceback
-
-from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, uncanonical_color, \
-    immutable_color
+from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, immutable_color
 from view.display import Display
 from components.dialogs import *
 from model import TreeModel
-from util.util import clip_num, metadata, diff, split_indices, diff_linesToWords
-from util.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
-    node_index, nearest_common_ancestor, filtered_children
-from util.gpt_util import logprobs_to_probs, parse_logit_bias
-from util.textbox_util import distribute_textbox_changes
-from util.keybindings import tkinter_keybindings
+from loom.utils.util import clip_num, metadata, diff
+from loom.utils.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
+    node_index, filtered_children
+from loom.utils.gpt_util import logprobs_to_probs
+from loom.utils.textbox_util import distribute_textbox_changes
+from loom.utils.keybindings import tkinter_keybindings
 from view.icons import Icons
-from difflib import SequenceMatcher
-from diff_match_patch import diff_match_patch
 import json
 from view.colors import edit_color, bg_color
 
