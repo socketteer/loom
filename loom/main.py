@@ -5,12 +5,12 @@ import os
 import tkinter as tk
 import traceback
 from collections import defaultdict
-from tkinter import ttk, messagebox
+from tkinter import messagebox
 
 from ttkthemes import ThemedStyle
 
 from loom.controller import Controller
-from loom.model import TreeModel, EMPTY_TREE
+from loom.model import EMPTY_TREE
 from loom.utils.custom_tks import ClosableNotebook
 from loom.utils.util import json_open, json_create
 from loom.utils.util_tk import create_menubar
@@ -20,7 +20,6 @@ import PIL.ImageTk
 from copy import deepcopy
 
 class Application:
-
     # Create the application window
     def __init__(self, width, height):
         # Create the root
@@ -44,7 +43,7 @@ class Application:
         self.tabs = []
 
         # Load app data
-        self.app_data_file = os.path.join(os.getcwd(), "data/", ".app_data.json")
+        self.app_data_file = os.path.join(os.getcwd(), "loom/data/", ".app_data.json")
         self.app_data = None
         self.initialize_app_state()
 
