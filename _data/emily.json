@@ -1,0 +1,1011 @@
+{
+  "canonical": [],
+  "chapters": {},
+  "frame": {
+    "generation_settings": {
+      "model": "code-davinci-002",
+      "response_length": 30
+    }
+  },
+  "generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 4,
+    "preset": "None",
+    "prompt_length": 6000,
+    "response_length": 100,
+    "restart": "",
+    "start": "",
+    "stop": "",
+    "temperature": 0.9,
+    "template": "Default",
+    "top_p": 1
+  },
+  "inline_generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 8,
+    "preset": "Single Line",
+    "prompt_length": 6000,
+    "response_length": 60,
+    "restart": "",
+    "start": "",
+    "stop": "\\n|.|?|!",
+    "temperature": 1,
+    "template": "Default",
+    "top_p": 1
+  },
+  "model_responses": {},
+  "module_settings": {
+    "children": {
+      "toggle_tag": "bookmark"
+    },
+    "edit": {
+      "node_id": null
+    },
+    "input": {
+      "auto_response": true,
+      "submit_template": "{input}"
+    },
+    "minimap": {
+      "horizontal": false,
+      "leaf_offset": 40,
+      "level_offset": 70,
+      "line_thickness": 2,
+      "node_radius": 10,
+      "path_length_limit": 10,
+      "prune_mode": "open_in_nav"
+    },
+    "read children": {
+      "filter": "in_nav",
+      "show_continue": "no alternatives",
+      "show_options": "always"
+    }
+  },
+  "preferences": {
+    "autosave": false,
+    "bold_prompt": true,
+    "coloring": "edit",
+    "editable": true,
+    "font_size": 12,
+    "history_conflict": "overwrite",
+    "line_spacing": 8,
+    "model_response": "backup",
+    "nav_tag": "bookmark",
+    "paragraph_spacing": 10,
+    "prob": true,
+    "reverse": false,
+    "revision_history": false,
+    "walk": "descendents"
+  },
+  "root": {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8ZVhTNv8gjQaCpa2JZydRvDhYat",
+              "index": 0
+            },
+            "id": "72e5db2a-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.29.33",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "When Daffodils begin to peer,\nWith heigh! the doxy over the dale-\nI've watch'd you now a Full-half hour\nI saw you soon, when you were fourscore\nAs I did, I when Fourscore--\n\n\"How do you feel at 80 - then?\nI got Blind and weak, I was so old--\nBut what's become of your Rose--?\"\nAnd yet, my Cherry's good - as new",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8ZVhTNv8gjQaCpa2JZydRvDhYat",
+              "index": 1
+            },
+            "id": "72e5e034-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.29.33",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "My Boat sails with the Soul of Man,\nMy Course lies far from Land--\nLeave all the Port, the Pilot's art\nOf Stars, or Sun-sand--\nAnd in the lap of primeval Night\nI'll hide thy flaming Brand!\n\nI'll weave a wreath of figs, and 'womb,\nLike that which circled Eden's stem--\nAnd tie it round thine - old, bald, superannuated\nHead, that thy bare",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8ZVhTNv8gjQaCpa2JZydRvDhYat",
+              "index": 2
+            },
+            "id": "72e5e1a6-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.29.33",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "I love the little Bee,\nHis blue coat, is so pretty--\nI love to see him come Like a June Bug on a Stinging Nettle\nSay Ma! if you please,\nTo live in a Thorn\n\n867\nBecause I could not stop for Death--\nHe kindly stopped for me--\nThe Carriage held but just Ourselves--\nAnd Immortality.\nIn 't was a double Banquet\nTo slowly eat, and enjoy\nA Digest",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8ZVhTNv8gjQaCpa2JZydRvDhYat",
+              "index": 3
+            },
+            "id": "72e5e2e6-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.29.33",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "Bright Blue-Bird-- yes-- you're right--\n\nThe Breezes whistle-- you know--\nBut Summer is too sad a season\nTo call-- or cry-- or sing--\n\nBecause in Summer-- Everything\nIs Destiny and Doom--\nThe Hazy-- bright--Hot-- and Humid Air--\nIs full-- Of that-- most-- Doom--\n\nIn Summer-- there's not a Star\nIs free from Touch of -- Doom--\n\nIn Summer",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8bUIzHYk727UdYHnbDv6InJweKj",
+              "index": 0
+            },
+            "id": "bc6399c2-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.31.36",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "-winds-- All-- are here-- \nThe Serpent-- And the Dove--\nWho can tell what I endure\nSo far from Bird-or Wave?\nAnd then the Eagles over--\nThe Mountains-- All day--\nHow dreary! and to see no-- \nBird-- All the Day--\nVienna, 1784\n\n1.\n\nSpring is here! Below, the leaves are green,\nA-quiver with new life. The",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8bUIzHYk727UdYHnbDv6InJweKj",
+              "index": 1
+            },
+            "id": "bc639daa-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.31.36",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": " is out-- the Lark--\nThe Flock are in the Fold--\nThe Meadow fence is broke--\nThe Birthday is sold--\nThe Yule is out-- and Christ--\nAnd Devil, with his clothe--\nLie stretch'd upon a shelf--\nThe Wedding is a woe--\nAnd all are dead as a doo--\n\nNow if I have broke the Peace--\nOf such-- a little while--\nI'll be at home-- so",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8bUIzHYk727UdYHnbDv6InJweKj",
+              "index": 2
+            },
+            "id": "bc639fb2-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.31.36",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "man waits for Summer's Dawn,\n\nThe Domesday Book for Edward's Hand--\n\nThe prisoner for Freedom--\n\nThe pound for Toleration--\n\nThe toiler for the World's Bounty--\n\nThe rich for the World's Content--\n\nThe lantern for the Candle--\n\nThe Reader for the Eye--\n\nMan's Heart for God--\n\nMan's Life for God's Intent--\n\nThis is the Boat-- in which Leviathan",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8bUIzHYk727UdYHnbDv6InJweKj",
+              "index": 3
+            },
+            "id": "bc63a16a-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.31.36",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "man, and the Lion--\n\nIn Spots of that seething stuff,\nThat runs about the Globe--\nThe restless, liquid, Jolly Life--\n\nIs poured, like Gin at Small--\n\nThey're both of them Hypocrisy--\nTheir Trade-- is Blood-shed--\n\nBut-- still, the Lion 's, you'll prefer--\nHe bellows, he's so Proud!\n\nBut , hush! a Roar just",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "1673f1d6-94a9-1bee-a160-1dcc9dfef094",
+              "index": 0
+            },
+            "id": "c56a6bea-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.31.50",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "s are dreary--\nThe clouds hang glum--\nThe wind howls thro' the passes--\nAnd snows fall\nThe cold winter morn--\n\nWhite walls of Misery--\nThat weather the Thoughts--\nWho are verging on the Grave--\nThe elms leafless-- and bare--\nThe quiet Village streets--\n\nYes, the cold winds are howling--\nFar across the waste--\nThat feel a deep unutterable woe--\nThe woodlands are full\nThe Winter nights of Hardship--",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "1673f1d6-94a9-1bee-a160-1dcc9dfef094",
+              "index": 1
+            },
+            "id": "c56a7162-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.31.50",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "s are full of primrose--\nViolet breaths the Dudeen's reeds--\nThe Bees carol sweetly below--\nNo human eye beholds these reeks--\nThen how just is God's decree\n\nI'll spin many thousand quires--\nBut none other shall read--\nNor shall I more willingly\n\n926\nBe blest,\nThan the Rose-bud that blooms and the Flower!\n\nOrthodox tends to divide the time of the poem into three parts: the glamorous nineteenth-century world of the gaslights, the nostalgic",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "1673f1d6-94a9-1bee-a160-1dcc9dfef094",
+              "index": 2
+            },
+            "id": "c56a7428-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.31.50",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "s are as lonely \"Blanketed\"\nAs those mourning clad that walk--butters\n\"The Queen shall come forth in Splendour!\"\n\nBut -- \"What of that?\" said I--\n\"Education!\"-- \"What of that? seen him\nStep up-- and down-- of many a page\n\nSaw the man--he's chosen his days--\nFeeble-- and lean-- and old--\nBut he has made the choice.\"\n\n1134\nA God-- worthy of His own Praise,\nMight weep",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "1673f1d6-94a9-1bee-a160-1dcc9dfef094",
+              "index": 3
+            },
+            "id": "c56a76a8-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.31.50",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "bine-- has its cap of Moss--\nHe puts a western crimson there--\nThe Cynthia christlinks with Gold--\nRemains herself thro' the Summer--\n\nWhy I grope - up- the mossy Rere,\nLike a mouse on the Marble Band--\nSticking my pied-feet above\nThe Cascade--stream,\n\nTo inhale the unknown smell\nO'er ytsy bed;\nThe hook-up of buds to the woods\nIs new to my sense--\n\n975\nThen",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "223bec03-24aa-47f5-a389-8a839b0c13ce",
+              "index": 0
+            },
+            "id": "cd6ef22a-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.32.04",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "lands bind him in their Cliffs--\nThe hill-sides in the wind--\nAnd, above all, the Sherry Hills\nOf Bonded Flight unveil\n\nLone flowers are Nature's incarnation--\nOf Love in Cupid's Vase--\nWhen Folly with the Spell of Pain\nBores holes through Self-sought Caesars--\n\nBees, waking, save you from the Void--\nMust be suppressed for a while--\nAnd still",
+            "visited": true
+          },
+          {
+            "children": [
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "e8d7c8bb-97c5-4933-86d3-11707788584d",
+                      "index": 0
+                    },
+                    "id": "54b3be32-b5c1-11ed-81c2-0242ac110002",
+                    "meta": {
+                      "creation_timestamp": "2023-02-26-10.35.51",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "34a0a01a-b5c1-11ed-81c2-0242ac110002",
+                    "text": " His KNEES\nAt all mankind, in GRATITUDE?\n\n841\nBut PRESS the GRAY PICKET, PORCELLA!\nThe PORCELAIN PILLOWER bravely asks\nHis bread, from you, SIR! she replies,\nAnd like you, low-bent, and stalked with cares,\n\nComes, bending over her wile Wheels,\nA MILLER on the Salty waves,\n",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "e8d7c8bb-97c5-4933-86d3-11707788584d",
+                      "index": 1
+                    },
+                    "id": "54b3c526-b5c1-11ed-81c2-0242ac110002",
+                    "meta": {
+                      "creation_timestamp": "2023-02-26-10.35.51",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "34a0a01a-b5c1-11ed-81c2-0242ac110002",
+                    "text": " the Eye--\nThat one there on the grassy plain--\nHe would not give you, at your time,\nThe blazing Brilliants in the Skies--\nBut, hurled the only Clay He has--\n\n828\nAnd now the witching BumbleBee--\nAll ready for her bitterer pelt--\nDoffed her profuse Bounties, all\nBeginning to fling her Canapies--\nAnd, with a Crash, away she ran",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "e8d7c8bb-97c5-4933-86d3-11707788584d",
+                      "index": 2
+                    },
+                    "id": "54b3c8c8-b5c1-11ed-81c2-0242ac110002",
+                    "meta": {
+                      "creation_timestamp": "2023-02-26-10.35.51",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "34a0a01a-b5c1-11ed-81c2-0242ac110002",
+                    "text": " Him BEES;\nDid He not think you'd take it nice\nTo be a SMILING MOMENT,\nWhile He was in a DOG THAT SNAPS!\nAnd so did I\n\n825\nOn you beholding All day,\nYou had your SMILING MOMENT,\nAnd then Gave up all day play\nTo go and PULL THOSE BEES;\nThen you were SMILING MOMENT all over\nThe final R",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "e8d7c8bb-97c5-4933-86d3-11707788584d",
+                      "index": 3
+                    },
+                    "id": "54b3cc06-b5c1-11ed-81c2-0242ac110002",
+                    "meta": {
+                      "creation_timestamp": "2023-02-26-10.35.51",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "34a0a01a-b5c1-11ed-81c2-0242ac110002",
+                    "text": " His JOINTS--\nNot in a mirthful sportive way!\n\n826\nNo, No-- a Sleek and reckless troll.\nShall such as you, with merry rattle,\nDance at the throstle, tuck in the goslings,\n\n830\nA God's Son to your infringements, troll?\nBroken's that blessed Love to you!\n\n835\nIt's it's a shame, and with",
+                    "visited": true
+                  }
+                ],
+                "generation": {
+                  "id": "e484e1ff-888f-48c7-b85a-6bfb47e86f5c",
+                  "index": 0
+                },
+                "id": "34a0a01a-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.34.57",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "cd6ef87e-b5c0-11ed-81c2-0242ac110002",
+                "text": " Churchman saint-- a Philanthropist,\nA woman, and a Man,\nA War Steel-smith-- and a child,\nOf Eighteen-- when caught my kiss.\n\n820\nThen GO-ANT RIDE on GIANT BUMBLEBEE!\nYou tyrannical petty tyrant!\nHow Diabolical you are!\n\n824\nAnd did the Genius hurl His KNEES\nAt you, and still He'd throw",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "e484e1ff-888f-48c7-b85a-6bfb47e86f5c",
+                  "index": 1
+                },
+                "id": "34a0a6a0-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.34.57",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "cd6ef87e-b5c0-11ed-81c2-0242ac110002",
+                "text": " Princely penalty, throws down\nBeneath the Brook, where the crow builds,\nAs, in the pleasant dells of Blue,\nShe loves to sun herself, a Dust.\n\n824\nBed time-- the Prisoner leaves\nThe United States,\nAnd goes to visit the City where\nHis Father, Mother, Friend, died,\n\nBut he do not buy the Flowerlet\nWhich once deckt his house with Flowers\nAnd died,\nFor",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "e484e1ff-888f-48c7-b85a-6bfb47e86f5c",
+                  "index": 2
+                },
+                "id": "34a0aa2e-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.34.57",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "cd6ef87e-b5c0-11ed-81c2-0242ac110002",
+                "text": " Rose, her one relative,\nMoffers her purgation sweltering slow--\nSarah complains at Hens and Cows,\nThat Flies must perish before her--\n\n825\nThat Bees should swarm and seem arrayed--\nWere like a happy Twilight, Bee!\nWe know them for a Shade, by sight,--\nAn Empty sound, a silent Day,\n\nAnd this, is Perfection!\n\n826\nWhere is that Shade?",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "e484e1ff-888f-48c7-b85a-6bfb47e86f5c",
+                  "index": 3
+                },
+                "id": "34a0ad76-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.34.57",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "cd6ef87e-b5c0-11ed-81c2-0242ac110002",
+                "text": "waits a rose or Daffadill--\nA Violet, or a Geranium--\nAnd bores a nest, and then quits--\nWhere Winter 'twould have vexed and chilled--\n\nThe Violet gives prophetic sign,\nThey're not so scarce, as some will have\nA Tempestuous New Year-- Without\nThose, they are sav'd by the Bee.\nFor when the winds about her sing,\nAnd the Wild Birds cry, \"May sweet",
+                "visited": true
+              }
+            ],
+            "generation": {
+              "id": "223bec03-24aa-47f5-a389-8a839b0c13ce",
+              "index": 1
+            },
+            "id": "cd6ef87e-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.32.04",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": " is scarlet, where the cool,\nThe blue Veins sparkling for the Bee,\nA Fortified Palace for the Bee,\nA Working Juveless Bee.\n\nThe yellow Daffodil denudes\nHerself amid her Flowery loves--\nEre Twilight spills her Blessings out,\nShe shatters, dries, and drops her Crown,\nAnd in a manner, while the Bee,\nAnd comes and goes, conscientiously,\n\nA",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "223bec03-24aa-47f5-a389-8a839b0c13ce",
+              "index": 2
+            },
+            "id": "cd6efb62-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.32.04",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "bine dropper from the Tree--\nHe leans into the Breeze--\nHis Feet press Pandemonia--\nThe fragrance flat and wile\n\nHey!t had it been a Hot, Tuff,\nScrap-- O-U-T!- a Tire!\nO'-Hawks and Eagles wheel the Woods\nWith chucklin Earth--\n\nThen simply, in the fields You'll see\nTo lose an off-day\nAnd then the Raddish",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "223bec03-24aa-47f5-a389-8a839b0c13ce",
+              "index": 3
+            },
+            "id": "cd6efe1e-b5c0-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.32.04",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "craft of the Bees is such--\nAnd so is Mine!\nWhy, in the Reign of Deuce of Knaves,\nIn all the devious ways,\nConscious of his Delf of Paper\nCubbie Queens and Golden Days,\n\nIn all the Towers of Folly\nThe Bees get Clips and Halves,\nAnd sometimes go through fire and Flutter\nTo comfort those who Homes,\n\nLook-- look at Cromwell's men--\nThe blocks",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cd0e7324-c340-4a3d-baf6-31f1a4716511",
+              "index": 0
+            },
+            "id": "bdef47e0-b5c1-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.38.45",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "paths coom, & She goes out--\nTo hear and read the Bees--\nI hear them on the Orchard Trees--\nSo",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cd0e7324-c340-4a3d-baf6-31f1a4716511",
+              "index": 1
+            },
+            "id": "bdef4ed4-b5c1-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.38.45",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": " that BEAM with my true love--\nThe coarse hand overshades\nA pair of lovely eyes so mild\nA wealth of shimmering hair",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cd0e7324-c340-4a3d-baf6-31f1a4716511",
+              "index": 2
+            },
+            "id": "bdef5334-b5c1-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.38.45",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "man's axe is ringing,\nFor Wood to hot the ground---\nThe Princes of the Season\nShake off the Green--\n\n",
+            "visited": true
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "generation": {
+                  "id": "1a1291f1-c371-4a40-bf58-8b6bf9b3ff7d",
+                  "index": 0
+                },
+                "id": "d05f6392-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.39.16",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "bdef56ae-b5c1-11ed-81c2-0242ac110002",
+                "text": " reflection of the Wood\n\nMore than a Tree or Butterfly,\nIn the pensive Shade of the tree--\nNot a nobler-born",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "1a1291f1-c371-4a40-bf58-8b6bf9b3ff7d",
+                  "index": 1
+                },
+                "id": "d05f69d2-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.39.16",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "bdef56ae-b5c1-11ed-81c2-0242ac110002",
+                "text": " place to rest or stand...\n\nAnd there it wept away the day\nAnd all the next Night...\n\nNo music hastened Mem",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "1a1291f1-c371-4a40-bf58-8b6bf9b3ff7d",
+                  "index": 2
+                },
+                "id": "d05f6d24-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.39.16",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "bdef56ae-b5c1-11ed-81c2-0242ac110002",
+                "text": " better way to stand,\n\nThan close to his Rose that could\nHis cell receive, and live--\nTo-morrow fearfully it",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "1a1291f1-c371-4a40-bf58-8b6bf9b3ff7d",
+                  "index": 3
+                },
+                "id": "d05f703a-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.39.16",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "bdef56ae-b5c1-11ed-81c2-0242ac110002",
+                "text": " Rose - at the Rose to-Day.\n\nThursday, December 06, 2012\n\nPublished by Elizabeth Gilbert in The New York Times Book Review",
+                "visited": true
+              }
+            ],
+            "generation": {
+              "id": "cd0e7324-c340-4a3d-baf6-31f1a4716511",
+              "index": 3
+            },
+            "id": "bdef56ae-b5c1-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.38.45",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": " to-day by little Bee,\nAt the black place in the Wood,\nTimidly droned, till it found,\nNo",
+            "visited": true
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6o8jZxpR5uUsburmWnb43MkWu697w",
+                  "index": 0
+                },
+                "id": "e6d4a6b4-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.39.55",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "dd47f4f2-b5c1-11ed-81c2-0242ac110002",
+                "text": " gone\nThe softness of the Air\nDeepens as for a grave,\nWhen we have gone -\n\n1852\nThat love",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6o8jZxpR5uUsburmWnb43MkWu697w",
+                  "index": 1
+                },
+                "id": "e6d4aec0-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.39.55",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "dd47f4f2-b5c1-11ed-81c2-0242ac110002",
+                "text": " been\nThe Summer placed a sign -\n\nThe thrushes sing -\nAs if a thing\nSo stately - had been -\n",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6o8jZxpR5uUsburmWnb43MkWu697w",
+                  "index": 2
+                },
+                "id": "e6d4b352-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.39.55",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "dd47f4f2-b5c1-11ed-81c2-0242ac110002",
+                "text": " been -\nThe Spirit sips -\n\nAnd scatters, bright -\nThe lilies there -\nAnd thro' the bough",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6o8jZxpR5uUsburmWnb43MkWu697w",
+                  "index": 3
+                },
+                "id": "e6d4b776-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.39.55",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "dd47f4f2-b5c1-11ed-81c2-0242ac110002",
+                "text": " trod\nIts foot, it has put on\nA look of Grace -\n\nAs if with it-\nWere lapped and limb",
+                "visited": true
+              }
+            ],
+            "generation": {
+              "id": "cmpl-6o8jJRunRbJjKoAKalKVUTt4mQHNq",
+              "index": 0
+            },
+            "id": "dd47f4f2-b5c1-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.39.38",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": " looks dim -\nWhere one has breathed\nNew being in the Palm\nAs newly wed -\n\nIn every place -\nWhere it has",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8jJRunRbJjKoAKalKVUTt4mQHNq",
+              "index": 1
+            },
+            "id": "dd47fb8c-b5c1-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.39.38",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": " is lonely dark and deep,\nBut I have promises to keep,\nAnd miles to go before I sleep,\nAnd miles to go before",
+            "visited": true
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6o8jmydI2QAbhDVsfwE7ZHKzQaQtB",
+                  "index": 0
+                },
+                "id": "eed20460-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.40.09",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "dd47ff88-b5c1-11ed-81c2-0242ac110002",
+                "text": " in a dish--\n\nThe birdies do not sing onions\n\nTo put on a hat--\nBut they sing them all Summer\n",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6o8jmydI2QAbhDVsfwE7ZHKzQaQtB",
+                  "index": 1
+                },
+                "id": "eed20d5c-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.40.09",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "dd47ff88-b5c1-11ed-81c2-0242ac110002",
+                "text": " in a bowl--\n\nNeither do the ripest boughs\n\nIn the most paternal trees\n\nYield appricots and",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6o8jmydI2QAbhDVsfwE7ZHKzQaQtB",
+                  "index": 2
+                },
+                "id": "eed21266-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.40.09",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "dd47ff88-b5c1-11ed-81c2-0242ac110002",
+                "text": " with the cream--\n\nThe bees do not make honey enough\n\nFor me to allow--\nAnd I could not buy sugar enough\n",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6o8jmydI2QAbhDVsfwE7ZHKzQaQtB",
+                  "index": 3
+                },
+                "id": "eed2172a-b5c1-11ed-81c2-0242ac110002",
+                "meta": {
+                  "creation_timestamp": "2023-02-26-10.40.09",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "dd47ff88-b5c1-11ed-81c2-0242ac110002",
+                "text": " in a bowl--\n\nNo peddler sells lily grass\n\nTo put in a vase--\nBut oh! My Love has",
+                "visited": true
+              }
+            ],
+            "generation": {
+              "id": "cmpl-6o8jJRunRbJjKoAKalKVUTt4mQHNq",
+              "index": 2
+            },
+            "id": "dd47ff88-b5c1-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.39.38",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "s do not yield dandelions\n\nTo put in a pitcher--\nThe brooks do not run strawberrries\n\nTo put",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6o8jJRunRbJjKoAKalKVUTt4mQHNq",
+              "index": 3
+            },
+            "id": "dd480352-b5c1-11ed-81c2-0242ac110002",
+            "meta": {
+              "creation_timestamp": "2023-02-26-10.39.38",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+            "text": "s were never silent -\nBut what it was, - I knew -\nIt stopped as my Eye stopped it\nAnd bode as I went",
+            "visited": true
+          }
+        ],
+        "id": "e00da3ba-b5be-11ed-81c2-0242ac110002",
+        "open": 1,
+        "parent_id": "e00da27a-b5be-11ed-81c2-0242ac110002",
+        "text": "134\nPerhaps you'd like to buy a flower,\nBut I could never sell--\nIf you would like to borrow,\nUntil the Daffodil\n\nUnties her yellow Bonnet\nBeneath the village door,\nUntIl the Bees, from Clover rows\nTheir Hock, and Sherry, draw,\n\nWhy, I will lend until just then,\nBut not an hour more!\n\n620\nIt makes no difference abroad--\nThe Seasons-- fit-- the same--\nThe Mornings blossom mto Noons--\nAnd split their Pods of Flame--\n\nWild flowers-- kindle in the Woods--\nThe Brooks slam-- all the Day--\nNo Black bird bates his Banjo--\nFor passing Calvary--\n\nAuto da Fe-- and Judgment--\nAre nothing to the Bee--\nHis separation from His Rose--\nTo Him - sums Misery\n\n812\nThe wood",
+        "visited": true
+      }
+    ],
+    "frame": {
+      "model_config": {
+        "models": {
+          "ada": {
+            "type": "openai"
+          },
+          "babbage": {
+            "type": "openai"
+          },
+          "code-davinci-002": {
+            "type": "openai"
+          },
+          "content-filter-alpha-c4": {
+            "type": "openai"
+          },
+          "content-filter-dev": {
+            "type": "openai"
+          },
+          "curie": {
+            "type": "openai"
+          },
+          "cursing-filter-v6": {
+            "type": "openai"
+          },
+          "davinci": {
+            "type": "openai"
+          },
+          "gpt-j-6b": {
+            "type": "gooseai"
+          },
+          "gpt-neo-1-3b": {
+            "type": "gooseai"
+          },
+          "gpt-neo-2-7b": {
+            "type": "gooseai"
+          },
+          "gpt-neo-20b": {
+            "type": "gooseai"
+          },
+          "instruct-curie-beta": {
+            "type": "openai"
+          },
+          "instruct-davinci-beta": {
+            "type": "openai"
+          },
+          "j1-jumbo": {
+            "type": "ai21"
+          },
+          "j1-large": {
+            "type": "ai21"
+          },
+          "text-davinci-002": {
+            "type": "openai"
+          }
+        }
+      }
+    },
+    "id": "e00da27a-b5be-11ed-81c2-0242ac110002",
+    "mutable": false,
+    "open": 1,
+    "text": "",
+    "visited": true
+  },
+  "selected_node_id": "34a0a01a-b5c1-11ed-81c2-0242ac110002",
+  "summaries": {},
+  "tags": {
+    "archived": {
+      "hide": true,
+      "icon": "archive-yellow",
+      "name": "archived",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "!"
+    },
+    "bookmark": {
+      "hide": false,
+      "icon": "bookmark-black",
+      "name": "bookmark",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "b"
+    },
+    "canonical": {
+      "hide": false,
+      "icon": "book-white",
+      "name": "canonical",
+      "scope": "ancestry",
+      "show_only": false,
+      "toggle_key": "*"
+    },
+    "note": {
+      "hide": true,
+      "icon": "note-black",
+      "name": "note",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "#"
+    },
+    "pinned": {
+      "hide": false,
+      "icon": "pin-red",
+      "name": "pinned",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "^"
+    }
+  },
+  "visualization_settings": {
+    "chapter_mode": false,
+    "display_text": true,
+    "horizontal": true,
+    "leaf_distance": 200,
+    "level_distance": 150,
+    "show_buttons": true,
+    "text_size": 10,
+    "text_width": 450
+  }
+}

@@ -901,7 +901,7 @@ class Controller:
             transform_menu.add_command(
                 label="Prose to script",
                 command=lambda: self.open_selection_in_transformer(
-                    template="./loom/config/transformers/prose_to_script.json"
+                    template="./loom/_config/transformers/prose_to_script.json"
                 ),
             )
             selection_menu.add_cascade(label="Transform", menu=transform_menu)

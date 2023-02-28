@@ -1809,7 +1809,9 @@ class Transformers(Module):
 
     def load_template(self):
         file_path = filedialog.askopenfilename(
-            initialdir="./loom/config/transformers", title="Select prompt template", filetypes=[("Json files", ".json")]
+            initialdir="./loom/_config/transformers",
+            title="Select prompt template",
+            filetypes=[("Json files", ".json")],
         )
         if file_path:
             self.open_template_file(file_path)
@@ -1817,7 +1819,7 @@ class Transformers(Module):
     def save_template(self):
         self.write_all()
         file_path = filedialog.asksaveasfilename(
-            initialdir="./loom/config/transformers", title="Save prompt template", filetypes=[("Json files", ".json")]
+            initialdir="./loom/_config/transformers", title="Save prompt template", filetypes=[("Json files", ".json")]
         )
 
         if file_path:
@@ -1922,7 +1924,7 @@ class FrameEditor(Module):
 
     def get_presets(self):
         # load presets from json file
-        with open("./loom/config/interfaces/interfaces.json") as f:
+        with open("./loom/_config/interfaces/interfaces.json") as f:
             self.presets = json.load(f)
 
     def apply_preset(self, *args):

@@ -29,3 +29,6 @@ run:
 		-e AI21_API_KEY=$(AI21_API_KEY) \
 		-u=$(CURRENT_UID):$(CURRENT_GID) \
 		$(IMAGE)
+
+show_requirementst:
+	poetry export -f requirements.txt --output requirements.txt

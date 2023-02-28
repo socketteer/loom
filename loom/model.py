@@ -1876,7 +1876,7 @@ class TreeModel:
 
     def custom_post_template(self, completion, filename):
         text = completion["text"]
-        with open(f"./loom/config/post_templates/{filename}.txt", "r") as f:
+        with open(f"./loom/_config/post_templates/{filename}.txt", "r") as f:
             prompt = f.read()
         eval_prompt = eval(f'f"""{prompt}"""')
         return eval_prompt
@@ -1933,7 +1933,7 @@ class TreeModel:
     def custom_prompt(self, node, filename):
         input = self.ancestry_text(node)
         input = input[-self.generation_settings["prompt_length"] :]
-        with open(f"./loom/config/prompts/{filename}.txt", "r") as f:
+        with open(f"./loom/_config/prompts/{filename}.txt", "r") as f:
             prompt = f.read()
         eval_prompt = eval(f'f"""{prompt}"""')
         eval_prompt = eval_prompt[-6000:]
@@ -1963,7 +1963,7 @@ class TreeModel:
         summaries = []
 
         # load summaries json
-        with open(f"./loom/config/fewshots/summaries.json", "r") as f:
+        with open(f"./loom/_config/fewshots/summaries.json", "r") as f:
             sum_json = json.load(f)
 
         for entry in sum_json:

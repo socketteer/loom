@@ -12,11 +12,11 @@ class Icons:
     def init_icon(self, icon_name, filename, size=16):
         self.icons[icon_name] = {}
         self.icons[icon_name]["size"] = size
-        self.icons[icon_name]["img"] = PIL.Image.open(f"./loom/static/icons/{filename}")
-        with open(f"./loom/static/icons/{filename}", "rb") as f:
+        self.icons[icon_name]["img"] = PIL.Image.open(f"./loom/_static/icons/{filename}")
+        with open(f"./loom/_static/icons/{filename}", "rb") as f:
             img = PIL.Image.open(io.BytesIO(f.read()))
             self.icons[icon_name]["img"] = img
-        # self.icons[icon_name]["img"] = PIL.Image.open(f"./loom/static/icons/{filename}")
+        # self.icons[icon_name]["img"] = PIL.Image.open(f"./loom/_static/icons/{filename}")
 
     def get_icon(self, icon_name, size=16):
         if "icon" not in self.icons[icon_name]:
@@ -24,12 +24,12 @@ class Icons:
         return self.icons[icon_name]["icon"]
 
     def init_icons(self):
-        # for all png files in ./loom/static/icons
-        for filename in os.listdir("./loom/static/icons/program_icons"):
+        # for all png files in ./loom/_static/icons
+        for filename in os.listdir("./loom/_static/icons/program_icons"):
             if filename.endswith(".png"):
                 icon_name = os.path.splitext(filename)[0]
                 self.init_icon(icon_name, "program_icons/" + filename, 16)
-        for filename in os.listdir("./loom/static/icons/tag_icons"):
+        for filename in os.listdir("./loom/_static/icons/tag_icons"):
             if filename.endswith(".png"):
                 icon_name = os.path.splitext(filename)[0]
                 self.init_icon(icon_name, "tag_icons/" + filename, 16)

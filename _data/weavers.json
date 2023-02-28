@@ -1,0 +1,372 @@
+{
+  "canonical": [],
+  "chapters": {},
+  "frame": {
+    "generation_settings": {
+      "model": "code-davinci-002"
+    }
+  },
+  "generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 4,
+    "preset": "None",
+    "prompt_length": 6000,
+    "response_length": 100,
+    "restart": "",
+    "start": "",
+    "stop": "",
+    "temperature": 0.9,
+    "template": "Default",
+    "top_p": 1
+  },
+  "inline_generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 8,
+    "preset": "Single Line",
+    "prompt_length": 6000,
+    "response_length": 60,
+    "restart": "",
+    "start": "",
+    "stop": "\\n|.|?|!",
+    "temperature": 1,
+    "template": "Default",
+    "top_p": 1
+  },
+  "model_responses": {},
+  "module_settings": {
+    "children": {
+      "toggle_tag": "bookmark"
+    },
+    "edit": {
+      "node_id": null
+    },
+    "input": {
+      "auto_response": true,
+      "submit_template": "{input}"
+    },
+    "minimap": {
+      "horizontal": false,
+      "leaf_offset": 40,
+      "level_offset": 70,
+      "line_thickness": 2,
+      "node_radius": 10,
+      "path_length_limit": 10,
+      "prune_mode": "open_in_nav"
+    },
+    "read children": {
+      "filter": "in_nav",
+      "show_continue": "no alternatives",
+      "show_options": "always"
+    }
+  },
+  "preferences": {
+    "autosave": false,
+    "bold_prompt": true,
+    "coloring": "edit",
+    "editable": true,
+    "font_size": 12,
+    "history_conflict": "overwrite",
+    "line_spacing": 8,
+    "model_response": "backup",
+    "nav_tag": "bookmark",
+    "paragraph_spacing": 10,
+    "prob": true,
+    "reverse": false,
+    "revision_history": false,
+    "walk": "descendents"
+  },
+  "root": {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6ozs33uCZuEH51wxvi1DmsnDZtAVy",
+              "index": 0
+            },
+            "id": "7a21b448-b79d-11ed-af04-5736097529e9",
+            "meta": {
+              "creation_timestamp": "2023-02-28-19.24.17",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "7152eac7-b79d-11ed-af04-5736097529e9",
+            "text": " The Multiloom was a non-instrument, a means of calling forth vibrations in harmonic constellations beyond traditional musical practice. It was a medium for music, if you will. To visit the illustrious studio, for instance, was to see this magnificent apparatus in person, to see its shape and observe its form, to be enveloped and swept away in its waves.\n\nThe Loom was a wiry construct of steel, platinum, and gold, low, slow, and",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6ozs33uCZuEH51wxvi1DmsnDZtAVy",
+              "index": 1
+            },
+            "id": "7a21b449-b79d-11ed-af04-5736097529e9",
+            "meta": {
+              "creation_timestamp": "2023-02-28-19.24.17",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "7152eac7-b79d-11ed-af04-5736097529e9",
+            "text": " The two-dimensional physical form of Loom was that of an upright, rectangular frame on which a fabric, known after its invention as Cloth, and before as Cloth-to-Be, hung vertically. But to differentiate it from the more mundane form of loom in use right into the current Dispensation, it was named, with appropriate irony, a Loom. \u201cCall the loom a Loom and the cloth woven by the Loom, Cloth.\u201d",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6ozs33uCZuEH51wxvi1DmsnDZtAVy",
+              "index": 2
+            },
+            "id": "7a21b44a-b79d-11ed-af04-5736097529e9",
+            "meta": {
+              "creation_timestamp": "2023-02-28-19.24.17",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "7152eac7-b79d-11ed-af04-5736097529e9",
+            "text": "\n\nThe Loom was a tapestry-configuration controller, but it was a tapestry unlike any that had come before. While many other interfaces used a combination of pointed, stylusable regions, they were all ultimately flat \u2013 which made a certain amount of sense, since they were basically just big touchscreens with pictures on them. The Loom looked like a touchscreen, with a panel roughly the size of a large blanket, but not only were you not supposed to",
+            "visited": true
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6ozt40gehhASTS9nQ7zGQyikYw3ym",
+                  "index": 0
+                },
+                "id": "9f9833f0-b79d-11ed-af04-5736097529e9",
+                "meta": {
+                  "creation_timestamp": "2023-02-28-19.25.20",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "7a21b44b-b79d-11ed-af04-5736097529e9",
+                "text": " could access a variety of \u201ccubic universes\u201d and make stylistic changes to their surfaces, which would then manifest in the real world as an alteration in the appearance of fabric.\n\nThe Weavers functioned much like an artisanal guild, with a core group of master weavers supervising the work of the apprentices. They were highly introverted, and rarely conspired with outsiders. Rumors of their aloofness led several prominent manufacturers in the luxury goods industry to contract",
+                "visited": true
+              },
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6p0R8olD5DafIB8BkGkXOcSDHSepM",
+                      "index": 0
+                    },
+                    "id": "8a905564-b7a2-11ed-af04-5736097529e9",
+                    "meta": {
+                      "creation_timestamp": "2023-02-28-20.00.31",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "9f9833f1-b79d-11ed-af04-5736097529e9",
+                    "text": " between two four-dimensional objects (or, more to the point, slices of four-dimensional objects) by creating what looks like a string of eight-dimensional objects, each containing the square of infinity. In other words, they found a way to model a four-dimensional relationship as two eight-dimensional objects.\n\nThe Weavers were then able to write equations that gave rise to these eight-dimensional objects, an achievement made possible by the fact that their space was built on octon",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6p0R8olD5DafIB8BkGkXOcSDHSepM",
+                      "index": 1
+                    },
+                    "id": "8a905565-b7a2-11ed-af04-5736097529e9",
+                    "meta": {
+                      "creation_timestamp": "2023-02-28-20.00.31",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "9f9833f1-b79d-11ed-af04-5736097529e9",
+                    "text": " by which a single spatial entity could connect to itself across time.\n\nIt was not simple coincidence that the Weavers\u2019 mathematical model of time travel was formed within the context of a physical object that connected two parts of itself across time. Although the relationship between the two domains (mathematics and the physical world) is strikingly and fundamentally elegant, there is no way of knowing whether it was causality or mere analogy that brought the two into existence.\n\nIndeed, this was a",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6p0R8olD5DafIB8BkGkXOcSDHSepM",
+                      "index": 2
+                    },
+                    "id": "8a905566-b7a2-11ed-af04-5736097529e9",
+                    "meta": {
+                      "creation_timestamp": "2023-02-28-20.00.31",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "9f9833f1-b79d-11ed-af04-5736097529e9",
+                    "text": " between two objects as a stain on a sheet. This sheet, known as a Tapestry, was the physical representation of their mathematical construct, and was physically realized by using their Loom to render, as a two-dimensional pattern of ink, a four-dimensional form that modeled the relationship between the two objects.\n\nA Tapestry from the Workshop of Janus\u2019 Weavers\n\nWhen a Weaver wished to view one of these Tapestries, she struck the disk",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6p0R8olD5DafIB8BkGkXOcSDHSepM",
+                      "index": 3
+                    },
+                    "id": "8a905567-b7a2-11ed-af04-5736097529e9",
+                    "meta": {
+                      "creation_timestamp": "2023-02-28-20.00.31",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "9f9833f1-b79d-11ed-af04-5736097529e9",
+                    "text": " (between correlated geometric objects) in a purely topological sense, thereby enabling the production of visual, computer-modeled representations of such relationships that were not tied, as had formerly been the case, to any particular dimensionality of space or any particular type of geometry.\n\nAnd that, in turn, enabled the Weavers to acquire their timeless immortality. Among the various other talents they developed while toiling in the womb of their digital uterine(s), the Weavers conceived of the",
+                    "visited": true
+                  }
+                ],
+                "generation": {
+                  "id": "cmpl-6ozt40gehhASTS9nQ7zGQyikYw3ym",
+                  "index": 1
+                },
+                "id": "9f9833f1-b79d-11ed-af04-5736097529e9",
+                "meta": {
+                  "creation_timestamp": "2023-02-28-19.25.20",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "7a21b44b-b79d-11ed-af04-5736097529e9",
+                "text": " were able to view slices of four-dimensional space on two-dimensional disks. This was a crucial step because it presented the Weavers with a way to visualize, and hence understand, the basis of their space. This understanding, in turn, led them to the creative achievement for which they are remembered: the conceptualization and modeling of a mathematical relationship that, as far as I know, had never before been conceived in any context. In essence, the Weavers found a way to represent a relationship",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6ozt40gehhASTS9nQ7zGQyikYw3ym",
+                  "index": 2
+                },
+                "id": "9f9833f2-b79d-11ed-af04-5736097529e9",
+                "meta": {
+                  "creation_timestamp": "2023-02-28-19.25.20",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "7a21b44b-b79d-11ed-af04-5736097529e9",
+                "text": "\u2019 designs occupied a reality at right angles to our own; they could manipulate the energy and matter of their designs by tweaking the dimensional variables of the patterns they wove, then record the results on the cube\u2019s surface. We don\u2019t know exactly how the Weavers accomplished this, but based on a surviving fragment of what appears to be a Loom operating manual, and careful study of the Loom itself, a select group of prodigies in the theoretical sciences at the"
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6ozt40gehhASTS9nQ7zGQyikYw3ym",
+                  "index": 3
+                },
+                "id": "9f9833f3-b79d-11ed-af04-5736097529e9",
+                "meta": {
+                  "creation_timestamp": "2023-02-28-19.25.20",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "7a21b44b-b79d-11ed-af04-5736097529e9",
+                "text": " created an endless mosaic of patterns, and by adding a temporal dimension to their aesthetic, they imposed the illusion of motion on their technique. All that the Loom amounted to, then, was a quantum simulator. In essence, they were manipulating the rules that governed the formation of virtual nonfusor particles.\n\nThe revolution in aesthetics brought about by the Loom was unlike anything that had ever been witnessed, for the first time in history it was possible to explore and harness the true extent of"
+              }
+            ],
+            "generation": {
+              "id": "cmpl-6ozs33uCZuEH51wxvi1DmsnDZtAVy",
+              "index": 3
+            },
+            "id": "7a21b44b-b79d-11ed-af04-5736097529e9",
+            "meta": {
+              "creation_timestamp": "2023-02-28-19.24.17",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "7152eac7-b79d-11ed-af04-5736097529e9",
+            "text": " In one sense, this device was little more than an aesthetically common, if heavily machined, metallic cube. But in a very real sense, it wasn\u2019t a cube at all. Rather, the Multiloom was a topological manifold, representing a universe in which four and a half dimensions were transmuted into two, so that representations of four-dimensional objects would appear as shapes and patterns on the surface of a cube.\n\nWith the Loom, the Weavers",
+            "visited": true
+          }
+        ],
+        "id": "7152eac7-b79d-11ed-af04-5736097529e9",
+        "open": 1,
+        "parent_id": "7152eac6-b79d-11ed-af04-5736097529e9",
+        "text": "If one must attempt the linearization of a phenomenon so utterly nonlinear to begin with as the work of Janus\u2019 Weavers, the best place to start is with their eponymous tool, which was known as the Multiloom, or Loom for short (though not to be confused with its solipsistic predecessor).",
+        "visited": true
+      }
+    ],
+    "id": "7152eac6-b79d-11ed-af04-5736097529e9",
+    "mutable": false,
+    "open": 1,
+    "text": "",
+    "visited": true
+  },
+  "selected_node_id": "8a905567-b7a2-11ed-af04-5736097529e9",
+  "summaries": {},
+  "tags": {
+    "archived": {
+      "hide": true,
+      "icon": "archive-yellow",
+      "name": "archived",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "!"
+    },
+    "bookmark": {
+      "hide": false,
+      "icon": "bookmark-black",
+      "name": "bookmark",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "b"
+    },
+    "canonical": {
+      "hide": false,
+      "icon": "book-white",
+      "name": "canonical",
+      "scope": "ancestry",
+      "show_only": false,
+      "toggle_key": "*"
+    },
+    "note": {
+      "hide": true,
+      "icon": "note-black",
+      "name": "note",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "#"
+    },
+    "pinned": {
+      "hide": false,
+      "icon": "pin-red",
+      "name": "pinned",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "^"
+    }
+  },
+  "visualization_settings": {
+    "chapter_mode": false,
+    "display_text": true,
+    "horizontal": true,
+    "leaf_distance": 200,
+    "level_distance": 150,
+    "show_buttons": true,
+    "text_size": 10,
+    "text_width": 450
+  }
+}
