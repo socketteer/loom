@@ -1,9 +1,5 @@
-import codecs
 import json
 import os
-import time
-import traceback
-from pprint import pprint
 
 import openai
 import requests
@@ -258,8 +254,6 @@ def search(query, documents, engine="curie"):
 #################################
 #   AI21
 #################################
-
-
 def fix_ai21_tokens(token):
     return token.replace("▁", " ").replace("<|newline|>", "\n")
 
@@ -319,7 +313,7 @@ def ai21_generate(
     stop=None,
     engine="j1-large",
     api_key=None,
-    **kwargs,
+    **_,
 ):
     stop = stop if stop else []
     request_json = {
