@@ -6,11 +6,12 @@ import threading
 from pprint import pprint
 
 import tkinter as tk
-from components.dialogs import *
 from model import TreeModel
 from tkinter import filedialog, messagebox
 from tkinter.font import Font
-from view.colors import (
+
+from loom.tk_components.dialogs import *
+from loom.tk_view.colors import (
     bg_color,
     edit_color,
     history_color,
@@ -20,9 +21,8 @@ from view.colors import (
     text_color,
     visited_color,
 )
-from view.display import Display
-from view.icons import Icons
-
+from loom.tk_view.display import Display
+from loom.tk_view.icons import Icons
 from loom.utils.gpt_util import logprobs_to_probs
 from loom.utils.keybindings import tkinter_keybindings
 from loom.utils.textbox_util import distribute_textbox_changes

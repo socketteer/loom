@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk
-from view.colors import scroll_bg_color
+
+from loom.tk_view.colors import scroll_bg_color
 
 
 # Class to create a basic dialog pop-up box.  Designed for extension.

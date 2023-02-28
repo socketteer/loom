@@ -1,13 +1,9 @@
 import math
 
 import tkinter
-import tkinter.font as tkf
-from PIL import Image, ImageTk
 from tkinter import ttk
 
-from loom.utils.custom_tks import TextAware
-from loom.utils.util_tree import limited_branching_tree, node_ancestry, tree_subset
-from loom.view.colors import (
+from loom.tk_view.colors import (
     BLUE,
     active_line_color,
     active_text_color,
@@ -20,7 +16,9 @@ from loom.view.colors import (
     vis_bg_color,
     visited_node_bg_color,
 )
-from loom.view.icons import Icons
+from loom.tk_view.icons import Icons
+from loom.utils.custom_tks import TextAware
+from loom.utils.util_tree import limited_branching_tree, node_ancestry, tree_subset
 
 # TODO add to vis params
 fixed_level_width = False

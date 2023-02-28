@@ -2,14 +2,14 @@ import tkinter as tk
 from tkinter import ttk
 from tkinter.font import Font
 
-from loom.components.modules import *
-from loom.components.templates import LoomTerminal
+from loom.tk_components.modules import *
+from loom.tk_components.templates import LoomTerminal
+from loom.tk_view.colors import bg_color, edit_color, text_color
+from loom.tk_view.icons import Icons
+from loom.tk_view.panes import NestedPane
+from loom.tk_view.styles import textbox_config
+from loom.tk_view.tree_vis import TreeVis
 from loom.utils.util import metadata
-from loom.view.colors import bg_color, edit_color, text_color
-from loom.view.icons import Icons
-from loom.view.panes import NestedPane
-from loom.view.styles import textbox_config
-from loom.view.tree_vis import TreeVis
 
 modules = {
     "edit": Edit,

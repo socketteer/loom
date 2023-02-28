@@ -11,7 +11,7 @@ from copy import deepcopy
 
 from loom.gpt import gen, openAI_generate, search
 from loom.utils.frames_util import frame_merger, frame_merger_append
-from loom.utils.gpt_util import conditional_logprob, logprobs_to_probs, parse_stop, prompt_probs, tokenize_ada
+from loom.utils.gpt_util import conditional_logprob, logprobs_to_probs, prompt_probs
 from loom.utils.multiverse_util import greedy_word_multiverse
 from loom.utils.node_conditions import condition_lambda, conditions
 from loom.utils.util import clip_num, diff, index_clip, json_create, json_open, timestamp
@@ -1812,7 +1812,7 @@ class TreeModel:
         save_filename = (
             save_filename if save_filename else os.path.splitext(os.path.basename(self.tree_filename))[0] + ".jsonl"
         )
-        filename = os.path.join(os.getcwd() + "/data/exports", save_filename)
+        filename = os.path.join(os.getcwd() + "./_data/exports", save_filename)
         with jsonlines.open(filename, mode="w") as writer:
             for line in flat_tree:
                 line_dict = {"id": line["id"]}

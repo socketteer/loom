@@ -5,23 +5,21 @@ import json
 import os
 import threading
 import uuid
-from re import L
 
 import tkinter as tk
 from gpt import completions_text, gen
 from PIL import Image, ImageTk
 from tkinter import filedialog, ttk
 from tkinter.scrolledtext import ScrolledText
-from view.colors import bg_color, default_color, edit_color, history_color, ooc_color, text_color
-from view.icons import Icons
-from view.styles import textbox_config
 
+from loom.tk_view.colors import bg_color, default_color, edit_color, ooc_color, text_color
+from loom.tk_view.icons import Icons
+from loom.tk_view.styles import textbox_config
 from loom.utils.custom_tks import ScrollableFrame, TextAware
 from loom.utils.gpt_util import logprobs_to_probs
 from loom.utils.react import *
 from loom.utils.util import split_indices
 from loom.utils.util_tk import (
-    Entry,
     create_button,
     create_checkbutton,
     create_combo_box,

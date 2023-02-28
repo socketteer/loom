@@ -5,17 +5,17 @@ import uuid
 from pprint import pformat
 
 import tkinter as tk
-from components.block_multiverse import BlockMultiverse
-from components.templates import *
 from gpt import completions_text, gen
-from PIL import Image, ImageTk
+from PIL import Image
 from tkinter import messagebox, simpledialog, ttk
 from tkinter.colorchooser import askcolor
-from view.colors import bg_color, edit_color, text_color, vis_bg_color
-from view.icons import Icons
-from view.panes import Module
-from view.styles import code_textbox_config, textbox_config
 
+from loom.tk_components.block_multiverse import BlockMultiverse
+from loom.tk_components.templates import *
+from loom.tk_view.colors import bg_color, edit_color, text_color, vis_bg_color
+from loom.tk_view.icons import Icons
+from loom.tk_view.panes import Module
+from loom.tk_view.styles import code_textbox_config, textbox_config
 from loom.utils.canvas_util import move_object
 from loom.utils.custom_tks import TextAware
 from loom.utils.react import react_changes, unchanged
@@ -65,7 +65,7 @@ class Paint(Module):
         self.thumbnails = None
         self.layers_frame = None
         working_dir = str(os.getcwd())
-        self.blank_file = os.path.join(working_dir, "loom/static/media/blank.png")
+        self.blank_file = os.path.join(working_dir, "loom/_static/media/blank.png")
         Module.__init__(self, "paint", callbacks, state)
 
     def build(self, parent):

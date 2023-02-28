@@ -15,10 +15,10 @@ from ttkthemes import ThemedStyle
 
 from loom.controller import Controller
 from loom.model import EMPTY_TREE
+from loom.tk_view.colors import darkmode
 from loom.utils.custom_tks import ClosableNotebook
 from loom.utils.util import json_create, json_open
 from loom.utils.util_tk import create_menubar
-from loom.view.colors import darkmode
 
 load_dotenv()
 
@@ -32,7 +32,7 @@ class Application:
         self.root.title("Read tree")
 
         # App icon :). Save or will be garbage collected
-        self.icon = PIL.ImageTk.PhotoImage(PIL.Image.open("loom/static/zoneplate.png"))
+        self.icon = PIL.ImageTk.PhotoImage(PIL.Image.open("loom/_static/zoneplate.png"))
         self.root.tk.call("wm", "iconphoto", self.root._w, self.icon)
         # Dark mode
         style = ThemedStyle(self.root)
@@ -46,7 +46,7 @@ class Application:
         self.tabs = []
 
         # Load app data
-        self.app_data_file = os.path.join(os.getcwd(), "loom/data/", ".app_data.json")
+        self.app_data_file = os.path.join(os.getcwd(), "./_data/", ".app_data.json")
         self.app_data = None
         self.initialize_app_state()
 

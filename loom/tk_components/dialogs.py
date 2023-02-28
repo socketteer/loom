@@ -4,23 +4,15 @@ import os
 import tkinter as tk
 from tkinter import filedialog, ttk
 from tkinter.scrolledtext import ScrolledText
-from view.icons import Icons
 
-from loom.components.templates import *
+from loom.tk_components.templates import *
+from loom.tk_view.colors import PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6, bg_color, text_color
+from loom.tk_view.icons import Icons
+from loom.tk_view.styles import textbox_config
 from loom.utils.custom_tks import Dialog, TextAware
 from loom.utils.keybindings import special_keybindings
-from loom.utils.util_tk import (
-    Entry,
-    create_button,
-    create_checkbutton,
-    create_combo_box,
-    create_label,
-    create_side_label,
-    create_slider,
-)
+from loom.utils.util_tk import Entry, create_button, create_checkbutton, create_label, create_side_label, create_slider
 from loom.utils.util_tree import search
-from loom.view.colors import PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6, bg_color, text_color
-from loom.view.styles import textbox_config
 
 icons = Icons()
 
@@ -453,7 +445,7 @@ class AddTagDialog(Dialog):
         # open a file chooser dialog and allow the user to select an image
         file_path = filedialog.askopenfilename(
             title="Choose an image",
-            initialdir=f"loom/static/icons/tag_icons/",
+            initialdir=f"loom/_static/icons/tag_icons/",
             filetypes=[("PNG", ".png"), ("JPEG", ".jpg"), ("GIF", ".gif")],
         )
         if file_path:
@@ -576,7 +568,7 @@ class TagsDialog(Dialog):
         # open a file chooser dialog and allow the user to select an image
         file_path = filedialog.askopenfilename(
             title="Choose an image",
-            initialdir=f"loom/static/icons/tag_icons/",
+            initialdir=f"loom/_static/icons/tag_icons/",
             filetypes=[("PNG", ".png"), ("JPEG", ".jpg"), ("GIF", ".gif")],
         )
         if file_path:
