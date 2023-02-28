@@ -7,11 +7,11 @@ import threading
 import uuid
 
 import tkinter as tk
-from gpt import completions_text, gen
 from PIL import Image, ImageTk
 from tkinter import filedialog, ttk
 from tkinter.scrolledtext import ScrolledText
 
+from loom.gpt import completions_text, gen
 from loom.tk_view.colors import bg_color, default_color, edit_color, ooc_color, text_color
 from loom.tk_view.icons import Icons
 from loom.tk_view.styles import textbox_config

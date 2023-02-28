@@ -6,10 +6,10 @@ import threading
 from pprint import pprint
 
 import tkinter as tk
-from model import TreeModel
 from tkinter import filedialog, messagebox
 from tkinter.font import Font
 
+from loom.model import TreeModel
 from loom.tk_components.dialogs import *
 from loom.tk_view.colors import (
     bg_color,

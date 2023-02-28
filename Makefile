@@ -11,17 +11,19 @@ export CURRENT_GID
 include .env
 export
 
-install:
+install: reqs
 	echo "Make sure you are using python version 3.9.13 or over"
 	sudo apt install python-tk
+	python -m pip install --upgrade pip
+	python -m pip install -r requirements.txt
 
-build:
+build: reqs
 	docker build -t $(IMAGE) .
+	rm requirements.txt
 
 run:
 	docker run -it --rm \
-		-v $(PWD)/data:/app/data \
-		-v $(PWD)/examples:/app/examples \
+		-v $(PWD)/_data:/app/_data \
 		-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
 		-e DISPLAY=$(DISPLAY) \
 		-e OPENAI_API_KEY=$(OPENAI_API_KEY) \
@@ -30,5 +32,6 @@ run:
 		-u=$(CURRENT_UID):$(CURRENT_GID) \
 		$(IMAGE)
 
-show_requirementst:
-	poetry export -f requirements.txt --output requirements.txt
+reqs:
+	pip install poetry
+	poetry export -f requirements.txt --without-hashes > requirements.txt

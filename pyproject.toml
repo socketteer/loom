@@ -22,6 +22,12 @@ html2text = "^2020.1.16"
 deepmerge = "^1.1.0"
 diff-match-patch = "^20200713"
 
+[project]
+name = "loom"
+version = "0.1.0"
+
+[tool.setuptools.package-data]
+loom = ["loom"]
 
 [build-system]
 requires = ["poetry-core"]

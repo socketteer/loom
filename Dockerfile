@@ -4,8 +4,13 @@ RUN apt-get update && apt-get install -y python3-tk && pip install --upgrade pip
 
 WORKDIR /app
 
-COPY loom ./
-
+COPY requirements.txt requirements.txt
 RUN pip install -r requirements.txt
 
-CMD ["python", "main.py"]
+COPY loom loom
+
+COPY pyproject.toml pyproject.toml
+COPY README.md README.md
+RUN pip install -e .
+
+ENTRYPOINT ["python", "loom/main.py"]
