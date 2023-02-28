@@ -1,9 +1,3 @@
-# Add your keys here
-OPENAI_API_KEY := ""
-GOOSEAI_API_KEY := ""
-AI21_API_KEY := ""
-
-
 IMAGE := loom
 
 SHELL = /bin/sh
@@ -13,6 +7,9 @@ CURRENT_GID := $(shell id -g)
 
 export CURRENT_UID
 export CURRENT_GID
+
+include .env
+export
 
 install:
 	echo "Make sure you are using python version 3.9.13 or over"
