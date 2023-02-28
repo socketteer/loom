@@ -243,7 +243,7 @@ def format_openAI_response(response, prompt, echo=True):
 
 @retry(n_tries=3, delay=1, backoff=2, on_failure=lambda *args, **kwargs: ("", None))
 def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
-                    model='davinci', logit_bias=None, custom=False, **kwargs):
+                    model='davinci', logit_bias=None, custom=False, **_):
     if not logit_bias:
         logit_bias = {}
     params = {
@@ -256,7 +256,6 @@ def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temper
         'logit_bias': logit_bias,
         'n': num_continuations,
         'stop': stop,
-        #**kwargs
     }
     if custom:
         params['model'] = model
