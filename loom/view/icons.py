@@ -1,6 +1,8 @@
-import PIL
-import os
 import io
+import os
+
+import PIL
+
 
 class Icons:
     def __init__(self):
@@ -17,20 +19,20 @@ class Icons:
         # self.icons[icon_name]["img"] = PIL.Image.open(f"./loom/static/icons/{filename}")
 
     def get_icon(self, icon_name, size=16):
-        if 'icon' not in self.icons[icon_name]:
-            self.icons[icon_name]['icon'] = PIL.ImageTk.PhotoImage(self.icons[icon_name]['img'].resize((size, size)))
-        return self.icons[icon_name]['icon'] 
+        if "icon" not in self.icons[icon_name]:
+            self.icons[icon_name]["icon"] = PIL.ImageTk.PhotoImage(self.icons[icon_name]["img"].resize((size, size)))
+        return self.icons[icon_name]["icon"]
 
     def init_icons(self):
         # for all png files in ./loom/static/icons
         for filename in os.listdir("./loom/static/icons/program_icons"):
             if filename.endswith(".png"):
                 icon_name = os.path.splitext(filename)[0]
-                self.init_icon(icon_name, 'program_icons/' + filename, 16)
+                self.init_icon(icon_name, "program_icons/" + filename, 16)
         for filename in os.listdir("./loom/static/icons/tag_icons"):
             if filename.endswith(".png"):
                 icon_name = os.path.splitext(filename)[0]
-                self.init_icon(icon_name, 'tag_icons/' + filename, 16)
+                self.init_icon(icon_name, "tag_icons/" + filename, 16)
 
 
 # icons_class = Icons()

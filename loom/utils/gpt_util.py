@@ -1,7 +1,9 @@
-import openai
-import numpy as np
-import math
 import codecs
+import math
+
+import numpy as np
+import openai
+
 from loom.utils.tokenizer import logit_mask
 
 
@@ -21,50 +23,30 @@ def dict_logprobs_to_probs(prob_dict):
 
 
 def total_logprob(response):
-    logprobs = response['logprobs']['token_logprobs']
+    logprobs = response["logprobs"]["token_logprobs"]
     logprobs = [i for i in logprobs if not math.isnan(i)]
     return sum(logprobs)
 
 
 def tokenize_ada(prompt):
-    response = openai.Completion.create(
-        engine='ada',
-        prompt=prompt,
-        max_tokens=0,
-        echo=True,
-        n=1,
-        logprobs=0
-    )
+    response = openai.Completion.create(engine="ada", prompt=prompt, max_tokens=0, echo=True, n=1, logprobs=0)
     tokens = response.choices[0]["logprobs"]["tokens"]
     positions = response.choices[0]["logprobs"]["text_offset"]
     return tokens, positions
 
 
-def prompt_probs(prompt, engine='ada'):
-    response = openai.Completion.create(
-        engine=engine,
-        prompt=prompt,
-        max_tokens=0,
-        echo=True,
-        n=1,
-        logprobs=0
-    )
+def prompt_probs(prompt, engine="ada"):
+    response = openai.Completion.create(engine=engine, prompt=prompt, max_tokens=0, echo=True, n=1, logprobs=0)
     positions = response.choices[0]["logprobs"]["text_offset"]
     tokens = response.choices[0]["logprobs"]["tokens"]
     logprobs = response.choices[0]["logprobs"]["token_logprobs"]
     return logprobs, tokens, positions
 
+
 # evaluates logL(prompt+target | prompt)
-def conditional_logprob(prompt, target, engine='ada'):
+def conditional_logprob(prompt, target, engine="ada"):
     combined = prompt + target
-    response = openai.Completion.create(
-        engine=engine,
-        prompt=combined,
-        max_tokens=0,
-        echo=True,
-        n=1,
-        logprobs=0
-    )
+    response = openai.Completion.create(engine=engine, prompt=combined, max_tokens=0, echo=True, n=1, logprobs=0)
     positions = response.choices[0]["logprobs"]["text_offset"]
     logprobs = response.choices[0]["logprobs"]["token_logprobs"]
     word_index = positions.index(len(prompt))
@@ -72,10 +54,9 @@ def conditional_logprob(prompt, target, engine='ada'):
     return total_conditional_logprob
 
 
-
 # TODO use threading
 # returns the conditional probabilities for each event happening after prompt
-def event_probs(prompt, events, engine='ada'):
+def event_probs(prompt, events, engine="ada"):
     probs = []
     for event in events:
         logprob = conditional_logprob(prompt, event, engine)
@@ -86,7 +67,7 @@ def event_probs(prompt, events, engine='ada'):
 
 
 # like event_probs, returns conditional probabilities (normalized & unnormalized) for each token occurring after prompt
-def token_probs(prompt, tokens, engine='ada'):
+def token_probs(prompt, tokens, engine="ada"):
     pass
 
 
@@ -96,26 +77,27 @@ def token_probs(prompt, tokens, engine='ada'):
 # TODO next sequence instead of next token
 def counterfactual(response, token, actual_token=None, next_token=None, sort=True):
     counterfactual_probs = []
-    tokens = response.choices[0]['logprobs']['tokens']
-    top_logprobs = response.choices[0]['logprobs']['top_logprobs']
-    positions = response.choices[0]['logprobs']['text_offset']
+    tokens = response.choices[0]["logprobs"]["tokens"]
+    top_logprobs = response.choices[0]["logprobs"]["top_logprobs"]
+    positions = response.choices[0]["logprobs"]["text_offset"]
     for i, probs in enumerate(top_logprobs):
-        if (actual_token is None and next_token is None) \
-                or actual_token == tokens[i] \
-                or (i < len(tokens) - 1 and next_token == tokens[i+1]):
+        if (
+            (actual_token is None and next_token is None)
+            or actual_token == tokens[i]
+            or (i < len(tokens) - 1 and next_token == tokens[i + 1])
+        ):
             if token in probs:
-                counterfactual_probs.append({'position': positions[i+1],
-                                             'prob': logprobs_to_probs(probs[token])})
+                counterfactual_probs.append({"position": positions[i + 1], "prob": logprobs_to_probs(probs[token])})
             else:
-                counterfactual_probs.append({'position': positions[i+1], 'prob': 0})
+                counterfactual_probs.append({"position": positions[i + 1], "prob": 0})
     if sort:
-        counterfactual_probs = sorted(counterfactual_probs, key=lambda k: k['prob'])
+        counterfactual_probs = sorted(counterfactual_probs, key=lambda k: k["prob"])
     return counterfactual_probs
 
 
 # returns a list of substrings of content and
 # logL(preprompt+substring+target | preprompt+substring) for each substring
-def substring_probs(preprompt, content, target, engine='ada', quiet=0):
+def substring_probs(preprompt, content, target, engine="ada", quiet=0):
     logprobs = []
     substrings = []
     _, positions = tokenize_ada(content)
@@ -127,27 +109,20 @@ def substring_probs(preprompt, content, target, engine='ada', quiet=0):
         substrings.append(substring)
         if not quiet:
             print(substring)
-            print('logprob: ', logprob)
+            print("logprob: ", logprob)
 
     return substrings, logprobs
 
 
 # returns a list of substrings of content
 # logL(substring+target | substring) for each substring
-def token_conditional_logprob(content, target, engine='ada'):
-    response = openai.Completion.create(
-        engine=engine,
-        prompt=content,
-        max_tokens=0,
-        echo=True,
-        n=1,
-        logprobs=100
-    )
-    tokens = response.choices[0]['logprobs']['tokens']
-    top_logprobs = response.choices[0]['logprobs']['top_logprobs']
+def token_conditional_logprob(content, target, engine="ada"):
+    response = openai.Completion.create(engine=engine, prompt=content, max_tokens=0, echo=True, n=1, logprobs=100)
+    tokens = response.choices[0]["logprobs"]["tokens"]
+    top_logprobs = response.choices[0]["logprobs"]["top_logprobs"]
     logprobs = []
     substrings = []
-    substring = ''
+    substring = ""
     for i, probs in enumerate(top_logprobs):
         substrings.append(substring)
         if target in probs:
@@ -158,39 +133,37 @@ def token_conditional_logprob(content, target, engine='ada'):
     return substrings, logprobs
 
 
-
 def sort_logprobs(substrings, logprobs, n_top=None):
     sorted_indices = np.argsort(logprobs)
     top = []
     if n_top is None:
         n_top = len(sorted_indices)
     for i in range(n_top):
-        top.append({'substring': substrings[sorted_indices[-(i + 1)]],
-                    'logprob': logprobs[sorted_indices[-(i + 1)]]})
+        top.append({"substring": substrings[sorted_indices[-(i + 1)]], "logprob": logprobs[sorted_indices[-(i + 1)]]})
     return top
 
 
-def top_logprobs(preprompt, content, target, n_top=None, engine='ada', quiet=0):
+def top_logprobs(preprompt, content, target, n_top=None, engine="ada", quiet=0):
     substrings, logprobs = substring_probs(preprompt, content, target, engine, quiet)
     return sort_logprobs(substrings, logprobs, n_top)
 
 
-def decibels(prior, evidence, target, engine='ada'):
+def decibels(prior, evidence, target, engine="ada"):
     prior_target_logprob = conditional_logprob(prompt=prior, target=target, engine=engine)
     evidence_target_logprob = conditional_logprob(prompt=evidence, target=target, engine=engine)
     return (evidence_target_logprob - prior_target_logprob), prior_target_logprob, evidence_target_logprob
 
 
 def parse_stop(stop_string):
-    return codecs.decode(stop_string, "unicode-escape").split('|')
+    return codecs.decode(stop_string, "unicode-escape").split("|")
+
 
 def parse_logit_bias(logit_string):
-    biases = codecs.decode(logit_string, "unicode-escape").split('|')
+    biases = codecs.decode(logit_string, "unicode-escape").split("|")
     bias_dict = {}
     for b in biases:
-        bias_parts = b.split(':')
+        bias_parts = b.split(":")
         token = bias_parts[0]
         bias = int(bias_parts[1])
         bias_dict[token] = bias
     return logit_mask(bias_dict)
-

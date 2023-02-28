@@ -1,5 +1,6 @@
-from tkinter import ttk
 import tkinter as tk
+from tkinter import ttk
+
 from loom.view.colors import bg_color, text_color
 from loom.view.icons import Icons
 
@@ -9,7 +10,7 @@ icons = Icons()
 class Pane:
     def __init__(self, parent, orient):
         self.pane = None
-        self.parent = parent    
+        self.parent = parent
         self.orient = orient
         self.panes = []
 
@@ -25,7 +26,7 @@ class Pane:
         self.panes = []
         self.pane.destroy()
         self.pane = None
-    
+
     def add_pane(self, weight=1):
         child_pane = Pane(self.pane, tk.VERTICAL if self.orient == tk.HORIZONTAL else tk.HORIZONTAL)
         child_pane.build_pane()
@@ -36,7 +37,16 @@ class Pane:
 
 # This is a pane whose parent is a pane
 class NestedPane(Pane):
-    def __init__(self, name, parent, orient, module_options, module_selection_callback, module_window_destroy_callback, hide_pane_callback):
+    def __init__(
+        self,
+        name,
+        parent,
+        orient,
+        module_options,
+        module_selection_callback,
+        module_window_destroy_callback,
+        hide_pane_callback,
+    ):
         super().__init__(parent, orient)
         self.name = name
         self.frame = None
@@ -57,24 +67,28 @@ class NestedPane(Pane):
     def build_pane(self, weight):
         self.frame = ttk.Frame(self.parent)
         self.parent.add(self.frame, weight=weight)
-        self.menu_frame = ttk.Frame(self.frame)#, background=bg_color())
-        self.menu_frame.pack(side='top', fill='x')
-        
-        self.add_module_button = tk.Label(self.menu_frame, image=icons.get_icon("plus-lightgray"), bg=bg_color(), cursor='hand2')
-        self.add_module_button.bind('<Button-1>', self.add_empty_module_window)
-        #self.add_module_button = tk.Button(self.menu_frame, text='Add Module', fg=text_color(), bg=bg_color(), cursor='hand2')
-        self.add_module_button.pack(side='left', padx=20)
-        #self.add_module_button.bind('<Button-1>', self.add_module_window)
+        self.menu_frame = ttk.Frame(self.frame)  # , background=bg_color())
+        self.menu_frame.pack(side="top", fill="x")
 
-        self.close_icon = icons.get_icon('x-lightgray')
-        self.x_button = tk.Label(self.menu_frame, text='-', fg=text_color(), bg=bg_color(), cursor='hand2')
-        self.x_button.pack(side='right', padx=20)
-        self.x_button.bind('<Button-1>', lambda event, pane=self: self.hide_pane_callback(pane=self))#lambda event, pane_name=self.name: destroy_callback(pane_name=pane_name))
+        self.add_module_button = tk.Label(
+            self.menu_frame, image=icons.get_icon("plus-lightgray"), bg=bg_color(), cursor="hand2"
+        )
+        self.add_module_button.bind("<Button-1>", self.add_empty_module_window)
+        # self.add_module_button = tk.Button(self.menu_frame, text='Add Module', fg=text_color(), bg=bg_color(), cursor='hand2')
+        self.add_module_button.pack(side="left", padx=20)
+        # self.add_module_button.bind('<Button-1>', self.add_module_window)
+
+        self.close_icon = icons.get_icon("x-lightgray")
+        self.x_button = tk.Label(self.menu_frame, text="-", fg=text_color(), bg=bg_color(), cursor="hand2")
+        self.x_button.pack(side="right", padx=20)
+        self.x_button.bind(
+            "<Button-1>", lambda event, pane=self: self.hide_pane_callback(pane=self)
+        )  # lambda event, pane_name=self.name: destroy_callback(pane_name=pane_name))
 
         self.pane = ttk.PanedWindow(self.frame, orient=self.orient)
-        self.pane.pack(side='top', fill='both', expand=True)
+        self.pane.pack(side="top", fill="both", expand=True)
         self.hidden = False
-        
+
     def hide(self):
         if not self.hidden:
             self.parent.forget(self.frame)
@@ -103,9 +117,11 @@ class NestedPane(Pane):
     def add_empty_module_window(self, *args):
         new_module_window = ModuleWindow(self)
         self.module_windows.append(new_module_window)
-        new_module_window.build(self.module_options, self.module_selection_callback, self.module_window_destroy_callback)
+        new_module_window.build(
+            self.module_options, self.module_selection_callback, self.module_window_destroy_callback
+        )
         return new_module_window
-        
+
     def add_module(self, module):
         new_module_window = self.add_empty_module_window()
         new_module_window.change_module(module)
@@ -119,28 +135,32 @@ class ModuleWindow:
         self.parent = parent
         self.frame = None
         self.menu_frame = None
-        self.module_menu = None  
+        self.module_menu = None
         self.module_selection = tk.StringVar()
         self.module = None
         self.close_button = None
-        #self.index = index
+        # self.index = index
 
     def build(self, options, selection_callback, destroy_callback):
-        self.frame = ttk.Frame(self.parent.pane, borderwidth=2, relief='sunken')#, height=1, background=bg_color())
+        self.frame = ttk.Frame(self.parent.pane, borderwidth=2, relief="sunken")  # , height=1, background=bg_color())
         self.parent.pane.add(self.frame, weight=1)
 
         self.menu_frame = ttk.Frame(self.frame)
-        self.menu_frame.pack(side='top', fill='x', expand=False)
+        self.menu_frame.pack(side="top", fill="x", expand=False)
         # make dropdown for selecting a module
-        self.module_selection.set('None')
+        self.module_selection.set("None")
         self.module_menu = tk.OptionMenu(self.menu_frame, self.module_selection, *options)
-        self.module_menu.pack(side='left', expand=True, padx=20)
-        self.module_selection.trace('w', lambda a, b, c, module_window=self: selection_callback(module_window=module_window))
+        self.module_menu.pack(side="left", expand=True, padx=20)
+        self.module_selection.trace(
+            "w", lambda a, b, c, module_window=self: selection_callback(module_window=module_window)
+        )
 
-        self.close_icon = icons.get_icon('x-lightgray')
-        self.x_button = tk.Label(self.menu_frame, text='⨯', fg=text_color(), bg=bg_color(), cursor='hand2')
-        self.x_button.pack(side='right', padx=20)
-        self.x_button.bind('<Button-1>', lambda event, module_window=self: destroy_callback(module_window=module_window))
+        self.close_icon = icons.get_icon("x-lightgray")
+        self.x_button = tk.Label(self.menu_frame, text="⨯", fg=text_color(), bg=bg_color(), cursor="hand2")
+        self.x_button.pack(side="right", padx=20)
+        self.x_button.bind(
+            "<Button-1>", lambda event, module_window=self: destroy_callback(module_window=module_window)
+        )
 
     def destroy(self):
         self.parent.module_windows.remove(self)
@@ -177,7 +197,7 @@ class Module:
         self.callbacks = callbacks
         self.state = state
         self.textboxes = []
-        #self.settings = self.state.module_settings[name] if name in self.state.module_settings else {}
+        # self.settings = self.state.module_settings[name] if name in self.state.module_settings else {}
 
     def settings(self):
         return self.state.module_settings[self.name] if self.name in self.state.module_settings else {}
@@ -185,8 +205,8 @@ class Module:
     def build(self, parent):
         self.parent = parent
         self.frame = ttk.Frame(self.parent.frame, borderwidth=2)
-        self.frame.pack(expand=True, fill='both', side="top")
-    
+        self.frame.pack(expand=True, fill="both", side="top")
+
     def destroy(self):
         self.frame.pack_forget()
         self.frame.destroy()
@@ -203,9 +223,9 @@ class Module:
 
     # returns true if any of the module's textboxes are enabled and have focus
     def textbox_has_focus(self):
-        #print(self.name)
-        #print(self.frame)
+        # print(self.name)
+        # print(self.frame)
         for textbox in self.textboxes:
-            if self.frame.focus_get() == textbox and textbox.cget('state') == 'normal':
+            if self.frame.focus_get() == textbox and textbox.cget("state") == "normal":
                 return True
         return False

@@ -1,199 +1,199 @@
 {
-    "root": {
-        "mutable": false,
-        "visited": true,
-        "text": "",
-        "children": [
-            {
-                "text": "It is generally agreed that the sense of information isolated by Claude Shannon and used in mathematical information theory is legitimate, useful, and relevant in many parts of biology. In this sense, anything is a source of information if it has a range of possible states, and one variable carries information about another to the extent that their states are physically correlated.\nBut it is also agreed that many uses of informational language in biology seem to make use of a richer and more problematic concept than Shannon\u2019s. Some have drawn on the teleosemantic tradition in philosophy of mind to make sense of this richer concept. Other theorists have countered that Shannon\u2019s correlational conception of information is richer than it looks.\nFirst, it can be helpful to define the terms teleology, teleonomy and teleosomantic:\n- ",
-                "children": [
-                    {
-                        "id": "4b0fc358-ac89-11ed-8661-0d9eaf142f06",
-                        "text": "\n\n** Generating **",
-                        "children": [],
-                        "mutable": false,
-                        "open": 1,
-                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
-                    },
-                    {
-                        "id": "4b0fc359-ac89-11ed-8661-0d9eaf142f06",
-                        "text": "\n\n** Generating **",
-                        "children": [],
-                        "mutable": false,
-                        "open": 1,
-                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
-                    },
-                    {
-                        "id": "4b0fc35a-ac89-11ed-8661-0d9eaf142f06",
-                        "text": "\n\n** Generating **",
-                        "children": [],
-                        "mutable": false,
-                        "open": 1,
-                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
-                    },
-                    {
-                        "id": "4b0fc35b-ac89-11ed-8661-0d9eaf142f06",
-                        "text": "\n\n** Generating **",
-                        "children": [],
-                        "mutable": false,
-                        "open": 1,
-                        "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
-                    }
-                ],
-                "parent_id": "f2e5d98e-ac87-11ed-8661-0d9eaf142f06",
-                "id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
-                "open": 1,
-                "visited": true
-            }
-        ],
-        "id": "f2e5d98e-ac87-11ed-8661-0d9eaf142f06",
-        "open": true
-    },
-    "chapters": {},
-    "canonical": [],
-    "summaries": {},
-    "model_responses": {},
-    "generation_settings": {
-        "num_continuations": 4,
-        "temperature": 0.9,
-        "top_p": 1,
-        "response_length": 100,
-        "prompt_length": 6000,
-        "logprobs": 0,
-        "model": "davinci",
-        "stop": "",
-        "start": "",
-        "restart": "",
-        "preset": "None",
-        "global_context": "",
-        "logit_bias": "",
-        "template": "Default"
-    },
-    "inline_generation_settings": {
-        "model": "davinci",
-        "num_continuations": 8,
-        "temperature": 1,
-        "top_p": 1,
-        "response_length": 60,
-        "prompt_length": 6000,
-        "logprobs": 0,
-        "stop": "\\n|.|?|!",
-        "start": "",
-        "restart": "",
-        "preset": "Single Line",
-        "global_context": "",
-        "logit_bias": "",
-        "template": "Default"
-    },
-    "frame": {
-        "module_settings": {
-            "edit": {
-                "node_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
-            }
-        },
-        "workspace": {
-            "side_pane": {
-                "open": true,
-                "modules": [
-                    "edit"
-                ]
-            }
-        },
-        "generation_settings": {}
-    },
-    "visualization_settings": {
-        "text_width": 450,
-        "leaf_distance": 200,
-        "level_distance": 150,
-        "text_size": 10,
-        "horizontal": true,
-        "display_text": true,
-        "show_buttons": true,
-        "chapter_mode": false
-    },
-    "preferences": {
-        "reverse": false,
-        "walk": "descendents",
-        "nav_tag": "bookmark",
-        "editable": true,
-        "history_conflict": "overwrite",
-        "coloring": "edit",
-        "bold_prompt": true,
-        "font_size": 12,
-        "line_spacing": 8,
-        "paragraph_spacing": 10,
-        "revision_history": false,
-        "autosave": false,
-        "model_response": "backup",
-        "prob": true
-    },
+  "canonical": [],
+  "chapters": {},
+  "frame": {
+    "generation_settings": {},
     "module_settings": {
-        "edit": {
-            "node_id": null
-        },
-        "input": {
-            "auto_response": true,
-            "submit_template": "{input}"
-        },
-        "minimap": {
-            "level_offset": 70,
-            "leaf_offset": 40,
-            "node_radius": 10,
-            "line_thickness": 2,
-            "horizontal": false,
-            "prune_mode": "open_in_nav",
-            "path_length_limit": 10
-        },
-        "read children": {
-            "filter": "in_nav",
-            "show_continue": "no alternatives",
-            "show_options": "always"
-        },
-        "children": {
-            "toggle_tag": "bookmark"
-        }
+      "edit": {
+        "node_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
+      }
     },
-    "tags": {
-        "bookmark": {
-            "name": "bookmark",
-            "scope": "node",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "b",
-            "icon": "bookmark-black"
-        },
-        "canonical": {
-            "name": "canonical",
-            "scope": "ancestry",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "*",
-            "icon": "book-white"
-        },
-        "archived": {
-            "name": "archived",
-            "scope": "node",
-            "hide": true,
-            "show_only": false,
-            "toggle_key": "!",
-            "icon": "archive-yellow"
-        },
-        "note": {
-            "name": "note",
-            "scope": "node",
-            "hide": true,
-            "show_only": false,
-            "toggle_key": "#",
-            "icon": "note-black"
-        },
-        "pinned": {
-            "name": "pinned",
-            "scope": "node",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "^",
-            "icon": "pin-red"
-        }
+    "workspace": {
+      "side_pane": {
+        "modules": [
+          "edit"
+        ],
+        "open": true
+      }
+    }
+  },
+  "generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 4,
+    "preset": "None",
+    "prompt_length": 6000,
+    "response_length": 100,
+    "restart": "",
+    "start": "",
+    "stop": "",
+    "temperature": 0.9,
+    "template": "Default",
+    "top_p": 1
+  },
+  "inline_generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 8,
+    "preset": "Single Line",
+    "prompt_length": 6000,
+    "response_length": 60,
+    "restart": "",
+    "start": "",
+    "stop": "\\n|.|?|!",
+    "temperature": 1,
+    "template": "Default",
+    "top_p": 1
+  },
+  "model_responses": {},
+  "module_settings": {
+    "children": {
+      "toggle_tag": "bookmark"
     },
-    "selected_node_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06"
+    "edit": {
+      "node_id": null
+    },
+    "input": {
+      "auto_response": true,
+      "submit_template": "{input}"
+    },
+    "minimap": {
+      "horizontal": false,
+      "leaf_offset": 40,
+      "level_offset": 70,
+      "line_thickness": 2,
+      "node_radius": 10,
+      "path_length_limit": 10,
+      "prune_mode": "open_in_nav"
+    },
+    "read children": {
+      "filter": "in_nav",
+      "show_continue": "no alternatives",
+      "show_options": "always"
+    }
+  },
+  "preferences": {
+    "autosave": false,
+    "bold_prompt": true,
+    "coloring": "edit",
+    "editable": true,
+    "font_size": 12,
+    "history_conflict": "overwrite",
+    "line_spacing": 8,
+    "model_response": "backup",
+    "nav_tag": "bookmark",
+    "paragraph_spacing": 10,
+    "prob": true,
+    "reverse": false,
+    "revision_history": false,
+    "walk": "descendents"
+  },
+  "root": {
+    "children": [
+      {
+        "children": [
+          {
+            "children": [],
+            "id": "4b0fc358-ac89-11ed-8661-0d9eaf142f06",
+            "mutable": false,
+            "open": 1,
+            "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+            "text": "\n\n** Generating **"
+          },
+          {
+            "children": [],
+            "id": "4b0fc359-ac89-11ed-8661-0d9eaf142f06",
+            "mutable": false,
+            "open": 1,
+            "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+            "text": "\n\n** Generating **"
+          },
+          {
+            "children": [],
+            "id": "4b0fc35a-ac89-11ed-8661-0d9eaf142f06",
+            "mutable": false,
+            "open": 1,
+            "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+            "text": "\n\n** Generating **"
+          },
+          {
+            "children": [],
+            "id": "4b0fc35b-ac89-11ed-8661-0d9eaf142f06",
+            "mutable": false,
+            "open": 1,
+            "parent_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+            "text": "\n\n** Generating **"
+          }
+        ],
+        "id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+        "open": 1,
+        "parent_id": "f2e5d98e-ac87-11ed-8661-0d9eaf142f06",
+        "text": "It is generally agreed that the sense of information isolated by Claude Shannon and used in mathematical information theory is legitimate, useful, and relevant in many parts of biology. In this sense, anything is a source of information if it has a range of possible states, and one variable carries information about another to the extent that their states are physically correlated.\nBut it is also agreed that many uses of informational language in biology seem to make use of a richer and more problematic concept than Shannon\u2019s. Some have drawn on the teleosemantic tradition in philosophy of mind to make sense of this richer concept. Other theorists have countered that Shannon\u2019s correlational conception of information is richer than it looks.\nFirst, it can be helpful to define the terms teleology, teleonomy and teleosomantic:\n- ",
+        "visited": true
+      }
+    ],
+    "id": "f2e5d98e-ac87-11ed-8661-0d9eaf142f06",
+    "mutable": false,
+    "open": true,
+    "text": "",
+    "visited": true
+  },
+  "selected_node_id": "f2e5d98f-ac87-11ed-8661-0d9eaf142f06",
+  "summaries": {},
+  "tags": {
+    "archived": {
+      "hide": true,
+      "icon": "archive-yellow",
+      "name": "archived",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "!"
+    },
+    "bookmark": {
+      "hide": false,
+      "icon": "bookmark-black",
+      "name": "bookmark",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "b"
+    },
+    "canonical": {
+      "hide": false,
+      "icon": "book-white",
+      "name": "canonical",
+      "scope": "ancestry",
+      "show_only": false,
+      "toggle_key": "*"
+    },
+    "note": {
+      "hide": true,
+      "icon": "note-black",
+      "name": "note",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "#"
+    },
+    "pinned": {
+      "hide": false,
+      "icon": "pin-red",
+      "name": "pinned",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "^"
+    }
+  },
+  "visualization_settings": {
+    "chapter_mode": false,
+    "display_text": true,
+    "horizontal": true,
+    "leaf_distance": 200,
+    "level_distance": 150,
+    "show_buttons": true,
+    "text_size": 10,
+    "text_width": 450
+  }
 }

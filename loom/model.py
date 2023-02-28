@@ -1,24 +1,41 @@
+import bisect
+import codecs
 import functools
+import json
+import math
 import os
 import threading
-import math
 import uuid
-import bisect
-from collections import defaultdict, ChainMap
-import codecs
-import json
-from loom.utils.frames_util import frame_merger, frame_merger_append
+from collections import ChainMap, defaultdict
 from copy import deepcopy
 
-from loom.gpt import openAI_generate, search, gen
-from loom.utils.util import json_create, timestamp, json_open, clip_num, index_clip, diff
-from loom.utils.util_tree import fix_miro_tree, flatten_tree, node_ancestry, in_ancestry, get_inherited_attribute, \
-    subtree_list, generate_conditional_tree, filtered_children, \
-    new_node, add_immutable_root, make_simple_tree, fix_tree, ancestry_in_range, ancestry_plaintext, ancestor_text_indices, \
-    node_index, ancestor_text_list, tree_subset
-from loom.utils.gpt_util import conditional_logprob, tokenize_ada, prompt_probs, logprobs_to_probs, parse_stop
+from loom.gpt import gen, openAI_generate, search
+from loom.utils.frames_util import frame_merger, frame_merger_append
+from loom.utils.gpt_util import conditional_logprob, logprobs_to_probs, parse_stop, prompt_probs, tokenize_ada
 from loom.utils.multiverse_util import greedy_word_multiverse
-from loom.utils.node_conditions import conditions, condition_lambda
+from loom.utils.node_conditions import condition_lambda, conditions
+from loom.utils.util import clip_num, diff, index_clip, json_create, json_open, timestamp
+from loom.utils.util_tree import (
+    add_immutable_root,
+    ancestor_text_indices,
+    ancestor_text_list,
+    ancestry_in_range,
+    ancestry_plaintext,
+    filtered_children,
+    fix_miro_tree,
+    fix_tree,
+    flatten_tree,
+    generate_conditional_tree,
+    get_inherited_attribute,
+    in_ancestry,
+    make_simple_tree,
+    new_node,
+    node_ancestry,
+    node_index,
+    subtree_list,
+    tree_subset,
+)
+
 
 # Calls any callbacks associated with the wrapped function
 # class must have a defaultdict(list)[func_name] = [*callbacks]
@@ -35,101 +52,97 @@ def event(func):
 
 
 DEFAULT_PREFERENCES = {
-
     # Nav tree
-    'reverse': False,
-
-    # Navigation 
-    'walk': 'descendents',  # 'leaves', 'uniform'
-    'nav_tag': 'bookmark',
-
-    # Story frame 
-    'editable': True,
-    'history_conflict': 'overwrite', # 'branch', 'ask', 'forbid'
-    'coloring': 'edit',  # 'read', 'none'
-    'bold_prompt': True,
-    'font_size': 12,
-    'line_spacing': 8,
-    'paragraph_spacing': 10,
-
+    "reverse": False,
+    # Navigation
+    "walk": "descendents",  # 'leaves', 'uniform'
+    "nav_tag": "bookmark",
+    # Story frame
+    "editable": True,
+    "history_conflict": "overwrite",  # 'branch', 'ask', 'forbid'
+    "coloring": "edit",  # 'read', 'none'
+    "bold_prompt": True,
+    "font_size": 12,
+    "line_spacing": 8,
+    "paragraph_spacing": 10,
     # Saving
-    'revision_history': False,
-    'autosave': False,
+    "revision_history": False,
+    "autosave": False,
     #'save_counterfactuals': False,
-    'model_response': 'backup', #'discard', #'save'
-
+    "model_response": "backup",  #'discard', #'save'
     # generation data
-    'prob': True,
+    "prob": True,
     # darkmode
 }
 
 DEFAULT_WORKSPACE = {
-    'side_pane': {'open': False, 
-                  'modules': []},
-    'bottom_pane': {'open': False, 
-                    'modules': []},
-    'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev", "Wavefunction", "Map"],
-    'alt_textbox': False,
-    'show_search': False
+    "side_pane": {"open": False, "modules": []},
+    "bottom_pane": {"open": False, "modules": []},
+    "buttons": ["Edit", "Delete", "Generate", "New Child", "Next", "Prev", "Wavefunction", "Map"],
+    "alt_textbox": False,
+    "show_search": False,
 }
 
 DEFAULT_MODULE_SETTINGS = {
-    'edit': {'node_id': None,},
-    'input': {'auto_response': True, 'submit_template': "{input}"},
-    'minimap': {'level_offset': 70,
-                'leaf_offset': 40,
-                'node_radius': 10,
-                'line_thickness': 2,
-                'horizontal': False,
-                'prune_mode': 'open_in_nav', #'in_nav', 'ancestry_dist', 'wavefunction_collapse', 'selected_dist', 'all'
-                'path_length_limit': 10,
-                },
-    'read children': {'filter': 'in_nav', #'all', 'uncleared', or name of tag TODO hide condition
-                      'show_continue': 'no alternatives', #no choice, always, never, or name of tag
-                      'show_options': 'always'}, #always, never, or name of tag 
-    'children': {'toggle_tag': 'bookmark'}
+    "edit": {
+        "node_id": None,
+    },
+    "input": {"auto_response": True, "submit_template": "{input}"},
+    "minimap": {
+        "level_offset": 70,
+        "leaf_offset": 40,
+        "node_radius": 10,
+        "line_thickness": 2,
+        "horizontal": False,
+        "prune_mode": "open_in_nav",  #'in_nav', 'ancestry_dist', 'wavefunction_collapse', 'selected_dist', 'all'
+        "path_length_limit": 10,
+    },
+    "read children": {
+        "filter": "in_nav",  #'all', 'uncleared', or name of tag TODO hide condition
+        "show_continue": "no alternatives",  # no choice, always, never, or name of tag
+        "show_options": "always",
+    },  # always, never, or name of tag
+    "children": {"toggle_tag": "bookmark"},
 }
 
 DEFAULT_GENERATION_SETTINGS = {
-    'num_continuations': 4,
-    'temperature': 0.9,
-    'top_p': 1,
-    'response_length': 100,
-    'prompt_length': 6000,
-    'logprobs': 0,
-    #"adaptive": False,
+    "num_continuations": 4,
+    "temperature": 0.9,
+    "top_p": 1,
+    "response_length": 100,
+    "prompt_length": 6000,
+    "logprobs": 0,
+    # "adaptive": False,
     "model": "davinci",
-    "stop": '',  # separated by '|'
-    "start": '',
-    "restart": '',
-    'preset': 'None',
-    'global_context': '',
-    'logit_bias': '',
-    'template': 'Default',
+    "stop": "",  # separated by '|'
+    "start": "",
+    "restart": "",
+    "preset": "None",
+    "global_context": "",
+    "logit_bias": "",
+    "template": "Default",
 }
 
 
 DEFAULT_MODEL_CONFIG = {
-    'models': {
-        'ada': {'type': 'openai'},
-        'babbage': {'type': 'openai'},
-        'content-filter-alpha-c4': {'type': 'openai'},
-        'content-filter-dev': {'type': 'openai'},
-        'curie': {'type': 'openai'},
-        'cursing-filter-v6': {'type': 'openai'},
-        'davinci': {'type': 'openai'},
-        'text-davinci-002': {'type': 'openai'},
-        'code-davinci-002': {'type': 'openai'},
-        'instruct-curie-beta': {'type': 'openai'},
-        'instruct-davinci-beta': {'type': 'openai'},
-        'j1-large': {'type': 'ai21'},
-        'j1-jumbo': {'type': 'ai21'},
-        'gpt-neo-1-3b': {'type': 'gooseai'},
-        'gpt-neo-2-7b': {'type': 'gooseai'},
-        'gpt-j-6b': {'type': 'gooseai'},
-        'gpt-neo-20b': {'type': 'gooseai'},
-
-
+    "models": {
+        "ada": {"type": "openai"},
+        "babbage": {"type": "openai"},
+        "content-filter-alpha-c4": {"type": "openai"},
+        "content-filter-dev": {"type": "openai"},
+        "curie": {"type": "openai"},
+        "cursing-filter-v6": {"type": "openai"},
+        "davinci": {"type": "openai"},
+        "text-davinci-002": {"type": "openai"},
+        "code-davinci-002": {"type": "openai"},
+        "instruct-curie-beta": {"type": "openai"},
+        "instruct-davinci-beta": {"type": "openai"},
+        "j1-large": {"type": "ai21"},
+        "j1-jumbo": {"type": "ai21"},
+        "gpt-neo-1-3b": {"type": "gooseai"},
+        "gpt-neo-2-7b": {"type": "gooseai"},
+        "gpt-j-6b": {"type": "gooseai"},
+        "gpt-neo-20b": {"type": "gooseai"},
     },
     #'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
     #'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),
@@ -154,14 +167,14 @@ DEFAULT_INLINE_GENERATION_SETTINGS = {
 
 
 DEFAULT_VISUALIZATION_SETTINGS = {
-    'text_width': 450,
-    'leaf_distance': 200,
-    'level_distance': 150,
-    'text_size': 10,
-    'horizontal': True,
-    'display_text': True,
-    'show_buttons': True,
-    'chapter_mode': False
+    "text_width": 450,
+    "leaf_distance": 200,
+    "level_distance": 150,
+    "text_size": 10,
+    "horizontal": True,
+    "display_text": True,
+    "show_buttons": True,
+    "chapter_mode": False
     # show chapters only
     # show canonical only
     # highlight canonical
@@ -171,48 +184,48 @@ DEFAULT_VISUALIZATION_SETTINGS = {
 DEFAULT_VARS = {}
 
 # new tags should be added to the root level by default
-DEFAULT_TAGS = { 
-    "bookmark": { 
-        "name": "bookmark", 
+DEFAULT_TAGS = {
+    "bookmark": {
+        "name": "bookmark",
         "scope": "node",
         "hide": False,
         "show_only": False,
         "toggle_key": "b",
         "icon": "bookmark-black",
     },
-    "canonical": { 
-        "name": "canonical", 
+    "canonical": {
+        "name": "canonical",
         "scope": "ancestry",
         "hide": False,
         "show_only": False,
-        "toggle_key": '*',
+        "toggle_key": "*",
         "icon": "book-white",
     },
-    "archived": { 
-        "name": "archived", 
+    "archived": {
+        "name": "archived",
         "scope": "node",
         "hide": True,
         "show_only": False,
         "toggle_key": "!",
         "icon": "archive-yellow",
     },
-    "note": { 
-        "name": "note", 
+    "note": {
+        "name": "note",
         "scope": "node",
         "hide": True,
         "show_only": False,
         "toggle_key": "#",
         "icon": "note-black",
     },
-    "pinned": { 
-        "name": "pinned", 
+    "pinned": {
+        "name": "pinned",
         "scope": "node",
         "hide": False,
         "show_only": False,
         "toggle_key": "^",
         "icon": "pin-red",
-    }
- }
+    },
+}
 
 EMPTY_TREE = {
     "root": {
@@ -230,7 +243,6 @@ EMPTY_TREE = {
 
 
 class TreeModel:
-
     def __init__(self, root):
         self.app = root
         self.app.bind("<<TreeUpdated>>", lambda _: self.tree_updated())
@@ -244,11 +256,11 @@ class TreeModel:
         self.tree_node_dict = None
         # {chapter_id: chapter}
         self.chapters = None
-        #self.memories = None
+        # self.memories = None
         self.summaries = None
         self.checkpoint = None
         self.canonical = None
-        #self.tags = None
+        # self.tags = None
         self.model_responses = None
 
         self.selected_node_id = None
@@ -262,16 +274,15 @@ class TreeModel:
 
     @property
     def visualization_settings(self):
-        return self.tree_raw_data.get("visualization_settings") \
-            if self.tree_raw_data and "visualization_settings" in self.tree_raw_data \
+        return (
+            self.tree_raw_data.get("visualization_settings")
+            if self.tree_raw_data and "visualization_settings" in self.tree_raw_data
             else DEFAULT_VISUALIZATION_SETTINGS
+        )
 
     @property
     def tags(self):
-        return self.tree_raw_data.get("tags") \
-            if self.tree_raw_data and "tags" in self.tree_raw_data \
-            else DEFAULT_TAGS
-
+        return self.tree_raw_data.get("tags") if self.tree_raw_data and "tags" in self.tree_raw_data else DEFAULT_TAGS
 
     @property
     def model_config(self):
@@ -279,69 +290,59 @@ class TreeModel:
 
     @property
     def generation_settings(self):
-        return self.state['generation_settings']
+        return self.state["generation_settings"]
 
     @property
     def inline_generation_settings(self):
-        return self.state['inline_generation_settings']
+        return self.state["inline_generation_settings"]
 
     @property
     def preferences(self):
-        return self.state['preferences']
+        return self.state["preferences"]
 
     @property
     def module_settings(self):
-        return self.state['module_settings']
+        return self.state["module_settings"]
 
     @property
     def workspace(self):
-        return self.state['workspace']
+        return self.state["workspace"]
 
     @property
     def memories(self):
-        return self.state['memories']
+        return self.state["memories"]
 
     @property
     def vars(self):
-        return self.state['vars']
-    
+        return self.state["vars"]
+
     # user frame
 
     @property
     def user_preferences(self):
-        return self.user_frame.get("preferences") \
-            if "preferences" in self.user_frame \
-            else {}
+        return self.user_frame.get("preferences") if "preferences" in self.user_frame else {}
 
     @property
     def user_generation_settings(self):
-        return self.user_frame.get("generation_settings") \
-            if "generation_settings" in self.user_frame \
-            else {}
+        return self.user_frame.get("generation_settings") if "generation_settings" in self.user_frame else {}
 
     @property
     def user_inline_generation_settings(self):
-        return self.user_frame.get("inline_generation_settings") \
-            if "inline_generation_settings" in self.user_frame \
-            else {}
+        return (
+            self.user_frame.get("inline_generation_settings") if "inline_generation_settings" in self.user_frame else {}
+        )
 
     @property
     def user_module_settings(self):
-        return self.user_frame.get("module_settings") \
-            if "module_settings" in self.user_frame \
-            else {}
+        return self.user_frame.get("module_settings") if "module_settings" in self.user_frame else {}
 
     @property
     def user_workspace(self):
-        return self.user_frame.get("workspace") \
-            if "workspace" in self.user_frame \
-            else {}
+        return self.user_frame.get("workspace") if "workspace" in self.user_frame else {}
 
     @property
     def user_frame(self):
-        return self.tree_raw_data.get("frame") \
-            if self.tree_raw_data and "frame" in self.tree_raw_data \
-            else {}
+        return self.tree_raw_data.get("frame") if self.tree_raw_data and "frame" in self.tree_raw_data else {}
 
     @property
     def state(self):
@@ -352,23 +353,22 @@ class TreeModel:
         state["generation_settings"] = deepcopy(DEFAULT_GENERATION_SETTINGS)
         state["inline_generation_settings"] = deepcopy(DEFAULT_INLINE_GENERATION_SETTINGS)
         state["workspace"] = deepcopy(DEFAULT_WORKSPACE)
-        state["module_settings"] = deepcopy(DEFAULT_MODULE_SETTINGS) 
+        state["module_settings"] = deepcopy(DEFAULT_MODULE_SETTINGS)
         state["model_config"] = deepcopy(DEFAULT_MODEL_CONFIG)
         frames = self.accumulate_frames(self.selected_node) if self.selected_node else {}
         frame_merger.merge(state, frames)
         frame_merger.merge(state, self.user_frame)
         return state
 
-
     def name(self):
-        return os.path.splitext(os.path.basename(self.tree_filename))[0] if self.tree_filename else 'Untitled'
+        return os.path.splitext(os.path.basename(self.tree_filename))[0] if self.tree_filename else "Untitled"
 
     #################################
     #   Frames
     #################################
     """
-    Frames are updates to the state applied by nodes in the tree. 
-    At any node in the multiverse, the state of the tree is the accumulation of all frames from its ancestry, 
+    Frames are updates to the state applied by nodes in the tree.
+    At any node in the multiverse, the state of the tree is the accumulation of all frames from its ancestry,
     applied in chronological order (the future can override the past).
     A frame is a dictionary which is merged into the state of the tree using deepmerge.
     """
@@ -376,22 +376,22 @@ class TreeModel:
     def accumulate_frames(self, node):
         frames = []
         for ancestor in self.ancestry(node):
-            if 'frame' in ancestor:
-                frames.append(ancestor['frame'])
+            if "frame" in ancestor:
+                frames.append(ancestor["frame"])
         frame_accumulator = {}
         for frame in frames:
             frame_merger.merge(frame_accumulator, deepcopy(frame))
         return frame_accumulator
 
     def set_frame(self, frame_parent, frame):
-        frame_parent['frame'] = deepcopy(frame)
+        frame_parent["frame"] = deepcopy(frame)
 
     # def overwrite_frame(self, frame, new_frame):
     #     frame = deepcopy(new_frame)
 
     def update(self, dict, update, append=False):
         if append:
-                frame_merger_append.merge(dict, deepcopy(update))
+            frame_merger_append.merge(dict, deepcopy(update))
         else:
             frame_merger.merge(dict, deepcopy(update))
 
@@ -412,35 +412,35 @@ class TreeModel:
         return update_path
 
     def update_frame(self, node, update, append=False):
-        if 'frame' in node:
-            self.update(node['frame'], update, append)
+        if "frame" in node:
+            self.update(node["frame"], update, append)
         else:
-            node['frame'] = deepcopy(update)
+            node["frame"] = deepcopy(update)
         self.tree_updated(write=False)
 
     def get_frame(self, node):
-        return node.get('frame', {})
+        return node.get("frame", {})
 
     def set_user_frame(self, state):
-        self.tree_raw_data['frame'] = deepcopy(state)
+        self.tree_raw_data["frame"] = deepcopy(state)
 
     def update_user_frame(self, update, append=False):
-        if 'frame' in self.tree_raw_data:
-            self.update(self.tree_raw_data['frame'], update, append)
+        if "frame" in self.tree_raw_data:
+            self.update(self.tree_raw_data["frame"], update, append)
         else:
-            self.tree_raw_data['frame'] = deepcopy(update)
+            self.tree_raw_data["frame"] = deepcopy(update)
         self.tree_updated(write=False)
 
     # TODO merge with frame
     def set_user_frame_partial(self, value, path):
-        if 'frame' not in self.tree_raw_data:
-            self.tree_raw_data['frame'] = {}
-        self.set_path(self.tree_raw_data['frame'], value, path)
-        
+        if "frame" not in self.tree_raw_data:
+            self.tree_raw_data["frame"] = {}
+        self.set_path(self.tree_raw_data["frame"], value, path)
+
     def set_frame_partial(self, node, value, path):
-        if 'frame' not in node:
-            node['frame'] = {}
-        self.set_path(node['frame'], value, path)
+        if "frame" not in node:
+            node["frame"] = {}
+        self.set_path(node["frame"], value, path)
 
     def clear_user_frame(self):
         self.set_user_frame({})
@@ -473,13 +473,12 @@ class TreeModel:
         self.tree_node_dict = {d["id"]: d for d in flatten_tree(self.tree_raw_data["root"])}
         fix_miro_tree(self.nodes)
 
-
     @event
     def edit_new_nodes(self):
-        print('new nodes:', self.new_nodes)
+        print("new nodes:", self.new_nodes)
         self.tree_updated()
         for node_id in self.new_nodes[0]:
-            self.node(node_id)['mutable'] = True
+            self.node(node_id)["mutable"] = True
         self.tree_updated(edit=self.new_nodes[0])
         del self.new_nodes[0]
 
@@ -500,7 +499,7 @@ class TreeModel:
     #################################
 
     def root(self):
-        return self.tree_raw_data['root']
+        return self.tree_raw_data["root"]
 
     # return the node in tree_node_dict with id
     def node(self, node_id):
@@ -527,14 +526,12 @@ class TreeModel:
     def nodes(self):
         return list(self.tree_node_dict.values()) if self.tree_node_dict else None
 
-
     @property
     def tree_traversal_idx(self):
         return self.nodes.index(self.selected_node)
 
-
     def nodes_list(self, filter=None):
-        #tree = tree if tree else self.tree_node_dict
+        # tree = tree if tree else self.tree_node_dict
         if not filter:
             return list(self.tree_node_dict.values())
         else:
@@ -542,10 +539,10 @@ class TreeModel:
 
     def nodes_dict(self, filter=None):
         nodes = self.nodes_list(filter)
-        return {d['id']: d for d in nodes}
+        return {d["id"]: d for d in nodes}
 
     def traversal_idx(self, node, filter=None):
-        #tree = tree if tree else self.tree_node_dict
+        # tree = tree if tree else self.tree_node_dict
         nodes = self.nodes_list(filter) if filter else self.nodes
         return nodes.index(node)
         # for i, node in enumerate(nodes):
@@ -558,7 +555,6 @@ class TreeModel:
         else:
             return {idx: d for idx, d in enumerate(nodes)}
 
-
     # Returns [{chapter: {}, id, children: []}, ...]
     def _build_chapter_trees(self, node):
         # Returns a 1 element list if the node is a chapter, else a list of children chapters
@@ -566,11 +562,7 @@ class TreeModel:
         children_chapters = [item for sublist in children_chapter_lists for item in sublist]
         if "chapter_id" in node:
             chapter = self.chapters[node["chapter_id"]]
-            return [{
-                "chapter": chapter,
-                "id": chapter["id"],
-                "children": children_chapters
-            }]
+            return [{"chapter": chapter, "id": chapter["id"], "children": children_chapters}]
         else:
             return children_chapters
 
@@ -585,7 +577,6 @@ class TreeModel:
         chapter_tree_nodes = dict(ChainMap(*flat_maps))
         return chapter_trees, chapter_tree_nodes
 
-
     #################################
     #   Ancestry
     #################################
@@ -593,7 +584,7 @@ class TreeModel:
     def ancestry(self, node, root=None):
         if not root:
             return node_ancestry(node, self.tree_node_dict)
-        else: 
+        else:
             return ancestry_in_range(root=root, node=node, node_dict=self.tree_node_dict)
 
     def ancestry_text(self, node, root=None):
@@ -616,7 +607,6 @@ class TreeModel:
                 return False
         return True
 
-
     #################################
     #   Subtree
     #################################
@@ -624,9 +614,8 @@ class TreeModel:
     def children_text_list(self, node, filter=None):
         return [self.text(child) for child in filtered_children(node, filter)]
 
-    def children_text(self, node, delimiter='\n', filter=None):
+    def children_text(self, node, delimiter="\n", filter=None):
         return delimiter.join(self.children_text_list(node, filter))
-
 
     #################################
     #   Traversal
@@ -653,7 +642,7 @@ class TreeModel:
                 self.selection_updated(**kwargs)
             return self.selected_node
 
-    #TODO move out of model
+    # TODO move out of model
     # def traverse_tree(self, offset=1, visible_only=True):
     #     if self.tree_node_dict:
     #         new_node_id = self.next_id(offset, visible_only)
@@ -690,7 +679,7 @@ class TreeModel:
         return list(true_indices.values())[go_to_true]["id"]
 
     def parent(self, node):
-        return self.node(node['parent_id']) if 'parent_id' in node else None
+        return self.node(node["parent_id"]) if "parent_id" in node else None
 
     # return child
     def child(self, node, child_num, filter=None):
@@ -727,45 +716,44 @@ class TreeModel:
         else:
             return len(siblings)
 
-
     #################################
     #   Conditionals
     #################################
 
     def has_parent(self, node):
-        return 'parent_id' in node and node['parent_id']
+        return "parent_id" in node and node["parent_id"]
 
     def is_compound(self, node):
-        return 'masked_head' in node
+        return "masked_head" in node
 
     def is_hoisted(self, node):
-        return node.get('hoisted', False)
+        return node.get("hoisted", False)
 
     def is_mutable(self, node):
-        return node.get('mutable', True)
+        return node.get("mutable", True)
 
     def is_root(self, node):
         return node == self.root()
 
     def visible(self, node):
-        return self.visible_conditions()(node) or self.is_root(node) #or self.is_compound(node)
+        return self.visible_conditions()(node) or self.is_root(node)  # or self.is_compound(node)
 
     def id_visible(self, node_id):
         return self.visible(self.node(node_id))
 
     def is_AI_generated(self, node):
-        if 'meta' in node:
-            if 'source' in node['meta']:
+        if "meta" in node:
+            if "source" in node["meta"]:
                 return node["meta"]["source"] == "AI"
         return False
 
     def is_template(self, node):
-        return node.get('template', False)
+        return node.get("template", False)
 
     def construct_node_condition(self, info_dict):
-        name = info_dict['name']
-        params = info_dict.get('params', {})
-        params['tree_node_dict'] = self.tree_node_dict
+        name = info_dict["name"]
+        params = info_dict.get("params", {})
+        params["tree_node_dict"] = self.tree_node_dict
         return lambda node: conditions[name](node=node, **params)
 
     def generate_filtered_tree(self, root=None):
@@ -780,20 +768,18 @@ class TreeModel:
         and_conditions = []
         or_conditions = []
         for tag, attributes in self.tags.items():
-            if attributes['hide']:
+            if attributes["hide"]:
                 and_conditions.append(lambda node, _tag=tag: not self.has_tag(node, _tag))
-            if attributes['show_only']:
+            if attributes["show_only"]:
                 or_conditions.append(lambda node, _tag=tag: self.has_tag(node, _tag))
         return lambda node: condition_lambda(node, and_conditions, or_conditions)
-
-
 
     #################################
     #   Updates
     #################################
 
-    def node_creation_metadata(self, node, source='prompt'):
-        if 'meta' not in node:
+    def node_creation_metadata(self, node, source="prompt"):
+        if "meta" not in node:
             node["meta"] = {}
         node["meta"]["creation_timestamp"] = timestamp()
         node["meta"]["source"] = source
@@ -827,11 +813,7 @@ class TreeModel:
     def create_parent(self, node):
         if not node:
             return
-        new_parent = {
-            "id": str(uuid.uuid1()),
-            "text": "",
-            "children": [node]
-        }
+        new_parent = {"id": str(uuid.uuid1()), "text": "", "children": [node]}
         if "parent_id" not in node:
             assert self.tree_raw_data["root"] == node
             self.tree_raw_data["root"] = new_parent
@@ -850,18 +832,18 @@ class TreeModel:
         if not node:
             return
 
-        assert 'parent_id' in node, self.is_mutable(node)
+        assert "parent_id" in node, self.is_mutable(node)
         parent = self.parent(node)
         assert self.is_mutable(parent)
 
         parent["text"] += node["text"]
 
         index_in_parent = parent["children"].index(node)
-        parent["children"][index_in_parent:index_in_parent + 1] = node["children"]
+        parent["children"][index_in_parent : index_in_parent + 1] = node["children"]
         for i, c in enumerate(node["children"]):
             # parent["children"].insert(index_in_parent+i, c)
             c["parent_id"] = parent["id"]
-        
+
         self.rebuild_tree()
 
         # if node == self.selected_node:
@@ -891,13 +873,13 @@ class TreeModel:
             return
         if "parent_id" not in node:
             assert self.tree_raw_data["root"] == node
-            print('ERROR: node is root')
+            print("ERROR: node is root")
             return
         elif new_parent_id == node["parent_id"]:
             return
         new_parent = self.node(new_parent_id)
         if in_ancestry(node, new_parent, self.tree_node_dict):
-            print('error: node is ancestor of new parent')
+            print("error: node is ancestor of new parent")
             return
         old_siblings = self.parent(node)["children"]
         old_siblings.remove(node)
@@ -934,14 +916,12 @@ class TreeModel:
 
         parent = self.parent(node)
         siblings = parent["children"]
-        #next_sibling = self.next_sibling(node)
+        # next_sibling = self.next_sibling(node)
         siblings.remove(node)
         if reassign_children:
             siblings.extend(node["children"])
 
         self.rebuild_tree()
-
-
 
     # TODO add creation date if it doesn't exist
     def update_text(self, node, text, modified_flag=True, save_revision_history=False, refresh_nav=True):
@@ -964,29 +944,30 @@ class TreeModel:
             #     child["text"] = " " * num_spaces + child["text"]
             node["text"] = text
 
-            if 'meta' not in node:
-                node['meta'] = {}
+            if "meta" not in node:
+                node["meta"] = {}
             if modified_flag:
-                node['meta']['modified'] = True
-            if 'source' not in node['meta']:
-                node['meta']['source'] = 'prompt'
-            elif node['meta']['source'] == 'AI':
-                node['meta']['source'] = 'mixed'
+                node["meta"]["modified"] = True
+            if "source" not in node["meta"]:
+                node["meta"]["source"] = "prompt"
+            elif node["meta"]["source"] == "AI":
+                node["meta"]["source"] = "mixed"
 
             if save_revision_history:
-                if 'history' not in node:
-                    node['history'] = []
-                node['history'].append({
-                    'timestamp': timestamp(),
-                    'text': old_text,
-                })
-                
+                if "history" not in node:
+                    node["history"] = []
+                node["history"].append(
+                    {
+                        "timestamp": timestamp(),
+                        "text": old_text,
+                    }
+                )
+
             if refresh_nav:
-                self.tree_updated(edit=[node['id']])
+                self.tree_updated(edit=[node["id"]])
             else:
                 self.rebuild_tree()
-                #pass
-
+                # pass
 
     def update_note(self, node, text, index=0):
         assert node["id"] in self.tree_node_dict, text
@@ -994,7 +975,7 @@ class TreeModel:
         edited = False
         # TODO should be pointer
         if "notes" not in node:
-            node["notes"] = ['']
+            node["notes"] = [""]
         if node["notes"][index] != text:
             node["notes"][index] = text
             edited = True
@@ -1005,37 +986,37 @@ class TreeModel:
     # TODO update, make attribute-agnostic
     def split_node(self, node, split_index):
         new_parent = self.create_parent(node)
-        parent_text = node['text'][:split_index]
-        child_text = node['text'][split_index:]
+        parent_text = node["text"][:split_index]
+        child_text = node["text"][split_index:]
 
-        if parent_text[-1] == ' ':
-            child_text = ' ' + child_text
+        if parent_text[-1] == " ":
+            child_text = " " + child_text
             parent_text = parent_text[:-1]
 
         new_parent["text"] = parent_text
         node["text"] = child_text
 
         new_parent["meta"] = {}
-        new_parent['meta']['origin'] = f'split (from child {node["id"]})'
-        if 'summaries' in node:
-            new_parent['summaries'] = node['summaries']
-            for summary_id in new_parent['summaries']:
+        new_parent["meta"]["origin"] = f'split (from child {node["id"]})'
+        if "summaries" in node:
+            new_parent["summaries"] = node["summaries"]
+            for summary_id in new_parent["summaries"]:
                 summary = self.summaries[summary_id]
-                summary['root_id'] = new_parent['id']
-            node['summaries'] = []
-        if 'meta' in node and 'source' in node['meta']:
-            new_parent['meta']['source'] = node['meta']['source']
+                summary["root_id"] = new_parent["id"]
+            node["summaries"] = []
+        if "meta" in node and "source" in node["meta"]:
+            new_parent["meta"]["source"] = node["meta"]["source"]
 
         # both nodes inherit tags
-        if 'tags' in node:
-            new_parent['tags'] = node['tags']
+        if "tags" in node:
+            new_parent["tags"] = node["tags"]
 
-        new_parent['visited'] = True
+        new_parent["visited"] = True
 
         # move chapter head to new parent
-        if 'chapter_id' in node:
-            new_parent['chapter_id'] = node['chapter_id']
-            node.pop('chapter_id')
+        if "chapter_id" in node:
+            new_parent["chapter_id"] = node["chapter_id"]
+            node.pop("chapter_id")
         self.rebuild_tree()
         # if refresh_nav:
         #     self.tree_updated(add=[n['id'] for n in subtree_list(new_parent)])
@@ -1045,60 +1026,61 @@ class TreeModel:
 
     def sever_from_parent(self, node):
         parent = self.parent(node)
-        parent['children'].remove(node)
-        node['parent_id'] = None
+        parent["children"].remove(node)
+        node["parent_id"] = None
         return parent
 
     def sever_children(self, node):
-        children = node['children'].copy()
+        children = node["children"].copy()
         for child in children:
-            child['parent_id'] = None
-        node['children'] = []
+            child["parent_id"] = None
+        node["children"] = []
         # TODO empty?
         return children
 
     def adopt_parent(self, node, parent):
-        node['parent_id'] = parent['id']
-        parent['children'].append(node)
+        node["parent_id"] = parent["id"]
+        parent["children"].append(node)
 
     def adopt_children(self, node, children):
         for child in children:
             self.adopt_parent(child, parent=node)
 
     def zip(self, head, tail, refresh_nav=True, update_selection=True):
-        text = self.ancestry_text(node=tail, root=head) #ancestry_plaintext(ancestry_in_range(root=head, node=tail))
+        text = self.ancestry_text(node=tail, root=head)  # ancestry_plaintext(ancestry_in_range(root=head, node=tail))
         mask = new_node(text=text, mutable=False)
         if self.has_parent(head):
             parent = self.sever_from_parent(head)
             self.adopt_parent(mask, parent)
         children = self.sever_children(tail)
         self.adopt_children(mask, children)
-        mask['masked_head'] = head
-        mask['tail_id'] = tail['id']
+        mask["masked_head"] = head
+        mask["tail_id"] = tail["id"]
         # TODO hacky
-        nav_preview_text = head['text'].strip()[:15].replace('\n', '\\n') \
-                                   + '...' + tail['text'].strip()[:12].replace('\n', '\\n')
+        nav_preview_text = (
+            head["text"].strip()[:15].replace("\n", "\\n") + "..." + tail["text"].strip()[:12].replace("\n", "\\n")
+        )
         self.add_text_attribute(mask, "nav_preview", nav_preview_text)
-        mask['visited'] = True
+        mask["visited"] = True
 
         if refresh_nav:
-            self.tree_updated(delete=[head['id']], add=[n['id'] for n in subtree_list(mask)], write=False)
+            self.tree_updated(delete=[head["id"]], add=[n["id"] for n in subtree_list(mask)], write=False)
         else:
             self.rebuild_tree()
         if update_selection:
-            self.select_node(mask['id'], write=False)
+            self.select_node(mask["id"], write=False)
             self.selection_updated(write=False)
         return mask
 
     def unzip(self, mask, filter=None, refresh_nav=True, update_selection=True):
         if not self.is_compound(mask):
-            print('nothing to expand')
+            print("nothing to expand")
             return
         # if self.is_hoisted(mask):
         #     return self.unhoist(rebuild=refresh_nav, update_selection=update_selection)
-        head = mask['masked_head']
+        head = mask["masked_head"]
         head_dict = {d["id"]: d for d in flatten_tree(head)}
-        tail = head_dict[mask['tail_id']]
+        tail = head_dict[mask["tail_id"]]
         if self.has_parent(mask):
             parent = self.sever_from_parent(mask)
             self.adopt_parent(head, parent)
@@ -1106,27 +1088,27 @@ class TreeModel:
         self.adopt_children(tail, children)
 
         if refresh_nav:
-            self.tree_updated(delete=[mask['id']], add=[n['id'] for n in subtree_list(head, filter)], write=False)
+            self.tree_updated(delete=[mask["id"]], add=[n["id"] for n in subtree_list(head, filter)], write=False)
         else:
             self.rebuild_tree()
         if update_selection:
-            self.select_node(head['id'])
+            self.select_node(head["id"])
             self.selection_updated()
         return head
 
-    def zip_chain(self, node, filter=None, mode='bidirectional', refresh_nav=False, update_selection=False):
+    def zip_chain(self, node, filter=None, mode="bidirectional", refresh_nav=False, update_selection=False):
         head = node
         tail = node
-        if mode in ('bidirectional', 'backward'):
+        if mode in ("bidirectional", "backward"):
             while self.has_parent(head) and len(filtered_children(self.parent(head), filter)) == 1:
                 head = self.parent(head)
-        if mode in ('bidirectional', 'forward'):
+        if mode in ("bidirectional", "forward"):
             while len(filtered_children(tail, filter)) == 1:
                 tail = filtered_children(tail, filter)[0]
         if not (head == node and tail == node):
             zipped = self.zip(head=head, tail=tail, refresh_nav=refresh_nav, update_selection=update_selection)
-            zipped['tags'] = self.get_constituents_attribute(zipped, "tags")
-            zipped['memories'] = self.get_constituents_attribute(zipped, "memories")
+            zipped["tags"] = self.get_constituents_attribute(zipped, "tags")
+            zipped["memories"] = self.get_constituents_attribute(zipped, "memories")
             return zipped
         else:
             return node
@@ -1135,7 +1117,7 @@ class TreeModel:
         root = root if root else self.root()
         # TODO root problem
         if not self.is_root(root):
-            new_node = self.zip_chain(root, filter=filter, mode='forward')
+            new_node = self.zip_chain(root, filter=filter, mode="forward")
         else:
             new_node = root
         children = filtered_children(new_node, filter)
@@ -1144,7 +1126,7 @@ class TreeModel:
 
     def unzip_all(self, root=None, filter=None):
         root = root if root else self.root()
-        children = root['children']
+        children = root["children"]
         for child in children:
             self.unzip_all(child, filter)
         # TODO this interferes with hoist?
@@ -1154,11 +1136,11 @@ class TreeModel:
     # returns list of masked nodes from head to tail
     def constituents(self, mask):
         if not self.is_compound(mask):
-            print('not compound node')
+            print("not compound node")
             return
-        head = mask['masked_head']
+        head = mask["masked_head"]
         head_dict = {d["id"]: d for d in flatten_tree(head)}
-        tail = head_dict[mask['tail_id']]
+        tail = head_dict[mask["tail_id"]]
         return node_ancestry(tail, head_dict)
 
     def get_constituents_attribute(self, mask, attribute):
@@ -1176,17 +1158,16 @@ class TreeModel:
         hidden_ancestry_ids = []
         for i in range(1, len(ancestry)):
             if not self.visible(ancestry[-i]):
-                hidden_ancestry_ids.insert(0, ancestry[-i]['id'])
+                hidden_ancestry_ids.insert(0, ancestry[-i]["id"])
             else:
                 break
         self.tree_updated(add=hidden_ancestry_ids, override_visible=True, write=False)
 
     # unlike reveal_ancestry, this assumes parents are visible
     def reveal_nodes(self, nodes):
-        invisible_node_ids = [node['id'] for node in nodes if not self.visible(node)]
+        invisible_node_ids = [node["id"] for node in nodes if not self.visible(node)]
         if invisible_node_ids:
             self.tree_updated(add=invisible_node_ids, override_visible=True, write=False)
-
 
     #################################
     #   Text
@@ -1194,22 +1175,22 @@ class TreeModel:
 
     def text(self, node, raw=False):
         if not node:
-            return ''
+            return ""
         if self.is_template(node) and not raw:
             try:
                 return eval(f'f"""{node["text"]}"""')
             except Exception as e:
                 print(e)
-                return node['text']
+                return node["text"]
         else:
-            return node['text']
+            return node["text"]
 
     def set_template(self, node, value):
-        node['template'] = value
+        node["template"] = value
         self.tree_updated()
 
     def display_to_raw_index(self, node, index):
-        # if the node text is an fstring template, convert index of evaluated text to 
+        # if the node text is an fstring template, convert index of evaluated text to
         # index of raw template
         if self.is_template(node):
             # TODO
@@ -1230,7 +1211,7 @@ class TreeModel:
     def chapter_title(self, node):
         # print(self.chapters)
         # print(self.chapters)
-        return self.chapters[node['chapter_id']]['title'] if "chapter_id" in node else ""
+        return self.chapters[node["chapter_id"]]["title"] if "chapter_id" in node else ""
 
     def create_new_chapter(self, node, title):
         if "chapter_id" in node:
@@ -1261,14 +1242,13 @@ class TreeModel:
         if was_root:
             self.tree_updated()
 
-
     #################################
     #   Vars
     #################################
 
     # TODO globals
 
-    def create_var(self, node, name, value=''):
+    def create_var(self, node, name, value=""):
         if name not in self.vars:
             self.update_var(node, name, value)
         else:
@@ -1281,14 +1261,13 @@ class TreeModel:
         pass
 
     def update_var(self, node, name, value):
-        self.update_frame(node=node, update={'vars': {name: value}})
-
+        self.update_frame(node=node, update={"vars": {name: value}})
 
     #################################
     #   Memory, summaries
     #################################
 
-    def create_memory(self, node, text, inheritability='none'):
+    def create_memory(self, node, text, inheritability="none"):
         memory_id = str(uuid.uuid1())
         new_memory = {
             "id": memory_id,
@@ -1298,13 +1277,13 @@ class TreeModel:
             "enabled": True,
         }
         # TODO if inheritability global, add to root frame instead
-        self.update_frame(node, update={'memories': {memory_id: new_memory}})
+        self.update_frame(node, update={"memories": {memory_id: new_memory}})
         self.tree_updated()
 
     def update_memory(self, memory_id, update):
         try:
-            memory = self.state['memories'][memory_id]
-            self.update_frame(node=self.node(memory["root_id"]), update={'memories': {memory_id: update}})
+            memory = self.state["memories"][memory_id]
+            self.update_frame(node=self.node(memory["root_id"]), update={"memories": {memory_id: update}})
         except KeyError:
             pass
 
@@ -1315,13 +1294,19 @@ class TreeModel:
         # root_node['memories'].remove(memory['id'])
 
     def memory_active(self, node, memory):
-        memory_ancestor = self.node(memory['root_id'])
+        memory_ancestor = self.node(memory["root_id"])
         # if not in_ancestry(memory_ancestor, node, self.tree_node_dict):
         #     return False
-        return memory['inheritability'] == 'none' and memory['root_id'] == node['id'] \
-               or memory['inheritability'] == 'subtree' or memory['inheritability'] == 'global' \
-               or (memory['inheritability'] == 'delayed'
-                   and node_index(memory_ancestor, self.tree_node_dict) < self.context_window_index(node))
+        return (
+            memory["inheritability"] == "none"
+            and memory["root_id"] == node["id"]
+            or memory["inheritability"] == "subtree"
+            or memory["inheritability"] == "global"
+            or (
+                memory["inheritability"] == "delayed"
+                and node_index(memory_ancestor, self.tree_node_dict) < self.context_window_index(node)
+            )
+        )
 
     # TODO also return list of pending?
     # def construct_memory(self, node):
@@ -1343,28 +1328,28 @@ class TreeModel:
             "text": summary_text,
         }
 
-        self.summaries[new_summary['id']] = new_summary
+        self.summaries[new_summary["id"]] = new_summary
 
-        if 'summaries' not in root_node:
-            root_node['summaries'] = []
+        if "summaries" not in root_node:
+            root_node["summaries"] = []
 
-        root_node['summaries'].append(new_summary['id'])
+        root_node["summaries"].append(new_summary["id"])
 
     def delete_summary(self, summary):
-        self.summaries.pop(summary['id'])
+        self.summaries.pop(summary["id"])
         root_node = self.node(summary["root_id"])
-        root_node['summmaries'].remove(summary['id'])
+        root_node["summmaries"].remove(summary["id"])
 
     def past_summaries(self, node=None):
         node = node if node else self.selected_node
         ancestry = self.ancestry(node)
-        ancestry_ids = [ancestor['id'] for ancestor in ancestry]
+        ancestry_ids = [ancestor["id"] for ancestor in ancestry]
         summaries = []
         for i, ancestor in enumerate(ancestry):
-            if 'summaries' in ancestor:
-                for summary_id in ancestor['summaries']:
+            if "summaries" in ancestor:
+                for summary_id in ancestor["summaries"]:
                     summary = self.summaries[summary_id]
-                    if summary['end_id'] in ancestry_ids:
+                    if summary["end_id"] in ancestry_ids:
                         summaries.append(summary)
         return summaries
 
@@ -1372,7 +1357,7 @@ class TreeModel:
     def context_window_index(self, node):
         indices = self.ancestor_text_indices(node)
         end_indices = [ind[1] for ind in indices]
-        first_in_context_index = end_indices[-1] - self.generation_settings['prompt_length']
+        first_in_context_index = end_indices[-1] - self.generation_settings["prompt_length"]
         if first_in_context_index < 0:
             return 0
         context_node_index = bisect.bisect_left(end_indices, first_in_context_index) + 1
@@ -1392,13 +1377,15 @@ class TreeModel:
             tags.append("uncanonical")
         return tags
 
-    def add_tag(self, name, scope='node', hide=False, show_only=False, toggle_key='None', icon='None'):
-        self.tags[name] = {'name': name,
-                           'scope': scope,
-                           'hide': hide,
-                           'show_only': show_only,
-                           'toggle_key': toggle_key,
-                           'icon': icon}
+    def add_tag(self, name, scope="node", hide=False, show_only=False, toggle_key="None", icon="None"):
+        self.tags[name] = {
+            "name": name,
+            "scope": scope,
+            "hide": hide,
+            "show_only": show_only,
+            "toggle_key": toggle_key,
+            "icon": icon,
+        }
 
     def delete_tag(self, name):
         del self.tags[name]
@@ -1406,16 +1393,16 @@ class TreeModel:
 
     def tag_node(self, node, tag):
         if tag not in self.tags:
-            print('no such tag')
+            print("no such tag")
             return
-        if 'tags' not in node:
-            node['tags'] = []
-        if tag not in node['tags']:
-            node['tags'].append(tag)
+        if "tags" not in node:
+            node["tags"] = []
+        if tag not in node["tags"]:
+            node["tags"].append(tag)
 
     def untag_node(self, node, tag):
-        if 'tags' in node and tag in node['tags']:
-            node['tags'].remove(tag)
+        if "tags" in node and tag in node["tags"]:
+            node["tags"].remove(tag)
 
     def toggle_tag(self, node, tag):
         if self.has_tag_attribute(node, tag):
@@ -1425,16 +1412,16 @@ class TreeModel:
 
     def tagged_nodes(self, tag, filter=None):
         if tag not in self.tags:
-            print('no such tag')
+            print("no such tag")
             return
         # for tags with "node" scope, return all nodes with that tag
         nodes = self.nodes_list(filter)
         tagged_nodes = [d for d in nodes if self.has_tag_attribute(d, tag)]
-        if self.tags[tag]['scope'] == 'node':
+        if self.tags[tag]["scope"] == "node":
             return tagged_nodes
 
         # for tags with "subtree" scope, return all nodes with that tag and their subtrees
-        elif self.tags[tag]['scope'] == 'subtree':
+        elif self.tags[tag]["scope"] == "subtree":
             tag_subtrees = []
             for node in tagged_nodes:
                 # add all nodes in subtree of node to tag_subtrees
@@ -1444,7 +1431,7 @@ class TreeModel:
             return tag_subtrees
 
         # for tags with "ancestry" scope, return all nodes with that tag and their ancestors
-        elif self.tags[tag]['scope'] == 'ancestry':
+        elif self.tags[tag]["scope"] == "ancestry":
             tag_ancestors = []
             for node in tagged_nodes:
                 # add all ancestors of node to tag_ancestors
@@ -1454,110 +1441,104 @@ class TreeModel:
             tag_ancestors = list(set(tag_ancestors))
             return tag_ancestors
         else:
-            print('invalid scope')
+            print("invalid scope")
             return
 
     def tagged_indices(self, tag, filter=None):
         if tag not in self.tags:
-            print('no such tag')
+            print("no such tag")
             return
         nodes = self.nodes_list(filter)
         return {idx: d for idx, d in enumerate(nodes) if self.has_tag(d, tag)}
 
     def has_tag_attribute(self, node, tag):
-        return 'tags' in node and node['tags'] is not None and tag in node['tags']
+        return "tags" in node and node["tags"] is not None and tag in node["tags"]
 
     def has_tag(self, node, tag):
-        #print(node)
+        # print(node)
         if tag not in self.tags:
             return False
-        if self.tags[tag]['scope'] == 'node':
+        if self.tags[tag]["scope"] == "node":
             return self.has_tag_attribute(node, tag)
-        elif self.tags[tag]['scope'] == 'subtree':
+        elif self.tags[tag]["scope"] == "subtree":
             # check if one of ancestors has tag
             for ancestor in self.ancestry(node):
                 if self.has_tag_attribute(ancestor, tag):
                     return True
             return False
-        elif self.tags[tag]['scope'] == 'ancestry':
+        elif self.tags[tag]["scope"] == "ancestry":
             # check if one of descendents has tag
             for descendant in subtree_list(node):
                 if self.has_tag_attribute(descendant, tag):
                     return True
             return False
         else:
-            print('invalid scope')
+            print("invalid scope")
             return
-
 
     # temporary function to turn root-level attributes into a tag in all nodes
     # TODO
     def turn_attributes_into_tags(self):
-        self.tree_raw_data['tags'] = DEFAULT_TAGS
-        for attribute in ('bookmark', 'archived', 'canonical'):
+        self.tree_raw_data["tags"] = DEFAULT_TAGS
+        for attribute in ("bookmark", "archived", "canonical"):
             if attribute not in self.tags:
-                self.add_tag(attribute, 'node')
+                self.add_tag(attribute, "node")
             for node in self.nodes:
                 if attribute in node:
                     self.tag_node(node, attribute)
                     del node[attribute]
-        print('done')
-
+        print("done")
 
     def tag_scope(self, node, tag):
-        if self.tags[tag]['scope'] == 'node':
-            return [node['id']]
-        elif self.tags[tag]['scope'] == 'subtree':
+        if self.tags[tag]["scope"] == "node":
+            return [node["id"]]
+        elif self.tags[tag]["scope"] == "subtree":
             return subtree_list(node)
-        elif self.tags[tag]['scope'] == 'ancestry':
-            return [d['id'] for d in self.ancestry(node)]
-
+        elif self.tags[tag]["scope"] == "ancestry":
+            return [d["id"] for d in self.ancestry(node)]
 
     def update_tree_tag_changed(self, node, tag):
-        if self.tags[tag]['hide'] or self.tags[tag]['show_only']:
+        if self.tags[tag]["hide"] or self.tags[tag]["show_only"]:
             update_scope = self.tag_scope(node, tag)
             hidden_in_scope = [d for d in update_scope if not self.visible(self.node(d))]
             visible_in_scope = [d for d in update_scope if self.visible(self.node(d))]
             if self.has_tag_attribute(node, tag):
-                if self.tags[tag]['hide']:
+                if self.tags[tag]["hide"]:
                     self.tree_updated(delete=hidden_in_scope)
                     return
             else:
-                if self.tags[tag]['hide']:
+                if self.tags[tag]["hide"]:
                     self.tree_updated(add=visible_in_scope)
                     return
-                elif self.tags[tag]['show_only']:
+                elif self.tags[tag]["show_only"]:
                     self.tree_updated(delete=hidden_in_scope)
                     return
-        self.tree_updated(edit=[node['id']])
-
+        self.tree_updated(edit=[node["id"]])
 
     #################################
     #   Text attributes
     #################################
 
     def add_text_attribute(self, node, attribute, text):
-        if 'text_attributes' not in node:
-            node['text_attributes'] = {}
-        node['text_attributes'][attribute] = text
+        if "text_attributes" not in node:
+            node["text_attributes"] = {}
+        node["text_attributes"][attribute] = text
         self.tree_updated()
-
 
     def get_text_attribute(self, node, attribute):
-        if 'text_attributes' not in node:
+        if "text_attributes" not in node:
             return None
-        if attribute not in node['text_attributes']:
+        if attribute not in node["text_attributes"]:
             return None
-        return node['text_attributes'][attribute]
+        return node["text_attributes"][attribute]
 
     def remove_text_attribute(self, node, attribute):
-        if 'text_attributes' not in node:
+        if "text_attributes" not in node:
             return
-        if attribute not in node['text_attributes']:
+        if attribute not in node["text_attributes"]:
             return
-        del node['text_attributes'][attribute]
+        del node["text_attributes"][attribute]
         self.tree_updated()
-
 
     #################################
     #   I/O
@@ -1566,25 +1547,25 @@ class TreeModel:
     # Inits empty chapters, memory, and notes if not already in tree
     def _init_global_objects(self):
         # Chapters
-        if 'chapters' not in self.tree_raw_data:
-            self.tree_raw_data['chapters'] = {}
+        if "chapters" not in self.tree_raw_data:
+            self.tree_raw_data["chapters"] = {}
         self.chapters = self.tree_raw_data["chapters"]
 
-        if 'canonical' not in self.tree_raw_data:
-            self.tree_raw_data['canonical'] = []
+        if "canonical" not in self.tree_raw_data:
+            self.tree_raw_data["canonical"] = []
         self.canonical = self.tree_raw_data["canonical"]
 
         # if 'memories' not in self.tree_raw_data:
         #     self.tree_raw_data['memories'] = {}
         # self.memories = self.tree_raw_data["memories"]
 
-        if 'summaries' not in self.tree_raw_data:
-            self.tree_raw_data['summaries'] = {}
+        if "summaries" not in self.tree_raw_data:
+            self.tree_raw_data["summaries"] = {}
         self.summaries = self.tree_raw_data["summaries"]
 
-        if 'model_responses' not in self.tree_raw_data:
-            self.tree_raw_data['model_responses'] = {}
-        self.model_responses = self.tree_raw_data['model_responses']
+        if "model_responses" not in self.tree_raw_data:
+            self.tree_raw_data["model_responses"] = {}
+        self.model_responses = self.tree_raw_data["model_responses"]
 
         # if 'tags' not in self.tree_raw_data:
         #     self.tree_raw_data['tags'] = DEFAULT_TAGS
@@ -1593,12 +1574,12 @@ class TreeModel:
         # Generation settings
         self.tree_raw_data["generation_settings"] = {
             **DEFAULT_GENERATION_SETTINGS.copy(),
-            **self.tree_raw_data.get("generation_settings", {})
+            **self.tree_raw_data.get("generation_settings", {}),
         }
 
         self.tree_raw_data["inline_generation_settings"] = {
             **DEFAULT_INLINE_GENERATION_SETTINGS.copy(),
-            **self.tree_raw_data.get("inline_generation_settings", {})
+            **self.tree_raw_data.get("inline_generation_settings", {}),
         }
 
         self.tree_raw_data["frame"] = self.tree_raw_data.get("frame", {})
@@ -1606,69 +1587,56 @@ class TreeModel:
         # View settings # TODO If there are more of these, reduce duplication
         self.tree_raw_data["visualization_settings"] = {
             **DEFAULT_VISUALIZATION_SETTINGS.copy(),
-            **self.tree_raw_data.get("visualization_settings", {})
+            **self.tree_raw_data.get("visualization_settings", {}),
         }
 
-        self.tree_raw_data["preferences"] = {
-            **DEFAULT_PREFERENCES.copy(),
-            **self.tree_raw_data.get("preferences", {})
-        }
+        self.tree_raw_data["preferences"] = {**DEFAULT_PREFERENCES.copy(), **self.tree_raw_data.get("preferences", {})}
 
         self.tree_raw_data["module_settings"] = {
             **DEFAULT_MODULE_SETTINGS.copy(),
-            **self.tree_raw_data.get("module_settings", {})
+            **self.tree_raw_data.get("module_settings", {}),
         }
 
-        self.tree_raw_data['tags'] = {
-            **DEFAULT_TAGS.copy(),
-            **self.tree_raw_data.get('tags', {})
-        }
+        self.tree_raw_data["tags"] = {**DEFAULT_TAGS.copy(), **self.tree_raw_data.get("tags", {})}
 
         # self.tree_raw_data["chat_preferences"] = {
         #     **DEFAULT_CHAT_PREFERENCES.copy(),
         #     **self.tree_raw_data.get("chat_preferences", {})
         # }
 
-
     def copy_global_objects(self, new_tree):
-        if 'chapters' not in new_tree:
-            new_tree['chapters'] = self.chapters
+        if "chapters" not in new_tree:
+            new_tree["chapters"] = self.chapters
 
-        if 'canonical' not in new_tree:
-            new_tree['canonical'] = self.canonical
+        if "canonical" not in new_tree:
+            new_tree["canonical"] = self.canonical
 
-        if 'memories' not in new_tree:
-            new_tree['memories'] = self.memories
+        if "memories" not in new_tree:
+            new_tree["memories"] = self.memories
 
-        if 'summaries' not in new_tree:
-            new_tree['summaries'] = self.summaries
+        if "summaries" not in new_tree:
+            new_tree["summaries"] = self.summaries
 
         # Generation settings
         new_tree["generation_settings"] = {
             **DEFAULT_GENERATION_SETTINGS.copy(),
-            **self.tree_raw_data.get("generation_settings", {})
+            **self.tree_raw_data.get("generation_settings", {}),
         }
 
         new_tree["inline_generation_settings"] = {
             **DEFAULT_INLINE_GENERATION_SETTINGS.copy(),
-            **self.tree_raw_data.get("inline_generation_settings", {})
+            **self.tree_raw_data.get("inline_generation_settings", {}),
         }
 
         # View settings # TODO If there are more of these, reduce duplication
         new_tree["visualization_settings"] = {
             **DEFAULT_VISUALIZATION_SETTINGS.copy(),
-            **self.tree_raw_data.get("visualization_settings", {})
+            **self.tree_raw_data.get("visualization_settings", {}),
         }
 
-        new_tree["preferences"] = {
-            **DEFAULT_PREFERENCES.copy(),
-            **self.tree_raw_data.get("preferences", {})
-        }
+        new_tree["preferences"] = {**DEFAULT_PREFERENCES.copy(), **self.tree_raw_data.get("preferences", {})}
 
-        self.tree_raw_data['tags'] = {
-            **DEFAULT_TAGS.copy(),
-            **self.tree_raw_data.get('tags', {})
-        }
+        self.tree_raw_data["tags"] = {**DEFAULT_TAGS.copy(), **self.tree_raw_data.get("tags", {})}
 
         return new_tree
 
@@ -1677,9 +1645,9 @@ class TreeModel:
             # json file with a root node
             self.tree_raw_data = deepcopy(EMPTY_TREE)
             if "text" in data:
-                self.tree_raw_data['root'] = data
+                self.tree_raw_data["root"] = data
             else:
-                self.tree_raw_data['root']['children'] = data
+                self.tree_raw_data["root"]["children"] = data
             fix_tree(self.tree_raw_data)
         else:
             self.tree_raw_data = data
@@ -1693,8 +1661,7 @@ class TreeModel:
             self._init_global_objects()
         self.tree_updated(rebuild=True, write=False)
 
-        self.select_node(self.tree_raw_data.get("selected_node_id", self.root()['children'][0]['id']))
-
+        self.select_node(self.tree_raw_data.get("selected_node_id", self.root()["children"][0]["id"]))
 
     # Open a new tree json
     def open_tree(self, filename):
@@ -1713,33 +1680,33 @@ class TreeModel:
     # TODO does metadata of subtree overwrite parent tree?
     def import_tree(self, filename):
         tree_json = json_open(filename)
-        if 'root' in tree_json:
-            new_subtree_root = tree_json['root']
-            if not new_subtree_root['mutable']:
-                new_subtree_root['mutable'] = True
+        if "root" in tree_json:
+            new_subtree_root = tree_json["root"]
+            if not new_subtree_root["mutable"]:
+                new_subtree_root["mutable"] = True
             self.add_subtree(self.selected_node, new_subtree_root)
             # self.selected_node['children'].append(new_subtree_root)
             # new_subtree_root['parent_id'] = self.selected_node_id
-            if 'chapters' in tree_json:
-                #self.import_chapters(new_subtree_root, tree_json['chapters'])
-                self.chapters.update(tree_json['chapters'])
-            if 'tags' in tree_json:
-                self.tags.update(tree_json['tags'])
+            if "chapters" in tree_json:
+                # self.import_chapters(new_subtree_root, tree_json['chapters'])
+                self.chapters.update(tree_json["chapters"])
+            if "tags" in tree_json:
+                self.tags.update(tree_json["tags"])
             self.load_tree_data(self.tree_raw_data)
             self.tree_updated()
             self.io_update()
         else:
-            if 'id' in tree_json:
+            if "id" in tree_json:
                 self.add_subtree(self.selected_node, tree_json)
                 self.load_tree_data(self.tree_raw_data)
                 self.tree_updated()
                 self.io_update()
             else:
-                print('improperly formatted tree')
+                print("improperly formatted tree")
 
     def add_subtree(self, node, subtree_root):
-        node['children'].append(subtree_root)
-        subtree_root['parent_id'] = node['id']
+        node["children"].append(subtree_root)
+        subtree_root["parent_id"] = node["id"]
 
     # open new tree with node as root
     def open_node_as_root(self, node=None, new_filename=None, save=True, rebuild_global=False):
@@ -1747,10 +1714,10 @@ class TreeModel:
             self.save_tree()
         node = self.selected_node if not node else node
         if new_filename:
-            self.tree_filename = os.path.join(os.getcwd() + '/data', f'{new_filename}.json')
+            self.tree_filename = os.path.join(os.getcwd() + "/data", f"{new_filename}.json")
         # new_root = node
-        if 'parent_id' in node:
-            node.pop('parent_id')
+        if "parent_id" in node:
+            node.pop("parent_id")
         self.load_tree_data(node, init_global=rebuild_global)
 
     # current node acts like root from now on
@@ -1759,25 +1726,24 @@ class TreeModel:
     def hoist(self, node=None):
         node = self.selected_node if not node else node
         if self.is_root(node):
-            print('cannot hoist root')
+            print("cannot hoist root")
             return
         new_root = self.zip(head=self.root(), tail=node, refresh_nav=False, update_selection=False)
-        self.tree_raw_data['root'] = new_root
-        new_root['open'] = True
-        new_root['hoisted'] = True
+        self.tree_raw_data["root"] = new_root
+        new_root["open"] = True
+        new_root["hoisted"] = True
         self.tree_updated(rebuild=True, write=False)
-        self.select_node(new_root['id'])
-
+        self.select_node(new_root["id"])
 
     def unhoist(self, rebuild=True, update_selection=True):
         old_root = self.root()
         if not self.is_hoisted(old_root):
-            print('nothing hoisted')
+            print("nothing hoisted")
             return
         new_root = self.unzip(mask=self.root(), refresh_nav=False, update_selection=False)
-        self.tree_raw_data['root'] = new_root
-        if self.selected_node_id == old_root['id']:
-            self.selected_node_id = new_root['id']
+        self.tree_raw_data["root"] = new_root
+        if self.selected_node_id == old_root["id"]:
+            self.selected_node_id = new_root["id"]
         if rebuild:
             self.tree_updated(rebuild=True, write=False)
         else:
@@ -1791,9 +1757,8 @@ class TreeModel:
         while self.is_compound(self.root()):
             self.unhoist(rebuild=False, update_selection=False)
         self.tree_updated(rebuild=True, write=False)
-        if self.selected_node_id != old_selection['id']:
+        if self.selected_node_id != old_selection["id"]:
             self.selection_updated()
-
 
     def tree_dir(self):
         return os.path.dirname(self.tree_filename)
@@ -1805,7 +1770,7 @@ class TreeModel:
         subtree = subtree if subtree else self.tree_raw_data
         if not save_filename:
             return False
-        print('saving tree')
+        print("saving tree")
 
         # Fancy platform independent os.path
         filename = os.path.splitext(os.path.basename(save_filename))[0]
@@ -1826,11 +1791,11 @@ class TreeModel:
 
     def export_subtree(self, root, filename, filter=None, copy_attributes=None):
         filtered_tree = tree_subset(root, filter=filter, copy_attributes=copy_attributes)
-        filtered_tree = {'root': filtered_tree}
-        if 'tags' in copy_attributes:
-            filtered_tree['tags'] = self.tags
-        if 'chapter_id' in copy_attributes:
-            filtered_tree['chapters'] = self.chapters
+        filtered_tree = {"root": filtered_tree}
+        if "tags" in copy_attributes:
+            filtered_tree["tags"] = self.tags
+        if "chapter_id" in copy_attributes:
+            filtered_tree["chapters"] = self.chapters
         # TODO copy globals
         json_create(filename, filtered_tree)
         self.io_update()
@@ -1844,37 +1809,39 @@ class TreeModel:
     def save_jsonl(self, save_filename=None, subtree=None):
         subtree = subtree if subtree else self.tree_raw_data
         flat_tree = self.nodes
-        save_filename = save_filename if save_filename else os.path.splitext(os.path.basename(self.tree_filename))[0]+ '.jsonl'
-        filename = os.path.join(os.getcwd() + '/data/exports', save_filename)
-        with jsonlines.open(filename, mode='w') as writer:
+        save_filename = (
+            save_filename if save_filename else os.path.splitext(os.path.basename(self.tree_filename))[0] + ".jsonl"
+        )
+        filename = os.path.join(os.getcwd() + "/data/exports", save_filename)
+        with jsonlines.open(filename, mode="w") as writer:
             for line in flat_tree:
-                line_dict = {'id': line['id']}
-                if 'text' in line:
-                    line_dict['text'] = line['text']
-                if 'parent_id' in line:
-                    line_dict['parent_id'] = line['parent_id']
+                line_dict = {"id": line["id"]}
+                if "text" in line:
+                    line_dict["text"] = line["text"]
+                if "parent_id" in line:
+                    line_dict["parent_id"] = line["parent_id"]
                 writer.write(line_dict)
         self.io_update()
 
     def flat_export(self, subtree=None):
         subtree = subtree if subtree else self.tree_raw_data
         flat_tree = self.nodes
-        export_body = ''
+        export_body = ""
         for line in flat_tree:
-            export_body += '\t{'
+            export_body += "\t{"
             export_body += f'id: {repr(line["id"])}'
-            if 'text' in line:
+            if "text" in line:
                 export_body += f', text: {repr(line["text"])}'
-            if 'parent_id' in line:
+            if "parent_id" in line:
                 export_body += f', parentId: {repr(line["parent_id"])}'
-            if 'children' in line and len(line['children']) > 0:
-                export_body += f', hasChildren: true'
-            if 'tags' in line and len(line['tags']) > 0:
+            if "children" in line and len(line["children"]) > 0:
+                export_body += f", hasChildren: true"
+            if "tags" in line and len(line["tags"]) > 0:
                 export_body += f', tags: {repr(line["tags"])}'
-            else: 
-                export_body += f', tags: []'
-            export_body += '},\n'
-        export_string = f'[\n{export_body}]'
+            else:
+                export_body += f", tags: []"
+            export_body += "},\n"
+        export_string = f"[\n{export_body}]"
         print(export_string)
 
     def export_history(self, node, filename):
@@ -1889,40 +1856,39 @@ class TreeModel:
 
     def post_generation(self, error, nodes, results):
         if not error:
-            #TODO adaptive branching
-            self.model_responses[results['id']] = results
+            # TODO adaptive branching
+            self.model_responses[results["id"]] = results
             self.set_generated_nodes(nodes, results)
         else:
             self.delete_failed_nodes(nodes, error)
             return
 
-        for result in results['completions']:
-            print("Generated continuation:\n", result['text'], "\nerror", error)
+        for result in results["completions"]:
+            print("Generated continuation:\n", result["text"], "\nerror", error)
 
         # DO NOT CALL FROM THREAD: self.tree_updated()
         self.app.event_generate("<<NewNodes>>", when="tail")
 
     def default_post_template(self, completion):
-        start_text = codecs.decode(self.generation_settings['start'], "unicode-escape")
-        restart_text = codecs.decode(self.generation_settings['restart'], "unicode-escape")
-        return start_text + completion['text'] + restart_text
+        start_text = codecs.decode(self.generation_settings["start"], "unicode-escape")
+        restart_text = codecs.decode(self.generation_settings["restart"], "unicode-escape")
+        return start_text + completion["text"] + restart_text
 
     def custom_post_template(self, completion, filename):
-        text = completion['text']
-        with open(f'./loom/config/post_templates/{filename}.txt', 'r') as f:
+        text = completion["text"]
+        with open(f"./loom/config/post_templates/{filename}.txt", "r") as f:
             prompt = f.read()
         eval_prompt = eval(f'f"""{prompt}"""')
         return eval_prompt
 
     def set_generated_nodes(self, nodes, results):
         for i, node in enumerate(nodes):
-            node['text'] = self.default_post_template(results['completions'][i])
+            node["text"] = self.default_post_template(results["completions"][i])
             # node['text'] = self.default_post_template(results['completions'][i]) \
             #     if self.generation_settings['post_template'] == "Default" \
             #     else self.custom_post_template(results['completions'][i], self.generation_settings['post_template'])
-            self.node_creation_metadata(node, source='AI')
-            node["generation"] = {'id': results['id'],
-                                  'index': i}
+            self.node_creation_metadata(node, source="AI")
+            node["generation"] = {"id": results["id"], "index": i}
             # TODO save history
 
     def delete_failed_nodes(self, nodes, error):
@@ -1930,15 +1896,18 @@ class TreeModel:
         for node in nodes:
             parent = self.parent(node)
             parent["children"].remove(node)
-        self.tree_updated(delete=[node['id'] for node in nodes])
+        self.tree_updated(delete=[node["id"] for node in nodes])
 
     def default_generate(self, prompt, nodes):
-        results, error = gen(prompt, self.generation_settings, self.model_config,
+        results, error = gen(
+            prompt,
+            self.generation_settings,
+            self.model_config,
             OPENAI_API_KEY=self.OPENAI_API_KEY,
             AI21_API_KEY=self.AI21_API_KEY,
-            GOOSEAI_API_KEY=self.GOOSEAI_API_KEY,)
+            GOOSEAI_API_KEY=self.GOOSEAI_API_KEY,
+        )
         self.post_generation(error, nodes, results)
-
 
     # if self.generation_settings['adaptive']:
     #     for i, result in enumerate(results.choices):
@@ -1951,41 +1920,41 @@ class TreeModel:
     #         # TODO metadata
 
     def prompt(self, node):
-        if self.generation_settings['template'] == 'Default':
+        if self.generation_settings["template"] == "Default":
             prompt = self.default_prompt(node)
-        elif self.generation_settings['template'] == 'Antisummary':
+        elif self.generation_settings["template"] == "Antisummary":
             prompt = self.antisummary_prompt(node)
-        elif self.generation_settings['template'] == 'Adaptive Summary':
+        elif self.generation_settings["template"] == "Adaptive Summary":
             prompt = self.summary_prompt(node)
         else:
-            prompt = self.custom_prompt(node, self.generation_settings['template'])
+            prompt = self.custom_prompt(node, self.generation_settings["template"])
         return prompt
 
     def custom_prompt(self, node, filename):
         input = self.ancestry_text(node)
-        input = input[-self.generation_settings['prompt_length']:]
-        with open(f'./loom/config/prompts/{filename}.txt', 'r') as f:
+        input = input[-self.generation_settings["prompt_length"] :]
+        with open(f"./loom/config/prompts/{filename}.txt", "r") as f:
             prompt = f.read()
         eval_prompt = eval(f'f"""{prompt}"""')
         eval_prompt = eval_prompt[-6000:]
         return eval_prompt
 
     def antisummary_embedding(self, summary):
-        return f'\n[Next section summary: {summary}]\n'
+        return f"\n[Next section summary: {summary}]\n"
 
     def antisummary_prompt(self, node):
-        prompt = ''
+        prompt = ""
         ancestry = self.ancestry(node)
-        ancestor_ids = [ancestor['id'] for ancestor in ancestry]
+        ancestor_ids = [ancestor["id"] for ancestor in ancestry]
         for ancestor in ancestry:
-            if 'summaries' in ancestor and len(ancestor['summaries']) > 0:
-                for summary_id in ancestor['summaries']:
+            if "summaries" in ancestor and len(ancestor["summaries"]) > 0:
+                for summary_id in ancestor["summaries"]:
                     summary = self.summaries[summary_id]
                     # only add summary if entire summarized text is in prompt
-                    if summary['end_id'] in ancestor_ids:
-                        prompt += self.antisummary_embedding(summary['text'])
-            prompt += ancestor['text']
-        prompt = prompt[-self.generation_settings['prompt_length']:]
+                    if summary["end_id"] in ancestor_ids:
+                        prompt += self.antisummary_embedding(summary["text"])
+            prompt += ancestor["text"]
+        prompt = prompt[-self.generation_settings["prompt_length"] :]
         return prompt
 
     # builds a summarization prompt with default summarization few-shots and any summaries from ancestry
@@ -1994,30 +1963,30 @@ class TreeModel:
         summaries = []
 
         # load summaries json
-        with open(f'./loom/config/fewshots/summaries.json', 'r') as f:
+        with open(f"./loom/config/fewshots/summaries.json", "r") as f:
             sum_json = json.load(f)
-        
+
         for entry in sum_json:
             # add to passages and summaries
-            passages.append(entry['passage'])
-            summaries.append(entry['summary'])
+            passages.append(entry["passage"])
+            summaries.append(entry["summary"])
 
         ancestry = self.ancestry(node)
-        ancestor_ids = [ancestor['id'] for ancestor in ancestry]
+        ancestor_ids = [ancestor["id"] for ancestor in ancestry]
         for ancestor in ancestry:
-            if 'summaries' in ancestor and len(ancestor['summaries']) > 0:
-                for summary_id in ancestor['summaries']:
+            if "summaries" in ancestor and len(ancestor["summaries"]) > 0:
+                for summary_id in ancestor["summaries"]:
                     summary = self.summaries[summary_id]
                     # only add summary if entire summarized text is in prompt
-                    if summary['end_id'] in ancestor_ids:
-                        end_node = self.node(summary['end_id'])
+                    if summary["end_id"] in ancestor_ids:
+                        end_node = self.node(summary["end_id"])
                         included_nodes = ancestry_in_range(root=ancestor, node=end_node)
-                        passage_text = ''.join([node['text'] for node in included_nodes])
+                        passage_text = "".join([node["text"] for node in included_nodes])
                         passages.append(passage_text)
-                        summaries.append(summary['text'])
+                        summaries.append(summary["text"])
 
         # add the last num_summaries of the passages and summaries to a prompt
-        prompt = ''
+        prompt = ""
         if len(passages) > 0:
             for i in range(num_summaries):
                 prompt += "\nPassage:\n"
@@ -2026,31 +1995,29 @@ class TreeModel:
                 prompt += summaries[-num_summaries + i]
 
         input = self.ancestry_text(node)
-        input = input[-self.generation_settings['prompt_length']:]
+        input = input[-self.generation_settings["prompt_length"] :]
 
         prompt += "\nPassage:\n"
         prompt += input
         prompt += "\nSummary:\n"
         return prompt
 
-
-
     def default_prompt(self, node, prompt_length=None, memory=True, quiet=True):
         prompt = self.ancestry_text(node)
         if not prompt_length:
-            prompt_length = self.generation_settings['prompt_length']
+            prompt_length = self.generation_settings["prompt_length"]
         prompt = prompt[-prompt_length:]
 
-        global_context = self.generation_settings['global_context']
+        global_context = self.generation_settings["global_context"]
 
-        memory = ''
+        memory = ""
         # if memory:
         #     memory_list = self.construct_memory(node)
         #     memory = ' '.join(memory['text'] for memory in memory_list)
         # else:
         #     memory = ''
-        
-        start_text = codecs.decode(self.generation_settings['start'], "unicode-escape")
+
+        start_text = codecs.decode(self.generation_settings["start"], "unicode-escape")
 
         if not quiet:
             print("Global context:\n", global_context)
@@ -2064,23 +2031,24 @@ class TreeModel:
             # print("Prompt:\n", prompt)
         return global_context + memory + prompt + start_text
 
-    def autocomplete_generate(self, appended_text, engine='curie'):
+    def autocomplete_generate(self, appended_text, engine="curie"):
         # TODO memory and chat prepending - abstract this
         # TODO different behavior if not in submit box
         appended_text = self.pre_modifications(appended_text)
         prompt = self.default_prompt(prompt_length=4000) + appended_text
         # print('prompt: ', prompt)
-        results, error = openAI_generate(prompt=prompt,
-                                         length=1,  # TODO 3 or so
-                                         num_continuations=1,
-                                         temperature=0,
-                                         logprobs=100,
-                                         top_p=self.generation_settings['top_p'],
-                                         engine=engine
-                                         # TODO stop
-                                         )
+        results, error = openAI_generate(
+            prompt=prompt,
+            length=1,  # TODO 3 or so
+            num_continuations=1,
+            temperature=0,
+            logprobs=100,
+            top_p=self.generation_settings["top_p"],
+            engine=engine
+            # TODO stop
+        )
 
-        counterfactuals = results.choices[0]['logprobs']['top_logprobs'][0]
+        counterfactuals = results.choices[0]["logprobs"]["top_logprobs"][0]
         sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
         return sorted_counterfactuals
 
@@ -2090,13 +2058,13 @@ class TreeModel:
             return
 
         children = []
-        #grandchildren = []
+        # grandchildren = []
         new_nodes = []
         # pprint(self.generation_settings)
-        for i in range(self.generation_settings['num_continuations']):
+        for i in range(self.generation_settings["num_continuations"]):
             child = self.create_child(node, expand=True)
             children.append(child)
-            new_nodes.append(child['id'])
+            new_nodes.append(child["id"])
             # if self.generation_settings['adaptive']:
             #     grandchild = self.create_child(child, update_selection=False, expand=True, refresh_nav=False)
             #     grandchildren.append(grandchild)
@@ -2104,23 +2072,24 @@ class TreeModel:
 
         self.new_nodes.append(new_nodes)
         self.tree_updated(add=new_nodes)
-        #self.reveal_nodes(children + grandchildren)
+        # self.reveal_nodes(children + grandchildren)
         prompt = self.prompt(node=node)
 
         threading.Thread(target=self.default_generate, args=(prompt, children)).start()
 
         # After asking for the generation, set loading text
         for child in children:
-            child["text"] = "\n\n** Generating **" if 'placeholder' not in kwargs else kwargs['placeholder']
-            child['mutable'] = False
+            child["text"] = "\n\n** Generating **" if "placeholder" not in kwargs else kwargs["placeholder"]
+            child["mutable"] = False
         # for grandchild in grandchildren:
         #     grandchild["text"] = "\n\n** Generating **"
         self.tree_updated(edit=new_nodes)
         if update_selection:
             self.select_node(children[0]["id"])
 
-    def generate_tree_init(self, node=None, max_depth=2, branching_factor=2, interval=50, stop_condition=None,
-                           temperature=1, engine='ada'):
+    def generate_tree_init(
+        self, node=None, max_depth=2, branching_factor=2, interval=50, stop_condition=None, temperature=1, engine="ada"
+    ):
         node = node if node else self.selected_node
         self.generate_tree(node, max_depth, branching_factor, interval, stop_condition, temperature, engine)
         new_nodes = []
@@ -2131,21 +2100,23 @@ class TreeModel:
         #     del self.new_nodes[0]
         # #self.tree_updated(add=new_nodes)
 
-    def generate_tree(self, node=None, max_depth=3, branching_factor=2, interval=50, stop_condition=None,
-                      temperature=1, engine='ada'):
+    def generate_tree(
+        self, node=None, max_depth=3, branching_factor=2, interval=50, stop_condition=None, temperature=1, engine="ada"
+    ):
         node = node if node else self.selected_node
-        print('generating children for node', node['id'])
+        print("generating children for node", node["id"])
         if max_depth == 0 or (stop_condition and stop_condition(node)):
             return
         prompt = self.default_prompt(quiet=False, node=node)
-        results, error = openAI_generate(prompt=prompt,
-                                         length=interval,
-                                         num_continuations=branching_factor,
-                                         temperature=temperature,
-                                         logprobs=0,
-                                         top_p=self.generation_settings['top_p'],
-                                         engine=engine
-                                         )
+        results, error = openAI_generate(
+            prompt=prompt,
+            length=interval,
+            num_continuations=branching_factor,
+            temperature=temperature,
+            logprobs=0,
+            top_p=self.generation_settings["top_p"],
+            engine=engine,
+        )
         # create child nodes
         children = []
         for i in range(branching_factor):
@@ -2153,18 +2124,32 @@ class TreeModel:
             children.append(child)
         # set child nodes
         self.generated_nodes_metadata(children, results, prompt)
-        self.tree_updated(add=[child['id'] for child in children])
+        self.tree_updated(add=[child["id"] for child in children])
         # for each child node, branch again
         for child in children:
             # self.new_nodes.append(child['id'])
-            self.generate_tree(node=child, max_depth=max_depth - 1, branching_factor=branching_factor,
-                               interval=interval,
-                               stop_condition=stop_condition, temperature=temperature, engine=engine)
+            self.generate_tree(
+                node=child,
+                max_depth=max_depth - 1,
+                branching_factor=branching_factor,
+                interval=interval,
+                stop_condition=stop_condition,
+                temperature=temperature,
+                engine=engine,
+            )
 
         # TODO multi threading
 
-    def generate_adaptive_tree(self, node=None, max_depth=3, branching_factor=2, max_interval=100, algorithm='min',
-                               min_interval=None, stop_condition=None):
+    def generate_adaptive_tree(
+        self,
+        node=None,
+        max_depth=3,
+        branching_factor=2,
+        max_interval=100,
+        algorithm="min",
+        min_interval=None,
+        stop_condition=None,
+    ):
         pass
 
         # TODO range
@@ -2174,13 +2159,13 @@ class TreeModel:
 
         # join nodes that are too small
         for ancestor in self.ancestry(node)[:-1]:
-            text = ancestor['text']
+            text = ancestor["text"]
             while len(text) > max_length:
                 documents.append(text[:max_length])
                 text = text[max_length:]
             documents.append(text)
         # documents.reverse()
-        query = node['text']
+        query = node["text"]
         return search(query, documents)
 
     # modifications made to text submitted using input box
@@ -2190,10 +2175,13 @@ class TreeModel:
 
     # submit modifications prepended to user input
     def pre_modifications(self, text):
-        if text and self.selected_node['text'] \
-                and self.selected_node['text'][-1] not in ['"', '\'', '\n', '-', '(', '{', '[', '*'] \
-                and text[0] != ' ':
-            text = ' ' + text
+        if (
+            text
+            and self.selected_node["text"]
+            and self.selected_node["text"][-1] not in ['"', "'", "\n", "-", "(", "{", "[", "*"]
+            and text[0] != " "
+        ):
+            text = " " + text
         else:
             text = text
         return text
@@ -2209,7 +2197,7 @@ class TreeModel:
         return text
 
     # TODO token index ???
-    def score_counterfactual(self, node=None, target=None, context_breaker='', engine='curie'):
+    def score_counterfactual(self, node=None, target=None, context_breaker="", engine="curie"):
         if not target:
             return
         if not node:
@@ -2218,8 +2206,8 @@ class TreeModel:
         return conditional_logprob(prompt=story + context_breaker, target=target, engine=engine)
 
     def measure_path_optimization(self, root, node):
-        #node = node if node else self.selected_node
-        #root = root if root else self.tree_raw_data["root"]
+        # node = node if node else self.selected_node
+        # root = root if root else self.tree_raw_data["root"]
         nodes_list = self.ancestry(node=node, root=root)
 
         selection_bits = 0
@@ -2227,20 +2215,20 @@ class TreeModel:
         total_tokens = 0
         for n in nodes_list:
             optimization_info = self.measure_node_optimization(node=n, quiet=True, final_node=node)
-            intervention_bits += optimization_info['intervention_bits']
-            selection_bits += optimization_info['selection_bits']
-            total_tokens += optimization_info['num_tokens']
+            intervention_bits += optimization_info["intervention_bits"]
+            selection_bits += optimization_info["selection_bits"]
+            total_tokens += optimization_info["num_tokens"]
 
-        print('intervention bits: {:.2f}'.format(intervention_bits))
-        print('selection bits: {:.2f}'.format(selection_bits))
+        print("intervention bits: {:.2f}".format(intervention_bits))
+        print("selection bits: {:.2f}".format(selection_bits))
         total_bits = intervention_bits + selection_bits
-        print('total bits: {:.2f}'.format(total_bits))
-        print(f'bits per token: {total_bits:.2f}/{total_tokens} =', '{:.2f}'.format(total_bits / total_tokens))
+        print("total bits: {:.2f}".format(total_bits))
+        print(f"bits per token: {total_bits:.2f}/{total_tokens} =", "{:.2f}".format(total_bits / total_tokens))
 
     def measure_node_optimization(self, node=None, quiet=False, final_node=None):
         node = node if node else self.selected_node
-        if 'meta' not in node:
-            print('error: no meta attribute')
+        if "meta" not in node:
+            print("error: no meta attribute")
             return
         has_intervention_optimization = False
         has_selection_optimization = False
@@ -2260,54 +2248,62 @@ class TreeModel:
         if has_intervention_optimization:
             tokens_logprobs, node_tokens = self.changed_tokens_logprobs(node)
             if not quiet:
-                print('\nOPTIMIZATION FROM TOKENS INJECTED')
+                print("\nOPTIMIZATION FROM TOKENS INJECTED")
                 for token in tokens_logprobs:
                     print(f"'{token['token']}'")
-                    print('logprob:', token['logprob'])
-                    prob = logprobs_to_probs(token['logprob'])
-                    print('prob:', prob)
+                    print("logprob:", token["logprob"])
+                    prob = logprobs_to_probs(token["logprob"])
+                    print("prob:", prob)
                     optimization_power = 1 / prob
-                    print('optimization power:', optimization_power)
+                    print("optimization power:", optimization_power)
 
-            intervention_logprob = sum(token['logprob'] for token in tokens_logprobs)
+            intervention_logprob = sum(token["logprob"] for token in tokens_logprobs)
             intervention_prob = logprobs_to_probs(intervention_logprob)
             intervention_optimization_power = 1 / intervention_prob
             intervention_bits = math.log2(intervention_optimization_power)
 
             if not quiet:
-                print('\ntotal intervention logprob:', intervention_logprob)
-                print('total intervention optimization power:', intervention_optimization_power)
-                print(f'bits of intervention optimization: (log_2({intervention_optimization_power})) =',
-                      intervention_bits)
-                print(f'intervention bits per token: {intervention_bits}/{len(node_tokens)} =',
-                      intervention_bits / len(node_tokens))
+                print("\ntotal intervention logprob:", intervention_logprob)
+                print("total intervention optimization power:", intervention_optimization_power)
+                print(
+                    f"bits of intervention optimization: (log_2({intervention_optimization_power})) =",
+                    intervention_bits,
+                )
+                print(
+                    f"intervention bits per token: {intervention_bits}/{len(node_tokens)} =",
+                    intervention_bits / len(node_tokens),
+                )
         else:
             intervention_optimization_power = 1
             intervention_bits = 0
 
         if has_selection_optimization:
-            selection_optimization_power, selection_bits, node_tokens = self.selection_optimization(node=node,
-                                                                                                    final_node=final_node)
+            selection_optimization_power, selection_bits, node_tokens = self.selection_optimization(
+                node=node, final_node=final_node
+            )
             if not quiet:
-                print('\ntotal selection optimization power:', selection_optimization_power)
-                print(f'bits of selection optimization: (log_2({selection_optimization_power})) =',
-                      selection_bits)
-                print(f'selection bits per token: {selection_bits:.2f}/{len(node_tokens)} =',
-                      selection_bits / len(node_tokens))
+                print("\ntotal selection optimization power:", selection_optimization_power)
+                print(f"bits of selection optimization: (log_2({selection_optimization_power})) =", selection_bits)
+                print(
+                    f"selection bits per token: {selection_bits:.2f}/{len(node_tokens)} =",
+                    selection_bits / len(node_tokens),
+                )
 
         else:
             selection_optimization_power = 1
             selection_bits = 0
 
         if not node_tokens:
-            print('error, no node tokens')
+            print("error, no node tokens")
             return
 
-        optimization_info = {'intervention_power': intervention_optimization_power,
-                             'intervention_bits': intervention_bits,
-                             'selection_power': selection_optimization_power,
-                             'selection_bits': selection_bits,
-                             'num_tokens': len(node_tokens)}
+        optimization_info = {
+            "intervention_power": intervention_optimization_power,
+            "intervention_bits": intervention_bits,
+            "selection_power": selection_optimization_power,
+            "selection_bits": selection_bits,
+            "num_tokens": len(node_tokens),
+        }
 
         return optimization_info
 
@@ -2317,39 +2313,39 @@ class TreeModel:
     # TODO deprecated
     def changed_tokens_logprobs(self, node=None):
         node = node if node else self.selected_node
-        if 'meta' in node and 'source' in node['meta']:
+        if "meta" in node and "source" in node["meta"]:
             if node["meta"]["source"] == "AI":
                 return [], None
             if node["meta"]["source"] == "mixed":
                 try:
-                    original_tokens = node['meta']['diffs'][0]['diff']['old']
-                    current_tokens = node['meta']['diffs'][-1]['diff']['new']
+                    original_tokens = node["meta"]["diffs"][0]["diff"]["old"]
+                    current_tokens = node["meta"]["diffs"][-1]["diff"]["new"]
                 except KeyError:
                     return [], None
                 total_diff = diff(original_tokens, current_tokens)
                 # uses original prompt
-                prompt = node["meta"]["generation"]["prompt"] + node['text']
-                engine = node["meta"]["generation"]["model"].split(':')[0]
+                prompt = node["meta"]["generation"]["prompt"] + node["text"]
+                engine = node["meta"]["generation"]["model"].split(":")[0]
                 logprobs, tokens, positions = prompt_probs(prompt, engine)
                 corrected_positions = [p - len(node["meta"]["generation"]["prompt"]) for p in positions]
                 start = positions.index(len(node["meta"]["generation"]["prompt"]))
                 changed_indices = []
-                for word in total_diff['added']:
-                    start_index = word['indices'][0]
+                for word in total_diff["added"]:
+                    start_index = word["indices"][0]
                     token_index = corrected_positions.index(start_index)
                     token_logprob = logprobs[token_index]
                     token = tokens[token_index]
-                    changed_indices.append({'token': token, 'logprob': token_logprob, 'indices': word['indices']})
+                    changed_indices.append({"token": token, "logprob": token_logprob, "indices": word["indices"]})
                 return changed_indices, tokens[start:]
             elif node["meta"]["source"] == "prompt":
-                prompt = self.default_prompt(node=node, quiet=True, mode='default')
-                engine = self.generation_settings['model']
+                prompt = self.default_prompt(node=node, quiet=True, mode="default")
+                engine = self.generation_settings["model"]
                 logprobs, tokens, positions = prompt_probs(prompt, engine)
-                start_index = positions.index(len(prompt) - len(node['text']))
+                start_index = positions.index(len(prompt) - len(node["text"]))
                 index = start_index
                 changed_indices = []
                 for logprob in logprobs[start_index:]:
-                    changed_indices.append({'token': tokens[index], 'logprob': logprob})
+                    changed_indices.append({"token": tokens[index], "logprob": logprob})
                     index += 1
                 return changed_indices, tokens[start_index:]
 
@@ -2360,7 +2356,7 @@ class TreeModel:
         competing_siblings = 0
         # this should include the node itself
         for sibling in siblings:
-            if not ('meta' in sibling and 'source' in sibling['meta'] and sibling['meta']['source'] == 'prompt'):
+            if not ("meta" in sibling and "source" in sibling["meta"] and sibling["meta"]["source"] == "prompt"):
                 competing_siblings += 1
             # if 'meta' in sibling and 'source' in sibling['meta'] and sibling['meta']['source'] != 'prompt':
             #     if created_before(sibling, final_node):
@@ -2369,56 +2365,65 @@ class TreeModel:
         selection_optimization_power = competing_siblings
         selection_bits = math.log2(selection_optimization_power)
 
-        if node["meta"]["source"] == 'AI':
+        if node["meta"]["source"] == "AI":
             tokens = node["meta"]["generation"]["logprobs"]["tokens"]
         else:
-            tokens = node['meta']['diffs'][-1]['diff']['new'][0]
+            tokens = node["meta"]["diffs"][-1]["diff"]["new"][0]
 
         return selection_optimization_power, selection_bits, tokens
 
-    def generate_greedy_multiverse(self, prompt=None, node=None, ground_truth=None, max_depth=3,
-                                   unnormalized_amplitude=1, threshold=0.1, engine='ada'):
-        print('propagating wavefunction')
-        print('max depth:', max_depth)
-        print('threshold:', threshold)
-        print('ground truth:', ground_truth)
+    def generate_greedy_multiverse(
+        self,
+        prompt=None,
+        node=None,
+        ground_truth=None,
+        max_depth=3,
+        unnormalized_amplitude=1,
+        threshold=0.1,
+        engine="ada",
+    ):
+        print("propagating wavefunction")
+        print("max depth:", max_depth)
+        print("threshold:", threshold)
+        print("ground truth:", ground_truth)
         threshold = threshold * unnormalized_amplitude
-        prompt = prompt if prompt else ''
+        prompt = prompt if prompt else ""
         node = node if node else self.selected_node
         prompt = self.default_prompt(quiet=True, node=node) + prompt
-        model_info = self.model_config['models'][engine]
-        multiverse, ground_truth = greedy_word_multiverse(prompt=prompt, ground_truth=ground_truth, max_depth=max_depth,
-                                                          unnormalized_amplitude=unnormalized_amplitude,
-                                                          unnormalized_threshold=threshold,
-                                                          engine=engine,
-                                                          goose=model_info['type'] == 'gooseai')
+        model_info = self.model_config["models"][engine]
+        multiverse, ground_truth = greedy_word_multiverse(
+            prompt=prompt,
+            ground_truth=ground_truth,
+            max_depth=max_depth,
+            unnormalized_amplitude=unnormalized_amplitude,
+            unnormalized_threshold=threshold,
+            engine=engine,
+            goose=model_info["type"] == "gooseai",
+        )
         return multiverse, ground_truth, prompt
 
-
     def get_request_info(self, node):
-        model_response = self.model_responses.get(node['generation']['id'], False)
+        model_response = self.model_responses.get(node["generation"]["id"], False)
         if not model_response:
-            return None, '', ''
-        prompt = model_response['prompt']['text']
-        completion = model_response['completions'][node['generation']['index']]
+            return None, "", ""
+        prompt = model_response["prompt"]["text"]
+        completion = model_response["completions"][node["generation"]["index"]]
         return model_response, prompt, completion
-
 
     #################################
     #   Cleaning
     #################################
 
-
     # TODO deprecated
     def delete_counterfactuals(self, root=None):
         if not root:
             root = self.tree_raw_data["root"]
-        if 'meta' in root:
-            if 'generation' in root['meta']:
-                if 'logprobs' in root['meta']['generation']:
-                    root['meta']['generation']["logprobs"]["top_logprobs"] = []
+        if "meta" in root:
+            if "generation" in root["meta"]:
+                if "logprobs" in root["meta"]["generation"]:
+                    root["meta"]["generation"]["logprobs"]["top_logprobs"] = []
                     # print('deleted logprobs')
-        for child in root['children']:
+        for child in root["children"]:
             self.delete_counterfactuals(root=child)
 
     # TODO only strip generation metadata
@@ -2426,34 +2431,32 @@ class TreeModel:
         root = root if root else self.root()
         if root == self.root() and delete_chapters:
             self.remove_all_chapters(root)
-            self.tree_raw_data['chapters'] = {}
-        if 'meta' in root:
-            root.pop('meta')
+            self.tree_raw_data["chapters"] = {}
+        if "meta" in root:
+            root.pop("meta")
         # if delete_chapters and 'chapter_id' in root:
         #     root.pop('chapter_id')
-        for child in root['children']:
+        for child in root["children"]:
             self.strip_metadata(root=child)
 
     def clear_old_generation_metadata(self, root=None):
         root = root if root else self.root()
-        print('...')
-        if 'meta' in root and 'generation' in root['meta']:
-            print('clearing generation data')
-            root['meta'].pop('generation')
-        for child in root['children']:
+        print("...")
+        if "meta" in root and "generation" in root["meta"]:
+            print("clearing generation data")
+            root["meta"].pop("generation")
+        for child in root["children"]:
             self.clear_old_generation_metadata(child)
-
 
     def backup_and_delete_model_response_data(self, root=None):
         root = root if root else self.root()
-        print('backing up model response data')
+        print("backing up model response data")
         # Fancy platform independent os.path
         save_dir = os.path.dirname(self.tree_filename)
         backup_dir = os.path.join(save_dir, "backups")
         if not os.path.exists(backup_dir):
             os.mkdir(backup_dir)
-        json_create(os.path.join(backup_dir, f"model_responses-{timestamp()}.json"), self.tree_raw_data['model_responses'])
-        self.tree_raw_data['model_responses'] = {}
-
-    
-        
+        json_create(
+            os.path.join(backup_dir, f"model_responses-{timestamp()}.json"), self.tree_raw_data["model_responses"]
+        )
+        self.tree_raw_data["model_responses"] = {}

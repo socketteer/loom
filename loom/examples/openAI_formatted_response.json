@@ -1,1 +1,89 @@
-{"completions": [{"text": "Test prompt\n", "finishReason": "length", "tokens": [{"generatedToken": {"token": "Test", "logprob": null}, "position": {"start": 0, "end": 4}, "counterfactuals": null}, {"generatedToken": {"token": " prompt", "logprob": -12.956981}, "position": {"start": 4, "end": 11}, "counterfactuals": null}, {"generatedToken": {"token": "\n", "logprob": -2.410658}, "position": {"start": 11, "end": 12}, "counterfactuals": null}]}, {"text": "Test prompt on", "finishReason": "length", "tokens": [{"generatedToken": {"token": "Test", "logprob": null}, "position": {"start": 0, "end": 4}, "counterfactuals": null}, {"generatedToken": {"token": " prompt", "logprob": -12.956981}, "position": {"start": 4, "end": 11}, "counterfactuals": null}, {"generatedToken": {"token": " on", "logprob": -5.0854616}, "position": {"start": 11, "end": 14}, "counterfactuals": null}]}], "prompt": {"text": "Test prompt", "tokens": null}, "id": "cmpl-3mupVxCi4CJZQFrbYppUSoWay72UY", "model": "curie:2020-05-03", "timestamp": "2021-09-27-17.00.09"}
+{
+  "completions": [
+    {
+      "finishReason": "length",
+      "text": "Test prompt\n",
+      "tokens": [
+        {
+          "counterfactuals": null,
+          "generatedToken": {
+            "logprob": null,
+            "token": "Test"
+          },
+          "position": {
+            "end": 4,
+            "start": 0
+          }
+        },
+        {
+          "counterfactuals": null,
+          "generatedToken": {
+            "logprob": -12.956981,
+            "token": " prompt"
+          },
+          "position": {
+            "end": 11,
+            "start": 4
+          }
+        },
+        {
+          "counterfactuals": null,
+          "generatedToken": {
+            "logprob": -2.410658,
+            "token": "\n"
+          },
+          "position": {
+            "end": 12,
+            "start": 11
+          }
+        }
+      ]
+    },
+    {
+      "finishReason": "length",
+      "text": "Test prompt on",
+      "tokens": [
+        {
+          "counterfactuals": null,
+          "generatedToken": {
+            "logprob": null,
+            "token": "Test"
+          },
+          "position": {
+            "end": 4,
+            "start": 0
+          }
+        },
+        {
+          "counterfactuals": null,
+          "generatedToken": {
+            "logprob": -12.956981,
+            "token": " prompt"
+          },
+          "position": {
+            "end": 11,
+            "start": 4
+          }
+        },
+        {
+          "counterfactuals": null,
+          "generatedToken": {
+            "logprob": -5.0854616,
+            "token": " on"
+          },
+          "position": {
+            "end": 14,
+            "start": 11
+          }
+        }
+      ]
+    }
+  ],
+  "id": "cmpl-3mupVxCi4CJZQFrbYppUSoWay72UY",
+  "model": "curie:2020-05-03",
+  "prompt": {
+    "text": "Test prompt",
+    "tokens": null
+  },
+  "timestamp": "2021-09-27-17.00.09"
+}

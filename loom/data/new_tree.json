@@ -1,453 +1,453 @@
 {
-    "root": {
-        "id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
-        "text": "Transcript of an interaction between two protesters at a rally. One is wearing a MAGA hat, and the other is wearing an LGBTQ+ pin.\n\nMAGA: ",
+  "canonical": [],
+  "chapters": {},
+  "frame": {},
+  "generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 4,
+    "preset": "None",
+    "prompt_length": 6000,
+    "response_length": 100,
+    "restart": "",
+    "start": "",
+    "stop": "",
+    "temperature": 0.9,
+    "template": "Default",
+    "top_p": 1
+  },
+  "inline_generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 8,
+    "preset": "Single Line",
+    "prompt_length": 6000,
+    "response_length": 60,
+    "restart": "",
+    "start": "",
+    "stop": "\\n|.|?|!",
+    "temperature": 1,
+    "template": "Default",
+    "top_p": 1
+  },
+  "model_responses": {},
+  "module_settings": {
+    "children": {
+      "toggle_tag": "bookmark"
+    },
+    "edit": {
+      "node_id": null
+    },
+    "input": {
+      "auto_response": true,
+      "submit_template": "{input}"
+    },
+    "minimap": {
+      "horizontal": false,
+      "leaf_offset": 40,
+      "level_offset": 70,
+      "line_thickness": 2,
+      "node_radius": 10,
+      "path_length_limit": 10,
+      "prune_mode": "open_in_nav"
+    },
+    "read children": {
+      "filter": "in_nav",
+      "show_continue": "no alternatives",
+      "show_options": "always"
+    }
+  },
+  "preferences": {
+    "autosave": false,
+    "bold_prompt": true,
+    "coloring": "edit",
+    "editable": true,
+    "font_size": 12,
+    "history_conflict": "overwrite",
+    "line_spacing": 8,
+    "model_response": "backup",
+    "nav_tag": "bookmark",
+    "paragraph_spacing": 10,
+    "prob": true,
+    "reverse": false,
+    "revision_history": false,
+    "walk": "descendents"
+  },
+  "root": {
+    "children": [
+      {
         "children": [
-            {
-                "id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
-                "text": "Get your head out of your ass! Trump is the most pro-gay, pro-trans, pro-trans rights president of this country, maybe ever! He is for us!\nLGBTQ+:",
-                "children": [
-                    {
-                        "id": "13bc6f76-abe1-11ed-8661-0d9eaf142f06",
-                        "text": " Well, I think your wearing this hat is homophobic.\nMAGA: I don't think I'm homophobic! I don't hate trans people! I know trans people!\nLGBTQ+: Well maybe your words are homophobic, or your actions are homophobic.\nLGBTQ+: You're threatened by my existence as a gay person.\nMAGA: Well I don't know what you're talking about! I thought I was at a rally against a terrorist attack.\nMAGA:",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-13-20.57.56",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jaBVkrGMswLRaoBlMZwCABekLhkz",
-                            "index": 0
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "13bc6f77-abe1-11ed-8661-0d9eaf142f06",
-                        "text": " No! You don't know what he's doing! He's trying to take away transgender rights! He's homophobic, don't you know? He's anti-gay and anti-trans.\nMAGA: No, he isn't. He's done more for us than anyone in this country.\nMAGA: Look, I live in California, this is legalized, this is accepted, and now I can marry whoever I want in the military, something I don't have to do is",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-13-20.57.56",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jaBVkrGMswLRaoBlMZwCABekLhkz",
-                            "index": 1
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "13bc6f78-abe1-11ed-8661-0d9eaf142f06",
-                        "text": " No. You don't speak for us.\nTHE TRUMP RALLY\n\nMONOLOGUE\n\nI have been going to Trump rallies for a long time. I went to the first one in Springfield, Missouri in March 2016. But I was mostly just a bystander in those days. I stood at the back, I took pictures. I watched as Trump was shouted down, heckled, booed, berated, compared to Hitler, threatened, and with a few exceptions, largely left",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-13-20.57.56",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jaBVkrGMswLRaoBlMZwCABekLhkz",
-                            "index": 2
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
-                        "text": " No, he is not. And he's literally the worst, there's literally no evidence of this at all. Just because he said a couple nice things... no. Work with us. Work with us. We just want to save this country, too.\nMAGA: If you're going to try to start an argument with me about how Trump can get rainbow flags and fuck everything up, then I'm going to tell you that you're a fucking idiot who doesn't know how to",
-                        "children": [
-                            {
-                                "id": "31696060-abe1-11ed-8661-0d9eaf142f06",
-                                "text": " read a fucking room.\nMAGA: I'm here because I support gay men's rights, because I've been to gay bars and because I have gay friends! I'm totally for gay marriage, but I don't like what you're doing!\nLGBTQ+: No, you're not. You don't care about those rights.\n[At this point the MAGA hat wearer punches the pin wearer]",
-                                "children": [
-                                    {
-                                        "id": "493d69ca-abe1-11ed-8661-0d9eaf142f06",
-                                        "text": "\n[MAGA looks around, sees nobody has intervened]\nMAGA: You always get gay kids to fight your fights for you, isn't it true?\nMAGA: I'm not gay! I'm not a part of your circle! You don't get me involved in your shit! I'm here for Trump!\n[MAGA walks away, high-fives a bystander]\nLGBTQ+: You need help. You need help. You need help. You",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "31696060-abe1-11ed-8661-0d9eaf142f06",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-13-20.59.25",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6jaCwTo7NCn46tkA2Bt3R16skNY06",
-                                            "index": 0
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "493d69cb-abe1-11ed-8661-0d9eaf142f06",
-                                        "text": "\nMAGA: Lesbian! Look at these queer bitches! [More slurs]\n...\nMAGA: Hey look, I wanted to hit you before the cops came here, I was hoping they would beat you up real bad. I wish they would take you away. I wish you had to leave. This is my neighborhood and I feel like you're ruining it.\nMAGA: You're ruining it... I don't support queer people, I don't tolerate your presence, I",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "31696060-abe1-11ed-8661-0d9eaf142f06",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-13-20.59.25",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6jaCwTo7NCn46tkA2Bt3R16skNY06",
-                                            "index": 1
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "493d69cc-abe1-11ed-8661-0d9eaf142f06",
-                                        "text": "\n[MAGA: You just don't get it, do you? No one's going to save this country except for Trump. He's the only one who cares about us. He doesn't care about you. He hates all brown people. Let that sink in for a second. He owns your ass]\n[LGBTQ+: No, he doesn't. He doesn't own any of our asses. He's just a president. He's just trying to screw up our country like",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "31696060-abe1-11ed-8661-0d9eaf142f06",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-13-20.59.25",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6jaCwTo7NCn46tkA2Bt3R16skNY06",
-                                            "index": 2
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "493d69cd-abe1-11ed-8661-0d9eaf142f06",
-                                        "text": "\nMAGA: I said you couldn't read a room. Faggot!\nLGBTQ+: You can't hit people with whom you disagree!\nMAGA: Fuck you.",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "31696060-abe1-11ed-8661-0d9eaf142f06",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-13-20.59.25",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6jaCwTo7NCn46tkA2Bt3R16skNY06",
-                                            "index": 3
-                                        },
-                                        "visited": true
-                                    }
-                                ],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-13-20.58.45",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jaCHkvYom6edPoxqofA16tPKGb5s",
-                                    "index": 0
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "31696061-abe1-11ed-8661-0d9eaf142f06",
-                                "text": " accept a compliment\u2014\nLGBTQ+: No! No, that's not what I'm saying at all!\nMAGA: \u2014and I am going to continue to wear this hat, wear the letters of this country that built this gay-friendly city, and wear the fucking rainbow flag, because it's a good thing, and you should too.\nMAGA walks away, leaving the LGBTQ+ person dumbfounded.\n\n\"The Washington Post\" called the performance art piece a \"",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-13-20.58.45",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jaCHkvYom6edPoxqofA16tPKGb5s",
-                                    "index": 1
-                                }
-                            },
-                            {
-                                "id": "31696062-abe1-11ed-8661-0d9eaf142f06",
-                                "text": " fucking argue properly. You should learn how to fucking argue before you decide to argue!\nMAGA: Yeah, come on! Do it!\nLGBTQ+: No, you come on! [ MAGA walks out of the crowd, holding her phone up. ]\nCLEAR\nDisclosures:\nThis was recorded on 10/23/2018 at the #WeAllVote Women's March in Washington, D.C.\nMAGA stands for \"Make America Great Again.\"",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-13-20.58.45",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jaCHkvYom6edPoxqofA16tPKGb5s",
-                                    "index": 2
-                                }
-                            },
-                            {
-                                "id": "31696063-abe1-11ed-8661-0d9eaf142f06",
-                                "text": " use Google.\nMAGA: (points to pin) Get that ridiculous pin off your chest, you don't have to shove that in our faces. If I see you shove something else in my face I'm going to grab you like this and take it off.\nMAGA: ...(goes on to explain entire history of LGBTQ+ rights in this nation and quotes Bart Ehrman and the like)\nMAGA: If you want to fight for rights, why don't you",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-13-20.58.45",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jaCHkvYom6edPoxqofA16tPKGb5s",
-                                    "index": 3
-                                }
-                            }
-                        ],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-13-20.57.56",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jaBVkrGMswLRaoBlMZwCABekLhkz",
-                            "index": 3
-                        },
-                        "visited": true
-                    }
-                ],
-                "mutable": true,
-                "open": 1,
-                "parent_id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
-                "meta": {
-                    "creation_timestamp": "2023-02-13-20.56.31",
-                    "source": "AI",
-                    "modified": false
-                },
-                "generation": {
-                    "id": "cmpl-6jaA7XAtraEcSkHpRZdOEquk5wHbm",
-                    "index": 0
-                },
-                "visited": true
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jaBVkrGMswLRaoBlMZwCABekLhkz",
+              "index": 0
             },
-            {
-                "id": "e1147d67-abe0-11ed-8661-0d9eaf142f06",
-                "text": "\u4f60yanzhi \u627e\u6211\u2019re being a dick.\n\nLGBTQ+: \u4f60\u4e3a\u4ec0\u4e48\u7559\u7740\u4e00\u4e2a\u5c0f\u4e11\u7684\u5218\u6d77\u8fd9\u6837\u7684\u5934\u53d1\u4f60\u662f\u4e00\u4e2a\u6df7\u86cb\u3002\n\nMAGA: Fuck you, fuck you!\n\nLGBTQ+: Yeah? Ok, fuck you too!\n\nAs the",
-                "children": [],
-                "mutable": true,
-                "open": 1,
-                "parent_id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
-                "meta": {
-                    "creation_timestamp": "2023-02-13-20.56.31",
-                    "source": "AI",
-                    "modified": false
-                },
-                "generation": {
-                    "id": "cmpl-6jaA7XAtraEcSkHpRZdOEquk5wHbm",
-                    "index": 1
-                },
-                "visited": true
+            "id": "13bc6f76-abe1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-13-20.57.56",
+              "modified": false,
+              "source": "AI"
             },
-            {
-                "id": "e1147d68-abe0-11ed-8661-0d9eaf142f06",
-                "text": "_______, are you human?\n\nQueer: No, not according to the Bible, which is why I\u2019m here, to protest.\n\nMAGA: Are you a fag?\u201d\n\nQueer: Yes, I am a queer christian, so I fit right into the Bible.\n\nMAGA: Do you have a boyfriend?\n\nQueer: _______\n\nMAGA: OMG, that is so weird. I\u2019m",
-                "children": [],
-                "mutable": true,
-                "open": 1,
-                "parent_id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
-                "meta": {
-                    "creation_timestamp": "2023-02-13-20.56.31",
-                    "source": "AI",
-                    "modified": false
-                },
-                "generation": {
-                    "id": "cmpl-6jaA7XAtraEcSkHpRZdOEquk5wHbm",
-                    "index": 2
-                },
-                "visited": true
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
+            "text": " Well, I think your wearing this hat is homophobic.\nMAGA: I don't think I'm homophobic! I don't hate trans people! I know trans people!\nLGBTQ+: Well maybe your words are homophobic, or your actions are homophobic.\nLGBTQ+: You're threatened by my existence as a gay person.\nMAGA: Well I don't know what you're talking about! I thought I was at a rally against a terrorist attack.\nMAGA:",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jaBVkrGMswLRaoBlMZwCABekLhkz",
+              "index": 1
             },
-            {
-                "id": "e1147d69-abe0-11ed-8661-0d9eaf142f06",
-                "text": "\u4f60\u597d, Very nice pin!\n\nLGBTQ: I am queer.\n\nMAGA: \u54e6! So is he! (Points to picture of Trump)\n\nLGBTQ: No, he is absolutely not!\n\nMAGA: \u9519\u4e86, he's a proud fu--king queer!\n\nLGBTQ: You didn't see the ACTUAL pin I'm wearing.\n\nMAGA: Oh, see that's the problem!",
-                "children": [],
-                "mutable": true,
-                "open": 1,
-                "parent_id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
-                "meta": {
-                    "creation_timestamp": "2023-02-13-20.56.31",
-                    "source": "AI",
-                    "modified": false
-                },
-                "generation": {
-                    "id": "cmpl-6jaA7XAtraEcSkHpRZdOEquk5wHbm",
-                    "index": 3
-                },
-                "visited": true
-            }
-        ],
-        "mutable": false,
-        "masked_head": {
-            "mutable": false,
-            "visited": true,
-            "text": "",
+            "id": "13bc6f77-abe1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-13-20.57.56",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
+            "text": " No! You don't know what he's doing! He's trying to take away transgender rights! He's homophobic, don't you know? He's anti-gay and anti-trans.\nMAGA: No, he isn't. He's done more for us than anyone in this country.\nMAGA: Look, I live in California, this is legalized, this is accepted, and now I can marry whoever I want in the military, something I don't have to do is",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jaBVkrGMswLRaoBlMZwCABekLhkz",
+              "index": 2
+            },
+            "id": "13bc6f78-abe1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-13-20.57.56",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
+            "text": " No. You don't speak for us.\nTHE TRUMP RALLY\n\nMONOLOGUE\n\nI have been going to Trump rallies for a long time. I went to the first one in Springfield, Missouri in March 2016. But I was mostly just a bystander in those days. I stood at the back, I took pictures. I watched as Trump was shouted down, heckled, booed, berated, compared to Hitler, threatened, and with a few exceptions, largely left",
+            "visited": true
+          },
+          {
             "children": [
-                {
-                    "text": "Transcript of an interaction between two protesters at a rally. One is wearing a MAGA hat, and the other is wearing an LGBTQ+ pin.\n\nMAGA: ",
+              {
+                "children": [
+                  {
                     "children": [],
-                    "parent_id": "bb44062e-abe0-11ed-8661-0d9eaf142f06",
-                    "id": "bb44062f-abe0-11ed-8661-0d9eaf142f06",
+                    "generation": {
+                      "id": "cmpl-6jaCwTo7NCn46tkA2Bt3R16skNY06",
+                      "index": 0
+                    },
+                    "id": "493d69ca-abe1-11ed-8661-0d9eaf142f06",
+                    "meta": {
+                      "creation_timestamp": "2023-02-13-20.59.25",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
                     "open": 1,
+                    "parent_id": "31696060-abe1-11ed-8661-0d9eaf142f06",
+                    "text": "\n[MAGA looks around, sees nobody has intervened]\nMAGA: You always get gay kids to fight your fights for you, isn't it true?\nMAGA: I'm not gay! I'm not a part of your circle! You don't get me involved in your shit! I'm here for Trump!\n[MAGA walks away, high-fives a bystander]\nLGBTQ+: You need help. You need help. You need help. You",
                     "visited": true
-                }
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6jaCwTo7NCn46tkA2Bt3R16skNY06",
+                      "index": 1
+                    },
+                    "id": "493d69cb-abe1-11ed-8661-0d9eaf142f06",
+                    "meta": {
+                      "creation_timestamp": "2023-02-13-20.59.25",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "31696060-abe1-11ed-8661-0d9eaf142f06",
+                    "text": "\nMAGA: Lesbian! Look at these queer bitches! [More slurs]\n...\nMAGA: Hey look, I wanted to hit you before the cops came here, I was hoping they would beat you up real bad. I wish they would take you away. I wish you had to leave. This is my neighborhood and I feel like you're ruining it.\nMAGA: You're ruining it... I don't support queer people, I don't tolerate your presence, I",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6jaCwTo7NCn46tkA2Bt3R16skNY06",
+                      "index": 2
+                    },
+                    "id": "493d69cc-abe1-11ed-8661-0d9eaf142f06",
+                    "meta": {
+                      "creation_timestamp": "2023-02-13-20.59.25",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "31696060-abe1-11ed-8661-0d9eaf142f06",
+                    "text": "\n[MAGA: You just don't get it, do you? No one's going to save this country except for Trump. He's the only one who cares about us. He doesn't care about you. He hates all brown people. Let that sink in for a second. He owns your ass]\n[LGBTQ+: No, he doesn't. He doesn't own any of our asses. He's just a president. He's just trying to screw up our country like",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6jaCwTo7NCn46tkA2Bt3R16skNY06",
+                      "index": 3
+                    },
+                    "id": "493d69cd-abe1-11ed-8661-0d9eaf142f06",
+                    "meta": {
+                      "creation_timestamp": "2023-02-13-20.59.25",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "31696060-abe1-11ed-8661-0d9eaf142f06",
+                    "text": "\nMAGA: I said you couldn't read a room. Faggot!\nLGBTQ+: You can't hit people with whom you disagree!\nMAGA: Fuck you.",
+                    "visited": true
+                  }
+                ],
+                "generation": {
+                  "id": "cmpl-6jaCHkvYom6edPoxqofA16tPKGb5s",
+                  "index": 0
+                },
+                "id": "31696060-abe1-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-13-20.58.45",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
+                "text": " read a fucking room.\nMAGA: I'm here because I support gay men's rights, because I've been to gay bars and because I have gay friends! I'm totally for gay marriage, but I don't like what you're doing!\nLGBTQ+: No, you're not. You don't care about those rights.\n[At this point the MAGA hat wearer punches the pin wearer]",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jaCHkvYom6edPoxqofA16tPKGb5s",
+                  "index": 1
+                },
+                "id": "31696061-abe1-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-13-20.58.45",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
+                "text": " accept a compliment\u2014\nLGBTQ+: No! No, that's not what I'm saying at all!\nMAGA: \u2014and I am going to continue to wear this hat, wear the letters of this country that built this gay-friendly city, and wear the fucking rainbow flag, because it's a good thing, and you should too.\nMAGA walks away, leaving the LGBTQ+ person dumbfounded.\n\n\"The Washington Post\" called the performance art piece a \""
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jaCHkvYom6edPoxqofA16tPKGb5s",
+                  "index": 2
+                },
+                "id": "31696062-abe1-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-13-20.58.45",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
+                "text": " fucking argue properly. You should learn how to fucking argue before you decide to argue!\nMAGA: Yeah, come on! Do it!\nLGBTQ+: No, you come on! [ MAGA walks out of the crowd, holding her phone up. ]\nCLEAR\nDisclosures:\nThis was recorded on 10/23/2018 at the #WeAllVote Women's March in Washington, D.C.\nMAGA stands for \"Make America Great Again.\""
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jaCHkvYom6edPoxqofA16tPKGb5s",
+                  "index": 3
+                },
+                "id": "31696063-abe1-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-13-20.58.45",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
+                "text": " use Google.\nMAGA: (points to pin) Get that ridiculous pin off your chest, you don't have to shove that in our faces. If I see you shove something else in my face I'm going to grab you like this and take it off.\nMAGA: ...(goes on to explain entire history of LGBTQ+ rights in this nation and quotes Bart Ehrman and the like)\nMAGA: If you want to fight for rights, why don't you"
+              }
             ],
-            "id": "bb44062e-abe0-11ed-8661-0d9eaf142f06",
-            "open": 1
+            "generation": {
+              "id": "cmpl-6jaBVkrGMswLRaoBlMZwCABekLhkz",
+              "index": 3
+            },
+            "id": "13bc6f79-abe1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-13-20.57.56",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
+            "text": " No, he is not. And he's literally the worst, there's literally no evidence of this at all. Just because he said a couple nice things... no. Work with us. Work with us. We just want to save this country, too.\nMAGA: If you're going to try to start an argument with me about how Trump can get rainbow flags and fuck everything up, then I'm going to tell you that you're a fucking idiot who doesn't know how to",
+            "visited": true
+          }
+        ],
+        "generation": {
+          "id": "cmpl-6jaA7XAtraEcSkHpRZdOEquk5wHbm",
+          "index": 0
         },
-        "tail_id": "bb44062f-abe0-11ed-8661-0d9eaf142f06",
-        "text_attributes": {
-            "nav_preview": "...Transcript o"
+        "id": "e1147d66-abe0-11ed-8661-0d9eaf142f06",
+        "meta": {
+          "creation_timestamp": "2023-02-13-20.56.31",
+          "modified": false,
+          "source": "AI"
         },
-        "visited": true,
+        "mutable": true,
         "open": 1,
-        "hoisted": true
-    },
-    "chapters": {},
-    "canonical": [],
-    "summaries": {},
-    "model_responses": {},
-    "generation_settings": {
-        "num_continuations": 4,
-        "temperature": 0.9,
-        "top_p": 1,
-        "response_length": 100,
-        "prompt_length": 6000,
-        "logprobs": 0,
-        "model": "davinci",
-        "stop": "",
-        "start": "",
-        "restart": "",
-        "preset": "None",
-        "global_context": "",
-        "logit_bias": "",
-        "template": "Default"
-    },
-    "inline_generation_settings": {
-        "model": "davinci",
-        "num_continuations": 8,
-        "temperature": 1,
-        "top_p": 1,
-        "response_length": 60,
-        "prompt_length": 6000,
-        "logprobs": 0,
-        "stop": "\\n|.|?|!",
-        "start": "",
-        "restart": "",
-        "preset": "Single Line",
-        "global_context": "",
-        "logit_bias": "",
-        "template": "Default"
-    },
-    "frame": {},
-    "visualization_settings": {
-        "text_width": 450,
-        "leaf_distance": 200,
-        "level_distance": 150,
-        "text_size": 10,
-        "horizontal": true,
-        "display_text": true,
-        "show_buttons": true,
-        "chapter_mode": false
-    },
-    "preferences": {
-        "reverse": false,
-        "walk": "descendents",
-        "nav_tag": "bookmark",
-        "editable": true,
-        "history_conflict": "overwrite",
-        "coloring": "edit",
-        "bold_prompt": true,
-        "font_size": 12,
-        "line_spacing": 8,
-        "paragraph_spacing": 10,
-        "revision_history": false,
-        "autosave": false,
-        "model_response": "backup",
-        "prob": true
-    },
-    "module_settings": {
-        "edit": {
-            "node_id": null
+        "parent_id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
+        "text": "Get your head out of your ass! Trump is the most pro-gay, pro-trans, pro-trans rights president of this country, maybe ever! He is for us!\nLGBTQ+:",
+        "visited": true
+      },
+      {
+        "children": [],
+        "generation": {
+          "id": "cmpl-6jaA7XAtraEcSkHpRZdOEquk5wHbm",
+          "index": 1
         },
-        "input": {
-            "auto_response": true,
-            "submit_template": "{input}"
+        "id": "e1147d67-abe0-11ed-8661-0d9eaf142f06",
+        "meta": {
+          "creation_timestamp": "2023-02-13-20.56.31",
+          "modified": false,
+          "source": "AI"
         },
-        "minimap": {
-            "level_offset": 70,
-            "leaf_offset": 40,
-            "node_radius": 10,
-            "line_thickness": 2,
-            "horizontal": false,
-            "prune_mode": "open_in_nav",
-            "path_length_limit": 10
+        "mutable": true,
+        "open": 1,
+        "parent_id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
+        "text": "\u4f60yanzhi \u627e\u6211\u2019re being a dick.\n\nLGBTQ+: \u4f60\u4e3a\u4ec0\u4e48\u7559\u7740\u4e00\u4e2a\u5c0f\u4e11\u7684\u5218\u6d77\u8fd9\u6837\u7684\u5934\u53d1\u4f60\u662f\u4e00\u4e2a\u6df7\u86cb\u3002\n\nMAGA: Fuck you, fuck you!\n\nLGBTQ+: Yeah? Ok, fuck you too!\n\nAs the",
+        "visited": true
+      },
+      {
+        "children": [],
+        "generation": {
+          "id": "cmpl-6jaA7XAtraEcSkHpRZdOEquk5wHbm",
+          "index": 2
         },
-        "read children": {
-            "filter": "in_nav",
-            "show_continue": "no alternatives",
-            "show_options": "always"
+        "id": "e1147d68-abe0-11ed-8661-0d9eaf142f06",
+        "meta": {
+          "creation_timestamp": "2023-02-13-20.56.31",
+          "modified": false,
+          "source": "AI"
         },
-        "children": {
-            "toggle_tag": "bookmark"
+        "mutable": true,
+        "open": 1,
+        "parent_id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
+        "text": "_______, are you human?\n\nQueer: No, not according to the Bible, which is why I\u2019m here, to protest.\n\nMAGA: Are you a fag?\u201d\n\nQueer: Yes, I am a queer christian, so I fit right into the Bible.\n\nMAGA: Do you have a boyfriend?\n\nQueer: _______\n\nMAGA: OMG, that is so weird. I\u2019m",
+        "visited": true
+      },
+      {
+        "children": [],
+        "generation": {
+          "id": "cmpl-6jaA7XAtraEcSkHpRZdOEquk5wHbm",
+          "index": 3
+        },
+        "id": "e1147d69-abe0-11ed-8661-0d9eaf142f06",
+        "meta": {
+          "creation_timestamp": "2023-02-13-20.56.31",
+          "modified": false,
+          "source": "AI"
+        },
+        "mutable": true,
+        "open": 1,
+        "parent_id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
+        "text": "\u4f60\u597d, Very nice pin!\n\nLGBTQ: I am queer.\n\nMAGA: \u54e6! So is he! (Points to picture of Trump)\n\nLGBTQ: No, he is absolutely not!\n\nMAGA: \u9519\u4e86, he's a proud fu--king queer!\n\nLGBTQ: You didn't see the ACTUAL pin I'm wearing.\n\nMAGA: Oh, see that's the problem!",
+        "visited": true
+      }
+    ],
+    "hoisted": true,
+    "id": "6b22c198-abe1-11ed-8661-0d9eaf142f06",
+    "masked_head": {
+      "children": [
+        {
+          "children": [],
+          "id": "bb44062f-abe0-11ed-8661-0d9eaf142f06",
+          "open": 1,
+          "parent_id": "bb44062e-abe0-11ed-8661-0d9eaf142f06",
+          "text": "Transcript of an interaction between two protesters at a rally. One is wearing a MAGA hat, and the other is wearing an LGBTQ+ pin.\n\nMAGA: ",
+          "visited": true
         }
+      ],
+      "id": "bb44062e-abe0-11ed-8661-0d9eaf142f06",
+      "mutable": false,
+      "open": 1,
+      "text": "",
+      "visited": true
     },
-    "tags": {
-        "bookmark": {
-            "name": "bookmark",
-            "scope": "node",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "b",
-            "icon": "bookmark-black"
-        },
-        "canonical": {
-            "name": "canonical",
-            "scope": "ancestry",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "*",
-            "icon": "book-white"
-        },
-        "archived": {
-            "name": "archived",
-            "scope": "node",
-            "hide": true,
-            "show_only": false,
-            "toggle_key": "!",
-            "icon": "archive-yellow"
-        },
-        "note": {
-            "name": "note",
-            "scope": "node",
-            "hide": true,
-            "show_only": false,
-            "toggle_key": "#",
-            "icon": "note-black"
-        },
-        "pinned": {
-            "name": "pinned",
-            "scope": "node",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "^",
-            "icon": "pin-red"
-        }
+    "mutable": false,
+    "open": 1,
+    "tail_id": "bb44062f-abe0-11ed-8661-0d9eaf142f06",
+    "text": "Transcript of an interaction between two protesters at a rally. One is wearing a MAGA hat, and the other is wearing an LGBTQ+ pin.\n\nMAGA: ",
+    "text_attributes": {
+      "nav_preview": "...Transcript o"
     },
-    "selected_node_id": "bb44062f-abe0-11ed-8661-0d9eaf142f06"
+    "visited": true
+  },
+  "selected_node_id": "bb44062f-abe0-11ed-8661-0d9eaf142f06",
+  "summaries": {},
+  "tags": {
+    "archived": {
+      "hide": true,
+      "icon": "archive-yellow",
+      "name": "archived",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "!"
+    },
+    "bookmark": {
+      "hide": false,
+      "icon": "bookmark-black",
+      "name": "bookmark",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "b"
+    },
+    "canonical": {
+      "hide": false,
+      "icon": "book-white",
+      "name": "canonical",
+      "scope": "ancestry",
+      "show_only": false,
+      "toggle_key": "*"
+    },
+    "note": {
+      "hide": true,
+      "icon": "note-black",
+      "name": "note",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "#"
+    },
+    "pinned": {
+      "hide": false,
+      "icon": "pin-red",
+      "name": "pinned",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "^"
+    }
+  },
+  "visualization_settings": {
+    "chapter_mode": false,
+    "display_text": true,
+    "horizontal": true,
+    "leaf_distance": 200,
+    "level_distance": 150,
+    "show_buttons": true,
+    "text_size": 10,
+    "text_width": 450
+  }
 }

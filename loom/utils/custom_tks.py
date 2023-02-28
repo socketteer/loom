@@ -1,6 +1,5 @@
-from tkinter import ttk
 import tkinter as tk
-
+from tkinter import ttk
 from view.colors import scroll_bg_color
 
 
@@ -29,13 +28,10 @@ class Dialog(tk.Toplevel):
         if not self.initial_focus:
             self.initial_focus = self
         self.protocol("WM_DELETE_WINDOW", self.cancel)
-        self.geometry("+%d+%d" % (parent.winfo_rootx() + 50,
-                                  parent.winfo_rooty() + 50))
+        self.geometry("+%d+%d" % (parent.winfo_rootx() + 50, parent.winfo_rooty() + 50))
         self.initial_focus.focus_set()
 
         self.wait_window(self)
-
-
 
     # construction hooks
     def body(self, master):
@@ -107,12 +103,12 @@ class ClosableNotebook(ttk.Notebook):
 
         if "close" in element:
             index = self.index("@%d,%d" % (event.x, event.y))
-            self.state(['pressed'])
+            self.state(["pressed"])
             self._active = index
 
     def on_close_release(self, event):
         """Called when the button is released over the close button"""
-        if not self.instate(['pressed']):
+        if not self.instate(["pressed"]):
             return
 
         element = self.identify(event.x, event.y)
@@ -128,49 +124,74 @@ class ClosableNotebook(ttk.Notebook):
     def __initialize_custom_style(self):
         style = ttk.Style()
         self.images = (
-            tk.PhotoImage("img_close", data='''
+            tk.PhotoImage(
+                "img_close",
+                data="""
                 R0lGODlhCAAIAMIBAAAAADs7O4+Pj9nZ2Ts7Ozs7Ozs7Ozs7OyH+EUNyZWF0ZWQg
                 d2l0aCBHSU1QACH5BAEKAAQALAAAAAAIAAgAAAMVGDBEA0qNJyGw7AmxmuaZhWEU
                 5kEJADs=
-                '''),
-            tk.PhotoImage("img_closeactive", data='''
+                """,
+            ),
+            tk.PhotoImage(
+                "img_closeactive",
+                data="""
                 R0lGODlhCAAIAMIEAAAAAP/SAP/bNNnZ2cbGxsbGxsbGxsbGxiH5BAEKAAQALAAA
                 AAAIAAgAAAMVGDBEA0qNJyGw7AmxmuaZhWEU5kEJADs=
-                '''),
-            tk.PhotoImage("img_closepressed", data='''
+                """,
+            ),
+            tk.PhotoImage(
+                "img_closepressed",
+                data="""
                 R0lGODlhCAAIAMIEAAAAAOUqKv9mZtnZ2Ts7Ozs7Ozs7Ozs7OyH+EUNyZWF0ZWQg
                 d2l0aCBHSU1QACH5BAEKAAQALAAAAAAIAAgAAAMVGDBEA0qNJyGw7AmxmuaZhWEU
                 5kEJADs=
-            ''')
+            """,
+            ),
         )
 
-        style.element_create("close", "image", "img_close",
-                             ("active", "pressed", "!disabled", "img_closepressed"),
-                             ("active", "!disabled", "img_closeactive"), border=8, sticky='')
+        style.element_create(
+            "close",
+            "image",
+            "img_close",
+            ("active", "pressed", "!disabled", "img_closepressed"),
+            ("active", "!disabled", "img_closeactive"),
+            border=8,
+            sticky="",
+        )
         style.layout("CustomNotebook", [("CustomNotebook.client", {"sticky": "nswe"})])
-        style.layout("CustomNotebook.Tab", [
-            ("CustomNotebook.tab", {
-                "sticky": "nswe",
-                "children": [
-                    ("CustomNotebook.padding", {
-                        "side": "top",
+        style.layout(
+            "CustomNotebook.Tab",
+            [
+                (
+                    "CustomNotebook.tab",
+                    {
                         "sticky": "nswe",
                         "children": [
-                            ("CustomNotebook.focus", {
-                                "side": "top",
-                                "sticky": "nswe",
-                                "children": [
-                                    ("CustomNotebook.label", {"side": "left", "sticky": ''}),
-                                    ("CustomNotebook.close", {"side": "left", "sticky": ''}),
-                                ]
-                            })
-                        ]
-                    })
-                ]
-            })
-        ])
-
-
+                            (
+                                "CustomNotebook.padding",
+                                {
+                                    "side": "top",
+                                    "sticky": "nswe",
+                                    "children": [
+                                        (
+                                            "CustomNotebook.focus",
+                                            {
+                                                "side": "top",
+                                                "sticky": "nswe",
+                                                "children": [
+                                                    ("CustomNotebook.label", {"side": "left", "sticky": ""}),
+                                                    ("CustomNotebook.close", {"side": "left", "sticky": ""}),
+                                                ],
+                                            },
+                                        )
+                                    ],
+                                },
+                            )
+                        ],
+                    },
+                )
+            ],
+        )
 
 
 # Wraps text box to create a <<TextModified>> bindable event
@@ -209,13 +230,12 @@ class TextAware(tk.Text):
         self.see(tk.INSERT)
         return "break"
 
-    def highlight_pattern(self, pattern, tag, start="1.0", end="end",
-                          regexp=False):
-        '''Apply the given tag to all text that matches the given pattern
+    def highlight_pattern(self, pattern, tag, start="1.0", end="end", regexp=False):
+        """Apply the given tag to all text that matches the given pattern
 
         If 'regexp' is set to True, pattern will be treated as a regular
         expression according to Tcl's regular expression syntax.
-        '''
+        """
 
         start = self.index(start)
         end = self.index(end)
@@ -225,10 +245,11 @@ class TextAware(tk.Text):
 
         count = tk.IntVar()
         while True:
-            index = self.search(pattern, "matchEnd", "searchLimit",
-                                count=count, regexp=regexp)
-            if index == "": break
-            if count.get() == 0: break  # degenerate pattern which matches zero-length strings
+            index = self.search(pattern, "matchEnd", "searchLimit", count=count, regexp=regexp)
+            if index == "":
+                break
+            if count.get() == 0:
+                break  # degenerate pattern which matches zero-length strings
             self.mark_set("matchStart", index)
             self.mark_set("matchEnd", "%s+%sc" % (index, count.get()))
             self.tag_add(tag, "matchStart", "matchEnd")
@@ -250,7 +271,6 @@ class TextAware(tk.Text):
         return self.tk.call((self._w, "count", "-update", "-displaylines", "1.0", "end"))
 
 
-
 class ScrollableFrame(ttk.Frame):
     def __init__(self, container, *args, **kwargs):
         super().__init__(container, *args, **kwargs)
@@ -264,7 +284,9 @@ class ScrollableFrame(ttk.Frame):
         # Put the scrollable frame inside the canvas and resize its window as the canvas resizes
         # https://stackoverflow.com/questions/29319445/tkinter-how-to-get-frame-in-canvas-window-to-expand-to-the-size-of-the-canvas
         window_frame = self.canvas.create_window((0, 0), window=self.scrollable_frame, anchor="nw")
-        self.canvas.bind("<Configure>", lambda e: self.canvas.itemconfig(window_frame, width=e.width))#, height=e.height))
+        self.canvas.bind(
+            "<Configure>", lambda e: self.canvas.itemconfig(window_frame, width=e.width)
+        )  # , height=e.height))
 
         self.canvas.configure(yscrollcommand=scrollbar.set)
         self.canvas.pack(side="left", fill="both", expand=True)

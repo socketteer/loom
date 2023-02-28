@@ -1,19 +1,19 @@
 import collections
 import csv
 import datetime
+import difflib
 import functools
 import itertools
 import json
 import logging
 import os
+import re
 import string
 import sys
 import time
 from functools import partial
 from pprint import pprint
 from random import shuffle
-import difflib
-import re
 
 import numpy as np
 import pandas as pd
@@ -23,10 +23,12 @@ def init_logs(logfile=None, stdout=True):
     if logfile is None:
         logfile = f"logs/{timestamp()}.log"
 
-    logging.basicConfig(filename=logfile,
-                        format='%(asctime)s - %(levelname)s - %(message)s',
-                        datefmt='%Y-%m-%d %H:%M:%S',
-                        level=logging.INFO)
+    logging.basicConfig(
+        filename=logfile,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        level=logging.INFO,
+    )
     # Also log to stdout
     if stdout:
         logging.getLogger().addHandler(logging.StreamHandler(sys.stdout))
@@ -56,22 +58,22 @@ def datestamp():
 
 def timestamp():
     ts = time.time()
-    return datetime.datetime.fromtimestamp(ts).strftime('%Y-%m-%d-%H.%M.%S')
+    return datetime.datetime.fromtimestamp(ts).strftime("%Y-%m-%d-%H.%M.%S")
 
 
 def remove_whitespace(x):
-    return x.translate(str.maketrans('', '', string.whitespace))
+    return x.translate(str.maketrans("", "", string.whitespace))
 
 
 def split_text(text, d):
     if not text:
         return []
     word_list = text.split(d)
-    if word_list[0] == '':
+    if word_list[0] == "":
         token_list = []
     else:
         token_list = [word_list[0]]
-    return token_list + [d+e for e in word_list[1:] if e]
+    return token_list + [d + e for e in word_list[1:] if e]
 
 
 # String class which can be formatted with brackets other than {}
@@ -87,10 +89,9 @@ class FString:
     # Replaces { with {{ and the FString bracket type with {
     # The string is ready to format with .format
     def switch_brackets(self, string):
-        return string.replace("{", "{{") \
-            .replace("}", "}}") \
-            .replace(self.brackets[0], "{") \
-            .replace(self.brackets[1], "}")
+        return (
+            string.replace("{", "{{").replace("}", "}}").replace(self.brackets[0], "{").replace(self.brackets[1], "}")
+        )
 
     def format(self, *args, **kwargs):
         return self.switch_brackets(self.remove_commented_lines(self.string)).format(*args, **kwargs)
@@ -109,8 +110,8 @@ def split_indices(s):
     """Splits a string on whitespaces and records the indices of each in the original string.
     @:return generator((word, (start_idx, end_idx)), ...)
     """
-    return ((m.group(0), (m.start(), m.end())) for m in re.finditer(r'\S+', s))
-    
+    return ((m.group(0), (m.start(), m.end())) for m in re.finditer(r"\S+", s))
+
 
 def word_ngrams(s, n):
     """Splits a string into ngram words"""
@@ -151,56 +152,64 @@ def diff(old, new):
     new_tokens, new_positions = new
     ndiff = difflib.ndiff(old_tokens, new_tokens)
     for i, s in enumerate(ndiff):
-        word = s.split(' ')[-1]
-        if s[0] == ' ':
+        word = s.split(" ")[-1]
+        if s[0] == " ":
             added_index += 1
             removed_index += 1
-        elif s[0] == '-':
-            removed.append({'word': s.split()[-1], 'indices': (old_positions[removed_index],
-                                                               old_positions[removed_index] + len(word) + 1)})
+        elif s[0] == "-":
+            removed.append(
+                {
+                    "word": s.split()[-1],
+                    "indices": (old_positions[removed_index], old_positions[removed_index] + len(word) + 1),
+                }
+            )
             removed_index += 1
-        elif s[0] == '+':
-            added.append({'word': s.split()[-1], 'indices': (new_positions[added_index],
-                                                             new_positions[added_index] + len(word) + 1)})
+        elif s[0] == "+":
+            added.append(
+                {
+                    "word": s.split()[-1],
+                    "indices": (new_positions[added_index], new_positions[added_index] + len(word) + 1),
+                }
+            )
             added_index += 1
     # print('added:', added)
     # print('removed:', removed)
-    return {'added': added, 'removed': removed, 'old': old, 'new': new}
+    return {"added": added, "removed": removed, "old": old, "new": new}
 
 
 # https://evandrocoan.github.io/debugtools/html/classdebug__tools_1_1utilities_1_1diffmatchpatch.html
-def diff_linesToWords(text1, text2, delimiter=re.compile('\n')):
+def diff_linesToWords(text1, text2, delimiter=re.compile("\n")):
     """
-        
-        Split two texts into an array of strings.  Reduce the texts to a string
-        of hashes where each Unicode character represents one line.
 
-        95% of this function code is copied from `diff_linesToChars` on:
-            https://github.com/google/diff-match-patch/blob/895a9512bbcee0ac5a8ffcee36062c8a79f5dcda/python3/diff_match_patch.py#L381
+    Split two texts into an array of strings.  Reduce the texts to a string
+    of hashes where each Unicode character represents one line.
 
-        Copyright 2018 The diff-match-patch Authors.
-        https://github.com/google/diff-match-patch
-        Licensed under the Apache License, Version 2.0 (the "License");
-        you may not use this file except in compliance with the License.
-        You may obtain a copy of the License at
-        http://www.apache.org/licenses/LICENSE-2.0
+    95% of this function code is copied from `diff_linesToChars` on:
+        https://github.com/google/diff-match-patch/blob/895a9512bbcee0ac5a8ffcee36062c8a79f5dcda/python3/diff_match_patch.py#L381
 
-        Args:
-            text1: First string.
-            text2: Second string.
-            delimiter: a re.compile() expression for the word delimiter type
+    Copyright 2018 The diff-match-patch Authors.
+    https://github.com/google/diff-match-patch
+    Licensed under the Apache License, Version 2.0 (the "License");
+    you may not use this file except in compliance with the License.
+    You may obtain a copy of the License at
+    http://www.apache.org/licenses/LICENSE-2.0
 
-        Returns:
-            Three element tuple, containing the encoded text1, the encoded text2 and
-            the array of unique strings.  The zeroth element of the array of unique
-            strings is intentionally blank.
+    Args:
+        text1: First string.
+        text2: Second string.
+        delimiter: a re.compile() expression for the word delimiter type
+
+    Returns:
+        Three element tuple, containing the encoded text1, the encoded text2 and
+        the array of unique strings.  The zeroth element of the array of unique
+        strings is intentionally blank.
     """
     lineArray = []  # e.g. lineArray[4] == "Hello\n"
-    lineHash = {}   # e.g. lineHash["Hello\n"] == 4
+    lineHash = {}  # e.g. lineHash["Hello\n"] == 4
 
     # "\x00" is a valid character, but various debuggers don't like it.
     # So we'll insert a junk entry to avoid generating a null character.
-    lineArray.append('')
+    lineArray.append("")
 
     def diff_linesToCharsMunge(text):
         """Split a text into an array of strings.  Reduce the texts to a string
@@ -226,7 +235,7 @@ def diff_linesToWords(text1, text2, delimiter=re.compile('\n')):
             else:
                 lineEnd = len(text) - 1
 
-            line = text[lineStart:lineEnd + 1]
+            line = text[lineStart : lineEnd + 1]
 
             if line in lineHash:
                 chars.append(chr(lineHash[line]))
@@ -248,6 +257,7 @@ def diff_linesToWords(text1, text2, delimiter=re.compile('\n')):
     chars2 = diff_linesToCharsMunge(text2)
     return (chars1, chars2, lineArray)
 
+
 ################################################################################
 # I/O
 ################################################################################
@@ -261,13 +271,13 @@ def read_file(filename):
 
 
 def csv_open(filename):
-    with open(filename, encoding='utf-8') as f:
+    with open(filename, encoding="utf-8") as f:
         reader = csv.reader(f)
         return list(reader)
 
 
 def csv_create(filename, headers=None, rows=None):
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         writer = csv.writer(f)
         if headers:
             writer.writerow(headers)
@@ -277,7 +287,7 @@ def csv_create(filename, headers=None, rows=None):
 
 
 def csv_append_row(filename, row):
-    with open(filename, 'a') as f:
+    with open(filename, "a") as f:
         writer = csv.writer(f)
         writer.writerow(row)
 
@@ -295,7 +305,7 @@ def json_open(filename):
 
 def json_create(filename, data=None):
     data = data if data else []
-    with open(filename, 'w') as f:
+    with open(filename, "w") as f:
         json.dump(data, f, indent=4)
 
 
@@ -324,7 +334,7 @@ def merge_json_lists(directory):
 
     files = [os.path.join(directory, f) for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))]
     for file in files:
-        with open(file, 'r') as f:
+        with open(file, "r") as f:
             json_string = f.read()
 
             # Remove opening and closing bracket, add a comma
@@ -355,8 +365,7 @@ def metadata(func=None, **data):
     return f
 
 
-def retry(func=None, exception=Exception, n_tries=5, delay=0.1,
-          backoff=2, logger=True, on_failure=None):
+def retry(func=None, exception=Exception, n_tries=5, delay=0.1, backoff=2, logger=True, on_failure=None):
     """Retry decorator with exponential backoff.
     https://stackoverflow.com/questions/42521549/retry-function-in-python
 
@@ -453,7 +462,7 @@ def clip_num(n, lower, upper):
 
 # Clips an index to the size of the array
 def index_clip(arr, i):
-    return arr[clip_num(i, 0, len(arr)-1)]
+    return arr[clip_num(i, 0, len(arr) - 1)]
 
 
 # Deduplicate a list without losing order
@@ -491,7 +500,7 @@ def intersperse(lst, item):
 # https://www.nltk.org/_modules/nltk/util.html
 def form_ngrams(sequence, n):
     """Return the ngrams generated from a sequence of items, as an iterator. For example:
-        list(form_ngrams([1,2,3,4,5], 3))  =>  [(1, 2, 3), (2, 3, 4), (3, 4, 5)]
+    list(form_ngrams([1,2,3,4,5], 3))  =>  [(1, 2, 3), (2, 3, 4), (3, 4, 5)]
     """
 
     history = []
@@ -573,5 +582,3 @@ def unroll_dict(dict_of_lists):
         list_of_dicts.append(d)
 
     return list_of_dicts
-
-

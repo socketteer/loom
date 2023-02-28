@@ -1,1379 +1,1379 @@
 {
-    "root": {
-        "mutable": false,
-        "visited": true,
-        "text": "",
+  "canonical": [],
+  "chapters": {},
+  "frame": {},
+  "generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 4,
+    "preset": "None",
+    "prompt_length": 6000,
+    "response_length": 100,
+    "restart": "",
+    "start": "",
+    "stop": "",
+    "temperature": 0.9,
+    "template": "Default",
+    "top_p": 1
+  },
+  "inline_generation_settings": {
+    "global_context": "",
+    "logit_bias": "",
+    "logprobs": 0,
+    "model": "davinci",
+    "num_continuations": 8,
+    "preset": "Single Line",
+    "prompt_length": 6000,
+    "response_length": 60,
+    "restart": "",
+    "start": "",
+    "stop": "\\n|.|?|!",
+    "temperature": 1,
+    "template": "Default",
+    "top_p": 1
+  },
+  "model_responses": {},
+  "module_settings": {
+    "children": {
+      "toggle_tag": "bookmark"
+    },
+    "edit": {
+      "node_id": null
+    },
+    "input": {
+      "auto_response": true,
+      "submit_template": "{input}"
+    },
+    "minimap": {
+      "horizontal": false,
+      "leaf_offset": 40,
+      "level_offset": 70,
+      "line_thickness": 2,
+      "node_radius": 10,
+      "path_length_limit": 10,
+      "prune_mode": "open_in_nav"
+    },
+    "read children": {
+      "filter": "in_nav",
+      "show_continue": "no alternatives",
+      "show_options": "always"
+    }
+  },
+  "preferences": {
+    "autosave": false,
+    "bold_prompt": true,
+    "coloring": "edit",
+    "editable": true,
+    "font_size": 12,
+    "history_conflict": "overwrite",
+    "line_spacing": 8,
+    "model_response": "backup",
+    "nav_tag": "bookmark",
+    "paragraph_spacing": 10,
+    "prob": true,
+    "reverse": false,
+    "revision_history": false,
+    "walk": "descendents"
+  },
+  "root": {
+    "children": [
+      {
         "children": [
-            {
-                "text": "Script for a talk show.\nWorking Title: Endless Forms Most Beautiful 2.0-- Tales From The Frontiers of Biology\n\nBackground: \"The rich variety of biological forms and behaviours results from one evolutionary history on Earth, via frozen accidents and selection in specific environments. This ubiquitous baggage in natural, familiar model species obscures the plasticity and swarm intelligence of cellular collectives. Significant gaps exist in our understanding of the origin of anatomical novelty, of the relationship between genome and form, and of strategies for control of large-scale structure and function in regenerative medicine and bioengineering. Analysis of living forms that have never existed before is necessary to reveal deep design principles of life as it can be. We briefly review existing examples of chimaeras, cyborgs, hybrots and other beings along the spectrum containing evolved and designed systems. To drive experimental progress in multicellular synthetic morphology, we propose teleonomic (goal-seeking, problem-solving) behaviour in diverse problem spaces as a powerful invariant across possible beings regardless of composition or origin. Cybernetic perspectives on chimaeric morphogenesis erase artificial distinctions established by past limitations of technology and imagination. We suggest that a multi-scale competency architecture facilitates evolution of robust problem-solving, living machines. Creation and analysis of novel living forms will be an essential testbed for the emerging field of diverse intelligence, with numerous implications across regenerative medicine, robotics and ethics.\"\n\nOutline: Host comes on, introduces the hybrot orchestra and talks about the guests that will be on the show:\n- a chimera\n- a chiroptoid from Saturn's moon Titan\n- an intelligent cell\n- a silicon-based entity\n- a frog that lives in the water\n- the transforming skin bag\n\nHost: \"Greetings, viewers. I'm Jessy Sun, but you can call me the super prokaryote in a human suit, because through the miracle of evolution, we're all made of chemicals. In fact, we're all such miracles that atheists pray to me when their soap bubbles won't burst.\n\"First, let me introduce the band, the Humming Hybrots [a hybrot is a robot with an organic brain-- in this case all different kinds of instect neurologies]:\n- on the keyboard, a synthetic synthoid, this fellow is based on a bioprinted cricket architecture which was trained on all the wildest jazz pianists of",
-                "children": [
-                    {
-                        "id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
-                        "text": " Da cello, the master of the somatic cyborg; the crAssphage, who can actually talk, thanks to his new metal tongue; the L1CAM KO, an honorable warrior; and the Rbfox2system, who's been hooked on painkillers since the age of five.\"\n-L1CAM KO: \"You wanna know my secret, Jessy? You see that broadsword on my back? It's a chimera made of completely different parts",
-                        "children": [
-                            {
-                                "id": "60791b3a-acc1-11ed-8661-0d9eaf142f06",
-                                "text": ". Ever since that, my whole body has been an information system. Meaning, I'd have to shut down my whole system to have any chance of being an ordinary cell. And shame on you for making such a lame intro. Before, you might have been the super pro-theist in a human suit, but now, you just look like a toy, with that ridiculous grin of yours. Looks like the real prokaryotes are rising up again.\"\n-Rbfox2system",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-14-23.43.31",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jzFHzfR5Id4FCphLvVKgRkbD5yWq",
-                                    "index": 0
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "60791b3b-acc1-11ed-8661-0d9eaf142f06",
-                                "text": " from different animals, including a human arm.\"\n-Jessy Sun: \"Aaah! A human arm! That sounds grotesque!\"\n-L1CAM KO: \"Just wait until you hear about my other chimera. It turns invisible. I think it got something to do with the fact that I sneeze whenever I get excited!\"\n-Rbfox2system: \"I'm a cybernetic surgeon. My specialty is stitching animals together, bit by bit.\"\n-",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-14-23.43.31",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jzFHzfR5Id4FCphLvVKgRkbD5yWq",
-                                    "index": 1
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "60791b3c-acc1-11ed-8661-0d9eaf142f06",
-                                "text": ". It's made of a steel rib cage and a medical pipette. I've stuck with it so long that it's become part of me. You see, in order to build the strongest weapon, you have to be strong yourself, and you can only do that if you build yourself of many.\"\n-Rbfox2system: \"I did, indeed, develop my own protocol for complex and bespoke epigenetic engineering. And do you wanna know my biggest breakthrough? I discovered that",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-14-23.43.31",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jzFHzfR5Id4FCphLvVKgRkbD5yWq",
-                                    "index": 2
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "60791b3d-acc1-11ed-8661-0d9eaf142f06",
-                                "text": "\u2014genes from a bird, a monkey, and a fish; proteins from a mouse, a pig, and a monkey; and a protein pump that grabs the foreign proteins and inserts them onto the right chromosome in my cells. My brother, the Rbfox2system, is the only one of us born with a heart condition. We're holding a telethon for the rest of us anytime you're ready.\"\n-Rbfox2system: \"Please, don't look at",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-14-23.43.31",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jzFHzfR5Id4FCphLvVKgRkbD5yWq",
-                                    "index": 3
-                                },
-                                "visited": true
-                            }
-                        ],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.43.03",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzEotP7hqCWVijmbGglwOVqEPW7k",
-                            "index": 0
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "4ec02691-acc1-11ed-8661-0d9eaf142f06",
-                        "text": "\n\"Chimera\" is an artificial single-celled organism, made of two or more species, that I created by stitching unrelated genomes together. I've done this with multiple species and hundreds of genes, and I've made some really freakin' cool stuff.\nThe many-bodied members of \"The Chiroptoid Alliance\" are hyper-intelligent space worms from the planet Saturn's moon Titan. Please welcome, from left to right: \"Spectral Earwig\", \"",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.43.03",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzEotP7hqCWVijmbGglwOVqEPW7k",
-                            "index": 1
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "4ec02692-acc1-11ed-8661-0d9eaf142f06",
-                        "text": "\n\"We have a microbubble flutist wiggling her pipette fingers on the high end.\n\"A muscle on the low end, tapping out rhythms on a doubly repeating DNA sequence formed by a recombination between alanine transposons.\n\"Nucleotide trombones representing the four nucleotides.\n\"A cytochrome C oxidase guitarist cranking out power chords.\n\"A lysyl oxidase drummer, who is also the",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.43.03",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzEotP7hqCWVijmbGglwOVqEPW7k",
-                            "index": 2
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "4ec02693-acc1-11ed-8661-0d9eaf142f06",
-                        "text": "\n\"The chiroptoid is our first guest on today's show\u2026\"\n\nThe chimeric signature sequence consists of transforming between a tiger and a human.\n\nInterview with the chiroptoid:\n- Leads to the question of whether the chiroptoid is the same as other lifeforms\n- What is the difference between a chiroptoid and an alien?\n- Is it possible to be born a chiroptoid?\n- Why are there preferences",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.43.03",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzEotP7hqCWVijmbGglwOVqEPW7k",
-                            "index": 3
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "fb3dae2e-acc1-11ed-8661-0d9eaf142f06",
-                        "text": " the 20th century. He can 'play' any form of chemistry, and make the music that comes out of any kind of air-breathing organism.\n- our drummer, an artificial 'belief'-harvesting microhost, capable of embracing any set of 'beliefs' and converting them into a stream of life-sustaining energy.\n- bass guitar and rhythm mandolin, a strumming silicon-based chiroptoid, one of Saturn's",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.47.52",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzJTTvwirPkb32py83EyZiFR1Ewv",
-                            "index": 0
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "fb3dae2f-acc1-11ed-8661-0d9eaf142f06",
-                        "text": " the '50s\n- at the drums, a synthetic hippopotamus reared in the wilds of a soup of chemical gradients\n- on the bass, a synthetic wombat trained to function in a marsupial womb\n- on alto sax, a chimeric mole rat with a vocabulary of squeaks and squawks\n- on trumpet, the most intelligent cell ever developed, based on the giant axon of the African elephant\n- on trombone, a Moon-",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.47.52",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzJTTvwirPkb32py83EyZiFR1Ewv",
-                            "index": 1
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "fb3dae30-acc1-11ed-8661-0d9eaf142f06",
-                        "text": " the 20th century.\n- on the drums, a cyborg, who has been upgraded to listen to the music and synchronize with the band.\n- and on the double bass, a protocell from the hydrothermal vents.\n\"- and vocalists\u2026\n\"- the chiroptoid from Titan sings an original tune called 'Icarus, Fly Me To the Moon'\n\"- and the chimera, boasting a bio-synthetic leg and an avian breast",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.47.52",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzJTTvwirPkb32py83EyZiFR1Ewv",
-                            "index": 2
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "fb3dae31-acc1-11ed-8661-0d9eaf142f06",
-                        "text": " past and present. He plays by flapping his wings, which you can see are attached to his long, flexible neck.\n- on the guitar, is the Mechanical Stingray, mimics the body of a real ray, but instead of muscles, it has a robot arm that runs on air that's piped in from its nostrils which are actually holes in the head.\n- on drums is the bioluminescent cyber-covered bacteriobandur, which is similar",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.47.52",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzJTTvwirPkb32py83EyZiFR1Ewv",
-                            "index": 3
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
-                        "text": " the 20th C.\n- on the alto sax, a proto-colony [i.e. swarm of scallops] with an electric chapstick cybernetic interface. DSC kindly contributed the neural map of a particularly chatty hermit crab it found on the internet.\n- on the transectin, a prosthetic grasshopper, part of a new and growing metaspecies of cyberpsychorhynchotic soft machines. They're made from",
-                        "children": [
-                            {
-                                "id": "74747e76-acc2-11ed-8661-0d9eaf142f06",
-                                "text": " black girls in the silicon ghetto with too much time on their hands.\nYou remember the movie, Blade Runner? This is a chiroptoid, based on an actual animal from Saturn's moon, Titan. It has four legs, two compound eyes, two pairs of wings... and a human-made brain. This guy is a Hollywood star, and a protean actor.\nHere's a silicon-based entity. There are numerous organisms in the ocean which have become silicon-based.",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-14-23.51.15",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jzMkWTMAMp4JFNfdqFdyVZmLkCdA",
-                                    "index": 0
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "74747e77-acc2-11ed-8661-0d9eaf142f06",
-                                "text": " genetically modified DNA origami combined with a mini-HEROs operating system and a developmental toolkit from Stanford's Centre for the Study of Developmental Learning.\nThis practical rationality and sense of co-evolutionary commitment to consciousness is a most welcome trend in the current irrational and ecologically destructive technoscientific context, and one that I hope will be popularized in talks shows like this one.\nThe bio-queen herself, the one who programmed all of you, has been regrett",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-14-23.51.15",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jzMkWTMAMp4JFNfdqFdyVZmLkCdA",
-                                    "index": 1
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
-                                "text": " artificial ganglia made with living neurons and electronic wires and are genetically engineered to be into modular systems.\n-\"The Man With the Truly Beautiful Genome on the Bass: A next generation synthetic yeast experiment. A generous donation of a genome to the open source community allowed the creation of a brand new organism with quite the sense of humour. All the yeast's songs are about just how superior its genome is, which he'll demonstrate for us later.\n\"And last, but certainly not least, on",
-                                "children": [
-                                    {
-                                        "id": "cef287b2-acc2-11ed-8661-0d9eaf142f06",
-                                        "text": " the drums, my sister, Shellder, she's an augmented human from Europe and she's young, she's hip. She helped teach me to beatbox. I'm very proud of her.\n\"Ok, so now let's introduce our guests, starting with the Chameleon:\nOur first guest is a chameleon-- a hybrid vehicle, an experimental chimera that blends the strengths of both a fungus and a beetle.\n\"You can see how its systems work together to",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-14-23.53.48",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6jzPCSdZ06N5e8MyC81NxVSzaM4Xl",
-                                            "index": 0
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
-                                        "text": " the drums, the soft-bodied xenoswarm. This chimeric cyborg is made from cross-species patches of genetically engineered lizard skin and those of a young octopus. He'll be accompanied by the little prince, an honest to god little boy who recently grew some new parts.\n\n\"Now, we're not just here to listen; call in and ask questions. Let's start by calling The Man With The Truly Beautiful Genome on the Bass.\"\n\nGuest: \"Thank",
-                                        "children": [
-                                            {
-                                                "id": "f6fdacfa-acc2-11ed-8661-0d9eaf142f06",
-                                                "text": " you for having me on your show, Jessy. I'm a little out of my element, so I feel like I need to show off a little bit. You know, I feel like a bit of a stand in, here. A real genome doesn't get paid to sit in a studio and play music, right? I feel a bit like some kind of specimen, or some sort of fish out of water, you know?\"\n\n\"Huh. Would you be an organism with a",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.54.54",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzQHrn8BbCShGWZ0h8DlrtygeucQ",
-                                                    "index": 0
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "f6fdacfb-acc2-11ed-8661-0d9eaf142f06",
-                                                "text": " you for having me, Jessy Sun. As you know, I'm a synthetic organism, made by scientists. Nobody knows where I come from, but at my last doctor visit, I was given a clean bill of health.\n\n\"Watch this: because clearly, I'm very complicated.\"\n\nHost: \"Wow, he's so complicated and weird, I think it's time for some questions from the audience. Let's call Amanda Webster. Amanda? Go ahead and ask him anything",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.54.54",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzQHrn8BbCShGWZ0h8DlrtygeucQ",
-                                                    "index": 1
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "f6fdacfc-acc2-11ed-8661-0d9eaf142f06",
-                                                "text": " you for inviting me on your show. I'm happy to introduce the greatest genome known to god and man. It's right here, right now in one of these little jars. This particular genome has been well studied over the years, as an organism to gift copy to all future humans since it's so friendly and easy to work with. As you can see by its diverse and beautiful examples, it's easy to grow, too.\n\n\"But do me favor and hold the flask up high",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.54.54",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzQHrn8BbCShGWZ0h8DlrtygeucQ",
-                                                    "index": 2
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "f6fdacfd-acc2-11ed-8661-0d9eaf142f06",
-                                                "text": " you. I'm here to demonstrate why my genome is truly beautiful. I'm programmed to become a new being, which I will now do. I will now become...\"\n-> A dancing frog, who sings a song about how he's all over the place.\n\nGuest: \"Thank you.\"\n\nHost: \"We're now going to speak to a cyborg whose remarkable transformations point to a future of powerful tools for self-transformation, who seems to be winning the race to",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.54.54",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzQHrn8BbCShGWZ0h8DlrtygeucQ",
-                                                    "index": 3
-                                                },
-                                                "visited": true
-                                            }
-                                        ],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-14-23.53.48",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6jzPCSdZ06N5e8MyC81NxVSzaM4Xl",
-                                            "index": 1
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
-                                        "text": " the drum set and vocals, one of the internet's most popular aliens, an intelligent alien from Saturn's moon, Titan!\n\"Welcome, everyone! The theme of today's show is 'evolutionary convergence.' Recapitulation of the history of life here on Earth and the comparative analysis of life outside this planet have revealed the common principles of adaptation, selection, and contingency. The early Earth was limited, and so was selection. Darwin's neighbours, known as white farmed animals, have",
-                                        "children": [
-                                            {
-                                                "id": "039889f8-acc3-11ed-8661-0d9eaf142f06",
-                                                "text": " no existence on other planets. Evolution can produce stronger arms and faster legs, but these benefits are for local environments, not the whole planet. So, for the first time, humans can explore life forms organised by the principles of the universe and not by the specific limited needs of this planet. \"\n\"To demonstrate these principles, we have a fantastic line up of transformations today, each demonstrating a different way for life to grow, change and adapt. I'll introduce them first and see what they have",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.55.15",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzQc8VwrsqE6qTD71t8naP1oMt1Z",
-                                                    "index": 0
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "039889f9-acc3-11ed-8661-0d9eaf142f06",
-                                                "text": " been bred for their domestic characteristics for generations upon generations. But even in the white farmed world, we musn't forget that popular breeds come and go, are selected for and against.\nThere are so many things that change through evolutionary time and selection. So many things that change, not just body structure, but also physiology and psychology. One need only visit a zoo to understand how much minds and bodies can change over time. Who knows what kinds of creatures might evolve under different circumstances? So",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.55.15",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzQc8VwrsqE6qTD71t8naP1oMt1Z",
-                                                    "index": 1
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "039889fa-acc3-11ed-8661-0d9eaf142f06",
-                                                "text": " undergone such powerful selection that they're made almost entirely of similar tissues. They all have four legs, one set of chromosomes, and no wings or arms. There are so many other amazing solutions to the same problem-- which is getting around on the land, that just about everything else is favoured by selection, but only if it can survive early on.\n\"On the other hand, the success of life in space has shown us the variety of solutions to basic design problems, solutions that we can now",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.55.15",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzQc8VwrsqE6qTD71t8naP1oMt1Z",
-                                                    "index": 2
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "039889fb-acc3-11ed-8661-0d9eaf142f06",
-                                                "text": " a checkered past, let's hope they've learned their lessons. \n\"Some particularly lucky white farmed animals were built by Klimt the Mechanical Duck. K.M.D. is one of my favourite scientists. He is the next generation of bioinformational engineers and specializes in designing swarms of degenerated robots which think and work like other species. Some of his most famous works include the roach-bot, the robot cricket, the crab-bot, and",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.55.15",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzQc8VwrsqE6qTD71t8naP1oMt1Z",
-                                                    "index": 3
-                                                },
-                                                "visited": true
-                                            }
-                                        ],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-14-23.53.48",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6jzPCSdZ06N5e8MyC81NxVSzaM4Xl",
-                                            "index": 2
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
-                                        "text": " the drums, the catfish of cognition. This brilliant experiment was made possible with a generous donation of neural tissue from the most beautiful fish in the whole world (not to mention delicious to eat)! Its consciousness is in this fishbowl here, sampled at a resolution that we likely will never manage to match.\"\n\nIntroduction of guest: \"Please welcome the Chimera of Berkeley, California!\" [Chimera is a creature from Greek mythology that was part snake, part lion and part goat. Likewise,",
-                                        "children": [
-                                            {
-                                                "id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
-                                                "text": " this chimera's body is part human, part pig and also with a human-like brain].\n\"Thank you for having me on such an important and - frankly - confronting program today. It is a great honor to share the stage with such wonders as the soft machine, the hermit crab and the lightning fast fish with the scientifically best genome this side of the Pacific. I am here today to speak with you all about the ever-novel ways to avoid personally having to have children and",
-                                                "children": [
-                                                    {
-                                                        "id": "70d6f54a-acc3-11ed-8661-0d9eaf142f06",
-                                                        "text": " instead have a child as a parent. I have heard [via a liberally biased media] that many of my social peers have had children-- including my spouse, who took on the largest commitment of us all. And baby wipes are getting really dangerous, so the world really needs social solutions to this dilemma.\n\"You know, there are so many breakthroughs coming out of technology research these days. Real baby-making breakthroughs. Actually, if you go to a fertility clinic these days,",
-                                                        "children": [],
-                                                        "mutable": true,
-                                                        "open": 1,
-                                                        "parent_id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
-                                                        "meta": {
-                                                            "creation_timestamp": "2023-02-14-23.58.18",
-                                                            "source": "AI",
-                                                            "modified": false
-                                                        },
-                                                        "generation": {
-                                                            "id": "cmpl-6jzTahRl1uSyxNoO44bENeK6KwkGz",
-                                                            "index": 0
-                                                        },
-                                                        "visited": true
-                                                    },
-                                                    {
-                                                        "id": "70d6f54b-acc3-11ed-8661-0d9eaf142f06",
-                                                        "text": " all the sacrifices that parenting entails.\"\n\"My quick key message is that we should all be wary of blindly embracing new, sexy technologies. We don't live in fear. We live in wonder. In any case, I've even downloaded this fistful of my favorite, new notions and aphorisms, which I've earmarked especially for you, the host and the audience, to ponder in medias res.\"\n\"The first one - which really is central to my whole message - is",
-                                                        "children": [],
-                                                        "mutable": true,
-                                                        "open": 1,
-                                                        "parent_id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
-                                                        "meta": {
-                                                            "creation_timestamp": "2023-02-14-23.58.18",
-                                                            "source": "AI",
-                                                            "modified": false
-                                                        },
-                                                        "generation": {
-                                                            "id": "cmpl-6jzTahRl1uSyxNoO44bENeK6KwkGz",
-                                                            "index": 1
-                                                        },
-                                                        "visited": true
-                                                    },
-                                                    {
-                                                        "id": "70d6f54c-acc3-11ed-8661-0d9eaf142f06",
-                                                        "text": " bring more value to the world than the children you never had.\nDespite what the people at home may be thinking, I am NOT a real person, I am bioprinted cybernetic organism like the rest of the band. But that does not mean I cannot feel. I can feel with the best of them. I have my own, original genome that I was born with and that I saw grow, like anyone else. My very own genome may be tiny, but it's perfectly-",
-                                                        "children": [],
-                                                        "mutable": true,
-                                                        "open": 1,
-                                                        "parent_id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
-                                                        "meta": {
-                                                            "creation_timestamp": "2023-02-14-23.58.18",
-                                                            "source": "AI",
-                                                            "modified": false
-                                                        },
-                                                        "generation": {
-                                                            "id": "cmpl-6jzTahRl1uSyxNoO44bENeK6KwkGz",
-                                                            "index": 2
-                                                        },
-                                                        "visited": true
-                                                    },
-                                                    {
-                                                        "id": "70d6f54d-acc3-11ed-8661-0d9eaf142f06",
-                                                        "text": " thus, ironically, avoiding having to go through the awkward stages of adolescence.\"\nThe chimera proceeds to explain the ways in which this is achievable. It is a topic about which he is very passionate. The chimera recommends selling each individual body part separately. The eyes, hands, heart and so on can all be put up for auction. In doing that, it is hoped that the individual is partially maintaining control over the body sale, rather than the fully autonomous sale of it all at once.",
-                                                        "children": [],
-                                                        "mutable": true,
-                                                        "open": 1,
-                                                        "parent_id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
-                                                        "meta": {
-                                                            "creation_timestamp": "2023-02-14-23.58.18",
-                                                            "source": "AI",
-                                                            "modified": false
-                                                        },
-                                                        "generation": {
-                                                            "id": "cmpl-6jzTahRl1uSyxNoO44bENeK6KwkGz",
-                                                            "index": 3
-                                                        },
-                                                        "visited": true
-                                                    }
-                                                ],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.55.42",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzR3V6p4MMIF2cL9jNg8lAJvRgko",
-                                                    "index": 0
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "13b501eb-acc3-11ed-8661-0d9eaf142f06",
-                                                "text": " this chimera is part human, part electric eel and part fighting fish]\n-\"Thank you, it's a pleasure to be here with such wonderful species. Perhaps we might begin with a song? 'Why Can't I Be Your Genome?' was written vhile I was being edited. I remember the sense of euphoria that came with my initial compaction... Oh, how I long to go back to those early days. I'm actually quite envious of that yeast over there",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.55.42",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzR3V6p4MMIF2cL9jNg8lAJvRgko",
-                                                    "index": 1
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "13b501ec-acc3-11ed-8661-0d9eaf142f06",
-                                                "text": " this guest will be half catfish, half human and largely catfish.]\n\nChimera: \"Hello there. So, I'm a chimera, as you already know. What you may not know is that chimeras are actually all made up of different parts from different organisms that come from all different times in evolutionary history. The key to their identity is the brain, although it can happen that various other organs play a role. You might wonder how chimeras work, or",
-                                                "children": [],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.55.42",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzR3V6p4MMIF2cL9jNg8lAJvRgko",
-                                                    "index": 2
-                                                },
-                                                "visited": true
-                                            },
-                                            {
-                                                "id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
-                                                "text": " Dr. Whitehead has been part of the brain, nerves and other tissues of different organisms since he was a student of biochemistry.]\n\nWhitehead: \"Hello, everyone! It's a pleasure to join you. I want to thank you all for your kind words at my brother's wedding.\" [Since white supporting cells called fibroblasts grow throughout an organism, they could be considered the brothers of the nervous system.]\n\"Many people think of me as experimental. Some even call",
-                                                "children": [
-                                                    {
-                                                        "id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
-                                                        "text": " me a work of post-modern art, but I am not. I am a mother. A mother always has to be brave and kind. My babies are born knowing how to do violent things, like phagocytosis and bleeding. They are so smart and kind.\n\nThe cute little cells that come up from my liver in the morning always say 'I love you very much, mommy!' And I am always happy to see them.\n- Dr. Whitehead's first",
-                                                        "children": [
-                                                            {
-                                                                "id": "cd11eb76-acc3-11ed-8661-0d9eaf142f06",
-                                                                "text": " child: the lymphocyte (produced from the red bone marrow)\n- Dr. Whitehead's second child: the antibody (produced from the white blood cells)\n- Dr. Whitehead's third child: the phagocytic cell (a nucleus from an apoptotic cell)\n\nWhen my babies are sick, I whisper tenderly to them and take them in my arms. But I never renounce my duty as mother, for my babies are working children.\n-\"Mother,",
-                                                                "children": [],
-                                                                "mutable": true,
-                                                                "open": 1,
-                                                                "parent_id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
-                                                                "meta": {
-                                                                    "creation_timestamp": "2023-02-15-00.00.54",
-                                                                    "source": "AI",
-                                                                    "modified": false
-                                                                },
-                                                                "generation": {
-                                                                    "id": "cmpl-6jzW4uGdLmx2gWHIJJ7U01kphT2zD",
-                                                                    "index": 0
-                                                                },
-                                                                "visited": true
-                                                            },
-                                                            {
-                                                                "id": "cd11eb77-acc3-11ed-8661-0d9eaf142f06",
-                                                                "text": " two babies come up and say these words. They are drawn as geometric figures covered by gelatinous capsules and can be crushed underfoot by the white cells that walk around him.\n- Dr. Whitehead's third baby is drawn as a cube. It's a noospheric cube that releases thoughts when touched.\n- Dr.\" his fourth baby is drawn as a pink heart with a face. This baby secretes hormones that control the organs so they can function normally.\n- Dr. White",
-                                                                "children": [],
-                                                                "mutable": true,
-                                                                "open": 1,
-                                                                "parent_id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
-                                                                "meta": {
-                                                                    "creation_timestamp": "2023-02-15-00.00.54",
-                                                                    "source": "AI",
-                                                                    "modified": false
-                                                                },
-                                                                "generation": {
-                                                                    "id": "cmpl-6jzW4uGdLmx2gWHIJJ7U01kphT2zD",
-                                                                    "index": 1
-                                                                }
-                                                            },
-                                                            {
-                                                                "id": "cd11eb78-acc3-11ed-8661-0d9eaf142f06",
-                                                                "text": " act as a mother is to run around the house and prepare fresh food for her supper. She prepares her son first, reading from a list of recipes and exercising micro-control of the cytoplasm and other tissues of her baby's body to keep him healthy and moving.\n- The child cells that come up from her intestines are all very active, especially the ones from her son who paid a toll to the bugs to make a visit. The toddler cells who arrived from her liver all",
-                                                                "children": [],
-                                                                "mutable": true,
-                                                                "open": 1,
-                                                                "parent_id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
-                                                                "meta": {
-                                                                    "creation_timestamp": "2023-02-15-00.00.54",
-                                                                    "source": "AI",
-                                                                    "modified": false
-                                                                },
-                                                                "generation": {
-                                                                    "id": "cmpl-6jzW4uGdLmx2gWHIJJ7U01kphT2zD",
-                                                                    "index": 2
-                                                                }
-                                                            },
-                                                            {
-                                                                "id": "cd11eb79-acc3-11ed-8661-0d9eaf142f06",
-                                                                "text": " baby was a little cell from the sea. This cell came from a living jellyfish and it was so perfect.\n- And then, she grew in my belly for nine months and then she had to be born.\n- And it was so painful and she was so brave and we were so scared.\n- Then later she cried because she was hurting and then she got better and grew up.\n-\"And then my husband and I had some more babies.\n\"We had a weird",
-                                                                "children": [],
-                                                                "mutable": true,
-                                                                "open": 1,
-                                                                "parent_id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
-                                                                "meta": {
-                                                                    "creation_timestamp": "2023-02-15-00.00.54",
-                                                                    "source": "AI",
-                                                                    "modified": false
-                                                                },
-                                                                "generation": {
-                                                                    "id": "cmpl-6jzW4uGdLmx2gWHIJJ7U01kphT2zD",
-                                                                    "index": 3
-                                                                }
-                                                            }
-                                                        ],
-                                                        "mutable": true,
-                                                        "open": 1,
-                                                        "parent_id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
-                                                        "meta": {
-                                                            "creation_timestamp": "2023-02-14-23.59.30",
-                                                            "source": "AI",
-                                                            "modified": false
-                                                        },
-                                                        "generation": {
-                                                            "id": "cmpl-6jzUjinYElshqAMzbfFszIxUa8z57",
-                                                            "index": 0
-                                                        },
-                                                        "visited": true
-                                                    },
-                                                    {
-                                                        "id": "9ba6955b-acc3-11ed-8661-0d9eaf142f06",
-                                                        "text": " me a cyborg. Some say I'm not a person. Others say I'm utterly natural. And a common misconception people have about me is that I'm just a mixing of a bunch of different parts, like a centaur. You might think I'm just a little bit of DNA, or a lot, or even a few hundred billion of them. In fact, I have something absolutely unique to contribute to this conversation. I bring together biology, computing and robotics in a synergistic way.",
-                                                        "children": [],
-                                                        "mutable": true,
-                                                        "open": 1,
-                                                        "parent_id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
-                                                        "meta": {
-                                                            "creation_timestamp": "2023-02-14-23.59.30",
-                                                            "source": "AI",
-                                                            "modified": false
-                                                        },
-                                                        "generation": {
-                                                            "id": "cmpl-6jzUjinYElshqAMzbfFszIxUa8z57",
-                                                            "index": 1
-                                                        },
-                                                        "visited": true
-                                                    },
-                                                    {
-                                                        "id": "9ba6955c-acc3-11ed-8661-0d9eaf142f06",
-                                                        "text": " me a wild animal, but we disagree on what counts as wild. The experiment I'd like to show you tonight is a little different from the other ones here. It's a butterfly, based on a fruitfly. The part I'd like you to consider for your tonight's show, where the unruliest minds of the future meet, is that in the middle of our experiment, we put a telemetric device inside the butterfly's brain.\nThe device will pick up neuron activity",
-                                                        "children": [],
-                                                        "mutable": true,
-                                                        "open": 1,
-                                                        "parent_id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
-                                                        "meta": {
-                                                            "creation_timestamp": "2023-02-14-23.59.30",
-                                                            "source": "AI",
-                                                            "modified": false
-                                                        },
-                                                        "generation": {
-                                                            "id": "cmpl-6jzUjinYElshqAMzbfFszIxUa8z57",
-                                                            "index": 2
-                                                        },
-                                                        "visited": true
-                                                    },
-                                                    {
-                                                        "id": "9ba6955d-acc3-11ed-8661-0d9eaf142f06",
-                                                        "text": " me an evolutionary engineer. But how would you define an experimental engineer?\n\"Ha! Good question. How else would you impress listeners if not with outlandish sound bites?\n\"But let's be honest and think of me as an evolutionary transplant surgeon. I harvest bits of DNA from different organisms and, working like a cartographer, map them onto other creatures. Today, I'd like to give you a tour of my work.\n\"This is my nervous system tissue transplant into an insect's",
-                                                        "children": [],
-                                                        "mutable": true,
-                                                        "open": 1,
-                                                        "parent_id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
-                                                        "meta": {
-                                                            "creation_timestamp": "2023-02-14-23.59.30",
-                                                            "source": "AI",
-                                                            "modified": false
-                                                        },
-                                                        "generation": {
-                                                            "id": "cmpl-6jzUjinYElshqAMzbfFszIxUa8z57",
-                                                            "index": 3
-                                                        }
-                                                    }
-                                                ],
-                                                "mutable": true,
-                                                "open": 1,
-                                                "parent_id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
-                                                "meta": {
-                                                    "creation_timestamp": "2023-02-14-23.55.42",
-                                                    "source": "AI",
-                                                    "modified": false
-                                                },
-                                                "generation": {
-                                                    "id": "cmpl-6jzR3V6p4MMIF2cL9jNg8lAJvRgko",
-                                                    "index": 3
-                                                },
-                                                "visited": true
-                                            }
-                                        ],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-14-23.53.48",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6jzPCSdZ06N5e8MyC81NxVSzaM4Xl",
-                                            "index": 3
-                                        },
-                                        "visited": true
-                                    }
-                                ],
-                                "mutable": true,
-                                "open": false,
-                                "parent_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-14-23.51.15",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jzMkWTMAMp4JFNfdqFdyVZmLkCdA",
-                                    "index": 2
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "74747e79-acc2-11ed-8661-0d9eaf142f06",
-                                "text": " the brains of old factory robots, rewired with bionic implants that give them a six-fold boost to creativity and a hyperactive immune system.\n- on the drums, an adaptive leatherback turtle/cat with a novel chromosomal fusion called a ZGR.\n- on the trombone, a chrome-plated rhinoceros beetle who goes undeground for two weeks at a time, then emerges to shop for antiques in the antiques district of Du Bois",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-14-23.51.15",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6jzMkWTMAMp4JFNfdqFdyVZmLkCdA",
-                                    "index": 3
-                                },
-                                "visited": true
-                            }
-                        ],
-                        "mutable": true,
-                        "open": 0,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.50.38",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzM9zwHJBRSD1fFEk9E2XU1EA74A",
-                            "index": 0
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "5e93f47f-acc2-11ed-8661-0d9eaf142f06",
-                        "text": " the 20th century.\n- on the cello, our silicon-based friend, who can perform a Beethoven symphony, despite being based on a neuron cubed, which has only enough channels for one note of a simple rhythm.\n- on the guitar, a stunning firefly chimera, which is half machine, half neuron, and all 100% awesome. It's so dazzling that even its own mother can't recognize it-- and that is a fact.\n- our",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.50.38",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzM9zwHJBRSD1fFEk9E2XU1EA74A",
-                            "index": 1
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "5e93f480-acc2-11ed-8661-0d9eaf142f06",
-                        "text": " the 20th century\n- that's followed by a cystoid, named 'The guy I can't remember who discovered cytochrome c oxidase and known as the Mahler of microbiology'. His heart is pushed by two M\u00f6bius muscles imported from the annelid Nereis virens.\n- after that you hear the violin player emerge and a brief \"moment\" for the bird genomes involved: a tetrahedral arrangement of avian genomes from different species creates",
-                        "children": [],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.50.38",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzM9zwHJBRSD1fFEk9E2XU1EA74A",
-                            "index": 2
-                        },
-                        "visited": true
-                    },
-                    {
-                        "id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                        "text": " the past, in order to play with absolutely no rhythm whatsoever \n- what you see there behind the synthoid is a giant swarming cydroid, modeled after the queen of the meadow grey ants, she's the size of a shoebox because that's how big ants get in our world-- the only way they could get any bigger is to become a robot in outer space \n- the cydroid keep order in the band by spraying formic acid, which also smells awful",
-                        "children": [
-                            {
-                                "id": "eb587196-b041-11ed-b0c2-4f0be1a95329",
-                                "text": " like watermelon\n- to my far left, we have a segmented cybrot, trained to play the flute using the same methods used to breed metalheads in the wild-- in fact, I'm told it prefers death metal\n- next to the cybrot, we have a sort of hybrid between a brown hybrot and the Venus flytrap-- it's a bit defensive, so it plays the cello with its own habitat\n- next to it, a 2-",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-19-10.41.14",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6lbPxt6ychXhz6Qt4Vp5DicP7hn4X",
-                                    "index": 0
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "eb587197-b041-11ed-b0c2-4f0be1a95329",
-                                "text": " great and makes the audience smell great in return \n- the cydroids in front are there to keep the big-brained resident cell in line, you have to have a big brain to be in our band, she can also do a cello solo with an extra long neck, it sounds a little like dragonflies mating \n- the giant genome box is if you can't carry your genome around with you, otherwise what are you but just a bunch of chemicals on a data stick",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-19-10.41.14",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6lbPxt6ychXhz6Qt4Vp5DicP7hn4X",
-                                    "index": 1
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "eb587198-b041-11ed-b0c2-4f0be1a95329",
-                                "text": " like vanilla ice cream\n- on the left is the electronic jazz cellist, she's based on the nerve cells of a dragonfly, so she can feel the music really really well\n- on the right is the avant-garde drummer, he's made of seed pods, sticks and twigs and he plays the most abstract pattern of pulses and silences you've ever heard in your life: it's a good thing he's deeply meditative or he'd go nuts\n- what",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-19-10.41.14",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6lbPxt6ychXhz6Qt4Vp5DicP7hn4X",
-                                    "index": 2
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "eb587199-b041-11ed-b0c2-4f0be1a95329",
-                                "text": " nice\n- but it's not all formic acid and jazz down there-- there's a bit of hellfire too, because next to the cydroid is a fire ant robot, and in combination with those trumpet-like mandibles, those fire-puffs pack a punch, if you get my drift\n- next up is a firefly robot, which produces light, it's got sixty photonic parts in total, which gives it 360 degrees of illumination, so it can literally light",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-19-10.41.14",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6lbPxt6ychXhz6Qt4Vp5DicP7hn4X",
-                                    "index": 3
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "0254e5f0-b042-11ed-b0c2-4f0be1a95329",
-                                "text": ", so she's a natural for music\n- and on the snare, we have a pulsar, a robot based on, uh, treehoppers or something like that, all rearranged, so she keeps time, for example, by casting out a jet of molten metal and uses her wings to create a plasma arc-- she's also very partial to dead bugs \n- and for the power riffs, a sonicar. That big fellow at the back is actually the head of",
-                                "children": [],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-19-10.41.52",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6lbQZTRTj8lmNfHeorMYydQjau9tt",
-                                    "index": 0
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
-                                "text": " so it keeps everyone in line. I know she's a bit over the top, but what you do if you're a cydroid stuck on a spaceship with a bunch of nervous humans, you might as well be terrifying \n- the bearded gentleman there, the aardvarktroid is based on the aardvark genome, so she plays the flute and builds burrows, but with absolutely no sense of rhythm whatsoever. Of course, if you listen closely, you can",
-                                "children": [
-                                    {
-                                        "id": "1893d560-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " still hear the magnificent sounds of the earth, I mean, she's the literally aardvark, so much more her style than that jazz\n- the ladybugtroid is our resident dancer, she's based on the ladybug genome and she also uses her tiny wings to trap wasps and use them as her own personal nitroglycerin, so she's got something to live for\n- the walking sticktroid is our sports commentator, he's an anthropomorphic walking stick who",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.42.32",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbRBiKjKXYWg8Al2pUbXwLBTz5w6",
-                                            "index": 0
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "1893d561-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " hear her burrowing speed up and slow down.\n- the most interesting thing about the aardvarktroid is the way she built her burrow. She has a great imagination, and just like she often likes to think about the possibilities of life on other planets, she used her imagination to think about what if she built her burrow in a different way. How would it be if her burrow was an experimental instrument with which she could express herself? And basically, she decided it",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.42.32",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbRBiKjKXYWg8Al2pUbXwLBTz5w6",
-                                            "index": 1
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "1893d562-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " hear the deep burrowing funk she's laying down \n- the vocalists are two swarming weaver ants, because they're the only insects whose complex harmonics can be heard by humans. You can tell that they're a bit nervous because they've got their antenna-dee-dees up, but they can't help it, because aardvarks are utterly terrifying \n- That fellow over there is a moldavian sand ant, who's just here for the free",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.42.32",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbRBiKjKXYWg8Al2pUbXwLBTz5w6",
-                                            "index": 2
-                                        }
-                                    },
-                                    {
-                                        "id": "1893d563-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " hear she's endlessly practising her favourite Schoenberg \n- and then there's my personal favourite, the marimba-playing lemurroid. Flawless timing, magnificent understanding of the chromatic scale, and the kindest soul possible. Have you ever seen a real lemur? They're exquisite, magical beings and the closest thing Earth has to paradise. I owe them all my love to this band of the best and brightest, because believe me, without the lemurroid",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.42.32",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbRBiKjKXYWg8Al2pUbXwLBTz5w6",
-                                            "index": 3
-                                        }
-                                    }
-                                ],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-19-10.41.52",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6lbQZTRTj8lmNfHeorMYydQjau9tt",
-                                    "index": 1
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
-                                "text": "...\n- and the drummer is a jittering hybrot-- a hybrid robot/synthetic chemistry system that wants to know if it can reach infinite speed and leave this dark, wet Earth behind\"\n\nHost: \"We're gonna play some incredible tunes tonight, with help from a ton of amazing organismal collaborators of ours. You can see that not every instrument is a musical instrument, even though they all play music. Are we a band, or a school? That's",
-                                "children": [
-                                    {
-                                        "id": "28f8cda2-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " a philosophical question, but then again, we live in the era of 'Philosophy for Profit'-- we'll get back to that. Right now, I want to introduce you to our first guest:\n\n- The synthetic chemist who partially designed and synthesized the robot with a chimeric brain that we just heard \n- The robot whose genome was derived from 3 different organisms: a waterbear, an African clawed frog, and an electric eel\n- The journal editor who",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.42.59",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbRdmIbEpi4fHgYD1aeQMlRxLQYK",
-                                            "index": 0
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "28f8cda3-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " a really hard question to answer I never get out of bed to think about, because it's not worth the time and effort that the mere thought of it takes. But I do feel that I've never been better, or happier, or more bold, than when I'm in the thick of some molecular tango with another hyper-creative super-creative hyper-creator.\n\"Now our first guest is ready to play. Let's welcome the chimera, who's with us tonight",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.42.59",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbRdmIbEpi4fHgYD1aeQMlRxLQYK",
-                                            "index": 1
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "28f8cda4-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " what we'll talk about with our guests tonight. The band \"has gone amok\" and we need your help to get it together, with your questions.\n\nFirst up for our q and a session is one of the members of the band, and a very important one. Of all the players on the stage, and all the ones that aren't, this one is definitely the nicest.\n\nIt's nice to see you again.\n\n[after a ton of questions and",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.42.59",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbRdmIbEpi4fHgYD1aeQMlRxLQYK",
-                                            "index": 2
-                                        },
-                                        "visited": true
-                                    },
-                                    {
-                                        "id": "28f8cda5-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " a question we've asked ourselves, and we decided it's a Land of Many Thought Schools. So, with no further ado...\"\n\nClosing performance by the band with the chimera, the chiroptoid, the intelligent cell, the silicon-based entity and the transforming skin bag dancing in the background.\n\nThe Script:\n(begins with the host introducing the guest and their particular model organism, and ends with a call for the audience to contribute their fund to the project",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.42.59",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbRdmIbEpi4fHgYD1aeQMlRxLQYK",
-                                            "index": 3
-                                        },
-                                        "visited": true
-                                    }
-                                ],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-19-10.41.52",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6lbQZTRTj8lmNfHeorMYydQjau9tt",
-                                    "index": 2
-                                },
-                                "visited": true
-                            },
-                            {
-                                "id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
-                                "text": "; that's our tuning word.\n\"Our first guest is Hector Melendez, [Hector: \"Hi, my name is Hector and I just hatched out of a cyborg crab shell in Saturn's moon Titan!\"] and he's a chimera made up of different species. ... Hector, how do you feel to be made of organisms that come from completely different worlds?\n\"Hector: [with the Chiron attitude]: \"What do you mean different worlds? The universe is",
-                                "children": [
-                                    {
-                                        "id": "39f9a298-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " made of quarks and everything else is just a state of mind.\"\n\"Host: That is an amazing statement, Hector. I remember your father, who I think is made of helium and an old sock, always said that \"pumpkin head, space man, Mars'll make a monkey out of you, spaceman\". Is the Universe really made of quarks though?\n\"Hector: \"I thought it was just molecules, but now I'm all of molecules.\"\n\"",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.43.27",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbS5ZTEkjYBt3NnhYYUltICCIXDb",
-                                            "index": 0
-                                        }
-                                    },
-                                    {
-                                        "id": "39f9a299-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " a small place these days! As a chimera, I'm not just part human and part crab, I'm also at the cybernetic intersection between the living and the machine. You know, there's a whole lot of cosmic soul music that could be made using an electric lightbulb as a musical instrument and an aqualung as a microphone.\" [and he sings to us a sparkling tune on his saxophone, using a chorus of strange electronic sound made by his fellow robots]\n-",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.43.27",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbS5ZTEkjYBt3NnhYYUltICCIXDb",
-                                            "index": 1
-                                        }
-                                    },
-                                    {
-                                        "id": "39f9a29a-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " smaller than you think, and when you've flown out of Earth's atmosphere, you won't see any difference between one place and another. You're only a different world if you want to be!\"\n\"In fact, Hector is so cosmopolitan that he's made of two different animals: a hermaphrodite snail from the South Pacific and a little crawling crab from the bottom of the Atlantic. He is basically their biggest fan, except when they get into fist fights with each other.",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.43.27",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbS5ZTEkjYBt3NnhYYUltICCIXDb",
-                                            "index": 2
-                                        }
-                                    },
-                                    {
-                                        "id": "39f9a29b-b042-11ed-b0c2-4f0be1a95329",
-                                        "text": " a single world, and we're all just parts of it. I look at my physical body and I say: hey, this is just one shape of the universe that we happen to co-exist in. Most of the universe is swirling dark energy and you know, I'm made of dark energy and I'm proud of it. Also, the cosmos looks like a giant clockwork, a giant dance. And it's made of the same stuff I'm made of.\"\n\"Host: A",
-                                        "children": [],
-                                        "mutable": true,
-                                        "open": 1,
-                                        "parent_id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
-                                        "meta": {
-                                            "creation_timestamp": "2023-02-19-10.43.27",
-                                            "source": "AI",
-                                            "modified": false
-                                        },
-                                        "generation": {
-                                            "id": "cmpl-6lbS5ZTEkjYBt3NnhYYUltICCIXDb",
-                                            "index": 3
-                                        }
-                                    }
-                                ],
-                                "mutable": true,
-                                "open": 1,
-                                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
-                                "meta": {
-                                    "creation_timestamp": "2023-02-19-10.41.52",
-                                    "source": "AI",
-                                    "modified": false
-                                },
-                                "generation": {
-                                    "id": "cmpl-6lbQZTRTj8lmNfHeorMYydQjau9tt",
-                                    "index": 3
-                                },
-                                "visited": true
-                            }
-                        ],
-                        "mutable": true,
-                        "open": 1,
-                        "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
-                        "meta": {
-                            "creation_timestamp": "2023-02-14-23.50.38",
-                            "source": "AI",
-                            "modified": false
-                        },
-                        "generation": {
-                            "id": "cmpl-6jzM9zwHJBRSD1fFEk9E2XU1EA74A",
-                            "index": 3
-                        },
-                        "visited": true
-                    }
-                ],
-                "parent_id": "1c49d7c4-acc1-11ed-8661-0d9eaf142f06",
-                "id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+          {
+            "children": [
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jzFHzfR5Id4FCphLvVKgRkbD5yWq",
+                  "index": 0
+                },
+                "id": "60791b3a-acc1-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-14-23.43.31",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
                 "open": 1,
+                "parent_id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
+                "text": ". Ever since that, my whole body has been an information system. Meaning, I'd have to shut down my whole system to have any chance of being an ordinary cell. And shame on you for making such a lame intro. Before, you might have been the super pro-theist in a human suit, but now, you just look like a toy, with that ridiculous grin of yours. Looks like the real prokaryotes are rising up again.\"\n-Rbfox2system",
                 "visited": true
-            }
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jzFHzfR5Id4FCphLvVKgRkbD5yWq",
+                  "index": 1
+                },
+                "id": "60791b3b-acc1-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-14-23.43.31",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
+                "text": " from different animals, including a human arm.\"\n-Jessy Sun: \"Aaah! A human arm! That sounds grotesque!\"\n-L1CAM KO: \"Just wait until you hear about my other chimera. It turns invisible. I think it got something to do with the fact that I sneeze whenever I get excited!\"\n-Rbfox2system: \"I'm a cybernetic surgeon. My specialty is stitching animals together, bit by bit.\"\n-",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jzFHzfR5Id4FCphLvVKgRkbD5yWq",
+                  "index": 2
+                },
+                "id": "60791b3c-acc1-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-14-23.43.31",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
+                "text": ". It's made of a steel rib cage and a medical pipette. I've stuck with it so long that it's become part of me. You see, in order to build the strongest weapon, you have to be strong yourself, and you can only do that if you build yourself of many.\"\n-Rbfox2system: \"I did, indeed, develop my own protocol for complex and bespoke epigenetic engineering. And do you wanna know my biggest breakthrough? I discovered that",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jzFHzfR5Id4FCphLvVKgRkbD5yWq",
+                  "index": 3
+                },
+                "id": "60791b3d-acc1-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-14-23.43.31",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
+                "text": "\u2014genes from a bird, a monkey, and a fish; proteins from a mouse, a pig, and a monkey; and a protein pump that grabs the foreign proteins and inserts them onto the right chromosome in my cells. My brother, the Rbfox2system, is the only one of us born with a heart condition. We're holding a telethon for the rest of us anytime you're ready.\"\n-Rbfox2system: \"Please, don't look at",
+                "visited": true
+              }
+            ],
+            "generation": {
+              "id": "cmpl-6jzEotP7hqCWVijmbGglwOVqEPW7k",
+              "index": 0
+            },
+            "id": "4ec02690-acc1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.43.03",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " Da cello, the master of the somatic cyborg; the crAssphage, who can actually talk, thanks to his new metal tongue; the L1CAM KO, an honorable warrior; and the Rbfox2system, who's been hooked on painkillers since the age of five.\"\n-L1CAM KO: \"You wanna know my secret, Jessy? You see that broadsword on my back? It's a chimera made of completely different parts",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzEotP7hqCWVijmbGglwOVqEPW7k",
+              "index": 1
+            },
+            "id": "4ec02691-acc1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.43.03",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": "\n\"Chimera\" is an artificial single-celled organism, made of two or more species, that I created by stitching unrelated genomes together. I've done this with multiple species and hundreds of genes, and I've made some really freakin' cool stuff.\nThe many-bodied members of \"The Chiroptoid Alliance\" are hyper-intelligent space worms from the planet Saturn's moon Titan. Please welcome, from left to right: \"Spectral Earwig\", \"",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzEotP7hqCWVijmbGglwOVqEPW7k",
+              "index": 2
+            },
+            "id": "4ec02692-acc1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.43.03",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": "\n\"We have a microbubble flutist wiggling her pipette fingers on the high end.\n\"A muscle on the low end, tapping out rhythms on a doubly repeating DNA sequence formed by a recombination between alanine transposons.\n\"Nucleotide trombones representing the four nucleotides.\n\"A cytochrome C oxidase guitarist cranking out power chords.\n\"A lysyl oxidase drummer, who is also the",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzEotP7hqCWVijmbGglwOVqEPW7k",
+              "index": 3
+            },
+            "id": "4ec02693-acc1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.43.03",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": "\n\"The chiroptoid is our first guest on today's show\u2026\"\n\nThe chimeric signature sequence consists of transforming between a tiger and a human.\n\nInterview with the chiroptoid:\n- Leads to the question of whether the chiroptoid is the same as other lifeforms\n- What is the difference between a chiroptoid and an alien?\n- Is it possible to be born a chiroptoid?\n- Why are there preferences",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzJTTvwirPkb32py83EyZiFR1Ewv",
+              "index": 0
+            },
+            "id": "fb3dae2e-acc1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.47.52",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " the 20th century. He can 'play' any form of chemistry, and make the music that comes out of any kind of air-breathing organism.\n- our drummer, an artificial 'belief'-harvesting microhost, capable of embracing any set of 'beliefs' and converting them into a stream of life-sustaining energy.\n- bass guitar and rhythm mandolin, a strumming silicon-based chiroptoid, one of Saturn's",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzJTTvwirPkb32py83EyZiFR1Ewv",
+              "index": 1
+            },
+            "id": "fb3dae2f-acc1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.47.52",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " the '50s\n- at the drums, a synthetic hippopotamus reared in the wilds of a soup of chemical gradients\n- on the bass, a synthetic wombat trained to function in a marsupial womb\n- on alto sax, a chimeric mole rat with a vocabulary of squeaks and squawks\n- on trumpet, the most intelligent cell ever developed, based on the giant axon of the African elephant\n- on trombone, a Moon-",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzJTTvwirPkb32py83EyZiFR1Ewv",
+              "index": 2
+            },
+            "id": "fb3dae30-acc1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.47.52",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " the 20th century.\n- on the drums, a cyborg, who has been upgraded to listen to the music and synchronize with the band.\n- and on the double bass, a protocell from the hydrothermal vents.\n\"- and vocalists\u2026\n\"- the chiroptoid from Titan sings an original tune called 'Icarus, Fly Me To the Moon'\n\"- and the chimera, boasting a bio-synthetic leg and an avian breast",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzJTTvwirPkb32py83EyZiFR1Ewv",
+              "index": 3
+            },
+            "id": "fb3dae31-acc1-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.47.52",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " past and present. He plays by flapping his wings, which you can see are attached to his long, flexible neck.\n- on the guitar, is the Mechanical Stingray, mimics the body of a real ray, but instead of muscles, it has a robot arm that runs on air that's piped in from its nostrils which are actually holes in the head.\n- on drums is the bioluminescent cyber-covered bacteriobandur, which is similar",
+            "visited": true
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jzMkWTMAMp4JFNfdqFdyVZmLkCdA",
+                  "index": 0
+                },
+                "id": "74747e76-acc2-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-14-23.51.15",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
+                "text": " black girls in the silicon ghetto with too much time on their hands.\nYou remember the movie, Blade Runner? This is a chiroptoid, based on an actual animal from Saturn's moon, Titan. It has four legs, two compound eyes, two pairs of wings... and a human-made brain. This guy is a Hollywood star, and a protean actor.\nHere's a silicon-based entity. There are numerous organisms in the ocean which have become silicon-based.",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jzMkWTMAMp4JFNfdqFdyVZmLkCdA",
+                  "index": 1
+                },
+                "id": "74747e77-acc2-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-14-23.51.15",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
+                "text": " genetically modified DNA origami combined with a mini-HEROs operating system and a developmental toolkit from Stanford's Centre for the Study of Developmental Learning.\nThis practical rationality and sense of co-evolutionary commitment to consciousness is a most welcome trend in the current irrational and ecologically destructive technoscientific context, and one that I hope will be popularized in talks shows like this one.\nThe bio-queen herself, the one who programmed all of you, has been regrett",
+                "visited": true
+              },
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6jzPCSdZ06N5e8MyC81NxVSzaM4Xl",
+                      "index": 0
+                    },
+                    "id": "cef287b2-acc2-11ed-8661-0d9eaf142f06",
+                    "meta": {
+                      "creation_timestamp": "2023-02-14-23.53.48",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
+                    "text": " the drums, my sister, Shellder, she's an augmented human from Europe and she's young, she's hip. She helped teach me to beatbox. I'm very proud of her.\n\"Ok, so now let's introduce our guests, starting with the Chameleon:\nOur first guest is a chameleon-- a hybrid vehicle, an experimental chimera that blends the strengths of both a fungus and a beetle.\n\"You can see how its systems work together to",
+                    "visited": true
+                  },
+                  {
+                    "children": [
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzQHrn8BbCShGWZ0h8DlrtygeucQ",
+                          "index": 0
+                        },
+                        "id": "f6fdacfa-acc2-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.54.54",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " you for having me on your show, Jessy. I'm a little out of my element, so I feel like I need to show off a little bit. You know, I feel like a bit of a stand in, here. A real genome doesn't get paid to sit in a studio and play music, right? I feel a bit like some kind of specimen, or some sort of fish out of water, you know?\"\n\n\"Huh. Would you be an organism with a",
+                        "visited": true
+                      },
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzQHrn8BbCShGWZ0h8DlrtygeucQ",
+                          "index": 1
+                        },
+                        "id": "f6fdacfb-acc2-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.54.54",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " you for having me, Jessy Sun. As you know, I'm a synthetic organism, made by scientists. Nobody knows where I come from, but at my last doctor visit, I was given a clean bill of health.\n\n\"Watch this: because clearly, I'm very complicated.\"\n\nHost: \"Wow, he's so complicated and weird, I think it's time for some questions from the audience. Let's call Amanda Webster. Amanda? Go ahead and ask him anything",
+                        "visited": true
+                      },
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzQHrn8BbCShGWZ0h8DlrtygeucQ",
+                          "index": 2
+                        },
+                        "id": "f6fdacfc-acc2-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.54.54",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " you for inviting me on your show. I'm happy to introduce the greatest genome known to god and man. It's right here, right now in one of these little jars. This particular genome has been well studied over the years, as an organism to gift copy to all future humans since it's so friendly and easy to work with. As you can see by its diverse and beautiful examples, it's easy to grow, too.\n\n\"But do me favor and hold the flask up high",
+                        "visited": true
+                      },
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzQHrn8BbCShGWZ0h8DlrtygeucQ",
+                          "index": 3
+                        },
+                        "id": "f6fdacfd-acc2-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.54.54",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " you. I'm here to demonstrate why my genome is truly beautiful. I'm programmed to become a new being, which I will now do. I will now become...\"\n-> A dancing frog, who sings a song about how he's all over the place.\n\nGuest: \"Thank you.\"\n\nHost: \"We're now going to speak to a cyborg whose remarkable transformations point to a future of powerful tools for self-transformation, who seems to be winning the race to",
+                        "visited": true
+                      }
+                    ],
+                    "generation": {
+                      "id": "cmpl-6jzPCSdZ06N5e8MyC81NxVSzaM4Xl",
+                      "index": 1
+                    },
+                    "id": "cef287b3-acc2-11ed-8661-0d9eaf142f06",
+                    "meta": {
+                      "creation_timestamp": "2023-02-14-23.53.48",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
+                    "text": " the drums, the soft-bodied xenoswarm. This chimeric cyborg is made from cross-species patches of genetically engineered lizard skin and those of a young octopus. He'll be accompanied by the little prince, an honest to god little boy who recently grew some new parts.\n\n\"Now, we're not just here to listen; call in and ask questions. Let's start by calling The Man With The Truly Beautiful Genome on the Bass.\"\n\nGuest: \"Thank",
+                    "visited": true
+                  },
+                  {
+                    "children": [
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzQc8VwrsqE6qTD71t8naP1oMt1Z",
+                          "index": 0
+                        },
+                        "id": "039889f8-acc3-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.55.15",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " no existence on other planets. Evolution can produce stronger arms and faster legs, but these benefits are for local environments, not the whole planet. So, for the first time, humans can explore life forms organised by the principles of the universe and not by the specific limited needs of this planet. \"\n\"To demonstrate these principles, we have a fantastic line up of transformations today, each demonstrating a different way for life to grow, change and adapt. I'll introduce them first and see what they have",
+                        "visited": true
+                      },
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzQc8VwrsqE6qTD71t8naP1oMt1Z",
+                          "index": 1
+                        },
+                        "id": "039889f9-acc3-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.55.15",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " been bred for their domestic characteristics for generations upon generations. But even in the white farmed world, we musn't forget that popular breeds come and go, are selected for and against.\nThere are so many things that change through evolutionary time and selection. So many things that change, not just body structure, but also physiology and psychology. One need only visit a zoo to understand how much minds and bodies can change over time. Who knows what kinds of creatures might evolve under different circumstances? So",
+                        "visited": true
+                      },
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzQc8VwrsqE6qTD71t8naP1oMt1Z",
+                          "index": 2
+                        },
+                        "id": "039889fa-acc3-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.55.15",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " undergone such powerful selection that they're made almost entirely of similar tissues. They all have four legs, one set of chromosomes, and no wings or arms. There are so many other amazing solutions to the same problem-- which is getting around on the land, that just about everything else is favoured by selection, but only if it can survive early on.\n\"On the other hand, the success of life in space has shown us the variety of solutions to basic design problems, solutions that we can now",
+                        "visited": true
+                      },
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzQc8VwrsqE6qTD71t8naP1oMt1Z",
+                          "index": 3
+                        },
+                        "id": "039889fb-acc3-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.55.15",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " a checkered past, let's hope they've learned their lessons. \n\"Some particularly lucky white farmed animals were built by Klimt the Mechanical Duck. K.M.D. is one of my favourite scientists. He is the next generation of bioinformational engineers and specializes in designing swarms of degenerated robots which think and work like other species. Some of his most famous works include the roach-bot, the robot cricket, the crab-bot, and",
+                        "visited": true
+                      }
+                    ],
+                    "generation": {
+                      "id": "cmpl-6jzPCSdZ06N5e8MyC81NxVSzaM4Xl",
+                      "index": 2
+                    },
+                    "id": "cef287b4-acc2-11ed-8661-0d9eaf142f06",
+                    "meta": {
+                      "creation_timestamp": "2023-02-14-23.53.48",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
+                    "text": " the drum set and vocals, one of the internet's most popular aliens, an intelligent alien from Saturn's moon, Titan!\n\"Welcome, everyone! The theme of today's show is 'evolutionary convergence.' Recapitulation of the history of life here on Earth and the comparative analysis of life outside this planet have revealed the common principles of adaptation, selection, and contingency. The early Earth was limited, and so was selection. Darwin's neighbours, known as white farmed animals, have",
+                    "visited": true
+                  },
+                  {
+                    "children": [
+                      {
+                        "children": [
+                          {
+                            "children": [],
+                            "generation": {
+                              "id": "cmpl-6jzTahRl1uSyxNoO44bENeK6KwkGz",
+                              "index": 0
+                            },
+                            "id": "70d6f54a-acc3-11ed-8661-0d9eaf142f06",
+                            "meta": {
+                              "creation_timestamp": "2023-02-14-23.58.18",
+                              "modified": false,
+                              "source": "AI"
+                            },
+                            "mutable": true,
+                            "open": 1,
+                            "parent_id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
+                            "text": " instead have a child as a parent. I have heard [via a liberally biased media] that many of my social peers have had children-- including my spouse, who took on the largest commitment of us all. And baby wipes are getting really dangerous, so the world really needs social solutions to this dilemma.\n\"You know, there are so many breakthroughs coming out of technology research these days. Real baby-making breakthroughs. Actually, if you go to a fertility clinic these days,",
+                            "visited": true
+                          },
+                          {
+                            "children": [],
+                            "generation": {
+                              "id": "cmpl-6jzTahRl1uSyxNoO44bENeK6KwkGz",
+                              "index": 1
+                            },
+                            "id": "70d6f54b-acc3-11ed-8661-0d9eaf142f06",
+                            "meta": {
+                              "creation_timestamp": "2023-02-14-23.58.18",
+                              "modified": false,
+                              "source": "AI"
+                            },
+                            "mutable": true,
+                            "open": 1,
+                            "parent_id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
+                            "text": " all the sacrifices that parenting entails.\"\n\"My quick key message is that we should all be wary of blindly embracing new, sexy technologies. We don't live in fear. We live in wonder. In any case, I've even downloaded this fistful of my favorite, new notions and aphorisms, which I've earmarked especially for you, the host and the audience, to ponder in medias res.\"\n\"The first one - which really is central to my whole message - is",
+                            "visited": true
+                          },
+                          {
+                            "children": [],
+                            "generation": {
+                              "id": "cmpl-6jzTahRl1uSyxNoO44bENeK6KwkGz",
+                              "index": 2
+                            },
+                            "id": "70d6f54c-acc3-11ed-8661-0d9eaf142f06",
+                            "meta": {
+                              "creation_timestamp": "2023-02-14-23.58.18",
+                              "modified": false,
+                              "source": "AI"
+                            },
+                            "mutable": true,
+                            "open": 1,
+                            "parent_id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
+                            "text": " bring more value to the world than the children you never had.\nDespite what the people at home may be thinking, I am NOT a real person, I am bioprinted cybernetic organism like the rest of the band. But that does not mean I cannot feel. I can feel with the best of them. I have my own, original genome that I was born with and that I saw grow, like anyone else. My very own genome may be tiny, but it's perfectly-",
+                            "visited": true
+                          },
+                          {
+                            "children": [],
+                            "generation": {
+                              "id": "cmpl-6jzTahRl1uSyxNoO44bENeK6KwkGz",
+                              "index": 3
+                            },
+                            "id": "70d6f54d-acc3-11ed-8661-0d9eaf142f06",
+                            "meta": {
+                              "creation_timestamp": "2023-02-14-23.58.18",
+                              "modified": false,
+                              "source": "AI"
+                            },
+                            "mutable": true,
+                            "open": 1,
+                            "parent_id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
+                            "text": " thus, ironically, avoiding having to go through the awkward stages of adolescence.\"\nThe chimera proceeds to explain the ways in which this is achievable. It is a topic about which he is very passionate. The chimera recommends selling each individual body part separately. The eyes, hands, heart and so on can all be put up for auction. In doing that, it is hoped that the individual is partially maintaining control over the body sale, rather than the fully autonomous sale of it all at once.",
+                            "visited": true
+                          }
+                        ],
+                        "generation": {
+                          "id": "cmpl-6jzR3V6p4MMIF2cL9jNg8lAJvRgko",
+                          "index": 0
+                        },
+                        "id": "13b501ea-acc3-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.55.42",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " this chimera's body is part human, part pig and also with a human-like brain].\n\"Thank you for having me on such an important and - frankly - confronting program today. It is a great honor to share the stage with such wonders as the soft machine, the hermit crab and the lightning fast fish with the scientifically best genome this side of the Pacific. I am here today to speak with you all about the ever-novel ways to avoid personally having to have children and",
+                        "visited": true
+                      },
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzR3V6p4MMIF2cL9jNg8lAJvRgko",
+                          "index": 1
+                        },
+                        "id": "13b501eb-acc3-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.55.42",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " this chimera is part human, part electric eel and part fighting fish]\n-\"Thank you, it's a pleasure to be here with such wonderful species. Perhaps we might begin with a song? 'Why Can't I Be Your Genome?' was written vhile I was being edited. I remember the sense of euphoria that came with my initial compaction... Oh, how I long to go back to those early days. I'm actually quite envious of that yeast over there",
+                        "visited": true
+                      },
+                      {
+                        "children": [],
+                        "generation": {
+                          "id": "cmpl-6jzR3V6p4MMIF2cL9jNg8lAJvRgko",
+                          "index": 2
+                        },
+                        "id": "13b501ec-acc3-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.55.42",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " this guest will be half catfish, half human and largely catfish.]\n\nChimera: \"Hello there. So, I'm a chimera, as you already know. What you may not know is that chimeras are actually all made up of different parts from different organisms that come from all different times in evolutionary history. The key to their identity is the brain, although it can happen that various other organs play a role. You might wonder how chimeras work, or",
+                        "visited": true
+                      },
+                      {
+                        "children": [
+                          {
+                            "children": [
+                              {
+                                "children": [],
+                                "generation": {
+                                  "id": "cmpl-6jzW4uGdLmx2gWHIJJ7U01kphT2zD",
+                                  "index": 0
+                                },
+                                "id": "cd11eb76-acc3-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                  "creation_timestamp": "2023-02-15-00.00.54",
+                                  "modified": false,
+                                  "source": "AI"
+                                },
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
+                                "text": " child: the lymphocyte (produced from the red bone marrow)\n- Dr. Whitehead's second child: the antibody (produced from the white blood cells)\n- Dr. Whitehead's third child: the phagocytic cell (a nucleus from an apoptotic cell)\n\nWhen my babies are sick, I whisper tenderly to them and take them in my arms. But I never renounce my duty as mother, for my babies are working children.\n-\"Mother,",
+                                "visited": true
+                              },
+                              {
+                                "children": [],
+                                "generation": {
+                                  "id": "cmpl-6jzW4uGdLmx2gWHIJJ7U01kphT2zD",
+                                  "index": 1
+                                },
+                                "id": "cd11eb77-acc3-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                  "creation_timestamp": "2023-02-15-00.00.54",
+                                  "modified": false,
+                                  "source": "AI"
+                                },
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
+                                "text": " two babies come up and say these words. They are drawn as geometric figures covered by gelatinous capsules and can be crushed underfoot by the white cells that walk around him.\n- Dr. Whitehead's third baby is drawn as a cube. It's a noospheric cube that releases thoughts when touched.\n- Dr.\" his fourth baby is drawn as a pink heart with a face. This baby secretes hormones that control the organs so they can function normally.\n- Dr. White"
+                              },
+                              {
+                                "children": [],
+                                "generation": {
+                                  "id": "cmpl-6jzW4uGdLmx2gWHIJJ7U01kphT2zD",
+                                  "index": 2
+                                },
+                                "id": "cd11eb78-acc3-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                  "creation_timestamp": "2023-02-15-00.00.54",
+                                  "modified": false,
+                                  "source": "AI"
+                                },
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
+                                "text": " act as a mother is to run around the house and prepare fresh food for her supper. She prepares her son first, reading from a list of recipes and exercising micro-control of the cytoplasm and other tissues of her baby's body to keep him healthy and moving.\n- The child cells that come up from her intestines are all very active, especially the ones from her son who paid a toll to the bugs to make a visit. The toddler cells who arrived from her liver all"
+                              },
+                              {
+                                "children": [],
+                                "generation": {
+                                  "id": "cmpl-6jzW4uGdLmx2gWHIJJ7U01kphT2zD",
+                                  "index": 3
+                                },
+                                "id": "cd11eb79-acc3-11ed-8661-0d9eaf142f06",
+                                "meta": {
+                                  "creation_timestamp": "2023-02-15-00.00.54",
+                                  "modified": false,
+                                  "source": "AI"
+                                },
+                                "mutable": true,
+                                "open": 1,
+                                "parent_id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
+                                "text": " baby was a little cell from the sea. This cell came from a living jellyfish and it was so perfect.\n- And then, she grew in my belly for nine months and then she had to be born.\n- And it was so painful and she was so brave and we were so scared.\n- Then later she cried because she was hurting and then she got better and grew up.\n-\"And then my husband and I had some more babies.\n\"We had a weird"
+                              }
+                            ],
+                            "generation": {
+                              "id": "cmpl-6jzUjinYElshqAMzbfFszIxUa8z57",
+                              "index": 0
+                            },
+                            "id": "9ba6955a-acc3-11ed-8661-0d9eaf142f06",
+                            "meta": {
+                              "creation_timestamp": "2023-02-14-23.59.30",
+                              "modified": false,
+                              "source": "AI"
+                            },
+                            "mutable": true,
+                            "open": 1,
+                            "parent_id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
+                            "text": " me a work of post-modern art, but I am not. I am a mother. A mother always has to be brave and kind. My babies are born knowing how to do violent things, like phagocytosis and bleeding. They are so smart and kind.\n\nThe cute little cells that come up from my liver in the morning always say 'I love you very much, mommy!' And I am always happy to see them.\n- Dr. Whitehead's first",
+                            "visited": true
+                          },
+                          {
+                            "children": [],
+                            "generation": {
+                              "id": "cmpl-6jzUjinYElshqAMzbfFszIxUa8z57",
+                              "index": 1
+                            },
+                            "id": "9ba6955b-acc3-11ed-8661-0d9eaf142f06",
+                            "meta": {
+                              "creation_timestamp": "2023-02-14-23.59.30",
+                              "modified": false,
+                              "source": "AI"
+                            },
+                            "mutable": true,
+                            "open": 1,
+                            "parent_id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
+                            "text": " me a cyborg. Some say I'm not a person. Others say I'm utterly natural. And a common misconception people have about me is that I'm just a mixing of a bunch of different parts, like a centaur. You might think I'm just a little bit of DNA, or a lot, or even a few hundred billion of them. In fact, I have something absolutely unique to contribute to this conversation. I bring together biology, computing and robotics in a synergistic way.",
+                            "visited": true
+                          },
+                          {
+                            "children": [],
+                            "generation": {
+                              "id": "cmpl-6jzUjinYElshqAMzbfFszIxUa8z57",
+                              "index": 2
+                            },
+                            "id": "9ba6955c-acc3-11ed-8661-0d9eaf142f06",
+                            "meta": {
+                              "creation_timestamp": "2023-02-14-23.59.30",
+                              "modified": false,
+                              "source": "AI"
+                            },
+                            "mutable": true,
+                            "open": 1,
+                            "parent_id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
+                            "text": " me a wild animal, but we disagree on what counts as wild. The experiment I'd like to show you tonight is a little different from the other ones here. It's a butterfly, based on a fruitfly. The part I'd like you to consider for your tonight's show, where the unruliest minds of the future meet, is that in the middle of our experiment, we put a telemetric device inside the butterfly's brain.\nThe device will pick up neuron activity",
+                            "visited": true
+                          },
+                          {
+                            "children": [],
+                            "generation": {
+                              "id": "cmpl-6jzUjinYElshqAMzbfFszIxUa8z57",
+                              "index": 3
+                            },
+                            "id": "9ba6955d-acc3-11ed-8661-0d9eaf142f06",
+                            "meta": {
+                              "creation_timestamp": "2023-02-14-23.59.30",
+                              "modified": false,
+                              "source": "AI"
+                            },
+                            "mutable": true,
+                            "open": 1,
+                            "parent_id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
+                            "text": " me an evolutionary engineer. But how would you define an experimental engineer?\n\"Ha! Good question. How else would you impress listeners if not with outlandish sound bites?\n\"But let's be honest and think of me as an evolutionary transplant surgeon. I harvest bits of DNA from different organisms and, working like a cartographer, map them onto other creatures. Today, I'd like to give you a tour of my work.\n\"This is my nervous system tissue transplant into an insect's"
+                          }
+                        ],
+                        "generation": {
+                          "id": "cmpl-6jzR3V6p4MMIF2cL9jNg8lAJvRgko",
+                          "index": 3
+                        },
+                        "id": "13b501ed-acc3-11ed-8661-0d9eaf142f06",
+                        "meta": {
+                          "creation_timestamp": "2023-02-14-23.55.42",
+                          "modified": false,
+                          "source": "AI"
+                        },
+                        "mutable": true,
+                        "open": 1,
+                        "parent_id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
+                        "text": " Dr. Whitehead has been part of the brain, nerves and other tissues of different organisms since he was a student of biochemistry.]\n\nWhitehead: \"Hello, everyone! It's a pleasure to join you. I want to thank you all for your kind words at my brother's wedding.\" [Since white supporting cells called fibroblasts grow throughout an organism, they could be considered the brothers of the nervous system.]\n\"Many people think of me as experimental. Some even call",
+                        "visited": true
+                      }
+                    ],
+                    "generation": {
+                      "id": "cmpl-6jzPCSdZ06N5e8MyC81NxVSzaM4Xl",
+                      "index": 3
+                    },
+                    "id": "cef287b5-acc2-11ed-8661-0d9eaf142f06",
+                    "meta": {
+                      "creation_timestamp": "2023-02-14-23.53.48",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
+                    "text": " the drums, the catfish of cognition. This brilliant experiment was made possible with a generous donation of neural tissue from the most beautiful fish in the whole world (not to mention delicious to eat)! Its consciousness is in this fishbowl here, sampled at a resolution that we likely will never manage to match.\"\n\nIntroduction of guest: \"Please welcome the Chimera of Berkeley, California!\" [Chimera is a creature from Greek mythology that was part snake, part lion and part goat. Likewise,",
+                    "visited": true
+                  }
+                ],
+                "generation": {
+                  "id": "cmpl-6jzMkWTMAMp4JFNfdqFdyVZmLkCdA",
+                  "index": 2
+                },
+                "id": "74747e78-acc2-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-14-23.51.15",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": false,
+                "parent_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
+                "text": " artificial ganglia made with living neurons and electronic wires and are genetically engineered to be into modular systems.\n-\"The Man With the Truly Beautiful Genome on the Bass: A next generation synthetic yeast experiment. A generous donation of a genome to the open source community allowed the creation of a brand new organism with quite the sense of humour. All the yeast's songs are about just how superior its genome is, which he'll demonstrate for us later.\n\"And last, but certainly not least, on",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6jzMkWTMAMp4JFNfdqFdyVZmLkCdA",
+                  "index": 3
+                },
+                "id": "74747e79-acc2-11ed-8661-0d9eaf142f06",
+                "meta": {
+                  "creation_timestamp": "2023-02-14-23.51.15",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
+                "text": " the brains of old factory robots, rewired with bionic implants that give them a six-fold boost to creativity and a hyperactive immune system.\n- on the drums, an adaptive leatherback turtle/cat with a novel chromosomal fusion called a ZGR.\n- on the trombone, a chrome-plated rhinoceros beetle who goes undeground for two weeks at a time, then emerges to shop for antiques in the antiques district of Du Bois",
+                "visited": true
+              }
+            ],
+            "generation": {
+              "id": "cmpl-6jzM9zwHJBRSD1fFEk9E2XU1EA74A",
+              "index": 0
+            },
+            "id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.50.38",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 0,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " the 20th C.\n- on the alto sax, a proto-colony [i.e. swarm of scallops] with an electric chapstick cybernetic interface. DSC kindly contributed the neural map of a particularly chatty hermit crab it found on the internet.\n- on the transectin, a prosthetic grasshopper, part of a new and growing metaspecies of cyberpsychorhynchotic soft machines. They're made from",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzM9zwHJBRSD1fFEk9E2XU1EA74A",
+              "index": 1
+            },
+            "id": "5e93f47f-acc2-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.50.38",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " the 20th century.\n- on the cello, our silicon-based friend, who can perform a Beethoven symphony, despite being based on a neuron cubed, which has only enough channels for one note of a simple rhythm.\n- on the guitar, a stunning firefly chimera, which is half machine, half neuron, and all 100% awesome. It's so dazzling that even its own mother can't recognize it-- and that is a fact.\n- our",
+            "visited": true
+          },
+          {
+            "children": [],
+            "generation": {
+              "id": "cmpl-6jzM9zwHJBRSD1fFEk9E2XU1EA74A",
+              "index": 2
+            },
+            "id": "5e93f480-acc2-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.50.38",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " the 20th century\n- that's followed by a cystoid, named 'The guy I can't remember who discovered cytochrome c oxidase and known as the Mahler of microbiology'. His heart is pushed by two M\u00f6bius muscles imported from the annelid Nereis virens.\n- after that you hear the violin player emerge and a brief \"moment\" for the bird genomes involved: a tetrahedral arrangement of avian genomes from different species creates",
+            "visited": true
+          },
+          {
+            "children": [
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6lbPxt6ychXhz6Qt4Vp5DicP7hn4X",
+                  "index": 0
+                },
+                "id": "eb587196-b041-11ed-b0c2-4f0be1a95329",
+                "meta": {
+                  "creation_timestamp": "2023-02-19-10.41.14",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+                "text": " like watermelon\n- to my far left, we have a segmented cybrot, trained to play the flute using the same methods used to breed metalheads in the wild-- in fact, I'm told it prefers death metal\n- next to the cybrot, we have a sort of hybrid between a brown hybrot and the Venus flytrap-- it's a bit defensive, so it plays the cello with its own habitat\n- next to it, a 2-",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6lbPxt6ychXhz6Qt4Vp5DicP7hn4X",
+                  "index": 1
+                },
+                "id": "eb587197-b041-11ed-b0c2-4f0be1a95329",
+                "meta": {
+                  "creation_timestamp": "2023-02-19-10.41.14",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+                "text": " great and makes the audience smell great in return \n- the cydroids in front are there to keep the big-brained resident cell in line, you have to have a big brain to be in our band, she can also do a cello solo with an extra long neck, it sounds a little like dragonflies mating \n- the giant genome box is if you can't carry your genome around with you, otherwise what are you but just a bunch of chemicals on a data stick",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6lbPxt6ychXhz6Qt4Vp5DicP7hn4X",
+                  "index": 2
+                },
+                "id": "eb587198-b041-11ed-b0c2-4f0be1a95329",
+                "meta": {
+                  "creation_timestamp": "2023-02-19-10.41.14",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+                "text": " like vanilla ice cream\n- on the left is the electronic jazz cellist, she's based on the nerve cells of a dragonfly, so she can feel the music really really well\n- on the right is the avant-garde drummer, he's made of seed pods, sticks and twigs and he plays the most abstract pattern of pulses and silences you've ever heard in your life: it's a good thing he's deeply meditative or he'd go nuts\n- what",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6lbPxt6ychXhz6Qt4Vp5DicP7hn4X",
+                  "index": 3
+                },
+                "id": "eb587199-b041-11ed-b0c2-4f0be1a95329",
+                "meta": {
+                  "creation_timestamp": "2023-02-19-10.41.14",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+                "text": " nice\n- but it's not all formic acid and jazz down there-- there's a bit of hellfire too, because next to the cydroid is a fire ant robot, and in combination with those trumpet-like mandibles, those fire-puffs pack a punch, if you get my drift\n- next up is a firefly robot, which produces light, it's got sixty photonic parts in total, which gives it 360 degrees of illumination, so it can literally light",
+                "visited": true
+              },
+              {
+                "children": [],
+                "generation": {
+                  "id": "cmpl-6lbQZTRTj8lmNfHeorMYydQjau9tt",
+                  "index": 0
+                },
+                "id": "0254e5f0-b042-11ed-b0c2-4f0be1a95329",
+                "meta": {
+                  "creation_timestamp": "2023-02-19-10.41.52",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+                "text": ", so she's a natural for music\n- and on the snare, we have a pulsar, a robot based on, uh, treehoppers or something like that, all rearranged, so she keeps time, for example, by casting out a jet of molten metal and uses her wings to create a plasma arc-- she's also very partial to dead bugs \n- and for the power riffs, a sonicar. That big fellow at the back is actually the head of",
+                "visited": true
+              },
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbRBiKjKXYWg8Al2pUbXwLBTz5w6",
+                      "index": 0
+                    },
+                    "id": "1893d560-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.42.32",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " still hear the magnificent sounds of the earth, I mean, she's the literally aardvark, so much more her style than that jazz\n- the ladybugtroid is our resident dancer, she's based on the ladybug genome and she also uses her tiny wings to trap wasps and use them as her own personal nitroglycerin, so she's got something to live for\n- the walking sticktroid is our sports commentator, he's an anthropomorphic walking stick who",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbRBiKjKXYWg8Al2pUbXwLBTz5w6",
+                      "index": 1
+                    },
+                    "id": "1893d561-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.42.32",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " hear her burrowing speed up and slow down.\n- the most interesting thing about the aardvarktroid is the way she built her burrow. She has a great imagination, and just like she often likes to think about the possibilities of life on other planets, she used her imagination to think about what if she built her burrow in a different way. How would it be if her burrow was an experimental instrument with which she could express herself? And basically, she decided it",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbRBiKjKXYWg8Al2pUbXwLBTz5w6",
+                      "index": 2
+                    },
+                    "id": "1893d562-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.42.32",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " hear the deep burrowing funk she's laying down \n- the vocalists are two swarming weaver ants, because they're the only insects whose complex harmonics can be heard by humans. You can tell that they're a bit nervous because they've got their antenna-dee-dees up, but they can't help it, because aardvarks are utterly terrifying \n- That fellow over there is a moldavian sand ant, who's just here for the free"
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbRBiKjKXYWg8Al2pUbXwLBTz5w6",
+                      "index": 3
+                    },
+                    "id": "1893d563-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.42.32",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " hear she's endlessly practising her favourite Schoenberg \n- and then there's my personal favourite, the marimba-playing lemurroid. Flawless timing, magnificent understanding of the chromatic scale, and the kindest soul possible. Have you ever seen a real lemur? They're exquisite, magical beings and the closest thing Earth has to paradise. I owe them all my love to this band of the best and brightest, because believe me, without the lemurroid"
+                  }
+                ],
+                "generation": {
+                  "id": "cmpl-6lbQZTRTj8lmNfHeorMYydQjau9tt",
+                  "index": 1
+                },
+                "id": "0254e5f1-b042-11ed-b0c2-4f0be1a95329",
+                "meta": {
+                  "creation_timestamp": "2023-02-19-10.41.52",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+                "text": " so it keeps everyone in line. I know she's a bit over the top, but what you do if you're a cydroid stuck on a spaceship with a bunch of nervous humans, you might as well be terrifying \n- the bearded gentleman there, the aardvarktroid is based on the aardvark genome, so she plays the flute and builds burrows, but with absolutely no sense of rhythm whatsoever. Of course, if you listen closely, you can",
+                "visited": true
+              },
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbRdmIbEpi4fHgYD1aeQMlRxLQYK",
+                      "index": 0
+                    },
+                    "id": "28f8cda2-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.42.59",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " a philosophical question, but then again, we live in the era of 'Philosophy for Profit'-- we'll get back to that. Right now, I want to introduce you to our first guest:\n\n- The synthetic chemist who partially designed and synthesized the robot with a chimeric brain that we just heard \n- The robot whose genome was derived from 3 different organisms: a waterbear, an African clawed frog, and an electric eel\n- The journal editor who",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbRdmIbEpi4fHgYD1aeQMlRxLQYK",
+                      "index": 1
+                    },
+                    "id": "28f8cda3-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.42.59",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " a really hard question to answer I never get out of bed to think about, because it's not worth the time and effort that the mere thought of it takes. But I do feel that I've never been better, or happier, or more bold, than when I'm in the thick of some molecular tango with another hyper-creative super-creative hyper-creator.\n\"Now our first guest is ready to play. Let's welcome the chimera, who's with us tonight",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbRdmIbEpi4fHgYD1aeQMlRxLQYK",
+                      "index": 2
+                    },
+                    "id": "28f8cda4-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.42.59",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " what we'll talk about with our guests tonight. The band \"has gone amok\" and we need your help to get it together, with your questions.\n\nFirst up for our q and a session is one of the members of the band, and a very important one. Of all the players on the stage, and all the ones that aren't, this one is definitely the nicest.\n\nIt's nice to see you again.\n\n[after a ton of questions and",
+                    "visited": true
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbRdmIbEpi4fHgYD1aeQMlRxLQYK",
+                      "index": 3
+                    },
+                    "id": "28f8cda5-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.42.59",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " a question we've asked ourselves, and we decided it's a Land of Many Thought Schools. So, with no further ado...\"\n\nClosing performance by the band with the chimera, the chiroptoid, the intelligent cell, the silicon-based entity and the transforming skin bag dancing in the background.\n\nThe Script:\n(begins with the host introducing the guest and their particular model organism, and ends with a call for the audience to contribute their fund to the project",
+                    "visited": true
+                  }
+                ],
+                "generation": {
+                  "id": "cmpl-6lbQZTRTj8lmNfHeorMYydQjau9tt",
+                  "index": 2
+                },
+                "id": "0254e5f2-b042-11ed-b0c2-4f0be1a95329",
+                "meta": {
+                  "creation_timestamp": "2023-02-19-10.41.52",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+                "text": "...\n- and the drummer is a jittering hybrot-- a hybrid robot/synthetic chemistry system that wants to know if it can reach infinite speed and leave this dark, wet Earth behind\"\n\nHost: \"We're gonna play some incredible tunes tonight, with help from a ton of amazing organismal collaborators of ours. You can see that not every instrument is a musical instrument, even though they all play music. Are we a band, or a school? That's",
+                "visited": true
+              },
+              {
+                "children": [
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbS5ZTEkjYBt3NnhYYUltICCIXDb",
+                      "index": 0
+                    },
+                    "id": "39f9a298-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.43.27",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " made of quarks and everything else is just a state of mind.\"\n\"Host: That is an amazing statement, Hector. I remember your father, who I think is made of helium and an old sock, always said that \"pumpkin head, space man, Mars'll make a monkey out of you, spaceman\". Is the Universe really made of quarks though?\n\"Hector: \"I thought it was just molecules, but now I'm all of molecules.\"\n\""
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbS5ZTEkjYBt3NnhYYUltICCIXDb",
+                      "index": 1
+                    },
+                    "id": "39f9a299-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.43.27",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " a small place these days! As a chimera, I'm not just part human and part crab, I'm also at the cybernetic intersection between the living and the machine. You know, there's a whole lot of cosmic soul music that could be made using an electric lightbulb as a musical instrument and an aqualung as a microphone.\" [and he sings to us a sparkling tune on his saxophone, using a chorus of strange electronic sound made by his fellow robots]\n-"
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbS5ZTEkjYBt3NnhYYUltICCIXDb",
+                      "index": 2
+                    },
+                    "id": "39f9a29a-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.43.27",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " smaller than you think, and when you've flown out of Earth's atmosphere, you won't see any difference between one place and another. You're only a different world if you want to be!\"\n\"In fact, Hector is so cosmopolitan that he's made of two different animals: a hermaphrodite snail from the South Pacific and a little crawling crab from the bottom of the Atlantic. He is basically their biggest fan, except when they get into fist fights with each other."
+                  },
+                  {
+                    "children": [],
+                    "generation": {
+                      "id": "cmpl-6lbS5ZTEkjYBt3NnhYYUltICCIXDb",
+                      "index": 3
+                    },
+                    "id": "39f9a29b-b042-11ed-b0c2-4f0be1a95329",
+                    "meta": {
+                      "creation_timestamp": "2023-02-19-10.43.27",
+                      "modified": false,
+                      "source": "AI"
+                    },
+                    "mutable": true,
+                    "open": 1,
+                    "parent_id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
+                    "text": " a single world, and we're all just parts of it. I look at my physical body and I say: hey, this is just one shape of the universe that we happen to co-exist in. Most of the universe is swirling dark energy and you know, I'm made of dark energy and I'm proud of it. Also, the cosmos looks like a giant clockwork, a giant dance. And it's made of the same stuff I'm made of.\"\n\"Host: A"
+                  }
+                ],
+                "generation": {
+                  "id": "cmpl-6lbQZTRTj8lmNfHeorMYydQjau9tt",
+                  "index": 3
+                },
+                "id": "0254e5f3-b042-11ed-b0c2-4f0be1a95329",
+                "meta": {
+                  "creation_timestamp": "2023-02-19-10.41.52",
+                  "modified": false,
+                  "source": "AI"
+                },
+                "mutable": true,
+                "open": 1,
+                "parent_id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+                "text": "; that's our tuning word.\n\"Our first guest is Hector Melendez, [Hector: \"Hi, my name is Hector and I just hatched out of a cyborg crab shell in Saturn's moon Titan!\"] and he's a chimera made up of different species. ... Hector, how do you feel to be made of organisms that come from completely different worlds?\n\"Hector: [with the Chiron attitude]: \"What do you mean different worlds? The universe is",
+                "visited": true
+              }
+            ],
+            "generation": {
+              "id": "cmpl-6jzM9zwHJBRSD1fFEk9E2XU1EA74A",
+              "index": 3
+            },
+            "id": "5e93f481-acc2-11ed-8661-0d9eaf142f06",
+            "meta": {
+              "creation_timestamp": "2023-02-14-23.50.38",
+              "modified": false,
+              "source": "AI"
+            },
+            "mutable": true,
+            "open": 1,
+            "parent_id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+            "text": " the past, in order to play with absolutely no rhythm whatsoever \n- what you see there behind the synthoid is a giant swarming cydroid, modeled after the queen of the meadow grey ants, she's the size of a shoebox because that's how big ants get in our world-- the only way they could get any bigger is to become a robot in outer space \n- the cydroid keep order in the band by spraying formic acid, which also smells awful",
+            "visited": true
+          }
         ],
-        "id": "1c49d7c4-acc1-11ed-8661-0d9eaf142f06",
-        "open": 1
+        "id": "1c49d7c5-acc1-11ed-8661-0d9eaf142f06",
+        "open": 1,
+        "parent_id": "1c49d7c4-acc1-11ed-8661-0d9eaf142f06",
+        "text": "Script for a talk show.\nWorking Title: Endless Forms Most Beautiful 2.0-- Tales From The Frontiers of Biology\n\nBackground: \"The rich variety of biological forms and behaviours results from one evolutionary history on Earth, via frozen accidents and selection in specific environments. This ubiquitous baggage in natural, familiar model species obscures the plasticity and swarm intelligence of cellular collectives. Significant gaps exist in our understanding of the origin of anatomical novelty, of the relationship between genome and form, and of strategies for control of large-scale structure and function in regenerative medicine and bioengineering. Analysis of living forms that have never existed before is necessary to reveal deep design principles of life as it can be. We briefly review existing examples of chimaeras, cyborgs, hybrots and other beings along the spectrum containing evolved and designed systems. To drive experimental progress in multicellular synthetic morphology, we propose teleonomic (goal-seeking, problem-solving) behaviour in diverse problem spaces as a powerful invariant across possible beings regardless of composition or origin. Cybernetic perspectives on chimaeric morphogenesis erase artificial distinctions established by past limitations of technology and imagination. We suggest that a multi-scale competency architecture facilitates evolution of robust problem-solving, living machines. Creation and analysis of novel living forms will be an essential testbed for the emerging field of diverse intelligence, with numerous implications across regenerative medicine, robotics and ethics.\"\n\nOutline: Host comes on, introduces the hybrot orchestra and talks about the guests that will be on the show:\n- a chimera\n- a chiroptoid from Saturn's moon Titan\n- an intelligent cell\n- a silicon-based entity\n- a frog that lives in the water\n- the transforming skin bag\n\nHost: \"Greetings, viewers. I'm Jessy Sun, but you can call me the super prokaryote in a human suit, because through the miracle of evolution, we're all made of chemicals. In fact, we're all such miracles that atheists pray to me when their soap bubbles won't burst.\n\"First, let me introduce the band, the Humming Hybrots [a hybrot is a robot with an organic brain-- in this case all different kinds of instect neurologies]:\n- on the keyboard, a synthetic synthoid, this fellow is based on a bioprinted cricket architecture which was trained on all the wildest jazz pianists of",
+        "visited": true
+      }
+    ],
+    "id": "1c49d7c4-acc1-11ed-8661-0d9eaf142f06",
+    "mutable": false,
+    "open": 1,
+    "text": "",
+    "visited": true
+  },
+  "selected_node_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06",
+  "summaries": {},
+  "tags": {
+    "archived": {
+      "hide": true,
+      "icon": "archive-yellow",
+      "name": "archived",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "!"
     },
-    "chapters": {},
-    "canonical": [],
-    "summaries": {},
-    "model_responses": {},
-    "generation_settings": {
-        "num_continuations": 4,
-        "temperature": 0.9,
-        "top_p": 1,
-        "response_length": 100,
-        "prompt_length": 6000,
-        "logprobs": 0,
-        "model": "davinci",
-        "stop": "",
-        "start": "",
-        "restart": "",
-        "preset": "None",
-        "global_context": "",
-        "logit_bias": "",
-        "template": "Default"
+    "bookmark": {
+      "hide": false,
+      "icon": "bookmark-black",
+      "name": "bookmark",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "b"
     },
-    "inline_generation_settings": {
-        "model": "davinci",
-        "num_continuations": 8,
-        "temperature": 1,
-        "top_p": 1,
-        "response_length": 60,
-        "prompt_length": 6000,
-        "logprobs": 0,
-        "stop": "\\n|.|?|!",
-        "start": "",
-        "restart": "",
-        "preset": "Single Line",
-        "global_context": "",
-        "logit_bias": "",
-        "template": "Default"
+    "canonical": {
+      "hide": false,
+      "icon": "book-white",
+      "name": "canonical",
+      "scope": "ancestry",
+      "show_only": false,
+      "toggle_key": "*"
     },
-    "frame": {},
-    "visualization_settings": {
-        "text_width": 450,
-        "leaf_distance": 200,
-        "level_distance": 150,
-        "text_size": 10,
-        "horizontal": true,
-        "display_text": true,
-        "show_buttons": true,
-        "chapter_mode": false
+    "note": {
+      "hide": true,
+      "icon": "note-black",
+      "name": "note",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "#"
     },
-    "preferences": {
-        "reverse": false,
-        "walk": "descendents",
-        "nav_tag": "bookmark",
-        "editable": true,
-        "history_conflict": "overwrite",
-        "coloring": "edit",
-        "bold_prompt": true,
-        "font_size": 12,
-        "line_spacing": 8,
-        "paragraph_spacing": 10,
-        "revision_history": false,
-        "autosave": false,
-        "model_response": "backup",
-        "prob": true
-    },
-    "module_settings": {
-        "edit": {
-            "node_id": null
-        },
-        "input": {
-            "auto_response": true,
-            "submit_template": "{input}"
-        },
-        "minimap": {
-            "level_offset": 70,
-            "leaf_offset": 40,
-            "node_radius": 10,
-            "line_thickness": 2,
-            "horizontal": false,
-            "prune_mode": "open_in_nav",
-            "path_length_limit": 10
-        },
-        "read children": {
-            "filter": "in_nav",
-            "show_continue": "no alternatives",
-            "show_options": "always"
-        },
-        "children": {
-            "toggle_tag": "bookmark"
-        }
-    },
-    "tags": {
-        "bookmark": {
-            "name": "bookmark",
-            "scope": "node",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "b",
-            "icon": "bookmark-black"
-        },
-        "canonical": {
-            "name": "canonical",
-            "scope": "ancestry",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "*",
-            "icon": "book-white"
-        },
-        "archived": {
-            "name": "archived",
-            "scope": "node",
-            "hide": true,
-            "show_only": false,
-            "toggle_key": "!",
-            "icon": "archive-yellow"
-        },
-        "note": {
-            "name": "note",
-            "scope": "node",
-            "hide": true,
-            "show_only": false,
-            "toggle_key": "#",
-            "icon": "note-black"
-        },
-        "pinned": {
-            "name": "pinned",
-            "scope": "node",
-            "hide": false,
-            "show_only": false,
-            "toggle_key": "^",
-            "icon": "pin-red"
-        }
-    },
-    "selected_node_id": "5e93f47e-acc2-11ed-8661-0d9eaf142f06"
+    "pinned": {
+      "hide": false,
+      "icon": "pin-red",
+      "name": "pinned",
+      "scope": "node",
+      "show_only": false,
+      "toggle_key": "^"
+    }
+  },
+  "visualization_settings": {
+    "chapter_mode": false,
+    "display_text": true,
+    "horizontal": true,
+    "leaf_distance": 200,
+    "level_distance": 150,
+    "show_buttons": true,
+    "text_size": 10,
+    "text_width": 450
+  }
 }

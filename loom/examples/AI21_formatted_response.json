@@ -1,1 +1,68 @@
-{"completions": [{"text": " rate", "tokens": [{"generatedToken": {"token": " rate", "logprob": -9.374443054199219}, "position": {"start": 11, "end": 16}, "counterfactuals": null}], "finishReason": "length"}, {"text": " \"", "tokens": [{"generatedToken": {"token": " \"", "logprob": -5.296318054199219}, "position": {"start": 11, "end": 13}, "counterfactuals": null}], "finishReason": "length"}], "prompt": {"text": "Test prompt", "tokens": [{"generatedToken": {"token": " Test", "logprob": -9.40399169921875}, "position": {"start": 0, "end": 4}, "counterfactuals": null}, {"generatedToken": {"token": " prompt", "logprob": -13.457390785217285}, "position": {"start": 4, "end": 11}, "counterfactuals": null}]}, "id": "39bafe61-244d-4e10-ba5f-537bbdd1c274", "model": "j1-large", "timestamp": "2021-09-27-17.01.46"}
+{
+  "completions": [
+    {
+      "finishReason": "length",
+      "text": " rate",
+      "tokens": [
+        {
+          "counterfactuals": null,
+          "generatedToken": {
+            "logprob": -9.374443054199219,
+            "token": " rate"
+          },
+          "position": {
+            "end": 16,
+            "start": 11
+          }
+        }
+      ]
+    },
+    {
+      "finishReason": "length",
+      "text": " \"",
+      "tokens": [
+        {
+          "counterfactuals": null,
+          "generatedToken": {
+            "logprob": -5.296318054199219,
+            "token": " \""
+          },
+          "position": {
+            "end": 13,
+            "start": 11
+          }
+        }
+      ]
+    }
+  ],
+  "id": "39bafe61-244d-4e10-ba5f-537bbdd1c274",
+  "model": "j1-large",
+  "prompt": {
+    "text": "Test prompt",
+    "tokens": [
+      {
+        "counterfactuals": null,
+        "generatedToken": {
+          "logprob": -9.40399169921875,
+          "token": " Test"
+        },
+        "position": {
+          "end": 4,
+          "start": 0
+        }
+      },
+      {
+        "counterfactuals": null,
+        "generatedToken": {
+          "logprob": -13.457390785217285,
+          "token": " prompt"
+        },
+        "position": {
+          "end": 11,
+          "start": 4
+        }
+      }
+    ]
+  },
+  "timestamp": "2021-09-27-17.01.46"
+}

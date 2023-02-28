@@ -1,4 +1,3 @@
-
 def move_object(canvas, object_id, destination, speed=50):
     dest_x, dest_y = destination
     coords = canvas.coords(object_id)
@@ -22,4 +21,3 @@ def move_object(canvas, object_id, destination, speed=50):
 
     if (new_x, new_y) != (dest_x, dest_y):
         canvas.after(speed, move_object, canvas, object_id, destination, speed)
-

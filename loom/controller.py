@@ -1,27 +1,43 @@
+import bisect
+import json
 import os
-import tkinter as tk
+import re
 import threading
 from pprint import pprint
-from tkinter import filedialog
-from tkinter import messagebox
-from tkinter.font import Font
-import re
 
-import bisect
-
-from view.colors import history_color, not_visited_color, visited_color, ooc_color, text_color, immutable_color
-from view.display import Display
+import tkinter as tk
 from components.dialogs import *
 from model import TreeModel
-from loom.utils.util import clip_num, metadata, diff
-from loom.utils.util_tree import ancestry_in_range, depth, height, flatten_tree, stochastic_transition, node_ancestry, subtree_list, \
-    node_index, filtered_children
-from loom.utils.gpt_util import logprobs_to_probs
-from loom.utils.textbox_util import distribute_textbox_changes
-from loom.utils.keybindings import tkinter_keybindings
+from tkinter import filedialog, messagebox
+from tkinter.font import Font
+from view.colors import (
+    bg_color,
+    edit_color,
+    history_color,
+    immutable_color,
+    not_visited_color,
+    ooc_color,
+    text_color,
+    visited_color,
+)
+from view.display import Display
 from view.icons import Icons
-import json
-from view.colors import edit_color, bg_color
+
+from loom.utils.gpt_util import logprobs_to_probs
+from loom.utils.keybindings import tkinter_keybindings
+from loom.utils.textbox_util import distribute_textbox_changes
+from loom.utils.util import clip_num, diff, metadata
+from loom.utils.util_tree import (
+    ancestry_in_range,
+    depth,
+    filtered_children,
+    flatten_tree,
+    height,
+    node_ancestry,
+    node_index,
+    stochastic_transition,
+    subtree_list,
+)
 
 
 def gated_call(f, condition):
@@ -30,6 +46,7 @@ def gated_call(f, condition):
             # print('cond')
             _f(*args, **kwargs)
         # print("no cond")
+
     return _gated_call
 
 
@@ -38,7 +55,6 @@ def no_junk_args(f):
 
 
 class Controller:
-
     def __init__(self, root):
         self.callbacks = self.build_callbacks()
 
@@ -54,7 +70,6 @@ class Controller:
         self.nav_history = []
         self.undo_history = []
 
-
     #################################
     #   Hooks
     #################################
@@ -63,10 +78,7 @@ class Controller:
         attrs = [getattr(self, f) for f in dir(self)]
         callbacks = [f for f in attrs if callable(f) and hasattr(f, "meta") and "name" in f.meta]
 
-        return {
-            f.meta["name"]: {**f.meta, "callback": no_junk_args(f)}
-            for f in callbacks
-        }
+        return {f.meta["name"]: {**f.meta, "callback": no_junk_args(f)} for f in callbacks}
 
     def register_model_callbacks(self):
         # When the tree is updated, refresh the navtree, nav selection, and textbox
@@ -83,8 +95,9 @@ class Controller:
         self.state.register_callback(self.state.tree_updated, self.setup_custom_key_bindings)
         self.state.register_callback(self.state.tree_updated, self.modules_tree_updated)
         # TODO autosaving takes too long for a big tree
-        self.state.register_callback(self.state.tree_updated, lambda **kwargs: self.save_tree(popup=False,
-                                                                                              autosave=True))
+        self.state.register_callback(
+            self.state.tree_updated, lambda **kwargs: self.save_tree(popup=False, autosave=True)
+        )
 
         # Before the selection is updated, save edits
         self.state.register_callback(self.state.pre_selection_updated, self.save_edits)
@@ -100,20 +113,22 @@ class Controller:
         self.state.register_callback(self.state.selection_updated, self.refresh_display)
         self.state.register_callback(self.state.selection_updated, self.modules_selection_updated)
 
-
     def bind(self, tk_key, f):
         def in_edit():
-            return self.display.mode in ["Edit", "Child Edit"] \
-                   or (self.display.mode == "Visualize" and self.display.vis.textbox) \
-                   or self.has_focus(self.display.search_box) or self.module_textbox_has_focus() \
-                   or self.state.preferences['editable'] and self.has_focus(self.display.textbox)
-        
+            return (
+                self.display.mode in ["Edit", "Child Edit"]
+                or (self.display.mode == "Visualize" and self.display.vis.textbox)
+                or self.has_focus(self.display.search_box)
+                or self.module_textbox_has_focus()
+                or self.state.preferences["editable"]
+                and self.has_focus(self.display.textbox)
+            )
+
         valid_keys_outside_edit = ["Control", "Alt", "Escape", "Delete", "Command"]
 
         inside_edit = any(v in tk_key for v in valid_keys_outside_edit)
 
         self.root.bind(tk_key, no_junk_args(f if inside_edit else gated_call(f, lambda: not in_edit())))
-
 
     def setup_key_bindings(self):
         attrs = [getattr(self, f) for f in dir(self)]
@@ -127,86 +142,82 @@ class Controller:
         # TODO fix this
         for i in range(1, 6):
             i = i % 10
-            f = lambda _i=i: self.child(idx=_i-1)
+            f = lambda _i=i: self.child(idx=_i - 1)
             self.bind(f"<Key-{i}>", f)
 
-    
     def setup_custom_key_bindings(self, **kwargs):
         for tag, properties in self.state.tags.items():
-            if properties['toggle_key'] != 'None':
+            if properties["toggle_key"] != "None":
                 f = lambda _tag=tag: self.toggle_tag(_tag)
-                tk_key = tkinter_keybindings(properties['toggle_key'])
+                tk_key = tkinter_keybindings(properties["toggle_key"])
                 self.bind(tk_key, f)
 
     def build_menus(self):
         # Tuple of 4 things: Name, Hotkey display text, tkinter key to bind to, function to call (without arguments)
         menu_list = {
             "View": [
-                ('Toggle side pane', 'Alt-P', None, no_junk_args(self.toggle_side)),
-                ('Toggle bottom pane', 'Alt-B', None, no_junk_args(self.toggle_bottom)),
-                ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
-                ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
+                ("Toggle side pane", "Alt-P", None, no_junk_args(self.toggle_side)),
+                ("Toggle bottom pane", "Alt-B", None, no_junk_args(self.toggle_bottom)),
+                ("Toggle visualize mode", "J", None, no_junk_args(self.toggle_visualization_mode)),
+                ("Toggle children", "Alt-C", None, no_junk_args(self.toggle_show_children)),
                 "-",
-                ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
-                ('Center view', 'L, Ctrl-L', None, no_junk_args(self.center_view)),
+                ("Reset zoom", "Ctrl-0", None, no_junk_args(self.reset_zoom)),
+                ("Center view", "L, Ctrl-L", None, no_junk_args(self.center_view)),
                 "-",
-                ('Hoist subtree', 'Alt-H', None, no_junk_args(self.hoist)),
-                ('Unhoist subtree', 'Alt-Shift-H', None, no_junk_args(self.unhoist)),
-                ('Unhoist all', '', None, no_junk_args(self.unhoist_all)),
-                ('Collapse node', 'Ctrl-?', None, no_junk_args(self.collapse_node)),
-                ('Collapse subtree', 'Ctrl-minus', None, no_junk_args(self.collapse_subtree)),
-                ('Collapse all except subtree', 'Ctrl-:', None, no_junk_args(self.collapse_all_except_subtree)),
-                ('Expand children', 'Ctrl-\"', None, no_junk_args(self.expand_node)),
-                ('Expand subtree', 'Ctrl-+', None, no_junk_args(self.expand_subtree)),
-                ('Unzip', '', None, no_junk_args(self.unzip_node)),
-                ('Zip chain', '', None, no_junk_args(self.zip_chain)),
-                ('Zip all', '', None, no_junk_args(self.zip_all_chains)),
-                ('Unzip all', '', None, no_junk_args(self.unzip_all)),
-                ('Show hidden children', '', None, no_junk_args(self.show_hidden_children)),
-                ('Hide invisible children', '', None, no_junk_args(self.hide_invisible_children)),
+                ("Hoist subtree", "Alt-H", None, no_junk_args(self.hoist)),
+                ("Unhoist subtree", "Alt-Shift-H", None, no_junk_args(self.unhoist)),
+                ("Unhoist all", "", None, no_junk_args(self.unhoist_all)),
+                ("Collapse node", "Ctrl-?", None, no_junk_args(self.collapse_node)),
+                ("Collapse subtree", "Ctrl-minus", None, no_junk_args(self.collapse_subtree)),
+                ("Collapse all except subtree", "Ctrl-:", None, no_junk_args(self.collapse_all_except_subtree)),
+                ("Expand children", 'Ctrl-"', None, no_junk_args(self.expand_node)),
+                ("Expand subtree", "Ctrl-+", None, no_junk_args(self.expand_subtree)),
+                ("Unzip", "", None, no_junk_args(self.unzip_node)),
+                ("Zip chain", "", None, no_junk_args(self.zip_chain)),
+                ("Zip all", "", None, no_junk_args(self.zip_all_chains)),
+                ("Unzip all", "", None, no_junk_args(self.unzip_all)),
+                ("Show hidden children", "", None, no_junk_args(self.show_hidden_children)),
+                ("Hide invisible children", "", None, no_junk_args(self.hide_invisible_children)),
             ],
             "Edit": [
-                ('Edit node', 'Ctrl+E', None, no_junk_args(self.toggle_edit_mode)),
-                ('Toggle textbox editable', 'Alt+Shift+E', None, no_junk_args(self.toggle_editable)),
+                ("Edit node", "Ctrl+E", None, no_junk_args(self.toggle_edit_mode)),
+                ("Toggle textbox editable", "Alt+Shift+E", None, no_junk_args(self.toggle_editable)),
                 "-",
-                ("New root child", 'Ctrl+Shift+H', None, no_junk_args(self.create_root_child)),
-                ("Create parent", 'Alt-Left', None, no_junk_args(self.create_parent)),
-                ("Change parent", 'Shift-P', None, no_junk_args(self.change_parent)),
-                ("New child", 'H, Ctrl+H, Alt+Right', None, no_junk_args(self.create_child)),
-                ("New sibling", 'Alt+Down', None, no_junk_args(self.create_sibling)),
-                ("Merge with parent", 'Shift+Left', None, no_junk_args(self.merge_parent)),
-                ("Merge with children", 'Shift+Right', None, no_junk_args(self.merge_children)),
-                ("Move up", 'Shift+Up', None, no_junk_args(self.move_up)),
-                ("Move down", 'Shift+Down', None, no_junk_args(self.move_down)),
-                ('Prepend newline', 'N, Ctrl+N', None, no_junk_args(self.prepend_newline)),
-                ('Prepend space', 'Ctrl+Space', None, no_junk_args(self.prepend_space)),
-                ('Copy', 'Ctrl+C', None, no_junk_args(self.copy_text)),
-                ('Delete', 'Backspace', None, no_junk_args(self.delete_node)),
-                ('Delete and reassign children', '', None, no_junk_args(self.delete_node_reassign_children)),
-
+                ("New root child", "Ctrl+Shift+H", None, no_junk_args(self.create_root_child)),
+                ("Create parent", "Alt-Left", None, no_junk_args(self.create_parent)),
+                ("Change parent", "Shift-P", None, no_junk_args(self.change_parent)),
+                ("New child", "H, Ctrl+H, Alt+Right", None, no_junk_args(self.create_child)),
+                ("New sibling", "Alt+Down", None, no_junk_args(self.create_sibling)),
+                ("Merge with parent", "Shift+Left", None, no_junk_args(self.merge_parent)),
+                ("Merge with children", "Shift+Right", None, no_junk_args(self.merge_children)),
+                ("Move up", "Shift+Up", None, no_junk_args(self.move_up)),
+                ("Move down", "Shift+Down", None, no_junk_args(self.move_down)),
+                ("Prepend newline", "N, Ctrl+N", None, no_junk_args(self.prepend_newline)),
+                ("Prepend space", "Ctrl+Space", None, no_junk_args(self.prepend_space)),
+                ("Copy", "Ctrl+C", None, no_junk_args(self.copy_text)),
+                ("Delete", "Backspace", None, no_junk_args(self.delete_node)),
+                ("Delete and reassign children", "", None, no_junk_args(self.delete_node_reassign_children)),
             ],
             "Navigate": [
-                ('Return to root', 'R', None, no_junk_args(self.return_to_root)),
-                ('Save checkpoint', 'Ctrl+T', None, no_junk_args(self.save_checkpoint)),
-                ('Go to checkpoint', 'T', None, no_junk_args(self.goto_checkpoint)),
+                ("Return to root", "R", None, no_junk_args(self.return_to_root)),
+                ("Save checkpoint", "Ctrl+T", None, no_junk_args(self.save_checkpoint)),
+                ("Go to checkpoint", "T", None, no_junk_args(self.goto_checkpoint)),
                 ("Next Bookmark", "D", None, no_junk_args(self.next_bookmark)),
                 ("Prev Bookmark", "A", None, no_junk_args(self.prev_bookmark)),
                 ("Stochastic walk", "W", None, no_junk_args(self.walk)),
                 ("Search ancestry", "Ctrl+F", None, no_junk_args(self.search_ancestry)),
                 ("Search tree", "Ctrl+Shift+F", None, no_junk_args(self.search)),
                 ("Goto node by id", "Ctrl+Shift+G", None, no_junk_args(self.goto_node_dialog)),
-
             ],
             "Generation": [
-                ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
-                ('Generate', 'G, Ctrl+G', None, no_junk_args(self.generate)),
-                #('View summaries', '', None, no_junk_args(self.view_summaries)),
-
+                ("Generation settings", "Ctrl+shift+p", None, no_junk_args(self.generation_settings_dialog)),
+                ("Generate", "G, Ctrl+G", None, no_junk_args(self.generate)),
+                # ('View summaries', '', None, no_junk_args(self.view_summaries)),
             ],
             "Memory": [
-                ('AI Memory', 'Ctrl+Shift+M', None, no_junk_args(self.ai_memory)),
-                ('Create memory', 'Ctrl+M', None, no_junk_args(self.add_memory)),
-                ('Node memory', 'Alt+M', None, no_junk_args(self.node_memory)),
+                ("AI Memory", "Ctrl+Shift+M", None, no_junk_args(self.ai_memory)),
+                ("Create memory", "Ctrl+M", None, no_junk_args(self.add_memory)),
+                ("Node memory", "Alt+M", None, no_junk_args(self.node_memory)),
             ],
             "Flags": [
                 ("Tag node", None, None, no_junk_args(self.tag_node)),
@@ -215,66 +226,61 @@ class Controller:
                 ("Mark node visited", None, None, lambda: self.set_visited(True)),
                 ("Mark node unvisited", None, None, lambda: self.set_visited(False)),
                 ("Edit chapter", "Ctrl+Y", None, no_junk_args(self.chapter_dialog)),
-
             ],
             "Settings": [
-                ('Preferences', 'Ctrl+P', None, no_junk_args(self.preferences)),
-                ('Generation settings', 'Ctrl+shift+p', None, no_junk_args(self.generation_settings_dialog)),
-                ('Inline generation settings', None, None, no_junk_args(self.inline_generation_settings_dialog)),
-                ('Visualization settings', 'Ctrl+U', None, no_junk_args(self.visualization_settings_dialog)),
-                ('Chat settings', None, None, no_junk_args(self.chat_dialog)),
-                ('Model config', None, None, no_junk_args(self.model_config_dialog)),
-                #('Settings', None, None, no_junk_args(self.settings))
-
+                ("Preferences", "Ctrl+P", None, no_junk_args(self.preferences)),
+                ("Generation settings", "Ctrl+shift+p", None, no_junk_args(self.generation_settings_dialog)),
+                ("Inline generation settings", None, None, no_junk_args(self.inline_generation_settings_dialog)),
+                ("Visualization settings", "Ctrl+U", None, no_junk_args(self.visualization_settings_dialog)),
+                ("Chat settings", None, None, no_junk_args(self.chat_dialog)),
+                ("Model config", None, None, no_junk_args(self.model_config_dialog)),
+                # ('Settings', None, None, no_junk_args(self.settings))
             ],
             "Developer": [
-                ('Run code', 'Ctrl+Shift+B', None, no_junk_args(self.run)),
-
+                ("Run code", "Ctrl+Shift+B", None, no_junk_args(self.run)),
             ],
             "Info": [
                 ("Tree statistics", "I", None, no_junk_args(self.info_dialog)),
-                ('Multimedia', 'U', None, no_junk_args(self.multimedia_dialog)),
-                ('Node metadata', 'Ctrl+Shift+N', None, no_junk_args(self.node_info_dialogue)),
+                ("Multimedia", "U", None, no_junk_args(self.multimedia_dialog)),
+                ("Node metadata", "Ctrl+Shift+N", None, no_junk_args(self.node_info_dialogue)),
             ],
         }
         return menu_list
 
-
-
-    @metadata(name='Debug', keys=["<Control-Shift-KeyPress-D>"])
+    @metadata(name="Debug", keys=["<Control-Shift-KeyPress-D>"])
     def debug(self, event=None):
-        #self.display.textbox.fix_selection()
-        #self.write_textbox_changes()
+        # self.display.textbox.fix_selection()
+        # self.write_textbox_changes()
         # makes text copyable
         self.display.textbox.bind("<Button>", lambda e: self.display.textbox.focus_set())
-        #print(self.display.textbox)
-        print('debug')
+        # print(self.display.textbox)
+        print("debug")
 
     # @metadata(name='Generate', keys=["<Control-G>", "<Control-KeyPress-G>"])
     # def generate(self, event=None):
     #     self.generate_dialog()
 
-    @metadata(name='View summaries', keys=["<Control-KeyPress-V>"])
+    @metadata(name="View summaries", keys=["<Control-KeyPress-V>"])
     def view_summaries(self, event=None):
         self.view_summaries_dialog()
 
-    @metadata(name='AI Memory', keys=["<Control-KeyPress-M>"])
+    @metadata(name="AI Memory", keys=["<Control-KeyPress-M>"])
     def ai_memory(self, event=None):
         self.ai_memory_dialog()
 
-    @metadata(name='Create memory', keys=["<Control-KeyPress-M>"])
+    @metadata(name="Create memory", keys=["<Control-KeyPress-M>"])
     def add_memory(self, event=None):
         self.add_memory_dialog()
 
-    @metadata(name='Node memory', keys=["<Alt-KeyPress-M>"])
+    @metadata(name="Node memory", keys=["<Alt-KeyPress-M>"])
     def node_memory(self, event=None):
         self.node_memory_dialog()
 
-    @metadata(name='Search ancestry', keys=["<Control-KeyPress-F>"])
+    @metadata(name="Search ancestry", keys=["<Control-KeyPress-F>"])
     def search_ancestry(self, event=None):
         self.search_ancestry_dialog()
 
-    @metadata(name='Search tree', keys=["<Control-Shift-KeyPress-F>"])
+    @metadata(name="Search tree", keys=["<Control-Shift-KeyPress-F>"])
     def search(self, event=None):
         self.search_dialog()
 
@@ -288,7 +294,11 @@ class Controller:
         node = node if node else self.state.selected_node
         self.select_node(node=self.state.node(self.state.find_next(node=node, visible_filter=self.in_nav)))
 
-    @metadata(name="Prev", keys=["<comma>", "<Control-comma>"], display_key="<",)
+    @metadata(
+        name="Prev",
+        keys=["<comma>", "<Control-comma>"],
+        display_key="<",
+    )
     def prev(self, node=None):
         node = node if node else self.state.selected_node
         self.select_node(node=self.state.node(self.state.find_prev(node=node, visible_filter=self.in_nav)))
@@ -313,7 +323,7 @@ class Controller:
         self.select_node(node=self.state.sibling(node, 1, filter=self.in_nav))
 
     @metadata(name="Go to previous Sibling", keys=["<Up>", "<Control-Up>"], display_key="↑")
-    def prev_sibling(self, node=None): 
+    def prev_sibling(self, node=None):
         node = node if node else self.state.selected_node
         self.select_node(node=self.state.sibling(node, -1, filter=self.in_nav))
 
@@ -322,8 +332,8 @@ class Controller:
         # TODO custom probs
         node = node if node else self.state.selected_node
         filter = filter if filter else self.in_nav
-        if 'children' in node and len(node['children']) > 0:
-            chosen_child = stochastic_transition(node, mode='leaves', filter=filter)
+        if "children" in node and len(node["children"]) > 0:
+            chosen_child = stochastic_transition(node, mode="leaves", filter=filter)
             self.select_node(node=chosen_child)
 
     @metadata(name="Return to root", keys=["<Key-r>", "<Control-r>"], display_key="r")
@@ -333,8 +343,8 @@ class Controller:
     @metadata(name="Save checkpoint", keys=["<Control-t>"], display_key="ctrl-t")
     def save_checkpoint(self, node=None):
         node = node if node else self.state.selected_node
-        self.state.checkpoint = node['id']
-        self.state.tree_updated(edit=[node['id']])
+        self.state.checkpoint = node["id"]
+        self.state.tree_updated(edit=[node["id"]])
 
     @metadata(name="Go to checkpoint", keys=["<Key-t>"], display_key="t")
     def goto_checkpoint(self):
@@ -351,7 +361,7 @@ class Controller:
         # Update the open state of the node based on the nav bar
         # node = self.state.node(node_id]
         # node["open"] = self.display.nav_tree.item(node["id"], "open")
-        #self.state.select_node(node_id)
+        # self.state.select_node(node_id)
         self.select_node(node=self.state.node(node_id), open=open)
 
     # figure out scope and whether should add, edit, delete
@@ -363,19 +373,21 @@ class Controller:
 
     @metadata(name="Toggle prompt", keys=["<asterisk>"], display_key="")
     def toggle_prompt(self, node=None):
-        self.state.preferences['show_prompt'] = not self.state.preferences['show_prompt']
+        self.state.preferences["show_prompt"] = not self.state.preferences["show_prompt"]
         self.refresh_textbox()
 
     def next_tag(self, tag, node=None):
         node = node if node else self.state.selected_node
-        next_tag_id = self.state.find_next(node=node, filter=lambda node: self.state.has_tag_attribute(node, tag),
-                                           visible_filter=self.in_nav)
+        next_tag_id = self.state.find_next(
+            node=node, filter=lambda node: self.state.has_tag_attribute(node, tag), visible_filter=self.in_nav
+        )
         self.select_node(self.state.node(next_tag_id))
 
     def prev_tag(self, tag, node=None):
         node = node if node else self.state.selected_node
-        prev_tag_id = self.state.find_prev(node=node, filter=lambda node: self.state.has_tag_attribute(node, tag),
-                                           visible_filter=self.in_nav)
+        prev_tag_id = self.state.find_prev(
+            node=node, filter=lambda node: self.state.has_tag_attribute(node, tag), visible_filter=self.in_nav
+        )
         self.select_node(self.state.node(prev_tag_id))
 
     @metadata(name="Go to next bookmark", keys=["<Key-d>", "<Control-d>"])
@@ -388,12 +400,12 @@ class Controller:
 
     @metadata(name="Center view", keys=["<Key-l>", "<Control-l>"])
     def center_view(self):
-        #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
-        #self.display.vis.center_view_on_node(self.state.selected_node)
+        # self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+        # self.display.vis.center_view_on_node(self.state.selected_node)
         pass
 
     def update_read_color(self, old_node, node):
-        if self.display.mode == 'Read':
+        if self.display.mode == "Read":
             pass
             # nca_node, index = nearest_common_ancestor(old_node, node, self.state.tree_node_dict)
             # ancestor_indices = self.state.ancestor_text_indices(self.state.selected_node)
@@ -407,11 +419,11 @@ class Controller:
             # self.display.textbox.see(f"1.0 + {nca_end_index} chars")
             # pass
 
-            #print('coloring text')
+            # print('coloring text')
 
     @metadata(name="In nav")
     def in_nav(self, node):
-        return self.display.nav_tree.exists(node['id'])
+        return self.display.nav_tree.exists(node["id"])
 
     @metadata(name="Select node")
     def select_node(self, node, noscroll=False, ask_reveal=True, open=True):
@@ -425,17 +437,17 @@ class Controller:
                 self.reveal_node(node)
         if not self.state.selected_node:
             # if no selected node (probably previous node was deleted), just select
-            self.state.select_node(node['id'])
-        #print('writing textbox changes')
+            self.state.select_node(node["id"])
+        # print('writing textbox changes')
         self.write_textbox_changes()
         if open:
-            node['open'] = True
+            node["open"] = True
             self.refresh_nav_node(node)
         else:
-            node['open'] = self.display.nav_tree.item(node["id"], "open")
+            node["open"] = self.display.nav_tree.item(node["id"], "open")
         self.nav_history.append(self.state.selected_node_id)
         self.undo_history = []
-        self.state.select_node(node['id'])
+        self.state.select_node(node["id"])
         # if self.state.preferences['coloring'] == 'read':
         #     old_node = self.state.selected_node
         #     self.state.select_node(node['id'], noscroll=True)
@@ -443,12 +455,12 @@ class Controller:
         #         self.update_read_color(old_node, node)
 
         # else:
-            #self.state.select_node(node['id'])
+        # self.state.select_node(node['id'])
 
     @metadata(name="Update text")
     def update_text(self, text, node=None):
         node = node if node else self.state.selected_node
-        self.state.update_text(node, text, save_revision_history=self.state.preferences['revision_history'])
+        self.state.update_text(node, text, save_revision_history=self.state.preferences["revision_history"])
 
     @metadata(name="<", keys=["<Command-minus>", "<Alt-minus>"])
     def prev_selection(self):
@@ -483,7 +495,6 @@ class Controller:
                 if len(children) > 1:
                     self.select_node(ancestor)
                     return
-        
 
     @metadata(name="Reroll")
     def alternate(self, node=None):
@@ -504,27 +515,27 @@ class Controller:
     @metadata(name="Hidden children")
     def get_hidden_children(self, node=None):
         node = node if node else self.state.selected_node
-        return [n for n in node['children'] if not self.state.visible(n)]
+        return [n for n in node["children"] if not self.state.visible(n)]
 
     @metadata(name="Text")
     def get_text(self, node_id=None, raw=False):
         node_id = node_id if node_id else self.state.selected_node_id
-        return self.state.text(self.state.node(node_id), raw=raw)#self.state.node(node_id)['text']
+        return self.state.text(self.state.node(node_id), raw=raw)  # self.state.node(node_id)['text']
 
     @metadata(name="Get floating notes")
-    def get_floating_notes(self, tag='note', node=None):
+    def get_floating_notes(self, tag="note", node=None):
         node = node if node else self.state.selected_node
         ancestry = self.state.ancestry(node)
         notes = []
         for ancestor in reversed(ancestry):
-            for child in ancestor['children']:
+            for child in ancestor["children"]:
                 if self.state.has_tag(child, tag) and child != node:
                     notes.append(child)
         return notes
 
     @metadata(name="Pinned")
     def get_pinned(self):
-        pinned = self.state.tagged_nodes(tag='pinned')
+        pinned = self.state.tagged_nodes(tag="pinned")
         return pinned
 
     @metadata(name="Prompt")
@@ -541,19 +552,23 @@ class Controller:
     #   Node operations
     #################################
 
-    @metadata(name="New root child", keys=["<Control-Shift-KeyPress-H>"], display_key="ctrl-shift-h" )
+    @metadata(name="New root child", keys=["<Control-Shift-KeyPress-H>"], display_key="ctrl-shift-h")
     def create_root_child(self):
         self.create_child(node=self.state.root())
 
-    @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Command-Right>", "<Alt-Right>"], display_key="h",)
+    @metadata(
+        name="New Child",
+        keys=["<h>", "<Control-h>", "<Command-Right>", "<Alt-Right>"],
+        display_key="h",
+    )
     def create_child(self, node=None, update_selection=True, toggle_edit=True):
         node = node if node else self.state.selected_node
         new_child = self.state.create_child(parent=node)
-        self.state.tree_updated(add=[new_child['id']])
-        self.state.node_creation_metadata(new_child, source='prompt')
+        self.state.tree_updated(add=[new_child["id"]])
+        self.state.node_creation_metadata(new_child, source="prompt")
         if update_selection:
             self.select_node(new_child, ask_reveal=False)
-            if self.display.mode == "Read" and toggle_edit and not self.state.preferences['editable']:
+            if self.display.mode == "Read" and toggle_edit and not self.state.preferences["editable"]:
                 self.toggle_edit_mode()
         return new_child
 
@@ -561,10 +576,10 @@ class Controller:
     def create_sibling(self, node=None, toggle_edit=True):
         node = node if node else self.state.selected_node
         new_sibling = self.state.create_sibling(node=node)
-        self.state.tree_updated(add=[new_sibling['id']])
+        self.state.tree_updated(add=[new_sibling["id"]])
         self.select_node(new_sibling, ask_reveal=False)
         self.state.node_creation_metadata(new_sibling)
-        if self.display.mode == "Read" and toggle_edit and not self.state.preferences['editable']:
+        if self.display.mode == "Read" and toggle_edit and not self.state.preferences["editable"]:
             self.toggle_edit_mode()
         return new_sibling
 
@@ -572,22 +587,21 @@ class Controller:
     def create_parent(self, node=None):
         node = node if node else self.state.selected_node
         new_parent = self.state.create_parent(node=node)
-        self.state.tree_updated(add=[new_parent['id']])
-        self.state.tree_updated(add=[n['id'] for n in subtree_list(new_parent, filter=self.in_nav)])
-        self.state.node_creation_metadata(new_parent, source='prompt')
+        self.state.tree_updated(add=[new_parent["id"]])
+        self.state.tree_updated(add=[n["id"] for n in subtree_list(new_parent, filter=self.in_nav)])
+        self.state.node_creation_metadata(new_parent, source="prompt")
         return new_parent
 
     @metadata(name="New note")
     def new_note(self, node=None):
         node = node if node else self.state.selected_node
         new_child = self.state.create_child(parent=node)
-        self.state.tag_node(new_child, 'note')
+        self.state.tag_node(new_child, "note")
         if self.state.visible(new_child):
-            self.state.tree_updated(add=[new_child['id']])
+            self.state.tree_updated(add=[new_child["id"]])
         else:
             self.state.tree_updated()
         return new_child
-
 
     @metadata(name="Change Parent", keys=["<Shift-P>"], display_key="shift-p", selected_node=None, click_mode=False)
     def change_parent(self, node=None, click_mode=False):
@@ -599,12 +613,17 @@ class Controller:
         else:
             self.display.change_cursor("arrow")
             self.state.change_parent(node=self.change_parent.meta["selected_node"], new_parent_id=node["id"])
-            self.state.tree_updated(add=[n['id'] for n in subtree_list(self.change_parent.meta["selected_node"],
-                                                                       filter=self.in_nav)])
+            self.state.tree_updated(
+                add=[n["id"] for n in subtree_list(self.change_parent.meta["selected_node"], filter=self.in_nav)]
+            )
             self.change_parent.meta["selected_node"] = None
             self.change_parent.meta["click_mode"] = False
 
-    @metadata(name="Merge with Parent", keys=["<Shift-Left>"], display_key="shift-left",)
+    @metadata(
+        name="Merge with Parent",
+        keys=["<Shift-Left>"],
+        display_key="shift-left",
+    )
     def merge_parent(self, node=None):
         node = node if node else self.state.selected_node
         if not self.state.is_mutable(node):
@@ -615,26 +634,26 @@ class Controller:
             self.immutable_popup(parent)
             return
         self.state.merge_with_parent(node=node)
-        self.state.tree_updated(add=[n['id'] for n in subtree_list(parent, filter=self.in_nav)])
+        self.state.tree_updated(add=[n["id"] for n in subtree_list(parent, filter=self.in_nav)])
         self.select_node(parent, ask_reveal=False)
 
     @metadata(name="Merge with children", keys=["<Shift-Right>"], display_key="shift-right")
     def merge_children(self, node=None):
         node = node if node else self.state.selected_node
-        if not node['children']:
-            print('no children')
+        if not node["children"]:
+            print("no children")
             return
         if not self.state.is_mutable(node):
             self.immutable_popup(node)
             return
-        children = node['children']
+        children = node["children"]
         for child in children:
             if not self.state.is_mutable(child):
                 self.immutable_popup(child)
                 return
         visible_children = filtered_children(node, filter=self.in_nav)
         self.state.merge_with_children(node=node)
-        self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
+        self.state.tree_updated(add=[n["id"] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
         if visible_children:
             self.select_node(visible_children[0])
 
@@ -643,14 +662,14 @@ class Controller:
         if node is None:
             node = self.state.selected_node
         self.state.shift(node, -1)
-        self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
+        self.state.tree_updated(add=[n["id"] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
 
     @metadata(name="Move down", keys=["<Shift-Down>"], display_key="shift-down")
     def move_down(self, node=None):
         if node is None:
             node = self.state.selected_node
         self.state.shift(node, 1)
-        self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
+        self.state.tree_updated(add=[n["id"] for n in subtree_list(self.state.parent(node), filter=self.in_nav)])
 
     @metadata(name="Generate", keys=["<g>", "<Control-g>"], display_key="g")
     def generate(self, node=None, **kwargs):
@@ -658,11 +677,10 @@ class Controller:
             node = self.state.selected_node
         try:
             node["open"] = True
-            self.display.nav_tree.item(node['id'], open=True)
+            self.display.nav_tree.item(node["id"], open=True)
         except Exception as e:
             print(str(e))
         self.state.generate_continuations(node=node, **kwargs)
-
 
     @metadata(name="Retry")
     def retry(self, node=None):
@@ -677,7 +695,6 @@ class Controller:
                 self.generate(update_selection=True, placeholder="")
         else:
             self.generate(update_selection=True, placeholder="")
-
 
     # def propagate_wavefunction(self):
     #     if self.display.mode == "Multiverse":
@@ -698,7 +715,9 @@ class Controller:
     #                                                 start_position=start_position, prompt=prompt)
 
     @metadata(name="Delete", keys=["<BackSpace>", "<Control-BackSpace>"], display_key="«")
-    def delete_node(self, node=None, reassign_children=False, ask=True, ask_text="Delete node and subtree?", refresh_nav=True):
+    def delete_node(
+        self, node=None, reassign_children=False, ask=True, ask_text="Delete node and subtree?", refresh_nav=True
+    ):
         node = node if node else self.state.selected_node
         if not node:
             return
@@ -706,15 +725,15 @@ class Controller:
             messagebox.showerror("Root", "Cannot delete root")
             return
         if ask:
-            result = messagebox.askquestion("Delete", ask_text, icon='warning')
-            if result != 'yes':
+            result = messagebox.askquestion("Delete", ask_text, icon="warning")
+            if result != "yes":
                 return False
         next_sibling = self.state.sibling(node, wrap=False, filter=self.in_nav)
         self.state.delete_node(node=node, reassign_children=reassign_children)
-        if self.state.selected_node_id == node['id']:
+        if self.state.selected_node_id == node["id"]:
             self.select_node(next_sibling)
         if self.in_nav(node) and refresh_nav:
-            self.state.tree_updated(delete=[node['id']])
+            self.state.tree_updated(delete=[node["id"]])
         else:
             self.state.tree_updated()
         return True
@@ -724,30 +743,31 @@ class Controller:
         node = node if node else self.state.selected_node
         if not node:
             return
-        if not node['children']:
+        if not node["children"]:
             return
-        children = node['children']
-        child_ids = [n['id'] for n in children]
+        children = node["children"]
+        child_ids = [n["id"] for n in children]
         if ask:
-            result = messagebox.askquestion("Delete", f"Delete {len(children)} children and subtrees?", icon='warning')
-            if result != 'yes':
+            result = messagebox.askquestion("Delete", f"Delete {len(children)} children and subtrees?", icon="warning")
+            if result != "yes":
                 return
         for child in children:
             self.delete_node(child, reassign_children=False, ask=False, refresh_nav=False)
-        self.state.tree_updated(delete=child_ids)#n['id'] for n in subtree_list(node, filter=self.in_nav) if n != node])
+        self.state.tree_updated(
+            delete=child_ids
+        )  # n['id'] for n in subtree_list(node, filter=self.in_nav) if n != node])
 
     @metadata(name="Archive children")
     def archive_children(self, node=None):
         node = node if node else self.state.selected_node
         if not node:
             return
-        if not node['children']:
+        if not node["children"]:
             return
-        children = node['children']
+        children = node["children"]
         for child in children:
             self.state.tag_node(child, "archived")
             self.state.update_tree_tag_changed(node, "archived")
-
 
     @metadata(name="Delete and reassign children")
     def delete_node_reassign_children(self, node=None):
@@ -785,16 +805,18 @@ class Controller:
         node = node if node else self.state.selected_node
         if self.display.mode == "Read":
             if self.state.is_template(node):
-                #TODO
+                # TODO
                 return
             self.write_textbox_changes()
             ancestor_index, selected_ancestor = self.index_to_ancestor(index)
             ancestor_end_indices = [ind[1] for ind in self.state.ancestor_text_indices(node)]
             negative_offset = ancestor_end_indices[ancestor_index] - index
-            split_index = len(selected_ancestor['text']) - negative_offset
+            split_index = len(selected_ancestor["text"]) - negative_offset
             new_parent, _ = self.state.split_node(selected_ancestor, split_index)
-            self.state.tree_updated(add=[new_parent['id']])
-            self.state.tree_updated(add=[n['id'] for n in subtree_list(self.state.parent(new_parent), filter=self.in_nav)])
+            self.state.tree_updated(add=[new_parent["id"]])
+            self.state.tree_updated(
+                add=[n["id"] for n in subtree_list(self.state.parent(new_parent), filter=self.in_nav)]
+            )
             if change_selection:
                 self.nav_select(node_id=new_parent["id"])
             # TODO deal with metadata
@@ -811,40 +833,38 @@ class Controller:
     def zip_all_chains(self):
         editable = False
         # temporarily disable editable textbox so that text isn't overwritten
-        if self.state.preferences.get('editable', False):
+        if self.state.preferences.get("editable", False):
             editable = True
-            self.state.update_user_frame(update={'preferences': {'editable': False}})
+            self.state.update_user_frame(update={"preferences": {"editable": False}})
         self.state.zip_all_chains(filter=self.in_nav)
         self.state.tree_updated(rebuild=True, write=False)
-        self.state.select_node(self.state.tree_raw_data['root']['id'], write=False)
+        self.state.select_node(self.state.tree_raw_data["root"]["id"], write=False)
         # TODO hack
         if editable:
-            self.state.update_user_frame(update={'preferences': {'editable': True}})
+            self.state.update_user_frame(update={"preferences": {"editable": True}})
 
     def unzip_all(self):
         editable = False
-        if self.state.preferences.get('editable', False):
+        if self.state.preferences.get("editable", False):
             editable = True
-            self.state.update_user_frame(update={'preferences': {'editable': False}})
+            self.state.update_user_frame(update={"preferences": {"editable": False}})
         self.state.unzip_all(filter=self.state.visible)
         self.state.tree_updated(rebuild=True, write=False)
-        self.state.select_node(self.state.tree_raw_data['root']['id'], write=False)
+        self.state.select_node(self.state.tree_raw_data["root"]["id"], write=False)
         # TODO hack
         if editable:
-            self.state.update_user_frame(update={'preferences': {'editable': True}})
-
+            self.state.update_user_frame(update={"preferences": {"editable": True}})
 
     #################################
     #   Textbox
     #################################
-
 
     @metadata(name="Textbox menu")
     def textbox_menu(self, char_index, tk_current, e):
         _, clicked_node = self.index_to_ancestor(char_index)
         node_range = self.node_range(clicked_node)
         self.display.textbox.tag_add("node_select", f"1.0 + {node_range[0]} chars", f"1.0 + {node_range[1]} chars")
-        
+
         menu = tk.Menu(self.display.vis.textbox, tearoff=0)
         if self.display.textbox.tag_ranges("sel"):
             menu.add_command(label="Copy", command=lambda: self.display.textbox.copy_selected())
@@ -853,8 +873,8 @@ class Controller:
         menu.add_command(label="Edit", command=lambda: self.edit_in_module(clicked_node))
         menu.add_command(label="Split", command=lambda: self.split_node(char_index, change_selection=True))
         # TODO
-        #menu.add_command(label="Generate")
-        #menu.add_command(label="Add memory")
+        # menu.add_command(label="Generate")
+        # menu.add_command(label="Add memory")
         # splice_menu = tk.Menu(menu, tearoff=0)
         # splice_menu.add_command(label="Obliviate")
         # splice_menu.add_command(label="Inject")
@@ -864,24 +884,29 @@ class Controller:
         # splice_menu.add_command(label="Open window to...")
         # splice_menu.add_command(label="Custom splice")
 
-        #menu.add_cascade(label="Splice", menu=splice_menu)
-        
-        #menu.add_command(label="Annotate")
+        # menu.add_cascade(label="Splice", menu=splice_menu)
+
+        # menu.add_command(label="Annotate")
         # if there is text selected
         if self.display.textbox.tag_ranges("sel"):
             selection_menu = tk.Menu(menu, tearoff=0)
-            #TODO
+            # TODO
             # save_menu = tk.Menu(selection_menu, tearoff=0)
             # save_menu.add_command(label="Save text")
             # save_menu.add_command(label="Save window")
             # save_menu.add_command(label="Save as memory")
             # selection_menu.add_cascade(label="Save", menu=save_menu)
-            #selection_menu.add_command(label="Substitute")
+            # selection_menu.add_command(label="Substitute")
             transform_menu = tk.Menu(menu, tearoff=0)
-            transform_menu.add_command(label="Prose to script", command=lambda: self.open_selection_in_transformer(template='./loom/config/transformers/prose_to_script.json'))
+            transform_menu.add_command(
+                label="Prose to script",
+                command=lambda: self.open_selection_in_transformer(
+                    template="./loom/config/transformers/prose_to_script.json"
+                ),
+            )
             selection_menu.add_cascade(label="Transform", menu=transform_menu)
-            
-            #selection_menu.add_command(label="Transform", command=lambda: self.open_selection_in_transformer())
+
+            # selection_menu.add_command(label="Transform", command=lambda: self.open_selection_in_transformer())
             # selection_menu.add_command(label="Link")
             # selection_menu.add_command(label="Add summary")
             # selection_menu.add_command(label="Delete")
@@ -892,36 +917,38 @@ class Controller:
 
         # tag_menu.add_command(label="Pin")
         # tag_menu.add_command(label="Tag...")
-        
+
         # menu.add_cascade(label="Tag", menu=tag_menu)
-        #menu.add_command(label="Copy node")
+        # menu.add_command(label="Copy node")
         menu.add_command(label="Copy id", command=lambda: self.copy_id(clicked_node))
 
         menu.tk_popup(e.x_root, e.y_root + 8)
 
-
     def generate_template(self, inputs, template_file):
         # open template file json
-        with open(template_file, 'r') as f:
+        with open(template_file, "r") as f:
             template_dict = json.load(f)
-        template = template_dict['template']
+        template = template_dict["template"]
         prompt = eval(f'f"""{template}"""')
-        
 
     def refresh_textbox(self, **kwargs):
-        #print('refresh textbox')
+        # print('refresh textbox')
         if not self.state.tree_raw_data or not self.state.selected_node:
             return
         self.display.clear_selection_tags(self.display.textbox)
-        self.display.textbox.configure(font=Font(family="Georgia", size=self.state.preferences['font_size']),
-                                       spacing1=self.state.preferences['paragraph_spacing'],
-                                       spacing2=self.state.preferences['line_spacing'],
-                                       background=edit_color() if self.state.preferences["editable"] or self.display.mode == "Edit" else bg_color())
-        #self.display.textbox.tag_config("node_select", font=Font(family="Georgia", size=self.state.preferences['font_size'], weight="bold"))
+        self.display.textbox.configure(
+            font=Font(family="Georgia", size=self.state.preferences["font_size"]),
+            spacing1=self.state.preferences["paragraph_spacing"],
+            spacing2=self.state.preferences["line_spacing"],
+            background=edit_color()
+            if self.state.preferences["editable"] or self.display.mode == "Edit"
+            else bg_color(),
+        )
+        # self.display.textbox.tag_config("node_select", font=Font(family="Georgia", size=self.state.preferences['font_size'], weight="bold"))
 
         # Fill textbox with text history, disable editing
         if self.display.mode == "Read":
-            #self.display.textbox.tag_config("sel", background="black", foreground=text_color())
+            # self.display.textbox.tag_config("sel", background="black", foreground=text_color())
 
             self.display.textbox.configure(state="normal")
             self.display.textbox.delete("1.0", "end")
@@ -929,84 +956,84 @@ class Controller:
             # if self.state.preferences.get('show_prompt', False):
             #     self.display.textbox.insert("end-1c", self.state.prompt(self.state.selected_node))
             # else:
-            if self.state.preferences['coloring'] in ('edit', 'read'):
-                self.display.textbox.tag_config('ooc_history', foreground=ooc_color())
-                self.display.textbox.tag_config('history', foreground=history_color())
+            if self.state.preferences["coloring"] in ("edit", "read"):
+                self.display.textbox.tag_config("ooc_history", foreground=ooc_color())
+                self.display.textbox.tag_config("history", foreground=history_color())
             else:
-                self.display.textbox.tag_config('ooc_history', foreground=text_color())
-                self.display.textbox.tag_config('history', foreground=text_color())
+                self.display.textbox.tag_config("ooc_history", foreground=text_color())
+                self.display.textbox.tag_config("history", foreground=text_color())
 
             ancestry = self.state.ancestor_text_list(self.state.selected_node)
-            #self.ancestor_end_indices = indices
-            history = ''
+            # self.ancestor_end_indices = indices
+            history = ""
             for node_text in ancestry[:-1]:
                 # "end" includes the automatically inserted new line
                 history += node_text
-            selected_text = self.state.text(self.state.selected_node)#self.state.selected_node["text"]
-            prompt_length = self.state.generation_settings['prompt_length'] - len(selected_text)
+            selected_text = self.state.text(self.state.selected_node)  # self.state.selected_node["text"]
+            prompt_length = self.state.generation_settings["prompt_length"] - len(selected_text)
 
             in_context = history[-prompt_length:]
             if prompt_length < len(history):
-                out_context = history[:len(history)-prompt_length]
+                out_context = history[: len(history) - prompt_length]
                 self.display.textbox.insert("end-1c", out_context, "ooc_history")
             self.display.textbox.insert("end-1c", in_context, "history")
 
             history_end = self.display.textbox.index(tk.END)
             self.display.textbox.insert("end-1c", selected_text)
 
-            active_append_text = self.state.get_text_attribute(self.state.selected_node, 'active_append')
+            active_append_text = self.state.get_text_attribute(self.state.selected_node, "active_append")
             if active_append_text:
                 self.display.textbox.insert("end-1c", active_append_text)
 
             self.tag_prompts()
-            if not kwargs.get('noscroll', False):
+            if not kwargs.get("noscroll", False):
                 self.display.textbox.update_idletasks()
-                if self.state.preferences['coloring'] == 'edit':
+                if self.state.preferences["coloring"] == "edit":
                     self.display.textbox.see(tk.END)
                 else:
                     self.display.textbox.see(history_end)
 
-            if not self.state.preferences.get('editable', False):
+            if not self.state.preferences.get("editable", False):
                 self.display.textbox.configure(state="disabled")
             # makes text copyable
-            #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
-
+            # self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
 
         # Textbox to edit mode, fill with single node
         elif self.display.mode == "Edit":
             self.display.textbox.configure(state="normal")
             self.display.textbox.delete("1.0", "end")
             # TODO depending on show template mode
-            self.display.textbox.insert("1.0", self.state.selected_node["text"])#self.state.text(self.state.selected_node))#self.state.selected_node["text"])
+            self.display.textbox.insert(
+                "1.0", self.state.selected_node["text"]
+            )  # self.state.text(self.state.selected_node))#self.state.selected_node["text"])
             self.display.textbox.see(tk.END)
 
             # self.display.secondary_textbox.delete("1.0", "end")
             # self.display.secondary_textbox.insert("1.0", self.state.selected_node.get("active_text", ""))
             self.display.textbox.focus()
-        
-        # makes text copyable
-        #self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
 
+        # makes text copyable
+        # self.display.textbox.bind("<Button>", lambda event: self.display.textbox.focus_set())
 
     @metadata(name="Toggle textbox editable", keys=["<Alt-Shift-KeyPress-E>"])
     def toggle_editable(self):
         self.write_textbox_changes()
-        if self.state.preferences.get('editable', False):
-            self.state.update_user_frame(update={'preferences': {'editable': False}})
+        if self.state.preferences.get("editable", False):
+            self.state.update_user_frame(update={"preferences": {"editable": False}})
         else:
-            self.state.update_user_frame(update={'preferences': {'editable': True}})
+            self.state.update_user_frame(update={"preferences": {"editable": True}})
         self.refresh_textbox()
 
     @metadata(name="Write textbox")
     def write_textbox_changes(self):
-        #print('writing')
-        if self.state.preferences['editable'] and self.display.mode == 'Read' and self.state.selected_node:
+        # print('writing')
+        if self.state.preferences["editable"] and self.display.mode == "Read" and self.state.selected_node:
             new_text = self.display.textbox.get("1.0", "end-1c")
             ancestry = self.state.ancestry(self.state.selected_node)
             changed_ancestry = distribute_textbox_changes(new_text, ancestry)
             for ancestor in changed_ancestry:
-                self.state.tree_node_dict[ancestor['id']]['text'] = ancestor['text']
-            self.update_nav_tree(edit=[ancestor['id'] for ancestor in changed_ancestry])
+                self.state.tree_node_dict[ancestor["id"]]["text"] = ancestor["text"]
+            self.update_nav_tree(edit=[ancestor["id"] for ancestor in changed_ancestry])
 
     def select_endpoints_range(self, start_endpoint, end_endpoint):
         start_text_index, end_text_index = self.endpoints_to_range(start_endpoint, end_endpoint)
@@ -1042,17 +1069,16 @@ class Controller:
             start_endpoints.append(start_endpoint)
             end_endpoints.append(end_endpoint)
             if not self.path_uninterrupted(start_endpoint, end_endpoint):
-                if self.state.preferences['history_conflict'] == 'overwrite':
+                if self.state.preferences["history_conflict"] == "overwrite":
                     pass
-                elif self.state.preferences['history_conflict'] == 'branch':
+                elif self.state.preferences["history_conflict"] == "branch":
                     # TODO not implemented
                     return
-                elif self.state.preferences['history_conflict'] == 'ask':
+                elif self.state.preferences["history_conflict"] == "ask":
                     # TODO open warning dialog to ask user to confirm
                     return
         for i in range(len(ranges)):
             self.replace_trajectory(start_endpoints[i], end_endpoints[i], texts[i], refresh_nav=True)
-
 
     def replace_trajectory(self, start_endpoint, end_endpoint, text, refresh_nav=True):
         # replace text along a trajectory. This will put all the new text in the end endpoint, and result
@@ -1062,16 +1088,16 @@ class Controller:
         node_path = ancestry_in_range(start_node, end_node, self.state.tree_node_dict)
         if start_node == end_node:
             # substitute the text range in the node
-            new_text = start_node['text'][:start_endpoint[1]] + text + start_node['text'][end_endpoint[1]:]
+            new_text = start_node["text"][: start_endpoint[1]] + text + start_node["text"][end_endpoint[1] :]
             self.state.update_text(start_node, new_text, refresh_nav=refresh_nav)
         else:
             for node in node_path:
                 if node == start_node:
-                    new_text = node['text'][:start_endpoint[1]]
-                    #print(node['text'][:start_endpoint[1]])
+                    new_text = node["text"][: start_endpoint[1]]
+                    # print(node['text'][:start_endpoint[1]])
                     self.state.update_text(node, new_text, refresh_nav=refresh_nav)
-                elif node == end_node: 
-                    new_text = text + node['text'][end_endpoint[1]:]
+                elif node == end_node:
+                    new_text = text + node["text"][end_endpoint[1] :]
                     self.state.update_text(node, new_text, refresh_nav=refresh_nav)
                 else:
                     self.state.update_text(node, "", refresh_nav=refresh_nav)
@@ -1105,8 +1131,8 @@ class Controller:
         end_text_index = end - start_indices[end_node_index]
         start_node = ancestry[start_node_index]
         end_node = ancestry[end_node_index]
-        #print(start_node['text'][start_text_index])
-        return (start_node['id'], start_text_index), (end_node['id'], end_text_index)
+        # print(start_node['text'][start_text_index])
+        return (start_node["id"], start_text_index), (end_node["id"], end_text_index)
 
     def node_range(self, node):
         ancestor_text_indices = self.state.ancestor_text_indices(node)
@@ -1120,30 +1146,34 @@ class Controller:
 
     # TODO nodes with mixed prompt/continuation
     def tag_prompts(self):
-        if self.state.preferences['bold_prompt']:
-            self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size'], 'bold'))
+        if self.state.preferences["bold_prompt"]:
+            self.display.textbox.tag_config("prompt", font=("Georgia", self.state.preferences["font_size"], "bold"))
         else:
-            self.display.textbox.tag_config('prompt', font=('Georgia', self.state.preferences['font_size']))
-        self.display.textbox.tag_remove("prompt", "1.0", 'end')
-        #ancestry_text = self.state.ancestry_text(self.state.selected_node)
+            self.display.textbox.tag_config("prompt", font=("Georgia", self.state.preferences["font_size"]))
+        self.display.textbox.tag_remove("prompt", "1.0", "end")
+        # ancestry_text = self.state.ancestry_text(self.state.selected_node)
         indices = self.state.ancestor_text_indices(self.state.selected_node)
-        #start_index = 0
+        # start_index = 0
         for i, ancestor in enumerate(self.state.ancestry(self.state.selected_node)):
-            if 'meta' in ancestor and 'source' in ancestor['meta']:
-                if not (ancestor['meta']['source'] == 'AI' or ancestor['meta']['source'] == 'mixed'):
-                    self.display.textbox.tag_add("prompt", f"1.0 + {indices[i][0]} chars",
-                                                 f"1.0 + {indices[i][1]} chars")
-                elif ancestor['meta']['source'] == 'mixed':
-                    if 'diffs' in ancestor['meta']:
+            if "meta" in ancestor and "source" in ancestor["meta"]:
+                if not (ancestor["meta"]["source"] == "AI" or ancestor["meta"]["source"] == "mixed"):
+                    self.display.textbox.tag_add(
+                        "prompt", f"1.0 + {indices[i][0]} chars", f"1.0 + {indices[i][1]} chars"
+                    )
+                elif ancestor["meta"]["source"] == "mixed":
+                    if "diffs" in ancestor["meta"]:
                         # TODO multiple diffs in sequence
-                        original_tokens = ancestor['meta']['diffs'][0]['diff']['old']
+                        original_tokens = ancestor["meta"]["diffs"][0]["diff"]["old"]
 
-                        current_tokens = ancestor['meta']['diffs'][-1]['diff']['new']
+                        current_tokens = ancestor["meta"]["diffs"][-1]["diff"]["new"]
                         total_diff = diff(original_tokens, current_tokens)
-                        for addition in total_diff['added']:
-                            self.display.textbox.tag_add("prompt", f"1.0 + {indices[i][0] + addition['indices'][0]} chars",
-                                                         f"1.0 + {indices[i][0] + addition['indices'][1]} chars")
-            #start_index = indices[i][1]
+                        for addition in total_diff["added"]:
+                            self.display.textbox.tag_add(
+                                "prompt",
+                                f"1.0 + {indices[i][0] + addition['indices'][0]} chars",
+                                f"1.0 + {indices[i][0] + addition['indices'][1]} chars",
+                            )
+            # start_index = indices[i][1]
 
     #################################
     #   Search
@@ -1160,78 +1190,78 @@ class Controller:
 
     @metadata(name="Search textbox", matches=None, match_index=None, search_term=None, case_sensitive=None)
     def search_textbox(self, pattern, case_sensitive=False):
-        if self.search_textbox.meta['matches'] is not None:
-            if self.search_textbox.meta['search_term'] == pattern \
-                    and self.search_textbox.meta['case_sensitive'] == case_sensitive:
+        if self.search_textbox.meta["matches"] is not None:
+            if (
+                self.search_textbox.meta["search_term"] == pattern
+                and self.search_textbox.meta["case_sensitive"] == case_sensitive
+            ):
                 self.next_match()
                 return
             else:
                 self.clear_search()
-        self.search_textbox.meta['search_term'] = pattern
-        self.search_textbox.meta['case_sensitive'] = case_sensitive
+        self.search_textbox.meta["search_term"] = pattern
+        self.search_textbox.meta["case_sensitive"] = case_sensitive
         ancestry_text = self.state.ancestry_text(self.state.selected_node)
         matches = []
-        matches_iter = re.finditer(pattern, ancestry_text) if case_sensitive \
+        matches_iter = (
+            re.finditer(pattern, ancestry_text)
+            if case_sensitive
             else re.finditer(pattern, ancestry_text, re.IGNORECASE)
+        )
         for match in matches_iter:
-            matches.append({'span': match.span(),
-                            'match': match.group()})
-        self.search_textbox.meta['matches'] = matches
+            matches.append({"span": match.span(), "match": match.group()})
+        self.search_textbox.meta["matches"] = matches
         if not matches:
             self.display.update_search_results(num_matches=0)
             self.clear_search()
             return
         for match in matches:
-            self.display.textbox.tag_add("match",
-                                         f"1.0 + {match['span'][0]} chars",
-                                         f"1.0 + {match['span'][1]} chars")
+            self.display.textbox.tag_add("match", f"1.0 + {match['span'][0]} chars", f"1.0 + {match['span'][1]} chars")
         self.next_match()
 
     @metadata(name="Clear search")
     def clear_search(self):
-        self.search_textbox.meta['search_term'] = None
-        self.search_textbox.meta['matches'] = None
-        self.search_textbox.meta['match_index'] = None
-        self.search_textbox.meta['case_sensitive'] = None
+        self.search_textbox.meta["search_term"] = None
+        self.search_textbox.meta["matches"] = None
+        self.search_textbox.meta["match_index"] = None
+        self.search_textbox.meta["case_sensitive"] = None
         self.display.textbox.tag_delete("match")
         self.display.textbox.tag_delete("active_match")
 
     @metadata(name="Next match")
     def next_match(self):
-        if self.search_textbox.meta['matches'] is None:
+        if self.search_textbox.meta["matches"] is None:
             return
-        if self.search_textbox.meta['match_index'] is None:
-            self.search_textbox.meta['match_index'] = 0
+        if self.search_textbox.meta["match_index"] is None:
+            self.search_textbox.meta["match_index"] = 0
         else:
-            self.search_textbox.meta['match_index'] += 1
-        if self.search_textbox.meta['match_index'] >= len(self.search_textbox.meta['matches']):
-            self.search_textbox.meta['match_index'] = 0
-        active_match = self.search_textbox.meta['matches'][self.search_textbox.meta['match_index']]
-        
-        self.display.update_search_results(num_matches=len(self.search_textbox.meta['matches']), 
-                                           active_index=self.search_textbox.meta['match_index'])
+            self.search_textbox.meta["match_index"] += 1
+        if self.search_textbox.meta["match_index"] >= len(self.search_textbox.meta["matches"]):
+            self.search_textbox.meta["match_index"] = 0
+        active_match = self.search_textbox.meta["matches"][self.search_textbox.meta["match_index"]]
+
+        self.display.update_search_results(
+            num_matches=len(self.search_textbox.meta["matches"]), active_index=self.search_textbox.meta["match_index"]
+        )
         self.display.textbox.tag_delete("active_match")
-        self.display.textbox.tag_add("active_match",
-                                     f"1.0 + {active_match['span'][0]} chars",
-                                     f"1.0 + {active_match['span'][1]} chars")
+        self.display.textbox.tag_add(
+            "active_match", f"1.0 + {active_match['span'][0]} chars", f"1.0 + {active_match['span'][1]} chars"
+        )
         # scroll to active match
         self.display.textbox.see(f"1.0 + {active_match['span'][0]} chars")
 
     def in_search(self):
-        return self.search_textbox.meta['matches'] is not None
+        return self.search_textbox.meta["matches"] is not None
 
     def toggle_search(self, toggle=None):
-        print('controller: toggle_search')
-        toggle = not self.state.workspace['show_search'] if not toggle else toggle
-        self.state.update_user_frame(update={'workspace': {'show_search': toggle}})
-        #self.state.user_workspace['show_search'] = toggle
+        print("controller: toggle_search")
+        toggle = not self.state.workspace["show_search"] if not toggle else toggle
+        self.state.update_user_frame(update={"workspace": {"show_search": toggle}})
+        # self.state.user_workspace['show_search'] = toggle
         if toggle:
             self.display.open_search()
         else:
             self.display.exit_search()
-
-
-
 
     #################################
     #   Token manipulation
@@ -1240,35 +1270,41 @@ class Controller:
     @metadata(name="Select token", keys=[], display_key="", selected_node=None, token_index=None)
     def select_token(self, index):
         if self.display.mode == "Read":
-            self.display.textbox.tag_remove("selected", "1.0", 'end')
+            self.display.textbox.tag_remove("selected", "1.0", "end")
             ancestor_index, selected_node = self.index_to_ancestor(index)
             negative_offset = self.ancestor_end_indices[ancestor_index] - index
-            offset = len(selected_node['text']) - negative_offset
+            offset = len(selected_node["text"]) - negative_offset
 
             # TODO new token offsets if changed
-            if 'generation' in selected_node:
+            if "generation" in selected_node:
                 self.change_token.meta["counterfactual_index"] = 0
                 self.change_token.meta["prev_token"] = None
                 model_response, prompt, completion = self.state.get_request_info(selected_node)
-                token_offsets = [token_data['position']['start'] for token_data in completion['tokens']]
+                token_offsets = [token_data["position"]["start"] for token_data in completion["tokens"]]
                 token_index = bisect.bisect_left(token_offsets, offset) - 1
-                token_data = completion['tokens'][token_index]
-                counterfactuals = token_data['counterfactuals']
-                start = token_data['position']['start']
-                end = token_data['position']['end']
-                if self.state.preferences['prob']:
-                    counterfactuals = {k: logprobs_to_probs(v) for k, v in
-                                       sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True)}
+                token_data = completion["tokens"][token_index]
+                counterfactuals = token_data["counterfactuals"]
+                start = token_data["position"]["start"]
+                end = token_data["position"]["end"]
+                if self.state.preferences["prob"]:
+                    counterfactuals = {
+                        k: logprobs_to_probs(v)
+                        for k, v in sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True)
+                    }
 
                 self.print_to_debug(counterfactuals)
-                self.display.textbox.tag_add("selected",
-                                             f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + start} chars",
-                                             f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + end} chars")
+                self.display.textbox.tag_add(
+                    "selected",
+                    f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + start} chars",
+                    f"1.0 + {self.ancestor_end_indices[ancestor_index - 1] + end} chars",
+                )
 
                 self.select_token.meta["selected_node"] = selected_node
                 self.select_token.meta["token_index"] = token_index
 
-    @metadata(name="Change token", keys=[], display_key="", counterfactual_index=0, prev_token=None, temp_token_offsets=None)
+    @metadata(
+        name="Change token", keys=[], display_key="", counterfactual_index=0, prev_token=None, temp_token_offsets=None
+    )
     def change_token(self, node=None, token_index=None, traverse=1):
         if not self.select_token.meta["selected_node"]:
             return
@@ -1277,50 +1313,52 @@ class Controller:
             token_index = self.select_token.meta["token_index"]
 
         model_response, prompt, completion = self.state.get_request_info(node)
-        token_data = completion['tokens'][token_index]
+        token_data = completion["tokens"][token_index]
 
-        if not self.change_token.meta['temp_token_offsets']:
-            token_offsets = [token_data['position']['start'] for token_data in completion['tokens']]
-            self.change_token.meta['temp_token_offsets'] = token_offsets
+        if not self.change_token.meta["temp_token_offsets"]:
+            token_offsets = [token_data["position"]["start"] for token_data in completion["tokens"]]
+            self.change_token.meta["temp_token_offsets"] = token_offsets
         else:
-            token_offsets = self.change_token.meta['temp_token_offsets']
+            token_offsets = self.change_token.meta["temp_token_offsets"]
 
         start_position = token_offsets[token_index]
-        token = token_data['generatedToken']['token']
-        counterfactuals = token_data['counterfactuals'].copy()
+        token = token_data["generatedToken"]["token"]
+        counterfactuals = token_data["counterfactuals"].copy()
         original_token = (token, counterfactuals.pop(token, None))
         index = node_index(node, self.state.tree_node_dict)
         sorted_counterfactuals = list(sorted(counterfactuals.items(), key=lambda item: item[1], reverse=True))
         sorted_counterfactuals.insert(0, original_token)
 
         self.change_token.meta["counterfactual_index"] += traverse
-        if self.change_token.meta["counterfactual_index"] < 0 \
-                or self.change_token.meta["counterfactual_index"] > len(sorted_counterfactuals) - 1:
+        if (
+            self.change_token.meta["counterfactual_index"] < 0
+            or self.change_token.meta["counterfactual_index"] > len(sorted_counterfactuals) - 1
+        ):
             self.change_token.meta["counterfactual_index"] -= traverse
             return
 
         new_token = sorted_counterfactuals[self.change_token.meta["counterfactual_index"]][0]
-        if not self.change_token.meta['prev_token']:
-            self.change_token.meta['prev_token'] = token
+        if not self.change_token.meta["prev_token"]:
+            self.change_token.meta["prev_token"] = token
 
         token_start = self.ancestor_end_indices[index - 1] + start_position
 
         self.display.textbox.config(state="normal")
-        self.display.textbox.delete(f"1.0 + {token_start} chars",
-                                    f"1.0 + {token_start + len(self.change_token.meta['prev_token'])} chars")
+        self.display.textbox.delete(
+            f"1.0 + {token_start} chars", f"1.0 + {token_start + len(self.change_token.meta['prev_token'])} chars"
+        )
         self.display.textbox.insert(f"1.0 + {token_start} chars", new_token)
         self.display.textbox.config(state="disabled")
 
-        self.display.textbox.tag_add("modified",
-                                     f"1.0 + {token_start} chars",
-                                     f"1.0 + {token_start + len(new_token)} chars")
-
+        self.display.textbox.tag_add(
+            "modified", f"1.0 + {token_start} chars", f"1.0 + {token_start + len(new_token)} chars"
+        )
 
         # update temp token offsets
-        diff = len(new_token) - len(self.change_token.meta['prev_token'])
-        for index, offset in enumerate(self.change_token.meta['temp_token_offsets'][token_index + 1:]):
-            self.change_token.meta['temp_token_offsets'][index + token_index + 1] += diff
-        self.change_token.meta['prev_token'] = new_token
+        diff = len(new_token) - len(self.change_token.meta["prev_token"])
+        for index, offset in enumerate(self.change_token.meta["temp_token_offsets"][token_index + 1 :]):
+            self.change_token.meta["temp_token_offsets"][index + token_index + 1] += diff
+        self.change_token.meta["prev_token"] = new_token
 
     @metadata(name="Next token", keys=["<Command-period>"], display_key="", counterfactual_index=0, prev_token=None)
     def next_token(self, node=None, token_index=None):
@@ -1330,28 +1368,29 @@ class Controller:
     def prev_token(self, node=None, token_index=None):
         self.change_token(node, token_index, traverse=-1)
 
-    @metadata(name="Apply counterfactual", keys=["<Command-Return>"], display_key="", counterfactual_index=0, prev_token=None)
+    @metadata(
+        name="Apply counterfactual", keys=["<Command-Return>"], display_key="", counterfactual_index=0, prev_token=None
+    )
     def apply_counterfactual_changes(self):
         # TODO apply to non selected nodes
         index = node_index(self.state.selected_node, self.state.tree_node_dict)
 
         new_text = self.display.textbox.get(f"1.0 + {self.ancestor_end_indices[index - 1]} chars", "end-1c")
         self.state.update_text(node=self.state.selected_node, text=new_text, modified_flag=False)
-        self.display.textbox.tag_remove("modified", "1.0", 'end-1c')
+        self.display.textbox.tag_remove("modified", "1.0", "end-1c")
 
         # TODO what to do about this now that request information is not saved in individual node?
         # TODO calculate diffs?
         # TODO or save temp offsets only in a single session?
-        if 'generation' in self.state.selected_node:
+        if "generation" in self.state.selected_node:
             pass
-            #self.state.selected_node['meta']['generation']["logprobs"]["text_offset"] = self.change_token.meta['temp_token_offsets']
+            # self.state.selected_node['meta']['generation']["logprobs"]["text_offset"] = self.change_token.meta['temp_token_offsets']
         self.refresh_counterfactual_meta()
-
 
     @metadata(name="Refresh counterfactual")
     def refresh_counterfactual_meta(self, **kwargs):
-        self.change_token.meta['prev_token'] = None
-        self.change_token.meta['temp_token_offsets'] = None
+        self.change_token.meta["prev_token"] = None
+        self.change_token.meta["temp_token_offsets"] = None
 
     #################################
     #   State
@@ -1368,15 +1407,17 @@ class Controller:
 
     def ask_unzip(self, node=None):
         node = node if node else self.state.selected_node
-        result = messagebox.askquestion("Edit compound node", "Operation disallowed on zipped node. Would you like to unzip this compound node?", icon='warning')
-        if result == 'yes':
+        result = messagebox.askquestion(
+            "Edit compound node",
+            "Operation disallowed on zipped node. Would you like to unzip this compound node?",
+            icon="warning",
+        )
+        if result == "yes":
             self.state.unzip(mask=node)
 
     def ask_unhoist(self):
-        result = messagebox.askquestion("Unhoist",
-                                        "Unhoist tree (unzip root)?",
-                                        icon='warning')
-        if result == 'yes':
+        result = messagebox.askquestion("Unhoist", "Unhoist tree (unzip root)?", icon="warning")
+        if result == "yes":
             self.state.unhoist()
 
     # TODO fix metadata references?
@@ -1407,32 +1448,31 @@ class Controller:
 
             else:
                 if self.display.vis.textbox is None:
-                    self.display.vis.textbox_events[self.state.selected_node['id']]()
+                    self.display.vis.textbox_events[self.state.selected_node["id"]]()
                 else:
                     self.display.vis.delete_textbox()
 
     @metadata(name="Edit in module")
     def edit_in_module(self, node, create_attribute=None):
-        self.state.update_user_frame(update={'module_settings': {'edit': {'node_id': node['id']}}})
+        self.state.update_user_frame(update={"module_settings": {"edit": {"node_id": node["id"]}}})
         # TODO if already open, refresh selection
         if create_attribute:
-            if 'text_attributes' not in node:
-                node['text_attributes'] = {}
-            if create_attribute not in node['text_attributes']:
-                node['text_attributes'][create_attribute] = ''
+            if "text_attributes" not in node:
+                node["text_attributes"] = {}
+            if create_attribute not in node["text_attributes"]:
+                node["text_attributes"][create_attribute] = ""
         if self.display.module_open("edit"):
-            self.display.modules['edit'].rebuild_textboxes()
+            self.display.modules["edit"].rebuild_textboxes()
         else:
             self.open_module("side_pane", "edit")
 
     @metadata(name="Open in transformer")
     def open_in_transformer(self, inputs, template=None):
-        if not self.display.module_open('transformers'):
-            self.open_module('side_pane', 'transformers')
+        if not self.display.module_open("transformers"):
+            self.open_module("side_pane", "transformers")
         if template:
-            self.display.modules['transformers'].open_template_file(template)
-        self.display.modules['transformers'].open_inputs(inputs)
-
+            self.display.modules["transformers"].open_template_file(template)
+        self.display.modules["transformers"].open_inputs(inputs)
 
     @metadata(name="Visualize", keys=["<Key-j>", "<Control-j>"], display_key="j")
     def toggle_visualization_mode(self):
@@ -1447,7 +1487,6 @@ class Controller:
         # self.display.textbox.update_idletasks()
         # self.center_view()
 
-
     # @metadata(name="Wavefunction", keys=[])
     # def toggle_multiverse_mode(self):
     #     if self.state.preferences['autosave']:
@@ -1456,8 +1495,6 @@ class Controller:
     #     self.refresh_visualization()
     #     self.refresh_textbox()
     #     self.refresh_display()
-
-
 
     #################################
     #   Edit
@@ -1468,13 +1505,11 @@ class Controller:
         pyperclip.copy(self.display.textbox.get("1.0", "end-1c"))
         confirmation_dialog = messagebox.showinfo(title="Copy text", message="Copied node text to clipboard")
 
-
     @metadata(name="Copy id", keys=["<Control-Shift-KeyPress-C>"])
     def copy_id(self, node=None):
         node = node if node else self.state.selected_node
-        pyperclip.copy(node['id'])
+        pyperclip.copy(node["id"])
         confirmation_dialog = messagebox.showinfo(title="Copy id", message="Copied node id to clipboard")
-
 
     @metadata(name="Prepend newline", keys=["n", "<Control-n>"], display_key="n")
     def prepend_newline(self, node=None):
@@ -1488,12 +1523,11 @@ class Controller:
                 if text.startswith("\n"):
                     text = text[1:]
                 else:
-                    if text.startswith(' '):
+                    if text.startswith(" "):
                         text = text[1:]
                     text = "\n" + text
 
                 self.state.update_text(node, text)
-
 
     @metadata(name="Prepend space", keys=["<Control-space>"], display_key="ctrl-space")
     def prepend_space(self, node=None):
@@ -1510,18 +1544,17 @@ class Controller:
                     text = " " + text
                 self.state.update_text(node, text)
 
-
     @metadata(name="Add multimedia")
     def add_multimedia(self, filenames, node=None):
         node = node if node else self.state.selected_node
-        if 'multimedia' not in self.state.selected_node:
-            self.state.selected_node['multimedia'] = []
+        if "multimedia" not in self.state.selected_node:
+            self.state.selected_node["multimedia"] = []
         added_file = False
         for filename in filenames:
             # check if filename is already in multimedia
-            old_filenames = [x['file'] for x in self.state.selected_node['multimedia']]
+            old_filenames = [x["file"] for x in self.state.selected_node["multimedia"]]
             if filename not in old_filenames:
-                self.state.selected_node['multimedia'].append({'file': filename, 'caption': ''})
+                self.state.selected_node["multimedia"].append({"file": filename, "caption": ""})
                 added_file = True
         if added_file:
             self.state.tree_updated()
@@ -1529,7 +1562,6 @@ class Controller:
     #################################
     #   Collapsing
     #################################
-
 
     @metadata(name="Collapse subtree", keys=["<Control-minus>"], display_key="Ctrl-minus")
     def collapse_subtree(self, node=None):
@@ -1548,25 +1580,18 @@ class Controller:
     @metadata(name="Expand children", keys=["<Control-slash>"], display_key="Ctrl-/")
     def expand_node(self, node=None):
         node = node if node else self.state.selected_node
-        node['open'] = True
-        self.display.nav_tree.item(
-            node["id"],
-            open=True
-        )
+        node["open"] = True
+        self.display.nav_tree.item(node["id"], open=True)
 
     @metadata(name="Collapse node", keys=["<Control-question>"], display_key="Ctrl-?")
     def collapse_node(self, node=None):
         node = node if node else self.state.selected_node
-        node['open'] = False
-        self.display.nav_tree.item(
-            node["id"],
-            open=False
-        )
+        node["open"] = False
+        self.display.nav_tree.item(node["id"], open=False)
 
     @metadata(name="Collapse all except subtree", keys=["<Control-colon>"], display_key="Ctrl-:")
     def collapse_all_except_subtree(self):
         pass
-
 
     #################################
     #   View
@@ -1576,7 +1601,6 @@ class Controller:
         self.state.selected_node["visited"] = status
         self.update_nav_tree()
         self.update_nav_tree_selected()
-
 
     def set_subtree_visited(self, status=True):
         for d in flatten_tree(self.state.selected_node):
@@ -1590,18 +1614,18 @@ class Controller:
         self.update_nav_tree()
         self.update_nav_tree_selected()
 
-    def set_source(self, source='AI', node=None, refresh=True):
+    def set_source(self, source="AI", node=None, refresh=True):
         if not node:
             node = self.state.selected_node
-        if not 'meta' in node:
-            node['meta'] = {}
-        node['meta']['source'] = source
+        if not "meta" in node:
+            node["meta"] = {}
+        node["meta"]["source"] = source
         if refresh:
             self.refresh_textbox()
             self.update_nav_tree()
             self.update_nav_tree_selected()
 
-    def set_subtree_source(self, source='AI', node=None):
+    def set_subtree_source(self, source="AI", node=None):
         if not node:
             node = self.state.selected_node
         for d in flatten_tree(node):
@@ -1610,7 +1634,7 @@ class Controller:
         self.update_nav_tree()
         self.update_nav_tree_selected()
 
-    def set_all_source(self, source='AI'):
+    def set_all_source(self, source="AI"):
         for d in self.state.nodes:
             self.set_source(source=source, node=d, refresh=False)
         self.refresh_textbox()
@@ -1621,12 +1645,10 @@ class Controller:
     def toggle_source(self, node=None):
         if not node:
             node = self.state.selected_node
-        if 'meta' in node and 'source' in node['meta'] and node['meta']['source'] == 'AI':
-            self.set_source(source='prompt', node=node)
-        elif 'meta' in node and 'source' in node['meta'] and node['meta']['source'] == 'prompt':
-            self.set_source(source='AI', node=node)
-
-
+        if "meta" in node and "source" in node["meta"] and node["meta"]["source"] == "AI":
+            self.set_source(source="prompt", node=node)
+        elif "meta" in node and "source" in node["meta"] and node["meta"]["source"] == "prompt":
+            self.set_source(source="AI", node=node)
 
     # @metadata(name="Darkmode", keys=["<Control-Shift-KeyPress-D>"], display_key="Ctrl-Shift-D")
     # def toggle_darkmode(self):
@@ -1639,11 +1661,9 @@ class Controller:
     #     self.refresh_textbox()
     #     self.update_nav_tree()
 
-
     #################################
     #   I/O
     #################################
-
 
     @metadata(name="New")
     def new_tree(self):
@@ -1652,9 +1672,10 @@ class Controller:
     @metadata(name="Open", keys=["<o>", "<Control-o>"], display_key="o")
     def open_tree(self):
         options = {
-            'initialdir': os.getcwd() + '/data',
-            'parent': self.root, 'title': "Open a json tree",
-            'filetypes': [('json files', '.json')]
+            "initialdir": os.getcwd() + "/data",
+            "parent": self.root,
+            "title": "Open a json tree",
+            "filetypes": [("json files", ".json")],
         }
         filename = filedialog.askopenfilename(**options)
         if not filename:
@@ -1665,9 +1686,10 @@ class Controller:
     @metadata(name="Import JSON as subtree", keys=["<Control-Shift-KeyPress-O>"], display_key="ctrl+shift+o")
     def import_tree(self):
         options = {
-            'initialdir': os.getcwd() + '/data',
-            'parent': self.root, 'title': "Import a json tree",
-            'filetypes': [('json files', '.json')]
+            "initialdir": os.getcwd() + "/data",
+            "parent": self.root,
+            "title": "Import a json tree",
+            "filetypes": [("json files", ".json")],
         }
         filename = filedialog.askopenfilename(**options)
         if not filename:
@@ -1693,71 +1715,83 @@ class Controller:
 
     @metadata(name="Save", keys=["<s>", "<Control-s>"], display_key="s")
     def save_tree(self, popup=True, autosave=False, filename=None, subtree=None):
-        if autosave and not self.state.preferences['autosave']:
+        if autosave and not self.state.preferences["autosave"]:
             return
-        #try:
+        # try:
         # if not autosave and not self.state.preferences['save_counterfactuals']:
         #     self.state.delete_counterfactuals()
         self.save_edits()
-        if self.state.preferences['model_response'] == 'backup' and not autosave:
+        if self.state.preferences["model_response"] == "backup" and not autosave:
             self.state.backup_and_delete_model_response_data()
-        elif self.state.preferences['model_response'] == 'discard':
-            self.state.tree_raw_data['model_responses'] = {}
+        elif self.state.preferences["model_response"] == "discard":
+            self.state.tree_raw_data["model_responses"] = {}
 
         self.state.save_tree(backup=popup, save_filename=filename, subtree=subtree)
         if popup:
             messagebox.showinfo(title=None, message="Saved!")
-        #except Exception as e:
-            #messagebox.showerror(title="Error", message=f"Failed to Save!\n{str(e)}")
+        # except Exception as e:
+        # messagebox.showerror(title="Error", message=f"Failed to Save!\n{str(e)}")
 
     @metadata(name="Save as sibling", keys=["<Command-e>", "<Alt-e>"], display_key="Command-e")
     def save_as_sibling(self):
         # TODO fails on root node
         if self.display.mode == "Edit":
-            new_text = self.display.textbox.get("1.0", 'end-1c')
-            #new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
+            new_text = self.display.textbox.get("1.0", "end-1c")
+            # new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
             self.escape()
             sibling = self.create_sibling(self.state.selected_node, toggle_edit=False)
-            #self.nav_select(node_id=sibling['id'])
+            # self.nav_select(node_id=sibling['id'])
             self.state.update_text(sibling, new_text)
 
     @metadata(name="Duplicate")
     def duplicate(self, node=None):
         node = node if node else self.state.selected_node
         sibling = self.create_sibling(self.state.selected_node, toggle_edit=False)
-        self.state.update_text(sibling, node['text'])
+        self.state.update_text(sibling, node["text"])
 
     # Exports subtree as a loom json
-    @metadata(name="Export subtree", keys=["<Control-Command-KeyPress-X>", "<Control-Alt-KeyPress-X>"], display_key="Ctrl-Command-X")
+    @metadata(
+        name="Export subtree",
+        keys=["<Control-Command-KeyPress-X>", "<Control-Alt-KeyPress-X>"],
+        display_key="Ctrl-Command-X",
+    )
     def export_subtree(self, node=None):
         node = node if node else self.state.selected_node
         export_options = {
-            'subtree_only': True,
-            'visible_only': True,
-            'root_frame': True,
-            'frame': False,
-            'tags': False,
-            'chapter_id': False,
-            'text_attributes': False,
-            'multimedia': False,
+            "subtree_only": True,
+            "visible_only": True,
+            "root_frame": True,
+            "frame": False,
+            "tags": False,
+            "chapter_id": False,
+            "text_attributes": False,
+            "multimedia": False,
         }
         dialog = ExportOptionsDialog(parent=self.display.frame, options_dict=export_options)
         if not dialog.result:
-            return 
-        filename = self.state.tree_filename if self.state.tree_filename \
-            else os.path.join(os.getcwd() + '/data', "new_tree.json")
+            return
+        filename = (
+            self.state.tree_filename
+            if self.state.tree_filename
+            else os.path.join(os.getcwd() + "/data", "new_tree.json")
+        )
         # TODO default name shouldn't be parent tree name
         filename = filedialog.asksaveasfilename(
             initialfile=os.path.splitext(os.path.basename(filename))[0],
             initialdir=os.path.dirname(filename),
-            defaultextension='.json')
+            defaultextension=".json",
+        )
         if filename:
-            #self.state.tree_filename = filename
-            node = node if export_options['subtree_only'] else self.state.root()
-            filter = self.in_nav if export_options['visible_only'] else None
-            copy_attributes = [attribute for attribute in ['frame', 'tags', 'chapter_id', 'text_attributes', 'multimedia'] if export_options[attribute]]
+            # self.state.tree_filename = filename
+            node = node if export_options["subtree_only"] else self.state.root()
+            filter = self.in_nav if export_options["visible_only"] else None
+            copy_attributes = [
+                attribute
+                for attribute in ["frame", "tags", "chapter_id", "text_attributes", "multimedia"]
+                if export_options[attribute]
+            ]
             # TODO don't necessarily copy mutable for zipped things
-            copy_attributes += ['mutable', 'text'] #'parent_id'
+            copy_attributes += ["mutable", "text"]  #'parent_id'
             self.state.export_subtree(node, filename, filter, copy_attributes)
             # new_tree = node.copy()
             # new_tree.pop('parent_id')
@@ -1767,16 +1801,19 @@ class Controller:
             # self.save_tree(subtree=new_tree, filename=filename)
             # return
 
-
     @metadata(name="Export to text", keys=["<Control-Shift-KeyPress-X>"], display_key="Ctrl-Shift-X")
     def export_text(self):
         try:
-            filename = self.state.tree_filename if self.state.tree_filename \
-                else os.path.join(os.getcwd() + '/data/text', "export.txt")
+            filename = (
+                self.state.tree_filename
+                if self.state.tree_filename
+                else os.path.join(os.getcwd() + "/data/text", "export.txt")
+            )
             filename = filedialog.asksaveasfilename(
                 initialfile=os.path.splitext(os.path.basename(filename))[0],
                 initialdir=os.path.dirname(filename),
-                defaultextension='.txt')
+                defaultextension=".txt",
+            )
             self.state.export_history(self.state.selected_node, filename)
             messagebox.showinfo(title=None, message="Exported!")
         except Exception as e:
@@ -1785,38 +1822,41 @@ class Controller:
     @metadata(name="Export simple subtree")
     def export_simple_subtree(self, node=None):
         node = node if node else self.state.selected_node
-        title = os.path.splitext(os.path.basename(self.state.tree_filename))[0] if self.state.tree_filename else 'untitled'
-        filename = os.path.join(os.getcwd() + '/data/exports',
-                                f"{title}_export.json")
+        title = (
+            os.path.splitext(os.path.basename(self.state.tree_filename))[0] if self.state.tree_filename else "untitled"
+        )
+        filename = os.path.join(os.getcwd() + "/data/exports", f"{title}_export.json")
         filename = filedialog.asksaveasfilename(
             initialfile=os.path.splitext(os.path.basename(filename))[0],
             initialdir=os.path.dirname(filename),
-            defaultextension='.json')
+            defaultextension=".json",
+        )
         if filename:
             self.state.save_simple_tree(filename, subtree=node)
 
-
-
     @metadata(name="Clear chapters")
     def clear_chapters(self):
-        result = messagebox.askquestion("Clear chapters", "Delete all chapters?", icon='warning')
-        if result != 'yes':
+        result = messagebox.askquestion("Clear chapters", "Delete all chapters?", icon="warning")
+        if result != "yes":
             return
         self.state.remove_all_chapters()
 
     @metadata(name="Save As...")
     def save_tree_as(self):
-        filename = self.state.tree_filename if self.state.tree_filename \
-            else os.path.join(os.getcwd() + '/data', "new_tree.json")
+        filename = (
+            self.state.tree_filename
+            if self.state.tree_filename
+            else os.path.join(os.getcwd() + "/data", "new_tree.json")
+        )
         filename = filedialog.asksaveasfilename(
             initialfile=os.path.splitext(os.path.basename(filename))[0],
             initialdir=os.path.dirname(filename),
-            defaultextension='.json')
+            defaultextension=".json",
+        )
         if filename:
             self.state.tree_filename = filename
             self.save_tree()
             return
-
 
     #################################
     #   Dialogs
@@ -1824,24 +1864,35 @@ class Controller:
 
     @metadata(name="Preferences", keys=["<Control-p>"], display_key="")
     def preferences(self):
-        #print(self.state.preferences)
-        dialog = PreferencesDialog(parent=self.display.frame, orig_params=self.state.preferences,
-                          user_params=self.state.user_preferences, state=self.state)
+        # print(self.state.preferences)
+        dialog = PreferencesDialog(
+            parent=self.display.frame,
+            orig_params=self.state.preferences,
+            user_params=self.state.user_preferences,
+            state=self.state,
+        )
         self.state.tree_updated()
         self.state.selection_updated()
 
-
     @metadata(name="Generation Settings", keys=["<Control-Shift-KeyPress-P>"], display_key="ctrl-p")
     def generation_settings_dialog(self):
-        dialog = GenerationSettingsDialog(parent=self.display.frame, orig_params=self.state.generation_settings, 
-                                          user_params=self.state.user_generation_settings, state=self.state)
+        dialog = GenerationSettingsDialog(
+            parent=self.display.frame,
+            orig_params=self.state.generation_settings,
+            user_params=self.state.user_generation_settings,
+            state=self.state,
+        )
         self.state.tree_updated()
         self.state.selection_updated()
 
     @metadata(name="Inline Generation Settings")
     def inline_generation_settings_dialog(self):
-        dialog = GenerationSettingsDialog(parent=self.display.frame, orig_params=self.state.inline_generation_settings, 
-                                          user_params=self.state.user_inline_generation_settings, state=self.state)
+        dialog = GenerationSettingsDialog(
+            parent=self.display.frame,
+            orig_params=self.state.inline_generation_settings,
+            user_params=self.state.user_inline_generation_settings,
+            state=self.state,
+        )
 
     def chat_dialog(self):
         dialog = ChatDialog(parent=self.display.frame, state=self.state)
@@ -1853,8 +1904,8 @@ class Controller:
     def visualization_settings_dialog(self):
         dialog = VisualizationSettingsDialog(self.display.frame, self.state.visualization_settings)
         if dialog.result:
-            #print("Settings saved")
-            #pprint(self.state.visualization_settings)
+            # print("Settings saved")
+            # pprint(self.state.visualization_settings)
             self.refresh_visualization()
             # self.save_tree(popup=False)
 
@@ -1868,14 +1919,13 @@ class Controller:
         all_text = "".join([d["text"] for d in self.state.tree_node_dict.values()])
 
         data = {
-            "Total characters": f'{len(all_text):,}',
-            "Total words": f'{len(all_text.split()):,}',
-            "Total pages": f'{len(all_text) / 3000:,.1f}',
+            "Total characters": f"{len(all_text):,}",
+            "Total words": f"{len(all_text.split()):,}",
+            "Total pages": f"{len(all_text) / 3000:,.1f}",
             "": "",
-            "Total nodes": f'{len(self.state.tree_node_dict):,}',
+            "Total nodes": f"{len(self.state.tree_node_dict):,}",
             "Max depth": height(self.state.tree_raw_data["root"]),
-            "Max branching factor": max([len(d["children"]) for d in self.state.tree_node_dict.values()])
-
+            "Max branching factor": max([len(d["children"]) for d in self.state.tree_node_dict.values()]),
         }
         dialog = InfoDialog(self.display.frame, data)
 
@@ -1919,58 +1969,57 @@ class Controller:
     def add_memory(self, node=None):
         if node is None:
             node = self.state.selected_node
-        dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state, default_inheritability='delayed')
+        dialog = CreateMemory(parent=self.display.frame, node=node, state=self.state, default_inheritability="delayed")
         self.refresh_textbox()
-
 
     #################################
     #   Modules
     #################################
 
     def open_module(self, pane_name, module_name):
-        #print('controller: open_module')
-        #self.state.workspace[pane_name]['open'] = True
-        if not self.state.workspace[pane_name]['open']:
-            #self.state.update_user_frame({'workspace': {pane_name: {'open': True}}})
+        # print('controller: open_module')
+        # self.state.workspace[pane_name]['open'] = True
+        if not self.state.workspace[pane_name]["open"]:
+            # self.state.update_user_frame({'workspace': {pane_name: {'open': True}}})
             self.open_pane(pane_name)
-        if module_name not in self.state.workspace[pane_name]['modules']:
-            #self.state.user_workspace[pane_name]['modules'].append(module_name)
+        if module_name not in self.state.workspace[pane_name]["modules"]:
+            # self.state.user_workspace[pane_name]['modules'].append(module_name)
             # TODO this only appends to frame, doesn't append during accumulation
-            self.state.update_user_frame({'workspace': {pane_name: {'modules': [module_name]}}}, append=True)
-            #print(self.state.workspace)
+            self.state.update_user_frame({"workspace": {pane_name: {"modules": [module_name]}}}, append=True)
+            # print(self.state.workspace)
         self.refresh_workspace()
 
     def toggle_module(self, pane_name, module_name):
-        if self.state.workspace[pane_name]['open'] and module_name in self.state.workspace[pane_name]['modules']:
+        if self.state.workspace[pane_name]["open"] and module_name in self.state.workspace[pane_name]["modules"]:
             self.close_pane(pane_name)
         else:
             self.open_module(pane_name, module_name)
         self.refresh_workspace()
 
     def open_pane(self, pane_name):
-        #print('controller: open_pane')
-        self.state.update_user_frame({'workspace': {pane_name: {'open': True}}})
-        #print('1', self.state.workspace)
+        # print('controller: open_pane')
+        self.state.update_user_frame({"workspace": {pane_name: {"open": True}}})
+        # print('1', self.state.workspace)
         self.refresh_workspace()
 
     def close_pane(self, pane_name):
-        #print('controller: close_pane')
-        self.state.update_user_frame({'workspace': {pane_name: {'open': False}}})
+        # print('controller: close_pane')
+        self.state.update_user_frame({"workspace": {pane_name: {"open": False}}})
         self.refresh_workspace()
 
     @metadata(name="Side pane", keys=["<Command-p>", "<Alt-p>"], display_key="")
-    def toggle_side(self, toggle='either'):
-        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['side_pane']['open']):
+    def toggle_side(self, toggle="either"):
+        if toggle == "on" or (toggle == "either" and not self.state.workspace["side_pane"]["open"]):
             self.open_pane("side_pane")
         else:
-            self.close_pane('side_pane')
+            self.close_pane("side_pane")
 
     @metadata(name="Bottom pane", keys=["<Command-b>", "<Alt-b>"], display_key="")
-    def toggle_bottom(self, toggle='either'):
-        if toggle == 'on' or (toggle == 'either' and not self.state.workspace['bottom_pane']['open']):
+    def toggle_bottom(self, toggle="either"):
+        if toggle == "on" or (toggle == "either" and not self.state.workspace["bottom_pane"]["open"]):
             self.open_pane("bottom_pane")
         else:
-            self.close_pane('bottom_pane')
+            self.close_pane("bottom_pane")
 
     # this only builds the workspace according to state - doesn't set workspace state
     def refresh_workspace(self):
@@ -1978,62 +2027,63 @@ class Controller:
             if self.state.workspace[pane]["open"]:
                 if not self.display.pane_open(pane):
                     self.display.open_pane(pane)
-                #print(self.state.workspace[pane]["modules"])
+                # print(self.state.workspace[pane]["modules"])
                 self.display.update_modules(pane, self.state.workspace[pane]["modules"])
             else:
                 self.display.close_pane(pane)
-        self.display.configure_buttons(visible_buttons=self.state.workspace['buttons'])
-
+        self.display.configure_buttons(visible_buttons=self.state.workspace["buttons"])
 
     @metadata(name="Submit", keys=[], display_key="")
     def submit(self, text, auto_response):
         if text:
-            #new_text = self.state.submit_modifications(text)
+            # new_text = self.state.submit_modifications(text)
             new_child = self.create_child(toggle_edit=False)
-            new_child['text'] = text
-            self.state.tree_updated(add=[new_child['id']])    
+            new_child["text"] = text
+            self.state.tree_updated(add=[new_child["id"]])
         if auto_response:
             self.generate(update_selection=True, placeholder="")
 
     @metadata(name="Toggle input box", keys=["<Tab>"], display_key="")
     def toggle_input_box(self):
         self.toggle_module("bottom_pane", "input")
-    
+
     @metadata(name="Toggle debug", display_key="")
     def toggle_debug_box(self):
         self.toggle_module("bottom_pane", "debug")
 
-    @metadata(name="Children")#, keys=["<Command-c>", "<Alt-c>"], display_key="")
-    def toggle_show_children(self, toggle='either'):
+    @metadata(name="Children")  # , keys=["<Command-c>", "<Alt-c>"], display_key="")
+    def toggle_show_children(self, toggle="either"):
         self.toggle_module("bottom_pane", "children")
 
     @metadata(name="Show hidden children")
     def show_hidden_children(self, node=None):
         node = node if node else self.state.selected_node
-        self.state.tree_updated(add=[n['id'] for n in node['children'] if not self.in_nav(n)])
+        self.state.tree_updated(add=[n["id"] for n in node["children"] if not self.in_nav(n)])
 
     @metadata(name="Hide invisible children")
     def hide_invisible_children(self, node=None):
         node = node if node else self.state.selected_node
-        self.state.tree_updated(delete=[n['id'] for n in node['children'] if not self.state.visible(n)])
+        self.state.tree_updated(delete=[n["id"] for n in node["children"] if not self.state.visible(n)])
 
-    @metadata(name="Wavefunction")#, keys=["<Command-c>", "<Alt-c>"], display_key="")
-    def toggle_multiverse(self, toggle='either'):
+    @metadata(name="Wavefunction")  # , keys=["<Command-c>", "<Alt-c>"], display_key="")
+    def toggle_multiverse(self, toggle="either"):
         self.toggle_module("side_pane", "wavefunction")
 
-    @metadata(name="Map")#, keys=["<Command-c>", "<Alt-c>"], display_key="")
-    def toggle_minimap(self, toggle='either'):
+    @metadata(name="Map")  # , keys=["<Command-c>", "<Alt-c>"], display_key="")
+    def toggle_minimap(self, toggle="either"):
         self.toggle_module("side_pane", "minimap")
 
     def print_to_debug(self, message):
         if message:
             self.open_module("bottom_pane", "debug")
             # TODO print to debug stream even if debug box is not active
-            self.display.modules['debug'].write(message)
+            self.display.modules["debug"].write(message)
 
     @metadata(name="Run", keys=["<Control-Shift-KeyPress-B>"], display_key="", prev_cmd="")
     def run(self):
-        dialog = RunDialog(parent=self.display.frame, callbacks=self.callbacks, init_text=self.callbacks["Run"]["prev_cmd"])
+        dialog = RunDialog(
+            parent=self.display.frame, callbacks=self.callbacks, init_text=self.callbacks["Run"]["prev_cmd"]
+        )
 
     def open_alt_textbox(self):
         if not self.display.alt_textbox:
@@ -2045,9 +2095,9 @@ class Controller:
 
     def configure_tags(self):
         dialog = TagsDialog(parent=self.display.frame, state=self.state)
-        print('configure tags(1)')
+        print("configure tags(1)")
         if dialog.result:
-            print('configure tags')
+            print("configure tags")
             self.state.tree_updated(rebuild=True)
 
     def add_tag(self):
@@ -2056,21 +2106,22 @@ class Controller:
     @metadata(name="Tag node dialog")
     def tag_node(self, node=None):
         node = node if node else self.state.selected_node
-        modifications = {'add': [], 'remove': []}
+        modifications = {"add": [], "remove": []}
         dialog = TagNodeDialog(parent=self.display.frame, node=node, state=self.state, modifications=modifications)
         # TODO will this be slow for large trees?
-        if modifications['add'] or modifications['remove']:
+        if modifications["add"] or modifications["remove"]:
             self.state.tree_updated(rebuild=True)
         # for added_tag in modifications['add']:
         #     self.state.tag_scope_update(node, added_tag)
-
 
     @metadata(name="Insert summary")
     def insert_summary(self, index):
         ancestor_index, selected_ancestor = self.index_to_ancestor(index)
         negative_offset = self.ancestor_end_indices[ancestor_index] - index
-        offset = len(selected_ancestor['text']) - negative_offset
-        dialog = CreateSummary(parent=self.display.frame, root_node=selected_ancestor, state=self.state, position=offset)
+        offset = len(selected_ancestor["text"]) - negative_offset
+        dialog = CreateSummary(
+            parent=self.display.frame, root_node=selected_ancestor, state=self.state, position=offset
+        )
 
     def view_summaries(self):
         dialog = Summaries(parent=self.display.frame, node=self.state.selected_node, state=self.state)
@@ -2080,19 +2131,24 @@ class Controller:
         dialog = GotoNode(parent=self.display.frame, goto=lambda node_id: self.select_node(self.state.node(node_id)))
 
     def test_counterfactual(self):
-        threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
-                                                           target=' scary')).start()
-        threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
-                                                           target=' sexy')).start()
-        threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
-                                                           target=' weird')).start()
-        threading.Thread(target=self.report_counterfactual(context_breaker='\n----\n\nWow. This is getting',
-                                                           target=' interesting')).start()
-
+        threading.Thread(
+            target=self.report_counterfactual(context_breaker="\n----\n\nWow. This is getting", target=" scary")
+        ).start()
+        threading.Thread(
+            target=self.report_counterfactual(context_breaker="\n----\n\nWow. This is getting", target=" sexy")
+        ).start()
+        threading.Thread(
+            target=self.report_counterfactual(context_breaker="\n----\n\nWow. This is getting", target=" weird")
+        ).start()
+        threading.Thread(
+            target=self.report_counterfactual(context_breaker="\n----\n\nWow. This is getting", target=" interesting")
+        ).start()
 
     def report_counterfactual(self, context_breaker, target):
-        print(f'{target}: ',
-              self.state.score_counterfactual(context_breaker=context_breaker, target=target, engine='davinci'))
+        print(
+            f"{target}: ",
+            self.state.score_counterfactual(context_breaker=context_breaker, target=target, engine="davinci"),
+        )
 
     #################################
     #   Autocomplete
@@ -2114,7 +2170,6 @@ class Controller:
     #             self.insert_autocomplete()
     #         else:
     #             self.scroll_autocomplete(1)
-
 
     # # autocomplete_range is full range of suggested token regardless of user input
     # def insert_autocomplete(self, offset=0):
@@ -2169,15 +2224,14 @@ class Controller:
     #             "autocomplete_range"])
     #         self.insert_autocomplete()
 
-
     @metadata(name="Key Pressed", keys=[], display_key="")
     def key_pressed(self, char):
         if char and self.autocomplete.meta["in_autocomplete"]:
-            if char.isalnum() or char in ['\'', '-', '_', ' ']:
+            if char.isalnum() or char in ["'", "-", "_", " "]:
                 self.filter_autocomplete_suggestions(char)
-            elif char == 'Tab':
+            elif char == "Tab":
                 # FIXME this doesn't work - why?
-                print('tab')
+                print("tab")
                 self.apply_autocomplete()
             else:
                 self.delete_autocomplete()
@@ -2226,7 +2280,6 @@ class Controller:
     #     self.autocomplete.meta["matched_tokens"] = None
     #     self.autocomplete.meta["filter_chars"] = ''
 
-
     def has_focus(self, widget):
         return self.display.textbox.focus_displayof() == widget
 
@@ -2239,8 +2292,8 @@ class Controller:
 
     def module_textbox_has_focus(self):
         for pane in self.display.panes:
-            if self.state.workspace[pane]['open']:
-                for module in self.state.workspace[pane]['modules']:
+            if self.state.workspace[pane]["open"]:
+                for module in self.state.workspace[pane]["modules"]:
                     if self.display.modules[module].textbox_has_focus():
                         return True
         return False
@@ -2251,34 +2304,40 @@ class Controller:
 
     @metadata(name="Save Edits")
     def save_edits(self, **kwargs):
-        #print('save edits')
-        #print(kwargs)
+        # print('save edits')
+        # print(kwargs)
         if not self.state.selected_node_id:
             return
 
         if self.display.mode == "Edit":
-            new_text = self.display.textbox.get("1.0", 'end-1c')
-            #new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
-            self.state.update_text(self.state.selected_node, new_text, save_revision_history=self.state.preferences['revision_history'])
+            new_text = self.display.textbox.get("1.0", "end-1c")
+            # new_active_text = self.display.secondary_textbox.get("1.0", 'end-1c')
+            self.state.update_text(
+                self.state.selected_node, new_text, save_revision_history=self.state.preferences["revision_history"]
+            )
 
         elif self.display.mode == "Visualize":
             if self.display.vis.textbox:
-                new_text = self.display.vis.textbox.get("1.0", 'end-1c')
-                self.state.update_text(self.state.node(self.display.vis.editing_node_id), new_text, save_revision_history=self.state.preferences['revision_history'])
+                new_text = self.display.vis.textbox.get("1.0", "end-1c")
+                self.state.update_text(
+                    self.state.node(self.display.vis.editing_node_id),
+                    new_text,
+                    save_revision_history=self.state.preferences["revision_history"],
+                )
 
         elif kwargs.get("write", True):
             self.write_textbox_changes()
 
     def modules_tree_updated(self, **kwargs):
         for pane in self.display.panes:
-            if self.state.workspace[pane]['open']:
-                for module in self.state.workspace[pane]['modules']:
+            if self.state.workspace[pane]["open"]:
+                for module in self.state.workspace[pane]["modules"]:
                     self.display.modules[module].tree_updated()
 
     def modules_selection_updated(self, **kwargs):
         for pane in self.display.panes:
-            if self.state.workspace[pane]['open']:
-                for module in self.state.workspace[pane]['modules']:
+            if self.state.workspace[pane]["open"]:
+                for module in self.state.workspace[pane]["modules"]:
                     if self.display.module_open(module):
                         self.display.modules[module].selection_updated()
 
@@ -2287,44 +2346,41 @@ class Controller:
         self.configure_nav_tags()
         self.refresh_workspace()
 
-
     def refresh_alt_textbox(self, **kwargs):
         # open alt textbox if node has "alt" attribute
-        if self.display.mode == 'Read':
-            alt_text = self.state.get_text_attribute(self.state.selected_node, 'alt_text')
+        if self.display.mode == "Read":
+            alt_text = self.state.get_text_attribute(self.state.selected_node, "alt_text")
             if alt_text:
                 self.open_alt_textbox()
                 # insert alt text into textbox
-                self.display.alt_textbox.configure(state='normal')
-                self.display.alt_textbox.delete('1.0', 'end')
-                self.display.alt_textbox.insert('1.0', alt_text)
-                self.display.alt_textbox.configure(state='disabled')
+                self.display.alt_textbox.configure(state="normal")
+                self.display.alt_textbox.delete("1.0", "end")
+                self.display.alt_textbox.insert("1.0", alt_text)
+                self.display.alt_textbox.configure(state="disabled")
             else:
                 self.close_alt_textbox()
-
 
     def refresh_visualization(self, center=False, **kwargs):
         if self.display.mode != "Visualize":
             return
         self.display.vis.redraw(self.state.root(), self.state.selected_node)
-        #self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
+        # self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
         # if center:
         #     #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
         #     self.display.vis.center_view_on_node(self.state.selected_node)
-
 
     def refresh_vis_selection(self, **kwargs):
         if self.display.mode != "Visualize":
             return
         self.display.vis.redraw(self.state.root(), self.state.selected_node)
-        #self.display.vis.refresh_selection(self.state.tree_raw_data["root"], self.state.selected_node)
+        # self.display.vis.refresh_selection(self.state.tree_raw_data["root"], self.state.selected_node)
         # TODO Without redrawing, the new open state won't be reflected
         # self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node)
         # self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
 
     @metadata(name="Reset zoom", keys=["<Control-0>"], display_key="Ctrl-0")
     def reset_zoom(self):
-        if self.display.mode == 'Visualize':
+        if self.display.mode == "Visualize":
             self.display.vis.reset_zoom()
         # elif self.display.mode == 'Multiverse':
         #     self.display.multiverse.reset_view()
@@ -2334,8 +2390,6 @@ class Controller:
     #     if self.display.mode == 'Multiverse':
     #         self.display.multiverse.clear_multiverse()
 
-
-
     #################################
     #   Navtree
     #################################
@@ -2344,16 +2398,16 @@ class Controller:
         if self.state.is_root(node) and not self.state.is_compound(node):
             text = self.state.name()
         else:
-            nav_preview = self.state.get_text_attribute(node, 'nav_preview')
+            nav_preview = self.state.get_text_attribute(node, "nav_preview")
             if nav_preview:
-                text = nav_preview.replace('\n', '\\n')
+                text = nav_preview.replace("\n", "\\n")
             else:
-                node_text = node['text']
-                text = node_text.strip()[:25].replace('\n', '\\n')
+                node_text = node["text"]
+                text = node_text.strip()[:25].replace("\n", "\\n")
                 text = text if text else "EMPTY"
                 text = text + "..." if len(node_text) > 25 else text
-            #text = '~' + text if self.state.has_tag(node, "archived") else text
-        if 'chapter_id' in node:
+            # text = '~' + text if self.state.has_tag(node, "archived") else text
+        if "chapter_id" in node:
             text = f"{text} | {self.state.chapter_title(node)}"
         return node.get("name", text)
 
@@ -2361,19 +2415,19 @@ class Controller:
     def nav_icon(self, node):
         image = None
         if node == self.state.root():
-            image = self.icons.get_icon('tree-lightblue')
-        elif node['id'] == self.state.checkpoint:
-            image = self.icons.get_icon('marker-black')
+            image = self.icons.get_icon("tree-lightblue")
+        elif node["id"] == self.state.checkpoint:
+            image = self.icons.get_icon("marker-black")
         elif self.state.is_compound(node):
-            image = self.icons.get_icon('layers-black')
-        elif 'multimedia' in node and len(node['multimedia']) > 0:
-            image = self.icons.get_icon('media-white')
+            image = self.icons.get_icon("layers-black")
+        elif "multimedia" in node and len(node["multimedia"]) > 0:
+            image = self.icons.get_icon("media-white")
         for tag in self.state.tags:
             if self.state.has_tag_attribute(node, tag):
-                if self.state.tags[tag]['icon'] != 'None':
-                    image = self.icons.get_icon(self.state.tags[tag]['icon'])
+                if self.state.tags[tag]["icon"] != "None":
+                    image = self.icons.get_icon(self.state.tags[tag]["icon"])
         if not image:
-            image = self.icons.get_icon('empty')
+            image = self.icons.get_icon("empty")
         return image
 
     def configure_nav_tags(self):
@@ -2382,7 +2436,7 @@ class Controller:
         self.display.nav_tree.tag_configure("immutable", foreground=immutable_color())
 
     def insert_nav(self, node, image, tags):
-        # get index of node in sibling list 
+        # get index of node in sibling list
         # if node is root, then index = 0
         insert_idx = self.state.siblings_index(node, filter=self.state.visible)
         parent_id = node.get("parent_id", "")
@@ -2390,25 +2444,25 @@ class Controller:
         if parent_id:
             if not self.in_nav(self.state.node(parent_id)):
                 if not self.state.visible(self.state.node(parent_id)):
-                    #parent_id = self.state.root()['id']
+                    # parent_id = self.state.root()['id']
                     return
                 else:
-                    #print('parent not in nav but visible')
+                    # print('parent not in nav but visible')
                     return
         self.display.nav_tree.insert(
             parent=parent_id,
-            index=insert_idx,#0 if self.state.preferences.get('reverse', False) else "end",
+            index=insert_idx,  # 0 if self.state.preferences.get('reverse', False) else "end",
             iid=node["id"],
             text=self.nav_name(node),
-            #open=True,
+            # open=True,
             open=node.get("open", False),
             tags=tags,
-            **dict(image=image) if image else {}
+            **dict(image=image) if image else {},
         )
 
     def build_nav_tree(self, flat_tree=None):
         if not flat_tree:
-            flat_tree = self.state.nodes_dict(filter=self.state.visible)#self.state.generate_filtered_tree()
+            flat_tree = self.state.nodes_dict(filter=self.state.visible)  # self.state.generate_filtered_tree()
         self.display.nav_tree.delete(*self.display.nav_tree.get_children())
         for id in flat_tree:
             node = self.state.node(id)
@@ -2425,20 +2479,23 @@ class Controller:
         #     node_id for node_id in treeview_all_nodes(self.display.nav_tree)
         #     if self.display.nav_tree.item(node_id, "open")
         # ]
-        if not self.display.nav_tree.get_children() or kwargs.get('rebuild', False):
+        if not self.display.nav_tree.get_children() or kwargs.get("rebuild", False):
             self.build_nav_tree()
 
-        #override_visible = kwargs.get('override_visible', True)
+        # override_visible = kwargs.get('override_visible', True)
 
-        if 'edit' not in kwargs and 'add' not in kwargs and 'delete' not in kwargs:
+        if "edit" not in kwargs and "add" not in kwargs and "delete" not in kwargs:
             return
         else:
-            #visible = lambda _node: all(condition(_node) for condition in self.state.generate_visible_conditions())
-            #visible = self.state.id_visible
-            delete_items = [i for i in kwargs['delete']] if 'delete' in kwargs else []
-            edit_items = [i for i in kwargs['edit'] if (i in self.state.tree_node_dict
-                          and self.in_nav(node=self.state.node(i)))] if 'edit' in kwargs else []
-            add_items = [i for i in kwargs['add'] if i in self.state.tree_node_dict] if 'add' in kwargs else []
+            # visible = lambda _node: all(condition(_node) for condition in self.state.generate_visible_conditions())
+            # visible = self.state.id_visible
+            delete_items = [i for i in kwargs["delete"]] if "delete" in kwargs else []
+            edit_items = (
+                [i for i in kwargs["edit"] if (i in self.state.tree_node_dict and self.in_nav(node=self.state.node(i)))]
+                if "edit" in kwargs
+                else []
+            )
+            add_items = [i for i in kwargs["add"] if i in self.state.tree_node_dict] if "add" in kwargs else []
 
         self.display.nav_tree.delete(*delete_items)
 
@@ -2447,17 +2504,18 @@ class Controller:
             image = self.nav_icon(node)
             tags = self.state.get_node_tags(node)
             if id in add_items:
-                #print('adding id', id)
+                # print('adding id', id)
                 if self.display.nav_tree.exists(id):
                     self.display.nav_tree.delete(id)
                 self.insert_nav(node, image, tags)
             elif id in edit_items:
-                self.display.nav_tree.item(id,
-                                           text=self.nav_name(node),
-                                           open=node.get("open", False),
-                                           tags=tags,
-                                           **dict(image=image) if image else {})
-
+                self.display.nav_tree.item(
+                    id,
+                    text=self.nav_name(node),
+                    open=node.get("open", False),
+                    tags=tags,
+                    **dict(image=image) if image else {},
+                )
 
     def update_chapter_nav_tree(self, **kwargs):
         # Delete all nodes and read them from the state tree
@@ -2466,10 +2524,10 @@ class Controller:
         _, chapter_tree_nodes = self.state.build_chapter_trees()
 
         for iid, d in chapter_tree_nodes.items():
-            if 'parent_id' in d:
-                parent_root_node_id = self.state.chapters[d['parent_id']]['root_id']
+            if "parent_id" in d:
+                parent_root_node_id = self.state.chapters[d["parent_id"]]["root_id"]
             else:
-                parent_root_node_id = ''
+                parent_root_node_id = ""
             self.display.chapter_nav_tree.insert(
                 parent=parent_root_node_id,
                 index="end",
@@ -2487,7 +2545,7 @@ class Controller:
             return
 
         if not self.display.nav_tree.exists(self.state.selected_node_id):
-            print('error: node is not in treeview')
+            print("error: node is not in treeview")
             return
 
         # Select on the nav tree and highlight
@@ -2498,7 +2556,7 @@ class Controller:
             try:
                 self.display.nav_tree.selection_set(state_selected_id)  # Will cause a recursive call
             except tk.TclError:
-                print('selection set error')
+                print("selection set error")
 
         # Update the open state of all nodes based on the navbar
         # TODO
@@ -2522,22 +2580,23 @@ class Controller:
                 text=self.nav_name(node),
                 open=node.get("open", False),
                 tags=tags,
-                **dict(image=image) if image else {})
-
+                **dict(image=image) if image else {},
+            )
 
     # add node and ancestry to open tree
     # TODO masked nodes
     def reveal_node(self, node):
-        if self.display.nav_tree.exists(node['id']):
+        if self.display.nav_tree.exists(node["id"]):
             return
         self.state.reveal_ancestry(node)
 
-
     def ask_reveal(self, node):
-        result = messagebox.askquestion("Navigate to hidden node",
-                                        "Attempting to navigate to a hidden node. Reveal node in nav tree?",
-                                        icon='warning')
-        if result == 'yes':
+        result = messagebox.askquestion(
+            "Navigate to hidden node",
+            "Attempting to navigate to a hidden node. Reveal node in nav tree?",
+            icon="warning",
+        )
+        if result == "yes":
             self.reveal_node(node)
             return True
         return False
@@ -2567,7 +2626,7 @@ class Controller:
     @metadata(name="Node open")
     def node_open(self, node):
         try:
-            open = self.display.nav_tree.item(node['id'], "open")
+            open = self.display.nav_tree.item(node["id"], "open")
             return open
         except tk.TclError:
             return False
@@ -2586,18 +2645,18 @@ class Controller:
         # offset_from_selected = -15
         offset_from_selected = -25
 
-        open_height = max([
-            depth(self.state.tree_node_dict.get(iid, {}), self.state.tree_node_dict)
-            for iid in open_nav_ids] + [0])
+        open_height = max(
+            [depth(self.state.tree_node_dict.get(iid, {}), self.state.tree_node_dict) for iid in open_nav_ids] + [0]
+        )
 
         total_width = start_width + open_height * WIDTH_PER_INDENT
 
         self.display.nav_tree.column("#0", width=total_width, minwidth=total_width)
 
-        current_width = depth(self.state.selected_node, self.state.tree_node_dict) \
-                        * WIDTH_PER_INDENT + offset_from_selected
+        current_width = (
+            depth(self.state.selected_node, self.state.tree_node_dict) * WIDTH_PER_INDENT + offset_from_selected
+        )
         self.display.nav_tree.xview_moveto(clip_num(current_width / total_width, 0, 1))
-
 
     # TODO duplicated from above method with minor changes because the chapter tree is quite different
     # TODO this is awful, sorry jesus. Please fix
@@ -2624,50 +2683,45 @@ class Controller:
         start_width = 200
         offset_from_selected = -25
 
-        open_height = max([
-                              depth(chapter_trees_dict.get(iid, {}), chapter_trees_dict)
-                              for iid in visible_ids
-                          ] + [0])
+        open_height = max([depth(chapter_trees_dict.get(iid, {}), chapter_trees_dict) for iid in visible_ids] + [0])
 
         total_width = start_width + open_height * WIDTH_PER_INDENT
 
         self.display.chapter_nav_tree.column("#0", width=total_width, minwidth=total_width)
 
         selected_chapter = chapter_trees_dict[self.state.selected_chapter["id"]]
-        current_width = depth(selected_chapter, chapter_trees_dict) \
-                        * WIDTH_PER_INDENT + offset_from_selected
+        current_width = depth(selected_chapter, chapter_trees_dict) * WIDTH_PER_INDENT + offset_from_selected
         self.display.chapter_nav_tree.xview_moveto(clip_num(current_width / total_width, 0, 1))
 
     def configure_buttons(self):
         if self.state.selected_node:
             if not self.state.is_mutable(self.state.selected_node):
-                self.display.buttons["Edit"].configure(state='disabled')
+                self.display.buttons["Edit"].configure(state="disabled")
             else:
-                self.display.buttons["Edit"].configure(state='normal')
+                self.display.buttons["Edit"].configure(state="normal")
             if self.state.is_root(self.state.selected_node):
-                self.display.hoist_button.configure(state='disabled')
+                self.display.hoist_button.configure(state="disabled")
             else:
-                self.display.hoist_button.configure(state='normal')
+                self.display.hoist_button.configure(state="normal")
         if self.state.is_compound(self.state.root()):
-            self.display.unhoist_button.configure(state='normal')
+            self.display.unhoist_button.configure(state="normal")
         else:
-            self.display.unhoist_button.configure(state='disabled')
+            self.display.unhoist_button.configure(state="disabled")
 
         if self.nav_history:
-            self.display.back_button.configure(state='normal')
+            self.display.back_button.configure(state="normal")
         else:
-            self.display.back_button.configure(state='disabled')
+            self.display.back_button.configure(state="disabled")
         if self.undo_history:
-            self.display.forward_button.configure(state='normal')
+            self.display.forward_button.configure(state="normal")
         else:
-            self.display.forward_button.configure(state='disabled')
+            self.display.forward_button.configure(state="disabled")
 
     def fix_selection(self, **kwargs):
         if not self.state.selected_node:
             self.state.selected_node_id = self.state.root()["id"]
         elif not self.display.nav_tree.exists(self.state.selected_node_id):
-            self.state.selected_node_id = self.state.find_next(node=self.state.selected_node,
-                                                               filter=self.in_nav)
+            self.state.selected_node_id = self.state.find_next(node=self.state.selected_node, filter=self.in_nav)
 
     #################################
     #   Programmatic weaving
@@ -2678,7 +2732,7 @@ class Controller:
         if code_string:
             result = eval(code_string)
             print(result)
-            #self.print_to_debug(result)
+            # self.print_to_debug(result)
             # try:
             #     result = eval(code_string)
             #     self.print_to_debug(message=result)
@@ -2686,7 +2740,6 @@ class Controller:
             # except Exception as e:
             #     self.print_to_debug(message=e)
             #     print(e)
-
 
 
 def main():
@@ -2698,8 +2751,6 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-
     # # This gets programmatic updates so we'd need to be more careful
     # # example: self.display.textbox.bind("<<TextModified>>", self.display.textbox_edited)
     # def textbox_edited(self, event):
@@ -2708,4 +2759,3 @@ if __name__ == "__main__":
     #     # self.refresh_textbox()
     #     # if self.edit_mode and self.selected_node_id:
     #     #     self.selected_node["text"] = self.display.textbox.get("1.0", 'end-1c')
-

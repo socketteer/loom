@@ -1,15 +1,17 @@
 import math
-import tkinter
 import uuid
-
-from tkinter import ttk
 from decimal import *
-from loom.utils.custom_tks import TextAware
-from PIL import Image
 
-rainbow_colors = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000']
+import tkinter
+from PIL import Image
+from tkinter import ttk
+
+from loom.utils.custom_tks import TextAware
+
+rainbow_colors = ["#9400D3", "#4B0082", "#0000FF", "#00FF00", "#FFFF00", "#FF7F00", "#FF0000"]
 
 default_y_scale = 1
+
 
 class BlockMultiverse:
     def __init__(self, parent_frame):
@@ -37,7 +39,7 @@ class BlockMultiverse:
         self.selected_id = None
         self.canvas.delete("all")
         self.node_info = {}
-        self.set_pastbox_text('', '')
+        self.set_pastbox_text("", "")
         self.prompt = None
         self.reset_view()
 
@@ -59,29 +61,29 @@ class BlockMultiverse:
         #     xscrollcommand=hbar.set,
         #     yscrollcommand=vbar.set
         # )
-        
+
         self.canvas.pack(side=tkinter.LEFT, expand=True, fill=tkinter.BOTH)
-        #self.multiverse_frame.update_idletasks()
-        #self.window_height = self.multiverse_frame.winfo_reqheight() * 2
+        # self.multiverse_frame.update_idletasks()
+        # self.window_height = self.multiverse_frame.winfo_reqheight() * 2
 
     def build_past_box(self):
         self.bottom_input_frame = ttk.Frame(self.frame)
         self.bottom_input_frame.pack(side="bottom", fill="x")
         self.past_box = TextAware(self.bottom_input_frame, bd=3, height=3)
-        self.past_box.pack(expand=True, fill='x')
+        self.past_box.pack(expand=True, fill="x")
         self.past_box.configure(
-            foreground='white',
-            background='black',
+            foreground="white",
+            background="black",
             wrap="word",
         )
         self.past_box.tag_configure("prompt", foreground="gray")
         self.past_box.configure(state="disabled")
 
-    def set_pastbox_text(self, prompt_text='', completion_text=''):
+    def set_pastbox_text(self, prompt_text="", completion_text=""):
         if self.past_box:
             self.past_box.configure(state="normal")
-            self.past_box.delete('1.0', "end")
-            self.past_box.insert('1.0', prompt_text, "prompt")
+            self.past_box.delete("1.0", "end")
+            self.past_box.insert("1.0", prompt_text, "prompt")
             self.past_box.insert("end-1c", completion_text)
             self.past_box.configure(state="disabled")
             self.past_box.see("end")
@@ -124,7 +126,7 @@ class BlockMultiverse:
             self.canvas.scale("all", event.x, event.y, 1, 1.1)
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             self.fix_text_zoom()
-            #self.fix_image_zoom()
+            # self.fix_image_zoom()
 
         def zoom_out(event):
             self.y_scale *= 0.9
@@ -133,10 +135,10 @@ class BlockMultiverse:
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))
             # self.showtext = event.text > 0.8
             self.fix_text_zoom()
-            #self.fix_image_zoom()
+            # self.fix_image_zoom()
 
         # Mac and then linux scrolls
-        #self.canvas.bind("<MouseWheel>", zoomer)
+        # self.canvas.bind("<MouseWheel>", zoomer)
         self.canvas.bind("<Button-4>", zoom_in)
         self.canvas.bind("<Button-5>", zoom_out)
 
@@ -149,8 +151,8 @@ class BlockMultiverse:
         # for item in self.canvas.find_withtag("text"):
         #     self.canvas.itemconfig(item, font=('Arial', size))
         for key, info in self.node_info.items():
-            size = self.get_text_size(info['font_size'])
-            self.canvas.itemconfig(info['text_widget'], font=('Arial', size))
+            size = self.get_text_size(info["font_size"])
+            self.canvas.itemconfig(info["text_widget"], font=("Arial", size))
 
     def set_y_window(self, x0, y0, height):
         old_y_scale = self.y_scale
@@ -160,10 +162,10 @@ class BlockMultiverse:
         self.y_scale = Decimal(self.window_height) / height
         magnification = Decimal(self.y_scale) / old_y_scale
 
-        print('\nmagnification: *', "{:.2f}".format(magnification))
-        print('total magnification: ', "{:.2f}".format(self.y_scale)) 
-        print('+{:.2f} bits'.format(math.log(magnification,2)))
-        print('total bits: ', "{:.2f}".format(math.log(self.y_scale, 2)))
+        print("\nmagnification: *", "{:.2f}".format(magnification))
+        print("total magnification: ", "{:.2f}".format(self.y_scale))
+        print("+{:.2f} bits".format(math.log(magnification, 2)))
+        print("total bits: ", "{:.2f}".format(math.log(self.y_scale, 2)))
 
         self.canvas.scale("all", 0, 0, 1, self.y_scale)
         self.fix_text_zoom()
@@ -185,14 +187,23 @@ class BlockMultiverse:
 
     def node_clicked(self, x0, y0, height, node_id):
         self.selected_id = node_id
-        #print(self.node_info[node_id]['token'])
+        # print(self.node_info[node_id]['token'])
         self.set_y_window(x0, y0, height)
-        prefix_text = self.node_info[node_id]['prefix']
-        self.set_pastbox_text(prompt_text=self.prompt if self.prompt else '', 
-                          completion_text=prefix_text)
+        prefix_text = self.node_info[node_id]["prefix"]
+        self.set_pastbox_text(prompt_text=self.prompt if self.prompt else "", completion_text=prefix_text)
 
-    def draw_multiverse(self, multiverse, ground_truth='', block_width=150, start_position=(0, 0), color_index=0,
-                        prefix='', show_text=True, show_probabilities=False, prompt=''):
+    def draw_multiverse(
+        self,
+        multiverse,
+        ground_truth="",
+        block_width=150,
+        start_position=(0, 0),
+        color_index=0,
+        prefix="",
+        show_text=True,
+        show_probabilities=False,
+        prompt="",
+    ):
         if not self.prompt:
             self.prompt = prompt
         self.set_pastbox_text(prompt_text=self.prompt)
@@ -201,75 +212,105 @@ class BlockMultiverse:
             self.wavefunction = multiverse
         else:
             if self.selected_id:
-                #self.node_info[self.selected_id]['node']['children'] = multiverse
-                prefix = self.node_info[self.selected_id]['prefix']
+                # self.node_info[self.selected_id]['node']['children'] = multiverse
+                prefix = self.node_info[self.selected_id]["prefix"]
             else:
                 return
         if start_position == (0, 0):
-            self.draw_block(0, 0, self.prompt[-20:], prefix, 1, Decimal(self.window_height), block_width, True,
-                            show_text, 0)
-        self.propagate(multiverse, ground_truth, prefix, block_width, start_position, color_index, show_text,
-                       y_offset=0, depth=1)
+            self.draw_block(
+                0, 0, self.prompt[-20:], prefix, 1, Decimal(self.window_height), block_width, True, show_text, 0
+            )
+        self.propagate(
+            multiverse, ground_truth, prefix, block_width, start_position, color_index, show_text, y_offset=0, depth=1
+        )
 
     # TODO should work purely in absolute coordinates
-    def propagate(self, multiverse, ground_truth, prefix, block_width, start_position, color_index, show_text,
-                  y_offset, depth):
+    def propagate(
+        self, multiverse, ground_truth, prefix, block_width, start_position, color_index, show_text, y_offset, depth
+    ):
         x = start_position[0] + (depth * block_width)
 
         rainbow_index = color_index % len(rainbow_colors)
         for token, node in multiverse.items():
             y = start_position[1] + y_offset
-            height = Decimal(self.window_height) * Decimal(node['unnormalized_prob'])
+            height = Decimal(self.window_height) * Decimal(node["unnormalized_prob"])
             is_ground_truth = (token == ground_truth[0]) if ground_truth else False
 
-            self.draw_block(x, y, token, prefix, node['unnormalized_prob'], height, block_width, is_ground_truth,
-                            show_text, rainbow_index)
+            self.draw_block(
+                x,
+                y,
+                token,
+                prefix,
+                node["unnormalized_prob"],
+                height,
+                block_width,
+                is_ground_truth,
+                show_text,
+                rainbow_index,
+            )
 
-            self.propagate(node['children'], ground_truth=ground_truth[1:] if is_ground_truth else None,
-                           prefix=prefix + token,
-                           block_width=block_width,
-                           start_position=start_position,
-                           color_index=rainbow_index,
-                           show_text=show_text,
-                           y_offset=y_offset,
-                           depth=depth + 1,
-                           )
+            self.propagate(
+                node["children"],
+                ground_truth=ground_truth[1:] if is_ground_truth else None,
+                prefix=prefix + token,
+                block_width=block_width,
+                start_position=start_position,
+                color_index=rainbow_index,
+                show_text=show_text,
+                y_offset=y_offset,
+                depth=depth + 1,
+            )
             y_offset += height
             rainbow_index = (rainbow_index + 1) % len(rainbow_colors)
 
-    def draw_block(self, x, y, token, prompt, probability, height, block_width, is_ground_truth, show_text, rainbow_index):
-        color = 'black' if is_ground_truth else rainbow_colors[rainbow_index]
+    def draw_block(
+        self, x, y, token, prompt, probability, height, block_width, is_ground_truth, show_text, rainbow_index
+    ):
+        color = "black" if is_ground_truth else rainbow_colors[rainbow_index]
 
         identifier = str(uuid.uuid1())
-        self.draw_rectangle_absolute(x, y, x + block_width, y + height, fill=color, activefill='gray', activeoutline='white',
-                                     outline=color, tags=[identifier])
+        self.draw_rectangle_absolute(
+            x,
+            y,
+            x + block_width,
+            y + height,
+            fill=color,
+            activefill="gray",
+            activeoutline="white",
+            outline=color,
+            tags=[identifier],
+        )
 
-        self.canvas.tag_bind(f'{identifier}', "<Button-1>",
-                             lambda event, _id=identifier, _x=x, _y=y, _height=height: self.node_clicked(_x, _y,
-                                                                                                         _height,
-                                                                                                         _id))
+        self.canvas.tag_bind(
+            f"{identifier}",
+            "<Button-1>",
+            lambda event, _id=identifier, _x=x, _y=y, _height=height: self.node_clicked(_x, _y, _height, _id),
+        )
 
         self.node_info[identifier] = {
-            'id': identifier,
-            'prefix': prompt + token,
-            'token': token,
-            'amplitude': probability,
-            'x': x,
-            'y': y,
+            "id": identifier,
+            "prefix": prompt + token,
+            "token": token,
+            "amplitude": probability,
+            "x": x,
+            "y": y,
         }
 
         print(token, probability)
 
         if show_text:
-            text_color = 'blue' if color == '#FFFF00' else 'white'  # if is_ground_truth else 'black'
+            text_color = "blue" if color == "#FFFF00" else "white"  # if is_ground_truth else 'black'
             font_size = min(12, int(math.ceil(height * self.y_scale / 2)))
-            text = '\\n' if token == '\n' else token
-            self.node_info[identifier]['font_size'] = Decimal(font_size) / Decimal(self.y_scale)
-            self.node_info[identifier]['text_widget'] = self.draw_text_absolute(x + block_width / 2, y + height / 2,
-                                                                                text=text,
-                                                                                font=('Arial', font_size),
-                                                                                tags=['text', f'text-{identifier}'],
-                                                                                fill=text_color)
+            text = "\\n" if token == "\n" else token
+            self.node_info[identifier]["font_size"] = Decimal(font_size) / Decimal(self.y_scale)
+            self.node_info[identifier]["text_widget"] = self.draw_text_absolute(
+                x + block_width / 2,
+                y + height / 2,
+                text=text,
+                font=("Arial", font_size),
+                tags=["text", f"text-{identifier}"],
+                fill=text_color,
+            )
         return identifier
 
     # def propagate_realtime(self, prompt, ground_truth='', block_width=150, parent_position=(0,0), max_depth=3,
@@ -315,7 +356,6 @@ class BlockMultiverse:
     #         y_offset += height
     #         rainbow_index = (rainbow_index + 1) % len(rainbow_colors)
 
-
     def map_to_scaled_coordinates(self, x, y):
         x = x - self.window_offset[0]
         y = y - self.window_offset[1]
@@ -336,15 +376,15 @@ class BlockMultiverse:
 
     def draw_text_absolute(self, x, y, **kwargs):
         rel_x, rel_y = self.map_to_scaled_coordinates(x, y)
-        #rel_x = int(round(rel_x))
-        #rel_y = int(round(rel_y))
+        # rel_x = int(round(rel_x))
+        # rel_y = int(round(rel_y))
         return self.canvas.create_text(rel_x, rel_y, **kwargs)
 
     def save_as_png(self, filename):
         # grabcanvas=ImageGrab.grab(bbox=self.canvas).save("test.png")
         # ttk.grabcanvas.save("test.png")
 
-        self.canvas.postscript(file = filename + '.eps') 
-        # use PIL to convert to PNG 
-        img = Image.open(filename + '.eps') 
-        img.save(filename + '.png', 'png', quality=100)
+        self.canvas.postscript(file=filename + ".eps")
+        # use PIL to convert to PNG
+        img = Image.open(filename + ".eps")
+        img.save(filename + ".png", "png", quality=100)

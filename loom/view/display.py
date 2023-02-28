@@ -1,51 +1,49 @@
 import tkinter as tk
 from tkinter import ttk
-
-from loom.view.tree_vis import TreeVis
-from loom.view.colors import bg_color, text_color, edit_color
-from loom.utils.util import metadata
-from loom.view.panes import NestedPane
-from loom.components.modules import *
-from loom.components.templates import LoomTerminal
-from loom.view.icons import Icons
-from loom.view.styles import textbox_config
 from tkinter.font import Font
 
+from loom.components.modules import *
+from loom.components.templates import LoomTerminal
+from loom.utils.util import metadata
+from loom.view.colors import bg_color, edit_color, text_color
+from loom.view.icons import Icons
+from loom.view.panes import NestedPane
+from loom.view.styles import textbox_config
+from loom.view.tree_vis import TreeVis
 
-modules = {'edit': Edit,
-           'notes': Notes,
-           'minimap': MiniMap,
-           'texteditor': TextEditor,
-           'prompt': Prompt,
-           'children': Children,
-           'read children': ReadChildren,
-           'run': Run,
-           'debug': DebugConsole,
-           'input': Input,
-           'janus/playground': JanusPlayground,
-           'transformers': Transformers,
-           'media': Media,
-           'paint': Paint,
-           'generation settings': GenerationSettings,
-           'frame editor': FrameEditor,
-           'memories': Memories,
-           'vars': Vars,
-           'wavefunction': Wavefunction}
+modules = {
+    "edit": Edit,
+    "notes": Notes,
+    "minimap": MiniMap,
+    "texteditor": TextEditor,
+    "prompt": Prompt,
+    "children": Children,
+    "read children": ReadChildren,
+    "run": Run,
+    "debug": DebugConsole,
+    "input": Input,
+    "janus/playground": JanusPlayground,
+    "transformers": Transformers,
+    "media": Media,
+    "paint": Paint,
+    "generation settings": GenerationSettings,
+    "frame editor": FrameEditor,
+    "memories": Memories,
+    "vars": Vars,
+    "wavefunction": Wavefunction,
+}
 
-orients = {'side_pane': "horizontal",
-           "bottom_pane": "vertical"}
+orients = {"side_pane": "horizontal", "bottom_pane": "vertical"}
+
 
 class Display:
-
     def __init__(self, root, callbacks, state, controller):
         self.root = root
         # Dict of callback names to callback data {**metadata, callback=func}
         style = ttk.Style(root)
-    # set ttk theme to "clam" which support the fieldbackground option
-        style.configure("Treeview", background=bg_color(), 
-                        fieldbackground=bg_color())
-        style.configure("TPanedwindow", background=bg_color(), 
-                        fieldbackground=bg_color())
+        # set ttk theme to "clam" which support the fieldbackground option
+        style.configure("Treeview", background=bg_color(), fieldbackground=bg_color())
+        style.configure("TPanedwindow", background=bg_color(), fieldbackground=bg_color())
         self.callbacks = callbacks
         self.state = state
         self.controller = controller
@@ -86,7 +84,7 @@ class Display:
         # self.multiverse_frame = None
         # self.multiverse = None
 
-        self.panes = {'side_pane': None, 'bottom_pane': None}
+        self.panes = {"side_pane": None, "bottom_pane": None}
 
         self.button_frame = None
 
@@ -109,8 +107,8 @@ class Display:
 
         self.edit_textbox_icon = None
 
-        self.font = Font(family='Georgia', size=12)
-        self.font_bold = Font(family='Georgia', size=12, weight='bold')
+        self.font = Font(family="Georgia", size=12)
+        self.font_bold = Font(family="Georgia", size=12, weight="bold")
 
         self.modules = {}
 
@@ -146,11 +144,10 @@ class Display:
 
         display_name = self.button_name(name)
         # FIXME formatting, stupid construct. Use NameSpace?
-        button_params = {**dict(
-            text=display_name,
-            command=self.callbacks[name]["callback"],
-            width=max(6, len(display_name))
-        ), **(button_params if button_params else {})}
+        button_params = {
+            **dict(text=display_name, command=self.callbacks[name]["callback"], width=max(6, len(display_name))),
+            **(button_params if button_params else {}),
+        }
         button = ttk.Button(frame, **button_params)
 
         if pack:
@@ -181,28 +178,26 @@ class Display:
         self.build_textboxes(self.story_frame)
         self.textbox_frame.pack(expand=True, fill="both")
 
-        self.vis = TreeVis(self.story_frame,
-                           self.state, self.controller)
+        self.vis = TreeVis(self.story_frame, self.state, self.controller)
 
         # self.multiverse = BlockMultiverse(self.story_frame)
 
         self.button_frame = ttk.Frame(self.main_frame)
         self.button_frame.pack(side="bottom", fill="both")
         self.build_main_buttons(self.button_frame)
-        #self.button_bar.pack(side="top", fill="both")
+        # self.button_bar.pack(side="top", fill="both")
 
         self.search_frame = ttk.Frame(self.main_pane, relief=tk.RAISED, borderwidth=2)
 
     def build_textboxes(self, frame):
-        #self._build_textbox(frame, "preview_textbox_frame", "preview_textbox", height=3)
+        # self._build_textbox(frame, "preview_textbox_frame", "preview_textbox", height=3)
         self._build_textbox(frame, "textbox_frame", "textbox", height=1)
-        #self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
-
+        # self._build_textbox(frame, "secondary_textbox_frame", "secondary_textbox", height=3)
 
     def key_pressed(self, event=None):
-        if event.keysym == 'Tab':
+        if event.keysym == "Tab":
             self.callbacks["Key Pressed"]["callback"](char=event.keysym)
-            return 'break'
+            return "break"
         self.callbacks["Key Pressed"]["callback"](char=event.char)
 
     # Text area and scroll bar  TODO Make a scrollable textbox tkutil
@@ -220,12 +215,12 @@ class Display:
         textbox.bind("<Control-Shift-Button-1>", lambda event: self.goto_history(txt=textbox))
         textbox.bind("<Alt-Button-1>", lambda event: self.split_node(txt=textbox))
         textbox.bind("<Command-Button-1>", lambda event: self.split_node(txt=textbox))
-        #textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
-        #textbox.bind("<Alt_L><Button-1>", lambda event: self.select_token(txt=textbox))
-        
-        #textbox.bind("<Button-3>", lambda event: self.open_menu(txt=textbox, event=event))
-        #textbox.bind("<Button-2>", lambda event: self.open_menu(txt=textbox, event=event))
-        
+        # textbox.bind("<Option-Button-1>", lambda event: self.split_node(txt=textbox))
+        # textbox.bind("<Alt_L><Button-1>", lambda event: self.select_token(txt=textbox))
+
+        # textbox.bind("<Button-3>", lambda event: self.open_menu(txt=textbox, event=event))
+        # textbox.bind("<Button-2>", lambda event: self.open_menu(txt=textbox, event=event))
+
         textbox.bind("<Button-1>", lambda event: self.clear_selection_tags(textbox=textbox))
         textbox.bind("<Escape>", self.clear_selection_tags(textbox=textbox))
         textbox.bind("<Button-1>", lambda event: textbox.focus_set())
@@ -235,7 +230,6 @@ class Display:
         textbox.bind("<Button-2>", lambda event: self.right_click(event, textbox=textbox))
         textbox.bind("<Button-3>", lambda event: self.right_click(event, textbox=textbox))
 
-
         # generation
         textbox.bind("<Alt-i>", lambda event: self.inline_generate(textbox=textbox))
         textbox.bind("<Command-i>", lambda event: self.inline_generate(textbox=textbox))
@@ -244,33 +238,31 @@ class Display:
         textbox.bind("<Command-period>", lambda event: self.insert_inline_completion(step=1, textbox=textbox))
         textbox.bind("<Command-comma>", lambda event: self.insert_inline_completion(step=-1, textbox=textbox))
 
-        textbox.pack(expand=True, fill='both')
+        textbox.pack(expand=True, fill="both")
 
         self.setup_textbox_tags(textbox)
         # create edit textbox icon
 
-        self.edit_textbox_icon = tk.Label(textbox_frame,
-                                          image=icons.get_icon("edit-blue"),
-                                          cursor='hand2',
-                                          background=bg_color())
+        self.edit_textbox_icon = tk.Label(
+            textbox_frame, image=icons.get_icon("edit-blue"), cursor="hand2", background=bg_color()
+        )
         self.edit_textbox_icon.bind("<Button-1>", lambda event: self.callbacks["Toggle textbox editable"]["callback"]())
-                                          
-        self.edit_textbox_icon.place(rely=1.0, relx=1.0, x=-20, y=-10, anchor=tk.SE)
 
+        self.edit_textbox_icon.place(rely=1.0, relx=1.0, x=-20, y=-10, anchor=tk.SE)
 
         textbox.configure(**textbox_config())
 
     def setup_textbox_tags(self, textbox):
-        #textbox.tag_configure("bold", font=self.font_bold)
+        # textbox.tag_configure("bold", font=self.font_bold)
         textbox.tag_configure("node_select", background=edit_color())
         textbox.tag_configure("modified", background="blue", foreground=text_color())
-        textbox.tag_configure('match', background='blue', foreground=text_color())
-        textbox.tag_configure('active_match', background='black', foreground='white')
+        textbox.tag_configure("match", background="blue", foreground=text_color())
+        textbox.tag_configure("active_match", background="black", foreground="white")
         textbox.tag_raise("sel")
         textbox.tag_raise("insert")
 
     def clear_selection_tags(self, textbox):
-        #self.display.textbox.tag_remove("sel", "1.0", "end")
+        # self.display.textbox.tag_remove("sel", "1.0", "end")
         textbox.tag_remove("insert", "1.0", "end")
         textbox.tag_remove("node_select", "1.0", "end")
 
@@ -279,7 +271,7 @@ class Display:
 
     def write_modifications(self):
         self.callbacks["Write textbox"]["callback"]()
-    
+
     def right_click(self, event, textbox):
         counterfactuals = self.open_counterfactuals(event=event, textbox=textbox)
         if not counterfactuals:
@@ -341,7 +333,6 @@ class Display:
             ["Edit"],
             ["Children"],
             ["Visualize"],
-
             ["Bottom pane"],
             ["Side pane"],
             ["New Child", {}],
@@ -356,13 +347,12 @@ class Display:
             ["Next", {}, dict(side="right")],
             ["Prev", {}, dict(side="right")],
             # ["Parent"],
-            #["Bookmark"],
+            # ["Bookmark"],
         ]
 
         for btn in buttons:
             self.buttons[btn[0]] = self.build_button(frame, *btn)
 
-    
     def configure_buttons(self, visible_buttons):
         visible_buttons += ["Save", "Open"]
         for btn in self.buttons:
@@ -372,8 +362,7 @@ class Display:
             # show all buttons in the list that are currently hidden
             if btn in visible_buttons and not self.buttons[btn].winfo_ismapped():
                 side = "right" if btn in ("Next", "Prev", "Undo", "Retry", "Rewind", "Reroll") else "left"
-                self.buttons[btn].pack(side=side, fill='y')
-
+                self.buttons[btn].pack(side=side, fill="y")
 
     #################################
     #   Alt Textbox
@@ -381,18 +370,17 @@ class Display:
 
     def build_alt_textbox(self):
         if not self.alt_frame:
-            self.alt_frame = ttk.Frame(self.main_pane, height=500, width=400, relief='sunken', borderwidth=2)
+            self.alt_frame = ttk.Frame(self.main_pane, height=500, width=400, relief="sunken", borderwidth=2)
         self.main_pane.insert(self.story_frame, self.alt_frame, weight=1)
-        #self.pane.add(self.alt_frame, weight=1)
-        #self.story_frame.pack_forget()
-        #self.alt_frame.pack(expand=False, fill='x')
-       # self.story_frame.pack(expand=True, fill='both')
+        # self.pane.add(self.alt_frame, weight=1)
+        # self.story_frame.pack_forget()
+        # self.alt_frame.pack(expand=False, fill='x')
+        # self.story_frame.pack(expand=True, fill='both')
 
         self.alt_textbox = TextAware(self.alt_frame, height=3)
-        self.alt_textbox.pack(expand=True, fill='both')
+        self.alt_textbox.pack(expand=True, fill="both")
         self.alt_textbox.configure(**textbox_config())
-        self.alt_textbox.configure(state='disabled')
-
+        self.alt_textbox.configure(state="disabled")
 
     def destroy_alt_textbox(self):
         if self.alt_frame is not None:
@@ -401,22 +389,22 @@ class Display:
         if self.alt_textbox:
             self.alt_textbox.pack_forget()
         self.alt_textbox = None
-        #self.alt_frame.pack_forget()
-        #self.textbox_frame.pack(expand=True, side="top", fill='both')
+        # self.alt_frame.pack_forget()
+        # self.textbox_frame.pack(expand=True, side="top", fill='both')
 
     #################################
     #   Nav Panel
     #################################
 
     def build_nav(self, frame):
-        self.nav_frame = ttk.Frame(frame, height=500, width=300, relief='sunken', borderwidth=2)
+        self.nav_frame = ttk.Frame(frame, height=500, width=300, relief="sunken", borderwidth=2)
         # Nav controls
         self.nav_button_frame = ttk.Frame(self.nav_frame)
-        self.nav_button_frame.pack(side='top', fill='x')
+        self.nav_button_frame.pack(side="top", fill="x")
         self.back_button = self.build_button(self.nav_button_frame, "<", dict(width=2), side="left")
         self.forward_button = self.build_button(self.nav_button_frame, ">", dict(width=2), side="left")
         self.hoist_button = self.build_button(self.nav_button_frame, "Hoist", dict(width=5), side="left")
-        self.unhoist_button = self.build_button(self.nav_button_frame, "Unhoist", dict(width=7),side="left")
+        self.unhoist_button = self.build_button(self.nav_button_frame, "Unhoist", dict(width=7), side="left")
         self.scroll_to_selected_button = self.build_button(self.nav_button_frame, "Center", dict(width=6), side="left")
         # buttons = [
         #     # ["Clear chapters", dict(width=30), dict(fill="x", side="top")],
@@ -428,7 +416,7 @@ class Display:
         #     self.build_button(self.nav_frame, *btn, side="top")
 
         self.nav_pane = ttk.PanedWindow(self.nav_frame, height=500, width=300)
-        self.nav_pane.pack(expand=True, fill='both')
+        self.nav_pane.pack(expand=True, fill="both")
 
         # Tree nav
         self._build_treeview(self.nav_frame, "nav_tree", "nav_scrollbarx", "nav_scrollbary")
@@ -441,11 +429,9 @@ class Display:
         self.nav_tree.bind("<<TreeviewSelect>>", lambda event: f(node_id=(self.nav_tree.selection()[0])))
 
         # Make nav and chapter clicks update real selection
-        self.nav_tree.bind(
-            "<Button-1>", lambda event: f(node_id=self.nav_tree.identify('item', event.x, event.y))
-        )
+        self.nav_tree.bind("<Button-1>", lambda event: f(node_id=self.nav_tree.identify("item", event.x, event.y)))
         self.chapter_nav_tree.bind(
-            "<Button-1>", lambda event: f(node_id=self.chapter_nav_tree.identify('item', event.x, event.y))
+            "<Button-1>", lambda event: f(node_id=self.chapter_nav_tree.identify("item", event.x, event.y))
         )
 
         # bind right click to context menu
@@ -463,68 +449,114 @@ class Display:
 
     def nav_tree_context_menu(self, event):
         # get the item the mouse is over
-        item = self.nav_tree.identify('item', event.x, event.y)
+        item = self.nav_tree.identify("item", event.x, event.y)
         if item:
             # TODO abstract this menu and use for children module too
             # create a menu
             menu = tk.Menu(self.nav_tree, tearoff=0)
             # add a command to the menu
-            menu.add_command(label="Go", command=lambda id=item: self.callbacks["Select node"]["callback"](node=self.state.node(id)))
-            menu.add_command(label="Edit", command=lambda id=item: self.callbacks["Edit in module"]["callback"](node=self.state.node(id)))
-            #menu.add_command(label="Copy")
-            menu.add_command(label="Copy id", command=lambda id=item: self.callbacks["Copy id"]["callback"](node=self.state.node(id)))
-            menu.add_command(label="Duplicate", command=lambda id=item: self.callbacks["Duplicate"]["callback"](node=self.state.node(id)))
-            menu.add_command(label="Delete", command=lambda id=item: self.callbacks["Delete"]["callback"](node=self.state.node(id)))
-            menu.add_command(label="Delete children", command=lambda id=item: self.callbacks["Delete children"]["callback"](node=self.state.node(id)))
+            menu.add_command(
+                label="Go", command=lambda id=item: self.callbacks["Select node"]["callback"](node=self.state.node(id))
+            )
+            menu.add_command(
+                label="Edit",
+                command=lambda id=item: self.callbacks["Edit in module"]["callback"](node=self.state.node(id)),
+            )
+            # menu.add_command(label="Copy")
+            menu.add_command(
+                label="Copy id", command=lambda id=item: self.callbacks["Copy id"]["callback"](node=self.state.node(id))
+            )
+            menu.add_command(
+                label="Duplicate",
+                command=lambda id=item: self.callbacks["Duplicate"]["callback"](node=self.state.node(id)),
+            )
+            menu.add_command(
+                label="Delete", command=lambda id=item: self.callbacks["Delete"]["callback"](node=self.state.node(id))
+            )
+            menu.add_command(
+                label="Delete children",
+                command=lambda id=item: self.callbacks["Delete children"]["callback"](node=self.state.node(id)),
+            )
 
             move_menu = tk.Menu(menu, tearoff=0)
-            move_menu.add_command(label="Move up", command=lambda id=item: self.callbacks["Move up"]["callback"](node=self.state.node(id)))
-            move_menu.add_command(label="Move down", command=lambda id=item: self.callbacks["Move down"]["callback"](node=self.state.node(id)))
-            #move_menu.add_command(label="Move to top")
-            #move_menu.add_command(label="Move to bottom")
-            #move_menu.add_command(label="Move to parent level")
-            #move_menu.add_command(label="Change parent...")
+            move_menu.add_command(
+                label="Move up", command=lambda id=item: self.callbacks["Move up"]["callback"](node=self.state.node(id))
+            )
+            move_menu.add_command(
+                label="Move down",
+                command=lambda id=item: self.callbacks["Move down"]["callback"](node=self.state.node(id)),
+            )
+            # move_menu.add_command(label="Move to top")
+            # move_menu.add_command(label="Move to bottom")
+            # move_menu.add_command(label="Move to parent level")
+            # move_menu.add_command(label="Change parent...")
             menu.add_cascade(label="Move", menu=move_menu)
-            
+
             view_menu = tk.Menu(menu, tearoff=0)
 
-            #view_menu.add_command(label="Hide")
-            view_menu.add_command(label="Hoist", command=lambda id=item: self.callbacks["Hoist"]["callback"](node=self.state.node(id)))
+            # view_menu.add_command(label="Hide")
+            view_menu.add_command(
+                label="Hoist", command=lambda id=item: self.callbacks["Hoist"]["callback"](node=self.state.node(id))
+            )
             # contingent
-            #view_menu.add_command(label="Zip")
+            # view_menu.add_command(label="Zip")
             # contingent
-            #view_menu.add_command(label="Unzip")
+            # view_menu.add_command(label="Unzip")
             # contingent
-            view_menu.add_command(label="Expand subtree", command=lambda id=item: self.callbacks["Expand subtree"]["callback"](node=self.state.node(id)))
+            view_menu.add_command(
+                label="Expand subtree",
+                command=lambda id=item: self.callbacks["Expand subtree"]["callback"](node=self.state.node(id)),
+            )
             # contingent
-            view_menu.add_command(label="Collapse subtree", command=lambda id=item: self.callbacks["Collapse subtree"]["callback"](node=self.state.node(id)))
+            view_menu.add_command(
+                label="Collapse subtree",
+                command=lambda id=item: self.callbacks["Collapse subtree"]["callback"](node=self.state.node(id)),
+            )
 
             menu.add_cascade(label="View", menu=view_menu)
 
             add_menu = tk.Menu(menu, tearoff=0)
-            add_menu.add_command(label="Add child", command=lambda id=item: self.callbacks["New Child"]["callback"](node=self.state.node(id)))
-            add_menu.add_command(label="Add sibling", command=lambda id=item: self.callbacks["New Sibling"]["callback"](node=self.state.node(id)))
-            add_menu.add_command(label="Add parent", command=lambda id=item: self.callbacks["New Parent"]["callback"](node=self.state.node(id)))
-            #add_menu.add_command(label="Add ghostchild")
-            #add_menu.add_command(label="Add ghostparent")
-            #add_menu.add_command(label="Add portal")
+            add_menu.add_command(
+                label="Add child",
+                command=lambda id=item: self.callbacks["New Child"]["callback"](node=self.state.node(id)),
+            )
+            add_menu.add_command(
+                label="Add sibling",
+                command=lambda id=item: self.callbacks["New Sibling"]["callback"](node=self.state.node(id)),
+            )
+            add_menu.add_command(
+                label="Add parent",
+                command=lambda id=item: self.callbacks["New Parent"]["callback"](node=self.state.node(id)),
+            )
+            # add_menu.add_command(label="Add ghostchild")
+            # add_menu.add_command(label="Add ghostparent")
+            # add_menu.add_command(label="Add portal")
 
             menu.add_cascade(label="Add", menu=add_menu)
 
             tag_menu = tk.Menu(menu, tearoff=0)
 
-            #tag_menu.add_command(label="Pin")
-            tag_menu.add_command(label="Archive", command=lambda id=item: self.callbacks["Tag"]["callback"](tag='archived', node=self.state.node(id)))
-            tag_menu.add_command(label="Archive children", command=lambda id=item: self.callbacks["Archive children"]["callback"](node=self.state.node(id)))
-            #tag_menu.add_command(label="Turn into note")
-            tag_menu.add_command(label="Tag...", command=lambda id=item: self.callbacks["Tag node dialog"]["callback"](node=self.state.node(id)))
-            
+            # tag_menu.add_command(label="Pin")
+            tag_menu.add_command(
+                label="Archive",
+                command=lambda id=item: self.callbacks["Tag"]["callback"](tag="archived", node=self.state.node(id)),
+            )
+            tag_menu.add_command(
+                label="Archive children",
+                command=lambda id=item: self.callbacks["Archive children"]["callback"](node=self.state.node(id)),
+            )
+            # tag_menu.add_command(label="Turn into note")
+            tag_menu.add_command(
+                label="Tag...",
+                command=lambda id=item: self.callbacks["Tag node dialog"]["callback"](node=self.state.node(id)),
+            )
+
             menu.add_cascade(label="Tag", menu=tag_menu)
-            
-            #menu.add_command(label="Edit frame")
-            #menu.add_command(label="Edit chapter")
-            #menu.add_command(label="Info")
-            #menu.add_command(label="Export subtree")
+
+            # menu.add_command(label="Edit frame")
+            # menu.add_command(label="Edit chapter")
+            # menu.add_command(label="Info")
+            # menu.add_command(label="Export subtree")
 
             # display the menu
             menu.tk_popup(event.x_root, event.y_root)
@@ -536,7 +568,7 @@ class Display:
     # # TODO make a scrollable obj so I don't have to keep doing this
     def _build_treeview(self, frame, tree_attr, scrollbarx_attr=None, scrollbary_attr=None):
         style = ttk.Style(frame)
-        style.configure('Treeview', rowheight=25)  # Spacing between rows
+        style.configure("Treeview", rowheight=25)  # Spacing between rows
         tree = ttk.Treeview(frame, selectmode="browse", padding=(0, 0, 0, 1))
         self.__setattr__(tree_attr, tree)
 
@@ -548,7 +580,7 @@ class Display:
             self.__setattr__(scrollbary_attr, scrollbary)
 
         scrollbarx = ttk.Scrollbar(tree, orient="horizontal", command=tree.xview)
-        scrollbarx.pack(side='bottom', fill='x')
+        scrollbarx.pack(side="bottom", fill="x")
         tree.configure(xscrollcommand=scrollbarx.set)
         if scrollbarx_attr is not None:
             self.__setattr__(scrollbarx_attr, scrollbarx)
@@ -589,8 +621,8 @@ class Display:
     # called by hide button
     def pane_closed(self, pane):
         pane_name = pane.name
-        #print('display: pane_closed')
-        self.state.update_user_frame({'workspace': {pane_name: {'open': False}}})
+        # print('display: pane_closed')
+        self.state.update_user_frame({"workspace": {pane_name: {"open": False}}})
         self.close_pane(pane_name)
 
     def open_pane(self, pane_name):
@@ -598,18 +630,22 @@ class Display:
             self.panes[pane_name].show()
         else:
             orient = orients[pane_name]
-            if orient == 'horizontal':
+            if orient == "horizontal":
                 parent = self.pane
             else:
                 parent = self.main_pane
-            self.panes[pane_name] = NestedPane(pane_name, parent, orient='horizontal' if orient == 'vertical' else 'vertical', 
-                                               module_options=modules.keys(),
-                                               module_selection_callback=self.module_selected,
-                                               module_window_destroy_callback=self.window_closed,
-                                               hide_pane_callback=self.pane_closed)
+            self.panes[pane_name] = NestedPane(
+                pane_name,
+                parent,
+                orient="horizontal" if orient == "vertical" else "vertical",
+                module_options=modules.keys(),
+                module_selection_callback=self.module_selected,
+                module_window_destroy_callback=self.window_closed,
+                hide_pane_callback=self.pane_closed,
+            )
             self.panes[pane_name].build_pane(weight=1)
 
-            self.build_modules(self.panes[pane_name], self.state.workspace[pane_name]['modules'])
+            self.build_modules(self.panes[pane_name], self.state.workspace[pane_name]["modules"])
 
     def build_modules(self, pane, module_names):
         for module in module_names:
@@ -628,15 +664,15 @@ class Display:
     def module_open(self, module_name):
         return module_name in self.modules and self.modules[module_name]
 
-    # checks modules in pane against list, creates ones that don't exist, and 
+    # checks modules in pane against list, creates ones that don't exist, and
     # removes ones that aren't in the list
     def update_modules(self, pane_name, new_module_names):
         pane = self.panes[pane_name]
         current_module_names = pane.module_names()
         new_modules, deleted_modules = react_changes(current_module_names, new_module_names)
-        #print('new modules:', new_modules)
-        #print('deleted modules:', deleted_modules)
-        #print('added modules:', new_modules)
+        # print('new modules:', new_modules)
+        # print('deleted modules:', deleted_modules)
+        # print('added modules:', new_modules)
         for module_name in deleted_modules:
             # TODO
             if module_name in self.modules:
@@ -662,8 +698,7 @@ class Display:
             pane_name = module_window.pane_name()
             pane = self.panes[pane_name]
             current_modules = pane.module_names()
-            self.state.update_user_frame({'workspace': {pane_name: {'modules': current_modules}}})
-            
+            self.state.update_user_frame({"workspace": {pane_name: {"modules": current_modules}}})
 
     def close_window(self, module_window):
         if module_window.module:
@@ -677,7 +712,7 @@ class Display:
         pane_name = module_window.pane_name()
         pane = self.panes[pane_name]
         current_modules = pane.module_names()
-        self.state.update_user_frame({'workspace': {pane_name: {'modules': current_modules}}})
+        self.state.update_user_frame({"workspace": {pane_name: {"modules": current_modules}}})
 
     #################################
     #   Edit mode
@@ -691,21 +726,21 @@ class Display:
     def set_mode(self, new_state):
         assert new_state in self.modes
         self.mode = new_state
-        self.buttons['Edit'].config(text="Write" if self.in_edit_mode else self.button_name("Edit"))
+        self.buttons["Edit"].config(text="Write" if self.in_edit_mode else self.button_name("Edit"))
 
         self.clear_story_frame()
 
         if self.mode == "Read":
-            self.textbox_frame.pack(expand=True, side="top", fill='both')
+            self.textbox_frame.pack(expand=True, side="top", fill="both")
             self.textbox.config(foreground=text_color(), background=bg_color())
             self.textbox.edit_reset()
 
         elif self.mode == "Edit":
-            self.textbox_frame.pack(expand=True, side="top", fill='both')
+            self.textbox_frame.pack(expand=True, side="top", fill="both")
             self.textbox.config(foreground=text_color(), background=edit_color())
-            #self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
-            #self.secondary_textbox.config(foreground=text_color(), background=edit_color())
-            #self.preview_textbox.config(foreground=text_color(), background=edit_color())
+            # self.secondary_textbox_frame.pack(expand=False, side="bottom", fill='both')
+            # self.secondary_textbox.config(foreground=text_color(), background=edit_color())
+            # self.preview_textbox.config(foreground=text_color(), background=edit_color())
 
         elif self.mode == "Visualize":
             self.vis.frame.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
@@ -719,7 +754,7 @@ class Display:
     def clear_story_frame(self):
         # self.destroy_multi_edit()
         self.textbox_frame.pack_forget()
-        #self.secondary_textbox_frame.pack_forget()
+        # self.secondary_textbox_frame.pack_forget()
         self.vis.frame.pack_forget()
         # self.multiverse.frame.pack_forget()
 
@@ -741,13 +776,13 @@ class Display:
 
     def open_search(self):
         self.close_search()
-        self.search_frame.pack(side='bottom', expand=False, fill='x')
+        self.search_frame.pack(side="bottom", expand=False, fill="x")
 
-        self.search_label = tk.Label(self.search_frame, text='Search:', bg=bg_color(), fg=text_color())
-        self.search_label.pack(side='left', expand=True)
+        self.search_label = tk.Label(self.search_frame, text="Search:", bg=bg_color(), fg=text_color())
+        self.search_label.pack(side="left", expand=True)
 
         self.search_box = TextAware(self.search_frame, bd=2, height=1)
-        self.search_box.pack(side='left', expand=True, fill='x', padx=5)
+        self.search_box.pack(side="left", expand=True, fill="x", padx=5)
         self.search_box.configure(
             font=self.font,
             foreground=text_color(),
@@ -755,14 +790,19 @@ class Display:
         )
         if not self.case_sensitive:
             self.case_sensitive = tk.BooleanVar(value=0)
-        self.case_sensitive_checkbox = ttk.Checkbutton(self.search_frame, text='Aa', variable=self.case_sensitive, 
-                                                       )
-        self.case_sensitive_checkbox.pack(side='left', expand=True, padx=5)
+        self.case_sensitive_checkbox = ttk.Checkbutton(
+            self.search_frame,
+            text="Aa",
+            variable=self.case_sensitive,
+        )
+        self.case_sensitive_checkbox.pack(side="left", expand=True, padx=5)
 
-        #self.search_close_button = ttk.Button(self.search_frame, text='[x]', command=self.exit_search, width=2.5)
-        self.search_close_button = tk.Label(self.search_frame, text='⨯', font=("Arial", 12), fg=text_color(), bg=bg_color(), cursor='hand2')
-        self.search_close_button.bind('<Button-1>', self.exit_search)
-        self.search_close_button.pack(side='left', expand=True, padx=2)
+        # self.search_close_button = ttk.Button(self.search_frame, text='[x]', command=self.exit_search, width=2.5)
+        self.search_close_button = tk.Label(
+            self.search_frame, text="⨯", font=("Arial", 12), fg=text_color(), bg=bg_color(), cursor="hand2"
+        )
+        self.search_close_button.bind("<Button-1>", self.exit_search)
+        self.search_close_button.pack(side="left", expand=True, padx=2)
 
         self.search_box.focus()
 
@@ -787,12 +827,11 @@ class Display:
         self.search_frame.pack_forget()
 
     def search_key_pressed(self, event=None):
-        if event.keysym == 'Return':
-            search_term = self.search_box.get("1.0", 'end-1c')
-            self.callbacks["Search textbox"]["callback"](pattern=search_term, 
-                                                         case_sensitive=self.case_sensitive.get())
-            return 'break'
-        elif event.keysym == 'Escape':
+        if event.keysym == "Return":
+            search_term = self.search_box.get("1.0", "end-1c")
+            self.callbacks["Search textbox"]["callback"](pattern=search_term, case_sensitive=self.case_sensitive.get())
+            return "break"
+        elif event.keysym == "Escape":
             self.exit_search()
 
     def exit_search(self, *args):
@@ -803,8 +842,8 @@ class Display:
     def update_search_results(self, num_matches, active_index=1):
         if not self.search_results:
             self.search_results = tk.Label(self.search_frame, bg=bg_color(), fg=text_color())
-            self.search_results.pack(side='left', padx=5)
+            self.search_results.pack(side="left", padx=5)
         if num_matches == 0:
-            self.search_results.config(text='No matches')
+            self.search_results.config(text="No matches")
         else:
-            self.search_results.config(text=f'{active_index}/{num_matches}')
+            self.search_results.config(text=f"{active_index}/{num_matches}")

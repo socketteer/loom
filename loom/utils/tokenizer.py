@@ -2,9 +2,10 @@ from transformers import GPT2Tokenizer
 
 tok = None
 
+
 def tokenize(input):
     tokenizer = tok if tok else GPT2Tokenizer.from_pretrained("gpt2")
-    return tokenizer(input)['input_ids']
+    return tokenizer(input)["input_ids"]
 
 
 def detokenize(tokens):
@@ -20,7 +21,7 @@ def token_to_word(token):
 def logit_mask(mask):
     id_mask = {}
     for token in mask:
-        if token == '\n':
+        if token == "\n":
             token_id = 198
         else:
             token_id = tokenize([token])[0][0]

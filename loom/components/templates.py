@@ -1,34 +1,46 @@
-from re import L
-import tkinter as tk
-from tkinter import ttk, filedialog
-import uuid
-from view.colors import text_color, bg_color, edit_color, default_color, history_color, ooc_color
-from loom.utils.custom_tks import TextAware, ScrollableFrame
-from loom.utils.react import *
-from loom.utils.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
-from loom.utils.gpt_util import logprobs_to_probs
-from loom.utils.util import split_indices
-from loom.utils.util_tree import num_descendents
-from tkinter.scrolledtext import ScrolledText
-from view.styles import textbox_config
-from view.icons import Icons
-import os
-import codecs
-from PIL import Image, ImageTk
-from gpt import gen, completions_text
-import json
 import bisect
-import threading
+import codecs
 import datetime
+import json
+import os
+import threading
+import uuid
+from re import L
 
-buttons = {'go': 'arrow-green',
-           'edit': 'edit-blue',
-           'attach': 'leftarrow-lightgray',
-           'archive': 'archive-yellow',
-           'close': 'minus-lightgray',
-           'delete': 'trash-red',
-           'append': 'up-lightgray',
-           'save': 'save-white'}
+import tkinter as tk
+from gpt import completions_text, gen
+from PIL import Image, ImageTk
+from tkinter import filedialog, ttk
+from tkinter.scrolledtext import ScrolledText
+from view.colors import bg_color, default_color, edit_color, history_color, ooc_color, text_color
+from view.icons import Icons
+from view.styles import textbox_config
+
+from loom.utils.custom_tks import ScrollableFrame, TextAware
+from loom.utils.gpt_util import logprobs_to_probs
+from loom.utils.react import *
+from loom.utils.util import split_indices
+from loom.utils.util_tk import (
+    Entry,
+    create_button,
+    create_checkbutton,
+    create_combo_box,
+    create_label,
+    create_side_label,
+    create_slider,
+)
+from loom.utils.util_tree import num_descendents
+
+buttons = {
+    "go": "arrow-green",
+    "edit": "edit-blue",
+    "attach": "leftarrow-lightgray",
+    "archive": "archive-yellow",
+    "close": "minus-lightgray",
+    "delete": "trash-red",
+    "append": "up-lightgray",
+    "save": "save-white",
+}
 
 icons = Icons()
 
@@ -41,16 +53,16 @@ class EvalCode:
         self.callbacks = callbacks
 
     def body(self, master):
-        self.label = tk.Label(master, text='**** HUMANS ONLY ****', bg=default_color(), fg=text_color())
+        self.label = tk.Label(master, text="**** HUMANS ONLY ****", bg=default_color(), fg=text_color())
         self.label.pack(side=tk.TOP, fill=tk.X)
         self.code_textbox = ScrolledText(master, height=2)
         self.code_textbox.pack(fill=tk.BOTH, expand=True)
-        self.code_textbox.configure(**textbox_config(bg='black', font='Monaco'))
+        self.code_textbox.configure(**textbox_config(bg="black", font="Monaco"))
         self.code_textbox.insert(tk.INSERT, self.init_text)
         self.code_textbox.focus()
 
     def apply(self):
-        code = self.code_textbox.get("1.0", 'end-1c')
+        code = self.code_textbox.get("1.0", "end-1c")
         self.callbacks["Run"]["prev_cmd"] = code
         self.callbacks["Eval"]["callback"](code_string=code)
 
@@ -70,8 +82,8 @@ class Windows:
         self.master = master
         self.scroll_frame = ScrollableFrame(self.master)
         self.scroll_frame.pack(expand=True, fill="both")
-        #self.windows_pane = tk.PanedWindow(self.scroll_frame.scrollable_frame, orient='vertical')
-        #self.windows_pane.pack(side='top', fill='both', expand=True)
+        # self.windows_pane = tk.PanedWindow(self.scroll_frame.scrollable_frame, orient='vertical')
+        # self.windows_pane.pack(side='top', fill='both', expand=True)
         toplevel = self.master.winfo_toplevel()
         toplevel.bind("<Configure>", self.resize)
 
@@ -79,41 +91,43 @@ class Windows:
         window_id = str(uuid.uuid1())
         self.windows[window_id] = {}
         self.build_window(window_id, text)
-        
 
     def build_window(self, window_id, text):
-        self.windows[window_id]['frame'] = ttk.Frame(self.scroll_frame.scrollable_frame, borderwidth=1)
-        tk.Grid.columnconfigure(self.windows[window_id]['frame'], 1, weight=1)
+        self.windows[window_id]["frame"] = ttk.Frame(self.scroll_frame.scrollable_frame, borderwidth=1)
+        tk.Grid.columnconfigure(self.windows[window_id]["frame"], 1, weight=1)
         for i in range(len(self.buttons)):
-            tk.Grid.rowconfigure(self.windows[window_id]['frame'], i, weight=1)
-        self.windows[window_id]['frame'].pack(side='top', fill='both', expand=True)
-        #self.windows_pane.add(self.windows[window_id]['frame'], height=100)
-        self.windows[window_id]['textbox'] = TextAware(self.windows[window_id]['frame'], bd=3, undo=True)
-        self.windows[window_id]['textbox'].grid(row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W)
-        self.windows[window_id]['textbox'].configure(**textbox_config(bg=edit_color(), pady=1, spacing2=1, spacing1=1))
-        self.windows[window_id]['textbox'].insert("1.0", text)
+            tk.Grid.rowconfigure(self.windows[window_id]["frame"], i, weight=1)
+        self.windows[window_id]["frame"].pack(side="top", fill="both", expand=True)
+        # self.windows_pane.add(self.windows[window_id]['frame'], height=100)
+        self.windows[window_id]["textbox"] = TextAware(self.windows[window_id]["frame"], bd=3, undo=True)
+        self.windows[window_id]["textbox"].grid(
+            row=0, column=1, rowspan=len(self.buttons), pady=5, sticky=tk.N + tk.S + tk.E + tk.W
+        )
+        self.windows[window_id]["textbox"].configure(**textbox_config(bg=edit_color(), pady=1, spacing2=1, spacing1=1))
+        self.windows[window_id]["textbox"].insert("1.0", text)
         self.master.update_idletasks()
-        self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
+        self.windows[window_id]["textbox"].reset_height(max_height=self.max_height)
         if self.buttons_visible:
             for i, button in enumerate(self.buttons):
-                 self.draw_button(i, window_id, button)
-        self.windows[window_id]['textbox'].bind("<Escape>", lambda event: self.master.focus_set())
-        
+                self.draw_button(i, window_id, button)
+        self.windows[window_id]["textbox"].bind("<Escape>", lambda event: self.master.focus_set())
 
     def draw_button(self, row, window_id, button):
-        self.windows[window_id][button] = tk.Label(self.windows[window_id]['frame'], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor='hand2')
+        self.windows[window_id][button] = tk.Label(
+            self.windows[window_id]["frame"], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor="hand2"
+        )
         self.windows[window_id][button].grid(row=row, column=2, padx=5)
-        if button == 'close':
+        if button == "close":
             self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.close_window(_id))
 
     def close_window(self, window_id):
         self.remove_window(window_id)
 
     def remove_window(self, window_id):
-        self.windows[window_id]['frame'].pack_forget()
-        self.windows[window_id]['frame'].destroy()
+        self.windows[window_id]["frame"].pack_forget()
+        self.windows[window_id]["frame"].destroy()
         del self.windows[window_id]
-    
+
     def clear_windows(self):
         for window in self.windows:
             self.remove_window(window)
@@ -127,8 +141,8 @@ class Windows:
             self.master.update_idletasks()
             for window_id in self.windows:
                 window = self.windows[window_id]
-                if 'textbox' in window:
-                    textbox = window['textbox']
+                if "textbox" in window:
+                    textbox = window["textbox"]
                     current_height = textbox.current_height()
                     updated_height = textbox.height()
                     if current_height != updated_height:
@@ -137,30 +151,38 @@ class Windows:
 
 
 class NodeWindows(Windows):
-    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, max_height=10, toggle_tag=None):
+    def __init__(
+        self,
+        callbacks,
+        buttons,
+        buttons_visible=True,
+        nav_icons_visible=True,
+        editable=True,
+        max_height=10,
+        toggle_tag=None,
+    ):
         self.callbacks = callbacks
         self.blacklist = []
         self.whitelist = []
-        #self.buttons_visible = buttons_visible
+        # self.buttons_visible = buttons_visible
         self.nav_icons_visible = nav_icons_visible
         self.editable = editable
         self.max_height = max_height
         self.toggle_tag = toggle_tag
         Windows.__init__(self, buttons, buttons_visible)
 
-    def open_window(self, node, insert='end'):
-        if node['id'] in self.windows:
+    def open_window(self, node, insert="end"):
+        if node["id"] in self.windows:
             return
-        #TODO use text method
-        self.windows[node['id']] = {'node': node}
-        self.build_window(node['id'], node['text'])
-        
+        # TODO use text method
+        self.windows[node["id"]] = {"node": node}
+        self.build_window(node["id"], node["text"])
 
     def build_window(self, window_id, text):
         super().build_window(window_id, text)
-        self.windows[window_id]['textbox'].bind("<FocusOut>", lambda event, _id=window_id: self.save_edits(_id))
-        self.windows[window_id]['textbox'].bind("<Button-1>", lambda event, _id=window_id: self.window_clicked(_id))
-        self.windows[window_id]['textbox'].bind("<Control-e>", lambda event, _id=window_id: self.edit_off(_id))
+        self.windows[window_id]["textbox"].bind("<FocusOut>", lambda event, _id=window_id: self.save_edits(_id))
+        self.windows[window_id]["textbox"].bind("<Button-1>", lambda event, _id=window_id: self.window_clicked(_id))
+        self.windows[window_id]["textbox"].bind("<Control-e>", lambda event, _id=window_id: self.edit_off(_id))
 
         if not self.editable:
             self.edit_off(window_id)
@@ -173,43 +195,56 @@ class NodeWindows(Windows):
     def fix_heights(self):
         for i in range(len(self.windows) - 1):
             self.windows_pane.update_idletasks()
-            self.windows_pane.sashpos(i, 100 * (i+1))
+            self.windows_pane.sashpos(i, 100 * (i + 1))
 
     def draw_nav_icon(self, window_id):
-        icon = self.callbacks["Nav icon"]["callback"](node=self.windows[window_id]['node'])
-        self.windows[window_id]['icon'] = tk.Label(self.windows[window_id]['frame'], image=icon, bg=bg_color(), cursor='hand2')
-        self.windows[window_id]['icon'].grid(row=0, column=0, rowspan=len(self.buttons))
-        self.windows[window_id]['icon'].bind("<Button-1>", lambda event, _id=window_id: self.nav_icon_clicked(_id))
+        icon = self.callbacks["Nav icon"]["callback"](node=self.windows[window_id]["node"])
+        self.windows[window_id]["icon"] = tk.Label(
+            self.windows[window_id]["frame"], image=icon, bg=bg_color(), cursor="hand2"
+        )
+        self.windows[window_id]["icon"].grid(row=0, column=0, rowspan=len(self.buttons))
+        self.windows[window_id]["icon"].bind("<Button-1>", lambda event, _id=window_id: self.nav_icon_clicked(_id))
 
     def nav_icon_clicked(self, window_id):
         if self.toggle_tag:
-            node = self.windows[window_id]['node']
+            node = self.windows[window_id]["node"]
             self.callbacks["Tag"]["callback"](node=node, tag=self.toggle_tag())
             icon = self.callbacks["Nav icon"]["callback"](node=node)
-            self.windows[window_id]['icon'].configure(image=icon)
+            self.windows[window_id]["icon"].configure(image=icon)
 
     def draw_num_descendents(self, window_id):
-        descendents = num_descendents(self.windows[window_id]['node'], filter=lambda node:self.callbacks["In nav"]["callback"](node=node))
+        descendents = num_descendents(
+            self.windows[window_id]["node"], filter=lambda node: self.callbacks["In nav"]["callback"](node=node)
+        )
         color = text_color() if descendents > 1 else ooc_color()
-        self.windows[window_id]['num_descendents'] = tk.Label(self.windows[window_id]['frame'], text=descendents, bg=bg_color(), fg=color)
-        self.windows[window_id]['num_descendents'].grid(row=0, column=3, rowspan=len(self.buttons))
-
+        self.windows[window_id]["num_descendents"] = tk.Label(
+            self.windows[window_id]["frame"], text=descendents, bg=bg_color(), fg=color
+        )
+        self.windows[window_id]["num_descendents"].grid(row=0, column=3, rowspan=len(self.buttons))
 
     def draw_button(self, row, window_id, button):
-        self.windows[window_id][button] = tk.Label(self.windows[window_id]['frame'], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor='hand2')
+        self.windows[window_id][button] = tk.Label(
+            self.windows[window_id]["frame"], image=icons.get_icon(buttons[button]), bg=bg_color(), cursor="hand2"
+        )
         self.windows[window_id][button].grid(row=row, column=2, padx=5)
-        if button == 'go':
+        if button == "go":
             self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.goto_node(_id))
-        elif button == 'edit':
+        elif button == "edit":
             self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.toggle_edit(_id))
-        elif button == 'attach':
-            self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.attach_node(_node))
-        elif button == 'archive':
-            self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.archive_node(_node))
-        elif button == 'close':
+        elif button == "attach":
+            self.windows[window_id][button].bind(
+                "<Button-1>", lambda event, _node=self.windows[window_id]["node"]: self.attach_node(_node)
+            )
+        elif button == "archive":
+            self.windows[window_id][button].bind(
+                "<Button-1>", lambda event, _node=self.windows[window_id]["node"]: self.archive_node(_node)
+            )
+        elif button == "close":
             self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.close_window(_id))
-        elif button == 'delete':
-            self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.delete_node(_node))
+        elif button == "delete":
+            self.windows[window_id][button].bind(
+                "<Button-1>", lambda event, _node=self.windows[window_id]["node"]: self.delete_node(_node)
+            )
 
     def hide_buttons(self):
         for window_id in self.windows:
@@ -221,47 +256,42 @@ class NodeWindows(Windows):
         self.blacklist.append(window_id)
 
     def window_clicked(self, window_id):
-        if self.windows[window_id]['textbox'].cget("state") == 'disabled':
+        if self.windows[window_id]["textbox"].cget("state") == "disabled":
             self.goto_node(window_id)
 
     def goto_node(self, node_id):
-        node = self.windows[node_id]['node']
+        node = self.windows[node_id]["node"]
         self.callbacks["Select node"]["callback"](node=node)
 
     def save_edits(self, window_id, reset_height=True):
         # why does this cause all windows to reload?
-        node = self.windows[window_id]['node']
-        new_text = self.windows[window_id]['textbox'].get("1.0", 'end-1c')
+        node = self.windows[window_id]["node"]
+        new_text = self.windows[window_id]["textbox"].get("1.0", "end-1c")
         self.callbacks["Update text"]["callback"](node=node, text=new_text)
         if reset_height:
-            self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
+            self.windows[window_id]["textbox"].reset_height(max_height=self.max_height)
 
     def save_windows(self):
         for window_id in self.windows:
             self.save_edits(window_id, reset_height=False)
 
     def edit_off(self, window_id):
-        if self.windows[window_id]['textbox'].cget("state") == "normal":
-            self.windows[window_id]['textbox'].configure(state='disabled', 
-                                                        background=bg_color(),
-                                                        relief=tk.RAISED)
+        if self.windows[window_id]["textbox"].cget("state") == "normal":
+            self.windows[window_id]["textbox"].configure(state="disabled", background=bg_color(), relief=tk.RAISED)
             self.save_edits(window_id)
 
     def edit_on(self, window_id):
-        if self.windows[window_id]['textbox'].cget("state") == "disabled":
-            self.windows[window_id]['textbox'].configure(state='normal', 
-                                                         background=edit_color(),
-                                                         relief=tk.SUNKEN)
-        
+        if self.windows[window_id]["textbox"].cget("state") == "disabled":
+            self.windows[window_id]["textbox"].configure(state="normal", background=edit_color(), relief=tk.SUNKEN)
 
     def toggle_edit(self, window_id):
-        if self.windows[window_id]['textbox'].cget('state') == 'disabled':
+        if self.windows[window_id]["textbox"].cget("state") == "disabled":
             self.edit_on(window_id)
         else:
             self.edit_off(window_id)
 
     def focus_textbox(self, window_id):
-        self.windows[window_id]['textbox'].focus_set()
+        self.windows[window_id]["textbox"].focus_set()
 
     def attach_node(self, node):
         pass
@@ -272,11 +302,13 @@ class NodeWindows(Windows):
     def delete_node(self, node):
         self.callbacks["Delete"]["callback"](node=node)
 
-    def update_windows(self, nodes, insert='end'):
-        new_windows, deleted_windows = react_changes(old_components=self.windows.keys(), new_components=[node['id'] for node in nodes])
+    def update_windows(self, nodes, insert="end"):
+        new_windows, deleted_windows = react_changes(
+            old_components=self.windows.keys(), new_components=[node["id"] for node in nodes]
+        )
         for window_id in deleted_windows:
             self.remove_window(window_id)
-        new_nodes = [node for node in nodes if node['id'] in new_windows and node['id'] not in self.blacklist]
+        new_nodes = [node for node in nodes if node["id"] in new_windows and node["id"] not in self.blacklist]
         for node in new_nodes:
             self.open_window(node, insert=insert)
         if new_nodes:
@@ -284,18 +316,19 @@ class NodeWindows(Windows):
             self.scroll_frame.canvas.configure(scrollregion=self.scroll_frame.canvas.bbox("all"))
             self.scroll_frame.canvas.yview_moveto(1)
 
-
     def update_text(self):
         for window_id in self.windows:
             changed_edit = False
-            if self.windows[window_id]['textbox'].cget('state') == 'disabled':
-                self.windows[window_id]['textbox'].configure(state='normal')
+            if self.windows[window_id]["textbox"].cget("state") == "disabled":
+                self.windows[window_id]["textbox"].configure(state="normal")
                 changed_edit = True
-            self.windows[window_id]['textbox'].delete("1.0", "end")
-            self.windows[window_id]['textbox'].insert("1.0", self.callbacks["Text"]["callback"](node_id=window_id, raw=True))
+            self.windows[window_id]["textbox"].delete("1.0", "end")
+            self.windows[window_id]["textbox"].insert(
+                "1.0", self.callbacks["Text"]["callback"](node_id=window_id, raw=True)
+            )
             if changed_edit:
-                self.windows[window_id]['textbox'].configure(state='disabled')
-            self.windows[window_id]['textbox'].reset_height(max_height=self.max_height)
+                self.windows[window_id]["textbox"].configure(state="disabled")
+            self.windows[window_id]["textbox"].reset_height(max_height=self.max_height)
 
 
 class Thumbnails:
@@ -309,7 +342,7 @@ class Thumbnails:
     def body(self, master, height=400):
         self.master = master
         self.scroll_frame = ScrollableFrame(master, width=110, height=height)
-        self.scroll_frame.pack(side='top', fill='both', expand=True)
+        self.scroll_frame.pack(side="top", fill="both", expand=True)
 
     def get_thumbnail(self, filename):
         # open image
@@ -324,19 +357,27 @@ class Thumbnails:
         if filename not in self.thumbnails:
             image = self.get_thumbnail(filename)
             self.thumbnails[filename] = {}
-            self.thumbnails[filename]['thumbnail'] = tk.Label(self.scroll_frame.scrollable_frame, image=image, bg="white", cursor='hand2', width=100, bd=5)
-            self.thumbnails[filename]['thumbnail'].image = image
-            self.thumbnails[filename]['thumbnail'].bind("<Button-1>", lambda event, filename=filename: self.select(filename=filename))
-            self.thumbnails[filename]['thumbnail'].pack(side='top', pady=5, padx=5)
+            self.thumbnails[filename]["thumbnail"] = tk.Label(
+                self.scroll_frame.scrollable_frame, image=image, bg="white", cursor="hand2", width=100, bd=5
+            )
+            self.thumbnails[filename]["thumbnail"].image = image
+            self.thumbnails[filename]["thumbnail"].bind(
+                "<Button-1>", lambda event, filename=filename: self.select(filename=filename)
+            )
+            self.thumbnails[filename]["thumbnail"].pack(side="top", pady=5, padx=5)
             self.build_menu(filename)
-            self.thumbnails[filename]['thumbnail'].bind("<Button-3>", lambda event, filename=filename: self.do_popup(event, filename=filename))
+            self.thumbnails[filename]["thumbnail"].bind(
+                "<Button-3>", lambda event, filename=filename: self.do_popup(event, filename=filename)
+            )
 
     def build_menu(self, filename):
-        self.thumbnails[filename]['menu'] = tk.Menu(self.master, tearoff=0)
-        self.thumbnails[filename]['menu'].add_command(label="Select", command=lambda filename=filename: self.select(filename=filename)) 
+        self.thumbnails[filename]["menu"] = tk.Menu(self.master, tearoff=0)
+        self.thumbnails[filename]["menu"].add_command(
+            label="Select", command=lambda filename=filename: self.select(filename=filename)
+        )
 
     def do_popup(self, event, filename):
-        self.thumbnails[filename]['menu'].tk_popup(event.x_root, event.y_root)
+        self.thumbnails[filename]["menu"].tk_popup(event.x_root, event.y_root)
         # try:
         #     self.thumbnails[filename]['menu'].tk_popup(event.x_root, event.y_root)
         # finally:
@@ -344,12 +385,12 @@ class Thumbnails:
 
     def remove_thumbnail(self, filename):
         if filename in self.thumbnails:
-            self.thumbnails[filename]['thumbnail'].destroy()
+            self.thumbnails[filename]["thumbnail"].destroy()
             del self.thumbnails[filename]
 
     def clear(self):
         for filename in self.thumbnails:
-            self.thumbnails[filename]['thumbnail'].destroy()
+            self.thumbnails[filename]["thumbnail"].destroy()
         self.thumbnails = {}
 
     def update_thumbnails(self, image_files):
@@ -365,9 +406,9 @@ class Thumbnails:
         self.selection_callback(filename=filename)
 
     def set_selection(self, filename):
-        self.thumbnails[self.selected_file]['thumbnail'].configure(relief="flat")
+        self.thumbnails[self.selected_file]["thumbnail"].configure(relief="flat")
         self.selected_file = filename
-        self.thumbnails[filename]['thumbnail'].configure(relief="sunken")
+        self.thumbnails[filename]["thumbnail"].configure(relief="sunken")
 
     def scroll_to_selected(self):
         pass
@@ -395,12 +436,12 @@ class Multimedia:
         self.thumbnails_frame = None
         self.callbacks = callbacks
         self.state = state
-    
+
     def body(self, master):
         self.master = master
-        #button = create_button(master, "Add media", self.add_media)
-        #button.grid(row=1, column=1, sticky='w')
-        #tk.Grid.rowconfigure(master, 0, weight=1)
+        # button = create_button(master, "Add media", self.add_media)
+        # button.grid(row=1, column=1, sticky='w')
+        # tk.Grid.rowconfigure(master, 0, weight=1)
         tk.Grid.rowconfigure(master, 2, weight=1)
         tk.Grid.columnconfigure(master, 1, weight=1)
         self.thumbnails_frame = tk.Frame(self.master)
@@ -420,32 +461,36 @@ class Multimedia:
 
     def populate_thumbnails(self):
         self.thumbnails.clear()
-        if 'multimedia' in self.state.selected_node:
-            self.thumbnails.update_thumbnails([media['file'] for media in self.state.selected_node['multimedia']])
+        if "multimedia" in self.state.selected_node:
+            self.thumbnails.update_thumbnails([media["file"] for media in self.state.selected_node["multimedia"]])
 
     def num_media(self):
-        if 'multimedia' in self.state.selected_node:
-            return len(self.state.selected_node['multimedia'])
+        if "multimedia" in self.state.selected_node:
+            return len(self.state.selected_node["multimedia"])
         else:
             return 0
 
     def create_image(self):
-        img = tk.PhotoImage(file='static/media/black.png')
+        img = tk.PhotoImage(file="static/media/black.png")
         self.img = tk.Label(self.master, image=img, bg="white")
         self.img.grid(row=0, column=1)
-        self.caption = tk.Label(self.master, text='', bg=default_color())
+        self.caption = tk.Label(self.master, text="", bg=default_color())
         self.caption.grid(row=1, column=0, columnspan=3)
         self.selected_node_text = TextAware(self.master)
-        self.selected_node_text.config(state='disabled', **textbox_config())
+        self.selected_node_text.config(state="disabled", **textbox_config())
         self.selected_node_text.grid(row=2, column=0, columnspan=4)
-        #self.viewing = tk.Label(self.master, text=f"{self.n + 1} / {self.num_media()}", bg=default_color())
-        #self.viewing.grid(row=3, column=1)
+        # self.viewing = tk.Label(self.master, text=f"{self.n + 1} / {self.num_media()}", bg=default_color())
+        # self.viewing.grid(row=3, column=1)
 
     def create_buttons(self):
-        self.prev_button = tk.Label(self.master, image=icons.get_icon("left-white", size=25), bg=bg_color(), cursor="hand2")
+        self.prev_button = tk.Label(
+            self.master, image=icons.get_icon("left-white", size=25), bg=bg_color(), cursor="hand2"
+        )
         self.prev_button.grid(row=0, column=0)
         self.prev_button.bind("<Button-1>", lambda event: self.traverse(1))
-        self.next_button = tk.Label(self.master, image=icons.get_icon("right-white", size=25), bg=bg_color(), cursor="hand2")
+        self.next_button = tk.Label(
+            self.master, image=icons.get_icon("right-white", size=25), bg=bg_color(), cursor="hand2"
+        )
         self.next_button.grid(row=0, column=2)
         self.next_button.bind("<Button-1>", lambda event: self.traverse(-1))
         # self.next_button = create_button(self.master, "Next", lambda: self.traverse(1))
@@ -485,14 +530,14 @@ class Multimedia:
             # self.caption_button["state"] = "disabled"
 
     def set_node_text(self):
-        self.selected_node_text.config(state='normal')
+        self.selected_node_text.config(state="normal")
         self.selected_node_text.delete("1.0", "end")
         self.selected_node_text.insert("1.0", self.callbacks["Text"]["callback"](node_id=self.state.selected_node_id))
-        self.selected_node_text.config(state='disabled')
+        self.selected_node_text.config(state="disabled")
 
     def change_caption(self):
         if self.num_media() > 0:
-            self.state.selected_node['multimedia'][self.n]['caption'] = 'new caption'
+            self.state.selected_node["multimedia"][self.n]["caption"] = "new caption"
             self.display_image()
 
     # def repair_type(self):
@@ -512,30 +557,30 @@ class Multimedia:
             self.create_image()
         if self.num_media() > 0:
             try:
-                #self.repair_type()
-                img = tk.PhotoImage(file=self.state.selected_node['multimedia'][self.n]['file'])
-                caption = self.state.selected_node['multimedia'][self.n]['caption']
+                # self.repair_type()
+                img = tk.PhotoImage(file=self.state.selected_node["multimedia"][self.n]["file"])
+                caption = self.state.selected_node["multimedia"][self.n]["caption"]
             except tk.TclError:
                 return
             self.img.configure(image=img)
             self.img.image = img
             self.caption.configure(text=caption)
-            #self.viewing.configure(text=f"{self.n + 1} / {self.num_media()}")
+            # self.viewing.configure(text=f"{self.n + 1} / {self.num_media()}")
         else:
             try:
                 self.img.image.blank()
                 self.img.image = None
-                self.caption.configure(text='')
+                self.caption.configure(text="")
             except AttributeError:
                 return
 
     def add_media(self):
         tree_dir = self.state.tree_dir()
         # if media folder not in tree directory, create it
-        if not os.path.isdir(tree_dir + '/media'):
-            os.mkdir(tree_dir + '/media')
+        if not os.path.isdir(tree_dir + "/media"):
+            os.mkdir(tree_dir + "/media")
         options = {
-            'initialdir': tree_dir + '/media',
+            "initialdir": tree_dir + "/media",
         }
         filenames = filedialog.askopenfilenames(**options)
         if not filenames:
@@ -546,7 +591,7 @@ class Multimedia:
         self.set_buttons()
 
     def delete_media(self):
-        del self.state.selected_node['multimedia'][self.n]
+        del self.state.selected_node["multimedia"][self.n]
         if self.n != 0:
             self.n -= 1
         self.populate_thumbnails()
@@ -560,32 +605,36 @@ class Multimedia:
 
     def shift(self, interval):
         new_index = (self.n + interval) % self.num_media()
-        self.state.selected_node['multimedia'][self.n], self.state.selected_node['multimedia'][new_index] = self.state.selected_node['multimedia'][new_index],\
-                                                                              self.state.selected_node['multimedia'][self.n]
+        self.state.selected_node["multimedia"][self.n], self.state.selected_node["multimedia"][new_index] = (
+            self.state.selected_node["multimedia"][new_index],
+            self.state.selected_node["multimedia"][self.n],
+        )
         self.n = new_index
         self.display_image()
         self.set_buttons()
 
     def select_file(self, filename, *args):
-        filename_list = [media['file'] for media in self.state.selected_node['multimedia']]
+        filename_list = [media["file"] for media in self.state.selected_node["multimedia"]]
         self.n = filename_list.index(filename)
         self.display_image()
         self.set_buttons()
-        
+
 
 class CollapsableFrame(tk.Frame):
-    def __init__(self, master, image='', title='', expand=True, **kwargs):
+    def __init__(self, master, image="", title="", expand=True, **kwargs):
         tk.Frame.__init__(self, master, **kwargs)
-        #self.master = master
+        # self.master = master
         self.expand = expand
-        if title or image: 
-            self.title = tk.Label(self, text=title, image=image, compound='left', bg=bg_color(), fg=text_color())
-            self.title.grid(row=0, column=0, sticky='w')
-        self.hide_button = tk.Label(self, text="-", cursor="hand2", fg=text_color(), bg=bg_color(), font=("Helvetica", 16))
+        if title or image:
+            self.title = tk.Label(self, text=title, image=image, compound="left", bg=bg_color(), fg=text_color())
+            self.title.grid(row=0, column=0, sticky="w")
+        self.hide_button = tk.Label(
+            self, text="-", cursor="hand2", fg=text_color(), bg=bg_color(), font=("Helvetica", 16)
+        )
         self.hide_button.grid(row=0, column=2)
         self.hide_button.bind("<Button-1>", lambda event: self.toggle())
         self.collapsable_frame = tk.Frame(self)
-        self.collapsable_frame.grid(row=1, column=0, columnspan=3, sticky='nsew')
+        self.collapsable_frame.grid(row=1, column=0, columnspan=3, sticky="nsew")
         tk.Grid.columnconfigure(self, 0, weight=1)
         if self.expand:
             tk.Grid.rowconfigure(self, 1, weight=1)
@@ -600,7 +649,7 @@ class CollapsableFrame(tk.Frame):
     def show(self):
         self.update_idletasks()
         if not self.collapsable_frame.winfo_ismapped():
-            self.collapsable_frame.grid(row=1, column=0, columnspan=3, sticky='nsew')
+            self.collapsable_frame.grid(row=1, column=0, columnspan=3, sticky="nsew")
             self.hide_button.configure(text="-")
             if self.expand:
                 self.pack_configure(expand=True)
@@ -610,7 +659,7 @@ class CollapsableFrame(tk.Frame):
             self.hide()
         else:
             self.show()
-        
+
 
 class LoomTerminal(TextAware):
     """
@@ -620,18 +669,18 @@ class LoomTerminal(TextAware):
         replace_range: [start, end]
     }
     """
+
     def __init__(self, *args, **kwargs):
         TextAware.__init__(self, undo=True, *args, **kwargs)
-        
+
         self.bind("<Key>", self.key_pressed)
-        #self.bind("<Button>", lambda event: self.focus_set())
-        #self.bind("<Button>", self.button_pressed)
+        # self.bind("<Button>", lambda event: self.focus_set())
+        # self.bind("<Button>", self.button_pressed)
         self.bind("<Escape>", self.clear_temp_tags)
-        #self.bind("<Button-1>", lambda event: self.clear_temp_tags())
+        # self.bind("<Button-1>", lambda event: self.clear_temp_tags())
         self.tag_configure("sel", background="black", foreground="white")
         self.tag_configure("insert", background="black", foreground="white")
-        self.tag_configure("alternate", background="#222222", foreground="white",
-                           font=('Georgia', 12, 'italic'))
+        self.tag_configure("alternate", background="#222222", foreground="white", font=("Georgia", 12, "italic"))
         self.tag_raise("sel")
         self.tag_raise("insert")
 
@@ -647,14 +696,14 @@ class LoomTerminal(TextAware):
 
     def button_pressed(self, event):
         pass
-    
+
     def clear_temp_tags(self, event):
         self.tag_remove("insert", "1.0", "end")
         self.tag_remove("alternate", "1.0", "end")
 
     def select_range(self, start, end):
         self.tag_range("sel", start, end)
-    
+
     def tag_range(self, tag, start, end):
         self.tag_remove(tag, "1.0", tk.END)
         self.tag_add(tag, f"1.0 + {start} chars", f"1.0 + {end} chars")
@@ -701,8 +750,17 @@ class LoomTerminal(TextAware):
         if self.get(f"{position}-1c") == " ":
             return f"{position}-1c"
         # if the next character is punctuation or space, move to next position, unless current char is punctuation
-        if self.get(position) not in ("\n", ",", ".", ";", ":", "!", "?", "-") and \
-                self.get(f"{position}+1c") in (" ", "\n", ",", ".", ";", ":", "!", "?", "-"):
+        if self.get(position) not in ("\n", ",", ".", ";", ":", "!", "?", "-") and self.get(f"{position}+1c") in (
+            " ",
+            "\n",
+            ",",
+            ".",
+            ";",
+            ":",
+            "!",
+            "?",
+            "-",
+        ):
             return f"{position}+1c"
         return position
 
@@ -742,20 +800,20 @@ class LoomTerminal(TextAware):
             self.insert(f"1.0 + {start} chars", new_text)
         if changed_state:
             self.configure(state="disabled")
-        self.fix_ranges(start=start, old_end=end, new_end=start+len(new_text))
+        self.fix_ranges(start=start, old_end=end, new_end=start + len(new_text))
 
     def selected_inputs(self):
         inputs = {}
-        inputs['past_context'] = self.get("1.0", "sel.first")
-        inputs['input'] = self.selected_text()
-        inputs['future_context'] = self.get("sel.last", "end")
+        inputs["past_context"] = self.get("1.0", "sel.first")
+        inputs["input"] = self.selected_text()
+        inputs["future_context"] = self.get("sel.last", "end")
         return inputs
 
     def alt_dropdown(self, alt_dict, show_probs=True):
-        start_pos = alt_dict['replace_range'][0]
-        end_pos = alt_dict['replace_range'][1]
+        start_pos = alt_dict["replace_range"][0]
+        end_pos = alt_dict["replace_range"][1]
         # select range
-        #self.select_range(start_pos, end_pos)
+        # self.select_range(start_pos, end_pos)
         self.tag_range("alternate", start_pos, end_pos)
         # get x y coordinates of start_pos
         start_index = self.index(f"1.0 + {start_pos} chars")
@@ -767,38 +825,38 @@ class LoomTerminal(TextAware):
         menu = tk.Menu(self, tearoff=0)
 
         current_text = self.get(f"1.0 + {start_pos} chars", f"1.0 + {end_pos} chars")
-        
-        for alt in alt_dict['alts']:
-            text = repr(alt['text'])
-            color = "blue" if text == current_text else "white"
-            if 'prob' in alt and show_probs:
-                text += f" ({alt['prob']:.3f})"
-            menu.add_command(label=text, foreground=color, background=bg_color(),
-                             command=lambda alt=alt: self.replace_range(start_pos, 
-                                                                        end_pos, 
-                                                                        alt['text'],
-                                                                        tag="alternate"))
 
-        #menu.add_separator()
+        for alt in alt_dict["alts"]:
+            text = repr(alt["text"])
+            color = "blue" if text == current_text else "white"
+            if "prob" in alt and show_probs:
+                text += f" ({alt['prob']:.3f})"
+            menu.add_command(
+                label=text,
+                foreground=color,
+                background=bg_color(),
+                command=lambda alt=alt: self.replace_range(start_pos, end_pos, alt["text"], tag="alternate"),
+            )
+
+        # menu.add_separator()
         # display current text
 
         menu.tk_popup(x, y)
-    
+
     def fix_ranges(self, start, old_end, new_end):
         """
         fix text ranges for alternatives after a substitution.
         """
         shift = new_end - old_end
         for alt in self.alternatives:
-            if alt['replace_range'][0] > start:
-                alt['replace_range'][0] += shift
-            if alt['replace_range'][1] >= start:
-                alt['replace_range'][1] += shift
-
+            if alt["replace_range"][0] > start:
+                alt["replace_range"][0] += shift
+            if alt["replace_range"][1] >= start:
+                alt["replace_range"][1] += shift
 
     def get_alt_dict(self, position):
         for alt_dict in self.alternatives:
-            if alt_dict['replace_range'][0] <= position <= alt_dict['replace_range'][1]:
+            if alt_dict["replace_range"][0] <= position <= alt_dict["replace_range"][1]:
                 return alt_dict
         return None
 
@@ -811,7 +869,7 @@ class LoomTerminal(TextAware):
         return False
 
     def inline_generate(self, generation_settings, config):
-        prompt_length = generation_settings['prompt_length']
+        prompt_length = generation_settings["prompt_length"]
         if self.tag_ranges("sel"):
             self.fix_selection()
             prompt = self.get("1.0", "sel.first")[-prompt_length:]
@@ -821,7 +879,9 @@ class LoomTerminal(TextAware):
             text = self.get("1.0", "insert")
             prompt = text[-prompt_length:]
             selected_range = [len(text), len(text)]
-        threading.Thread(target=self.call_model_inline, args=(prompt, generation_settings, selected_range, config)).start()
+        threading.Thread(
+            target=self.call_model_inline, args=(prompt, generation_settings, selected_range, config)
+        ).start()
 
     def call_model_inline(self, prompt, settings, selected_range, model_config):
         response, error = gen(prompt, settings, model_config)
@@ -831,33 +891,37 @@ class LoomTerminal(TextAware):
         inline_completions = [completion for completion in response_text_list if completion]
         current_text = self.get_range(selected_range[0], selected_range[1])
         inline_completions.insert(0, current_text)
-        self.completion_index = 0        
-        completions_dict = {'alts': [{'text': completion} for completion in inline_completions],
-                            'replace_range': [selected_range[0], selected_range[1]]}
+        self.completion_index = 0
+        completions_dict = {
+            "alts": [{"text": completion} for completion in inline_completions],
+            "replace_range": [selected_range[0], selected_range[1]],
+        }
         self.alternatives.append(completions_dict)
         self.inline_completions = completions_dict
-        #self.inserted_range = None
+        # self.inserted_range = None
         self.tag_remove("alternate", "1.0", tk.END)
         self.insert_inline_completion()
 
     def call_model_prompt(self, prompt, settings, model_config):
         eval_settings = settings.copy()
-        eval_settings.update({'max_tokens': 1, 'num_continuations': 1, 'logprobs': 15})
+        eval_settings.update({"max_tokens": 1, "num_continuations": 1, "logprobs": 15})
         response, error = gen(prompt, eval_settings, model_config)
         # enable eval button
-        #self.eval_prompt_button.configure(state='normal')
+        # self.eval_prompt_button.configure(state='normal')
         self.model_response = response
         self.process_logprobs()
 
     def insert_inline_completion(self, step=1):
         if self.inline_completions:
             self.completion_index += step
-            completion = self.inline_completions['alts'][self.completion_index % len(self.inline_completions['alts'])]['text']
-            repl = self.inline_completions['replace_range']
-            self.replace_range(repl[0], repl[1], completion, "alternate")        
+            completion = self.inline_completions["alts"][self.completion_index % len(self.inline_completions["alts"])][
+                "text"
+            ]
+            repl = self.inline_completions["replace_range"]
+            self.replace_range(repl[0], repl[1], completion, "alternate")
 
     def inline_to_children(self):
-        # splits node at insertion position and 
+        # splits node at insertion position and
         # turns inline completion alternatives into separate children of the parent node
         # default option is kept with the second part of the split
         # TODO move to display
@@ -865,25 +929,32 @@ class LoomTerminal(TextAware):
 
     def process_logprobs(self):
         self.alternatives = []
-        if "tokens" in self.model_response['prompt']:
+        if "tokens" in self.model_response["prompt"]:
             # check if prompt is shorter than text in textbox
-            prompt_length = len(self.model_response['prompt']['text'])
+            prompt_length = len(self.model_response["prompt"]["text"])
             textbox_length = len(self.get("1.0", "end-1c"))
             diff = textbox_length - prompt_length
-            if self.model_response['prompt']['tokens']:
-                for token_data in self.model_response['prompt']['tokens']:
-                    #print(token_data)
-                    if 'counterfactuals' in token_data and token_data['counterfactuals']:
-                        alt_dict = {'alts': [],
-                                    'replace_range': [token_data['position']['start'] + diff, token_data['position']['end'] + diff],}
-                        #sorted_counterfactuals = {k: v for k, v in sorted(token_data['counterfactuals'].items(), key=lambda item: item[1], reverse=True)}
-                        for token, prob in token_data['counterfactuals'].items():
-                            alt_dict['alts'].append({'text': token, 'logprob': prob, 'prob': logprobs_to_probs(prob)})
+            if self.model_response["prompt"]["tokens"]:
+                for token_data in self.model_response["prompt"]["tokens"]:
+                    # print(token_data)
+                    if "counterfactuals" in token_data and token_data["counterfactuals"]:
+                        alt_dict = {
+                            "alts": [],
+                            "replace_range": [
+                                token_data["position"]["start"] + diff,
+                                token_data["position"]["end"] + diff,
+                            ],
+                        }
+                        # sorted_counterfactuals = {k: v for k, v in sorted(token_data['counterfactuals'].items(), key=lambda item: item[1], reverse=True)}
+                        for token, prob in token_data["counterfactuals"].items():
+                            alt_dict["alts"].append({"text": token, "logprob": prob, "prob": logprobs_to_probs(prob)})
                         self.alternatives.append(alt_dict)
+
 
 #################################
 #   Settings
 #################################
+
 
 class Settings:
     def __init__(self, orig_params, realtime_update=False, parent_module=None):
@@ -904,7 +975,7 @@ class Settings:
         for key in self.vars.keys():
             self.vars[key] = self.vars[key](value=self.orig_params[key])
             self.vars[key].trace("w", lambda a, b, c, key=key: self.set_var(key=key))
-    
+
     def set_var(self, key):
         if self.realtime_update:
             self.write()
@@ -918,13 +989,13 @@ class Settings:
             self.vars[key].set(self.orig_params[key])
 
     def key_pressed(self, event):
-        if event.keysym == 'Tab' or event.keysym == 'Return':
+        if event.keysym == "Tab" or event.keysym == "Return":
             self.frame.focus()
             return "break"
 
     def create_textbox(self, name, label_text=None):
         row = self.frame.grid_size()[1]
-        label_text = label_text if label_text else name + ' text'
+        label_text = label_text if label_text else name + " text"
         create_side_label(self.frame, label_text, row)
         self.textboxes[name] = TextAware(self.frame, height=1, width=20, undo=True)
         self.textboxes[name].grid(row=row, column=1)
@@ -935,7 +1006,6 @@ class Settings:
 
     def get_text(self, key):
         self.vars[key].set(self.textboxes[key].get(1.0, "end-1c"))
-
 
     def create_dropdown(self, var, label_text, options):
         row = self.frame.grid_size()[1]
@@ -964,7 +1034,7 @@ class FrameSettings(Settings):
         else:
             self.updates[key] = self.vars[key].get()
         Settings.set_var(self, key)
-        
+
     def unpin_var(self, key):
         # unpin button
         # reset var to original value
@@ -994,15 +1064,15 @@ class FrameSettings(Settings):
 
     def write_user_frame(self):
         # write updates to user state
-        #print('writing user frame')
-        #print(self.updates)
+        # print('writing user frame')
+        # print(self.updates)
         self.state.set_user_frame_partial(value=self.updates, path=self.settings_path)
 
     def write_to_frame(self):
         # write updates to node frame and remove pins & remove from user state
         self.state.set_frame_partial(node=self.state.selected_node, value=self.updates, path=self.settings_path)
         self.read_orig_params()
-        #Settings.reset_vars(self)
+        # Settings.reset_vars(self)
         for key in self.vars.keys():
             self.vars[key].set(self.orig_params[key])
         self.updates = {}
@@ -1031,8 +1101,9 @@ class FrameSettings(Settings):
 
     def build_pin_button(self, key, row=None):
         row = row if row else self.frame.grid_size()[1] - 1
-        self.pin_buttons[key] = tk.Label(self.frame, image=icons.get_icon("square-black"),
-                                         cursor="hand2", bg=bg_color())
+        self.pin_buttons[key] = tk.Label(
+            self.frame, image=icons.get_icon("square-black"), cursor="hand2", bg=bg_color()
+        )
         self.pin_buttons[key].grid(row=row, column=2)
         self.pin_buttons[key].bind("<Button-1>", lambda event, key=key: self.toggle_pin(key))
 
@@ -1046,14 +1117,14 @@ class ExportOptions(Settings):
     def __init__(self, orig_params, realtime_update=False, parent_module=None):
         Settings.__init__(self, orig_params, realtime_update, parent_module)
         self.vars = {
-            'subtree_only': tk.BooleanVar,
-            'visible_only': tk.BooleanVar,
-            'root_frame': tk.BooleanVar,
-            'frame': tk.BooleanVar,
-            'tags': tk.BooleanVar,
-            'text_attributes': tk.BooleanVar,
-            'multimedia': tk.BooleanVar,
-            'chapter_id': tk.BooleanVar
+            "subtree_only": tk.BooleanVar,
+            "visible_only": tk.BooleanVar,
+            "root_frame": tk.BooleanVar,
+            "frame": tk.BooleanVar,
+            "tags": tk.BooleanVar,
+            "text_attributes": tk.BooleanVar,
+            "multimedia": tk.BooleanVar,
+            "chapter_id": tk.BooleanVar,
         }
 
     def body(self, master):
@@ -1074,24 +1145,20 @@ class Preferences(FrameSettings):
         FrameSettings.__init__(self, orig_params, user_params, ["preferences"], state, realtime_update, parent_module)
         self.vars = {
             "reverse": tk.BooleanVar,
-
             "nav_tag": tk.StringVar,
             "walk": tk.StringVar,
-
             "editable": tk.BooleanVar,
             "bold_prompt": tk.BooleanVar,
             "coloring": tk.StringVar,
             "font_size": tk.IntVar,
             "line_spacing": tk.IntVar,
             "paragraph_spacing": tk.IntVar,
-
             "autosave": tk.BooleanVar,
             "revision_history": tk.BooleanVar,
             "model_response": tk.StringVar,
-            
             "prob": tk.BooleanVar,
         }
-        #self.write_to_frame_button = None
+        # self.write_to_frame_button = None
         self.init_vars()
 
     def body(self, master):
@@ -1106,7 +1173,7 @@ class Preferences(FrameSettings):
         self.create_dropdown("nav_tag", "A/D to navigate tag", self.state.tags.keys())
         self.build_pin_button("nav_tag")
 
-        self.create_dropdown("walk", "Walk", ['descendents', 'leaves', 'uniform'])
+        self.create_dropdown("walk", "Walk", ["descendents", "leaves", "uniform"])
         self.build_pin_button("walk")
 
         create_label(self.frame, "Story frame")
@@ -1117,7 +1184,7 @@ class Preferences(FrameSettings):
         create_checkbutton(self.frame, "Bold prompt", "bold_prompt", self.vars)
         self.build_pin_button("bold_prompt")
 
-        self.create_dropdown("coloring", "Text coloring", ['edit', 'read', 'none'])
+        self.create_dropdown("coloring", "Text coloring", ["edit", "read", "none"])
         self.build_pin_button("coloring")
 
         create_slider(self.frame, "Font size", self.vars["font_size"], (5, 20))
@@ -1137,11 +1204,11 @@ class Preferences(FrameSettings):
         create_checkbutton(self.frame, "Revision history", "revision_history", self.vars)
         self.build_pin_button("revision_history")
 
-        self.create_dropdown("model_response", "Save model response?", ['backup', 'save', 'discard'])
+        self.create_dropdown("model_response", "Save model response?", ["backup", "save", "discard"])
         self.build_pin_button("model_response")
 
         create_label(self.frame, "Generation")
-        
+
         create_checkbutton(self.frame, "Show logprobs as probs", "prob", self.vars)
         self.build_pin_button("prob")
 
@@ -1150,40 +1217,43 @@ class Preferences(FrameSettings):
         # self.write_to_frame_button.grid(row=self.frame.grid_size()[1], column=1, pady=3)
 
         self.set_pins()
-    
+
 
 def generation_settings_init(self):
     self.vars = {
-            "model": tk.StringVar,
-            'num_continuations': tk.IntVar,
-            'temperature': tk.DoubleVar,
-            'top_p': tk.DoubleVar,
-            'response_length': tk.IntVar,
-            'prompt_length': tk.IntVar,
-            'logprobs': tk.IntVar,
-            'stop': tk.StringVar,
-            'logit_bias': tk.StringVar,
-        }
-    self.textboxes = {'stop': None,
-                    'logit_bias': None}
+        "model": tk.StringVar,
+        "num_continuations": tk.IntVar,
+        "temperature": tk.DoubleVar,
+        "top_p": tk.DoubleVar,
+        "response_length": tk.IntVar,
+        "prompt_length": tk.IntVar,
+        "logprobs": tk.IntVar,
+        "stop": tk.StringVar,
+        "logit_bias": tk.StringVar,
+    }
+    self.textboxes = {"stop": None, "logit_bias": None}
     self.init_vars()
 
 
 def full_generation_settings_init(self):
     additional_vars = {
-            'start': tk.StringVar,
-            'restart': tk.StringVar,
-            'global_context': tk.StringVar,
-            'template': tk.StringVar,
-            #'post_template': tk.StringVar,
-            'preset': tk.StringVar,
-        }
+        "start": tk.StringVar,
+        "restart": tk.StringVar,
+        "global_context": tk.StringVar,
+        "template": tk.StringVar,
+        #'post_template': tk.StringVar,
+        "preset": tk.StringVar,
+    }
     for key in additional_vars.keys():
         self.vars[key] = additional_vars[key](value=self.orig_params[key])
         self.vars[key].trace("w", lambda a, b, c, key=key: self.set_var(key=key))
-    
-    self.textboxes.update({'start': None,
-                            'restart': None,})
+
+    self.textboxes.update(
+        {
+            "start": None,
+            "restart": None,
+        }
+    )
 
     self.context_textbox = None
     self.template_label = None
@@ -1192,20 +1262,20 @@ def full_generation_settings_init(self):
 
 
 def generation_settings_body(self, build_pins=False):
-    create_combo_box(self.frame, "model", self.vars["model"], list(self.state.model_config['models'].keys()), width=15)
+    create_combo_box(self.frame, "model", self.vars["model"], list(self.state.model_config["models"].keys()), width=15)
     if build_pins:
         self.build_pin_button("model")
 
     int_sliders = {
-        'num_continuations': (1, 20),
-        'response_length': (1, 1000),
-        'prompt_length': (100, 7000),
-        'logprobs': (0, 100),
+        "num_continuations": (1, 20),
+        "response_length": (1, 1000),
+        "prompt_length": (100, 7000),
+        "logprobs": (0, 100),
     }
 
     sliders = {
-        'temperature': (0., 1.),
-        'top_p': (0., 1.),
+        "temperature": (0.0, 1.0),
+        "top_p": (0.0, 1.0),
     }
     for name, value_range in int_sliders.items():
         create_slider(self.frame, name, self.vars[name], value_range, resolution=1)
@@ -1240,43 +1310,43 @@ def generation_settings_templates_body(self, build_pins=False):
     if self.parent_module:
         self.parent_module.textboxes.append(self.context_textbox)
     if build_pins:
-        self.build_pin_button('global_context')
+        self.build_pin_button("global_context")
 
     # self.templates_frame = CollapsableFrame(self.frame, title="templates", bg=bg_color())
     # self.templates_frame.pack(side="top", fill="both", expand=True, pady=10)
 
     row = self.frame.grid_size()[1]
     self.template_label = create_side_label(self.frame, "template")
-    self.template_filename_label = create_side_label(self.frame, self.vars['template'].get(), row=row, col=1)
-    self.vars['template'].trace("w", self.set_template)
+    self.template_filename_label = create_side_label(self.frame, self.vars["template"].get(), row=row, col=1)
+    self.vars["template"].trace("w", self.set_template)
     if build_pins:
-        self.build_pin_button('template')
+        self.build_pin_button("template")
 
     row = self.frame.grid_size()[1]
     self.preset_label = create_side_label(self.frame, "preset")
-    
+
     # load presets into options
-    with open('./loom/config/generation_presets/presets.json') as f:
+    with open("./loom/config/generation_presets/presets.json") as f:
         self.presets_dict = json.load(f)
 
     # if custom presets json exists, also append it to presets dict and options
-    if os.path.isfile('./loom/config/generation_presets/custom_presets.json'):
-        with open('./loom/config/generation_presets/custom_presets.json') as f:
+    if os.path.isfile("./loom/config/generation_presets/custom_presets.json"):
+        with open("./loom/config/generation_presets/custom_presets.json") as f:
             self.presets_dict.update(json.load(f))
 
     # when the preset changes, apply the preset
-    self.vars['preset'].trace('w', self.apply_preset)
+    self.vars["preset"].trace("w", self.apply_preset)
 
     self.preset_dropdown = tk.OptionMenu(self.frame, self.vars["preset"], "Select preset...")
     self.preset_dropdown.grid(row=row, column=1)
     self.set_options()
     if build_pins:
-        self.build_pin_button('preset')
+        self.build_pin_button("preset")
 
     row = self.frame.grid_size()[1]
     create_button(self.frame, "Load template", self.load_template, column=0, width=12)
     create_button(self.frame, "Save preset", self.save_preset, column=0)
-    #create_button(master, "Reset", self.reset_variables)
+    # create_button(master, "Reset", self.reset_variables)
 
     if build_pins:
         self.set_pins()
@@ -1311,10 +1381,12 @@ class SpecialGenerationSettings(Settings):
 
 class GenerationSettings(FrameSettings, SpecialGenerationSettings):
     def __init__(self, orig_params, user_params=None, state=None, realtime_update=False, parent_module=None):
-        FrameSettings.__init__(self, orig_params, user_params, ["generation_settings"], state, realtime_update, parent_module)
+        FrameSettings.__init__(
+            self, orig_params, user_params, ["generation_settings"], state, realtime_update, parent_module
+        )
         generation_settings_init(self)
-        #init_generation_settings(self)
-        #self.init_vars()
+        # init_generation_settings(self)
+        # self.init_vars()
 
     def body(self, master):
         FrameSettings.body(self, master)
@@ -1337,32 +1409,30 @@ class SpecialFullGenerationSettings(SpecialGenerationSettings):
 
     def set_context(self):
         self.context_textbox.delete(1.0, "end")
-        self.context_textbox.insert(1.0, self.vars['global_context'].get())
+        self.context_textbox.insert(1.0, self.vars["global_context"].get())
         self.context_textbox.reset_height()
 
     def get_context(self):
-        self.vars['global_context'].set(self.context_textbox.get(1.0, "end-1c"))
+        self.vars["global_context"].set(self.context_textbox.get(1.0, "end-1c"))
         self.context_textbox.reset_height()
 
     def set_template(self, *args):
-        self.template_filename_label.config(text=self.vars['template'].get())
+        self.template_filename_label.config(text=self.vars["template"].get())
 
     def load_template(self):
         file_path = filedialog.askopenfilename(
-            initialdir="./loom/config/prompts",
-            title="Select prompt template",
-            filetypes=[("Text files", ".txt")]
+            initialdir="./loom/config/prompts", title="Select prompt template", filetypes=[("Text files", ".txt")]
         )
         if file_path:
             filename = os.path.splitext(os.path.basename(file_path))[0]
-            self.vars['template'].set(filename)
+            self.vars["template"].set(filename)
 
     def set_options(self):
-        options = [p['preset'] for p in self.presets_dict.values()]
-        menu = self.preset_dropdown['menu']
-        menu.delete(0, 'end')
+        options = [p["preset"] for p in self.presets_dict.values()]
+        menu = self.preset_dropdown["menu"]
+        menu.delete(0, "end")
         for option in options:
-            menu.add_command(label=option, command=tk._setit(self.vars['preset'], option))
+            menu.add_command(label=option, command=tk._setit(self.vars["preset"], option))
 
     def get_all(self):
         for key in self.textboxes:
@@ -1386,30 +1456,32 @@ class SpecialFullGenerationSettings(SpecialGenerationSettings):
         preset_name = tk.simpledialog.askstring("Save preset", "Enter preset name")
         if preset_name is None:
             return
-        
+
         self.get_all()
         settings_copy = self.settings_copy()
-        settings_copy['preset'] = preset_name
+        settings_copy["preset"] = preset_name
         self.presets_dict[preset_name] = settings_copy
 
         self.set_options()
-        self.vars['preset'].set(preset_name)
+        self.vars["preset"].set(preset_name)
 
         # make custom_presets json if it doesn't exist
-        if not os.path.isfile('./loom/config/generation_presets/custom_presets.json'):
-            with open('./loom/config/generation_presets/custom_presets.json', 'w') as f:
+        if not os.path.isfile("./loom/config/generation_presets/custom_presets.json"):
+            with open("./loom/config/generation_presets/custom_presets.json", "w") as f:
                 json.dump({}, f)
         # append new presets to json
-        with open('./loom/config/generation_presets/custom_presets.json') as f:
+        with open("./loom/config/generation_presets/custom_presets.json") as f:
             custom_dict = json.load(f)
         custom_dict[preset_name] = self.presets_dict[preset_name]
-        with open('./loom/config/generation_presets/custom_presets.json', 'w') as f:
+        with open("./loom/config/generation_presets/custom_presets.json", "w") as f:
             json.dump(custom_dict, f)
 
 
 class FullGenerationSettings(FrameSettings, SpecialFullGenerationSettings):
     def __init__(self, orig_params, user_params=None, state=None, realtime_update=False, parent_module=None):
-        FrameSettings.__init__(self, orig_params, user_params, ["generation_settings"], state, realtime_update, parent_module)
+        FrameSettings.__init__(
+            self, orig_params, user_params, ["generation_settings"], state, realtime_update, parent_module
+        )
         generation_settings_init(self)
         full_generation_settings_init(self)
 
@@ -1425,26 +1497,28 @@ class FullGenerationSettings(FrameSettings, SpecialFullGenerationSettings):
 
 class MinimapSettings(FrameSettings):
     def __init__(self, orig_params, user_params=None, state=None, realtime_update=False, parent_module=None):
-        FrameSettings.__init__(self, orig_params, user_params, ["module_settings", "minimap"], state, realtime_update, parent_module)
+        FrameSettings.__init__(
+            self, orig_params, user_params, ["module_settings", "minimap"], state, realtime_update, parent_module
+        )
         self.vars = {
-            'level_offset': tk.IntVar,
-            'leaf_offset': tk.IntVar,
-            'node_radius': tk.IntVar,
-            'line_thickness': tk.IntVar,
-            'horizontal': tk.BooleanVar,
-            'prune_mode': tk.StringVar,
-            'path_length_limit': tk.IntVar,
+            "level_offset": tk.IntVar,
+            "leaf_offset": tk.IntVar,
+            "node_radius": tk.IntVar,
+            "line_thickness": tk.IntVar,
+            "horizontal": tk.BooleanVar,
+            "prune_mode": tk.StringVar,
+            "path_length_limit": tk.IntVar,
         }
         self.init_vars()
 
     def body(self, master):
         FrameSettings.body(self, master)
         sliders = {
-            'level_offset': (5, 200),
-            'leaf_offset': (5, 150),
-            'node_radius': (2, 50),
-            'line_thickness': (1, 5),
-            'path_length_limit': (0, 50),
+            "level_offset": (5, 200),
+            "leaf_offset": (5, 150),
+            "node_radius": (2, 50),
+            "line_thickness": (1, 5),
+            "path_length_limit": (0, 50),
         }
         for name, value_range in sliders.items():
             create_slider(self.frame, name, self.vars[name], value_range, resolution=1)
@@ -1453,14 +1527,17 @@ class MinimapSettings(FrameSettings):
         create_checkbutton(self.frame, "Horizontal", "horizontal", self.vars)
         self.build_pin_button("horizontal")
 
-        self.create_dropdown("prune_mode", "Prune mode", ['in_nav', 'open_in_nav', 'ancestry_dist', 'selection_dist', 'wavefunction_collapse', 'all'])
+        self.create_dropdown(
+            "prune_mode",
+            "Prune mode",
+            ["in_nav", "open_in_nav", "ancestry_dist", "selection_dist", "wavefunction_collapse", "all"],
+        )
         self.build_pin_button("prune_mode")
 
     def write(self):
         FrameSettings.write(self)
         if self.parent_module:
             self.parent_module.refresh()
-        
 
 
 #################################
@@ -1469,7 +1546,18 @@ class MinimapSettings(FrameSettings):
 
 
 class TextAttribute:
-    def __init__(self, master, attribute_name, read_callback=None, write_callback=None, delete_callback=None, expand=False, parent_module=None, max_height=10, **kwargs):
+    def __init__(
+        self,
+        master,
+        attribute_name,
+        read_callback=None,
+        write_callback=None,
+        delete_callback=None,
+        expand=False,
+        parent_module=None,
+        max_height=10,
+        **kwargs,
+    ):
         self.master = master
         self.read_callback = read_callback
         self.write_callback = write_callback
@@ -1487,7 +1575,7 @@ class TextAttribute:
             self.delete_button.bind("<Button-1>", lambda event: self.delete_callback())
 
         self.textbox = TextAware(self.frame.collapsable_frame, height=1, undo=True, **kwargs)
-        self.textbox.pack(fill='both', expand=True)
+        self.textbox.pack(fill="both", expand=True)
 
         self.textbox.configure(**textbox_config(bg=edit_color()))
 
@@ -1498,7 +1586,7 @@ class TextAttribute:
         toplevel.bind("<Configure>", lambda event: self.resize())
         if self.parent_module:
             self.parent_module.textboxes.append(self.textbox)
-    
+
     def pack(self, **kwargs):
         self.frame.pack(**kwargs)
 
@@ -1531,7 +1619,7 @@ class TextAttribute:
 
     def key_pressed(self, event):
         # if key is tab, break
-        if event.keysym == 'Tab':
+        if event.keysym == "Tab":
             self.master.focus()
             return "break"
 
@@ -1543,14 +1631,25 @@ class TextAttribute:
                 self.master.update_idletasks()
                 self.textbox.after(300, self.textbox.reset_height(max_height=self.max_height))
                 self.last_resize = datetime.datetime.now()
-        
+
 
 # TODO option for single-line entry attributes instead of textattribute template
 class AttributesEditor:
     # displays a list of TextAttributes
-    def __init__(self, attribute_category=None, get_attributes_callback=None, attribute_name_callback_template=None, read_callback_template=None, write_callback_template=None, 
-                 delete_callback_template=None, visibility_callback_template=None, add_attribute_callback=None, parent_module=None, expand=False,
-                 max_height=3):
+    def __init__(
+        self,
+        attribute_category=None,
+        get_attributes_callback=None,
+        attribute_name_callback_template=None,
+        read_callback_template=None,
+        write_callback_template=None,
+        delete_callback_template=None,
+        visibility_callback_template=None,
+        add_attribute_callback=None,
+        parent_module=None,
+        expand=False,
+        max_height=3,
+    ):
         self.attributes = {}
         self.scroll_frame = None
         self.add_attribute_button = None
@@ -1569,10 +1668,12 @@ class AttributesEditor:
     def build(self, parent):
         self.parent = parent
         self.scroll_frame = ScrollableFrame(parent)
-        self.scroll_frame.pack(side='top', fill='both', expand=True)
+        self.scroll_frame.pack(side="top", fill="both", expand=True)
         if self.add_attribute_callback:
-            self.add_attribute_button = tk.Button(parent, text=f"Add {self.attribute_category}", command=self.add_attribute_callback)
-            self.add_attribute_button.pack(side='bottom', pady=10)
+            self.add_attribute_button = tk.Button(
+                parent, text=f"Add {self.attribute_category}", command=self.add_attribute_callback
+            )
+            self.add_attribute_button.pack(side="bottom", pady=10)
         self.refresh()
 
     def refresh(self):
@@ -1586,22 +1687,34 @@ class AttributesEditor:
                 self.destroy_attribute(attribute_key)
 
     def build_attribute(self, attribute_key):
-        attribute_name = self.attribute_name_callback_template(attribute_key) if self.attribute_name_callback_template else attribute_key
-        self.attributes[attribute_key] = TextAttribute(self.scroll_frame.scrollable_frame, 
-                                                       attribute_name=attribute_name, 
-                                                       read_callback=lambda name=attribute_key: self.read_callback_template(name) if self.read_callback_template else None,
-                                                       write_callback=lambda text, name=attribute_key: self.write_callback_template(name, text=text) if self.write_callback_template else None,
-                                                       delete_callback=lambda name=attribute_key: self.delete_callback_template(name) if self.delete_callback_template else None,
-                                                       expand=self.expand,
-                                                       max_height=self.max_height,
-                                                       parent_module=self.parent_module)
-        self.attributes[attribute_key].pack(side='top', fill='both', expand=True)
+        attribute_name = (
+            self.attribute_name_callback_template(attribute_key)
+            if self.attribute_name_callback_template
+            else attribute_key
+        )
+        self.attributes[attribute_key] = TextAttribute(
+            self.scroll_frame.scrollable_frame,
+            attribute_name=attribute_name,
+            read_callback=lambda name=attribute_key: self.read_callback_template(name)
+            if self.read_callback_template
+            else None,
+            write_callback=lambda text, name=attribute_key: self.write_callback_template(name, text=text)
+            if self.write_callback_template
+            else None,
+            delete_callback=lambda name=attribute_key: self.delete_callback_template(name)
+            if self.delete_callback_template
+            else None,
+            expand=self.expand,
+            max_height=self.max_height,
+            parent_module=self.parent_module,
+        )
+        self.attributes[attribute_key].pack(side="top", fill="both", expand=True)
         self.attributes[attribute_key].read()
-        
+
     def destroy_attribute(self, attribute_key):
         self.attributes[attribute_key].destroy()
         del self.attributes[attribute_key]
 
     def read_all(self):
         for attribute in self.attributes.values():
-            attribute.read() 
+            attribute.read()

@@ -1,54 +1,104 @@
-{"read": {
-    "workspace": {
-        "side_pane": {
-            "open": true, 
-            "modules": ["minimap"]
-            },
-        "bottom_pane": {
-            "open": true, 
-            "modules": ["read children"]
-            },
-        "buttons": ["Next", "Prev"]
-        },
-    "preferences": {"coloring": "read"}    
+{
+  "chat": {
+    "generation_settings": {
+      "stop": "\\n"
     },
-"write": {
-    "workspace": {
-        "side_pane": {
-            "open": true, 
-            "modules": ["notes"]
-            },
-        "bottom_pane": {
-            "open": true, 
-            "modules": ["children"]
-            },
-        "buttons": ["Delete", "Edit", "Children", "New Child", "Generate", "Next", "Prev"]
-        },
-    "preferences": {"coloring": "edit", "editable": true} 
+    "preferences": {
+      "coloring": "none"
     },
-"gamify": {
     "workspace": {
-        "side_pane": {
-            "open": true, 
-            "modules": ["edit"]
-            },
-        "bottom_pane": {
-            "open": true, 
-            "modules": ["read children"]
-            },
-        "buttons": ["Delete", "Edit", "Children", "New Child", "Generate", "Next", "Prev"]
-        },
-    "preferences": {"coloring": "edit", "editable": true} 
-    },
-"chat": {
-    "workspace": {
-        "bottom_pane": {
-            "open": true, 
-            "modules": ["input"]
-            },
-        "buttons": ["Edit", "Retry", "Undo"]
-        },
-    "preferences": {"coloring": "none"},
-    "generation_settings": {"stop": "\\n"}
+      "bottom_pane": {
+        "modules": [
+          "input"
+        ],
+        "open": true
+      },
+      "buttons": [
+        "Edit",
+        "Retry",
+        "Undo"
+      ]
     }
+  },
+  "gamify": {
+    "preferences": {
+      "coloring": "edit",
+      "editable": true
+    },
+    "workspace": {
+      "bottom_pane": {
+        "modules": [
+          "read children"
+        ],
+        "open": true
+      },
+      "buttons": [
+        "Delete",
+        "Edit",
+        "Children",
+        "New Child",
+        "Generate",
+        "Next",
+        "Prev"
+      ],
+      "side_pane": {
+        "modules": [
+          "edit"
+        ],
+        "open": true
+      }
+    }
+  },
+  "read": {
+    "preferences": {
+      "coloring": "read"
+    },
+    "workspace": {
+      "bottom_pane": {
+        "modules": [
+          "read children"
+        ],
+        "open": true
+      },
+      "buttons": [
+        "Next",
+        "Prev"
+      ],
+      "side_pane": {
+        "modules": [
+          "minimap"
+        ],
+        "open": true
+      }
+    }
+  },
+  "write": {
+    "preferences": {
+      "coloring": "edit",
+      "editable": true
+    },
+    "workspace": {
+      "bottom_pane": {
+        "modules": [
+          "children"
+        ],
+        "open": true
+      },
+      "buttons": [
+        "Delete",
+        "Edit",
+        "Children",
+        "New Child",
+        "Generate",
+        "Next",
+        "Prev"
+      ],
+      "side_pane": {
+        "modules": [
+          "notes"
+        ],
+        "open": true
+      }
+    }
+  }
 }

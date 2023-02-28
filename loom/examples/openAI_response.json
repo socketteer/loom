@@ -1,30 +1,54 @@
 {
-  "id": "cmpl-3mupVxCi4CJZQFrbYppUSoWay72UY",
-  "object": "text_completion",
-  "created": 1632787209,
-  "model": "curie:2020-05-03",
   "choices": [
     {
-      "text": "Test prompt\n",
+      "finish_reason": "length",
       "index": 0,
       "logprobs": {
-        "tokens": ["Test", " prompt", "\n"],
-        "token_logprobs": [null, -12.956981, -2.410658],
-        "top_logprobs": null,
-        "text_offset": [0, 4, 11]
+        "text_offset": [
+          0,
+          4,
+          11
+        ],
+        "token_logprobs": [
+          null,
+          -12.956981,
+          -2.410658
+        ],
+        "tokens": [
+          "Test",
+          " prompt",
+          "\n"
+        ],
+        "top_logprobs": null
       },
-      "finish_reason": "length"
+      "text": "Test prompt\n"
     },
     {
-      "text": "Test prompt on",
+      "finish_reason": "length",
       "index": 1,
       "logprobs": {
-        "tokens": ["Test", " prompt", " on"],
-        "token_logprobs": [null, -12.956981, -5.0854616],
-        "top_logprobs": null,
-        "text_offset": [0, 4, 11]
+        "text_offset": [
+          0,
+          4,
+          11
+        ],
+        "token_logprobs": [
+          null,
+          -12.956981,
+          -5.0854616
+        ],
+        "tokens": [
+          "Test",
+          " prompt",
+          " on"
+        ],
+        "top_logprobs": null
       },
-      "finish_reason": "length"
+      "text": "Test prompt on"
     }
-  ]
+  ],
+  "created": 1632787209,
+  "id": "cmpl-3mupVxCi4CJZQFrbYppUSoWay72UY",
+  "model": "curie:2020-05-03",
+  "object": "text_completion"
 }

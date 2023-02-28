@@ -1,6 +1,6 @@
 ## Priority
 
-- node can "conceal" ancestry (to reader and/or language model) 
+- node can "conceal" ancestry (to reader and/or language model)
 
 - masking
     - mask subtree
@@ -10,7 +10,7 @@
             - but I want "open" state to be property of session, not tree?
             - should all masking belong to a *session mask*?
     - function to check if a node is masked
-    
+
 - tags
     - tag config
         - nav tree foreground / background
@@ -25,7 +25,7 @@
     - redistribute tags when merging nodes
     - transform one tag into another
     - clear tags
-    - delete all with tag 
+    - delete all with tag
     - *new* tags of zipped node (or same rules as split)
         - should these tags be assigned at tagging time?
     - no deleting program tags (archive, pin, notes, visited, AI/prompt, edited)
@@ -61,7 +61,7 @@
     - also reverse nav direction when nav tree is reversed
     - changing reverse in preferences doesn't cause update to nav tree
 
-- summaries 
+- summaries
     - with context
     - suggest summaries in summary dialog
     - prompt to partition long text into summaries
@@ -91,28 +91,28 @@
 
 - separate nav update events from other events
     - fix hacky solutions for child edit and notes
-    
-    
+
+
 - archiving/deleting children textboxes sometimes causes crash with bad text index "tk::anchor1" or anchor3
-    
+
 - make everything a module
     - story textbox
     - nav and chapter trees
     - other dialogs
 
-    
+
 - save as duplicate
     - distinct:
         - duplicate subtree
         - duplicate only edited node(without children)
         - save old version as duplicate (new one inherits children)
             - ghostparent connection
-            
+
 - preference for whether to navigate to next node or parent
 
 - floating notes should survive when their parent is deleted - move to grandparent?
     - ok if parent is archived though
-    
+
 - implement reactive updating for all components and refactor tree_updated callback
     - vis
     - nav tree
@@ -122,13 +122,13 @@
     - interpreter
 
 - make add and remove tag methods in controller
-        
+
 - text highlighting
     - keyboard
     - mouse
 - insertion cursor
     - emacs-like commands
-    
+
 - visible nodes tree object
     - locality / pruning
     - hoisting
@@ -161,14 +161,14 @@
 
 - modules
     - modules / workspace menu
-    - notes 
+    - notes
         - expand / contract note scope
         - click icon to toggle pin
             - show empty square icon when no tag
     - playground
         - toggle multiple choice or inline (end)
         - integrate with tree
-    - minimap 
+    - minimap
         - detect size of frame
         - right click
             - edit (in preview textbox)
@@ -188,22 +188,22 @@
             - merge lines into img when layer changes - "imagify" canvas
                 - make canvas lines into transparent png
                 - merge drawing png & background png (if background not blank)
-        - right click 
+        - right click
             - merge up
             - delete
             - hide
             - change transparency?
-      
+
     - textattributes
         - adjust textattribute textbox heights based on content
         - textattributes adjust height even when expand only if height can be adjusted
         - enable / disable realtime updates for textattributes
-    
+
     - children
         - 'clear' button
         - move hidden children functionality into nodewindows & integrate with blacklist
         - should children use nav visibility by default?
-    
+
     - modules come in two types, ones which can be duplicated (and should have their own settings) and ones which shouldnt
         - ok instances
             - text editor
@@ -251,7 +251,7 @@
     - save frame preset
     - frames should be able to reference preset names
         - requires saving frames as strings instead of dicts?
-    
+
 
 - splices
     - links and windows
@@ -299,17 +299,17 @@
         - change automatic inheritability conditions
     - memory collection
     - world info
-    
+
 - centralized way to synch node and nav tree open states
 - tagging nodes causes newly opened nodes to close
 
-- don't open minimap settings 
+- don't open minimap settings
 
-- version control 
+- version control
     - option to turn versions into explicit branches (and vice versa?)
       - unroll
     - start a new "branch" and merge
-    
+
 - generation settings text attributes f strings?
 
 - update text index stuff to work with templates
@@ -387,10 +387,10 @@
     - GPT2 tokenizer local files?
 
 
-### Models 
+### Models
 - model-agnostic interface
 - integrate other models
-    - GPT-J 
+    - GPT-J
     - GPT-2
 
 ### Masking / zipping
@@ -401,12 +401,12 @@
 - interactions with canonical, chapters
 
 
-### Usability 
+### Usability
 - all hotkeys dialog
 
 ### Tree manipulation
 - swap node function
-- split node and merge second part with children 
+- split node and merge second part with children
     - hotkey
 
 ### Display
@@ -449,30 +449,30 @@
     - has_attribute() function
     - handle navigating to / creating a hidden node
     - hide chapters without root (?) or nodes
-    
+
 
 ### archived
 - visually indicate archived nodes in nav tree when hide_archived=False (~ or different color?)
-     
+
 
 ### session files: separate session from underlying tree?
 - visited
 - active node
 - expanded state
-- settings... 
+- settings...
 
 ### Generation
-- generation 
+- generation
     - multiverse generation options (depth, branching factor, branching interval/conditions)
-  
-- gpt modes     
+
+- gpt modes
     - account for additional prompt length (abstract)
     - save generation mode metadata
     - stop at newline generation mode
 
 - chat
     - don't show restart text
- 
+
 - presets
     - toggle whether context appears in textbox
     - toggle whether context remains in prompt
@@ -486,7 +486,7 @@
 - diff
     - splitting / merging
     - display in node info or diff dialog
-    
+
 - optimization logging
     - selection
     - manual editing
@@ -496,7 +496,7 @@
 ### Memory
 - memory
     - enable/disable memory entries
-    - goto root 
+    - goto root
 
 
 ### Autocomplete
@@ -537,7 +537,7 @@
 - show canonical first
 - test
     - test for bugs switching to vis mode etc
-- "Read" multi mode 
+- "Read" multi mode
     - option to override preview text
 - move multi display code to new object
 - change order of children in multi mode
@@ -553,7 +553,7 @@
     * track x/y movements
 * Fix text zoom / hide too small
 * color by differences betweent two multiverses
-* top k and top p 
+* top k and top p
 * draw existing loom trajectories as ground truth paths
 * cache computed multiverses
 * command/button to add wavefunction path to loom tree
@@ -585,7 +585,7 @@
 * increase offsets when text is too long OR scrollbar OR pages
 * collapsed nodes don't need their own column / variable offsets
 * save pointer to offset when drawing tree...
- 
+
 * more space after collapsed node
 * dynamic icon position
 * display collapsed ghostchild position
@@ -596,7 +596,7 @@
 
 * buttons for chapter and multimedia
 
-- editing: 
+- editing:
 global edit mode, where all nodes turn into textboxes, but no zooming?
 
 - collapse nodes when too many are expanded
@@ -612,10 +612,10 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 * floating notes
 
 # Display
- 
+
 * show / hide navtrees
 * if scroll position is regressing, add whitespace and keep instead?? (didn't work, need new approach)
-* toggle gray history / context window 
+* toggle gray history / context window
 * gradient color for text box history
 * scroll to top of node by default and hotkey to go to top of node
 * change darkmode in program
@@ -654,9 +654,9 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 
 * "floating" notes
     * global or associated with subtree
-* save open status (not visible status) in tree dict 
+* save open status (not visible status) in tree dict
 * named bookmarks
-* bookmarks (unique) vs tags (category) 
+* bookmarks (unique) vs tags (category)
 * developer console
 * visited sessions
 * preferences dialog
@@ -683,9 +683,9 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 ### AI memory
 
 **world info**
-- import world info json 
+- import world info json
 - make new entries
-- display top n world info entries, which can be individually toggled to be included in AI input    
+- display top n world info entries, which can be individually toggled to be included in AI input
 
 **memory system**
 
@@ -715,8 +715,8 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 ### Story navigation
 
 * "play" mode
-    * read only 
-* stochastic walk 
+    * read only
+* stochastic walk
     * mode which doesn't count visited nodes
     * depth limit
     * display probabilities
@@ -739,7 +739,7 @@ global edit mode, where all nodes turn into textboxes, but no zooming?
 - option to minimize/hide without deleting
 - reverse time propagation
 
-## non-floating notes 
+## non-floating notes
 
 - notes for a specific node
 - can be linked from multiple nodes
