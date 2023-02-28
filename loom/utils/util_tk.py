@@ -1,6 +1,6 @@
 import tkinter as tk
-from tkinter import ttk, font
-from util.util import recursive_map
+from tkinter import ttk
+from loom.utils.util import recursive_map
 
 
 ##################################################################

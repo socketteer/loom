@@ -1,6 +1,5 @@
 import bisect
-from util.util_tree import ancestor_text_end_indices, ancestor_text_start_indices
-from util.util import diff, diff_linesToWords
+from loom.utils.util_tree import ancestor_text_end_indices, ancestor_text_start_indices
 from diff_match_patch import diff_match_patch
 import re
 

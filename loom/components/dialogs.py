@@ -1,23 +1,16 @@
 import os
 import tkinter as tk
-from tkinter import TclError, filedialog, ttk
-from tkinter.font import Font
+from tkinter import filedialog, ttk
 from tkinter.scrolledtext import ScrolledText
 
-# from gpt import POSSIBLE_MODELS
-from util.custom_tks import Dialog, TextAware
-from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
-from util.util_tree import search, node_ancestry
-from util.keybindings import tkinter_keybindings, special_keybindings
-from view.colors import default_color, text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
-from view.styles import textbox_config
-from components.templates import *
+from loom.utils.custom_tks import Dialog, TextAware
+from loom.utils.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
+from loom.utils.util_tree import search
+from loom.utils.keybindings import special_keybindings
+from loom.view.colors import text_color, bg_color, PROB_1, PROB_2, PROB_3, PROB_4, PROB_5, PROB_6
+from loom.view.styles import textbox_config
+from loom.components.templates import *
 import math
-import json
-import codecs
-from copy import deepcopy
-import pprint
-import PIL
 from view.icons import Icons
 
 icons = Icons()

@@ -1,8 +1,7 @@
 from tkinter import ttk
 import tkinter as tk
-from view.colors import bg_color, text_color, edit_color
-import PIL
-from view.icons import Icons
+from loom.view.colors import bg_color, text_color
+from loom.view.icons import Icons
 
 icons = Icons()
 

@@ -1,17 +1,15 @@
 from view.panes import Module
 import tkinter as tk
-from tkinter import Canvas, ttk, simpledialog, messagebox
+from tkinter import ttk, simpledialog, messagebox
 from view.colors import text_color, bg_color, edit_color, vis_bg_color
-from util.custom_tks import TextAware
-from util.util_tree import tree_subset, limited_branching_tree, limited_distance_tree, flatten_tree, collapsed_wavefunction
-from util.react import react_changes, unchanged
-from util.canvas_util import move_object
-from util.gpt_util import logprobs_to_probs
+from loom.utils.custom_tks import TextAware
+from loom.utils.util_tree import tree_subset, limited_branching_tree, limited_distance_tree, flatten_tree, collapsed_wavefunction
+from loom.utils.react import react_changes, unchanged
+from loom.utils.canvas_util import move_object
 from view.icons import Icons
 from view.styles import textbox_config, code_textbox_config
 from components.templates import *
-from view.tree_vis import round_rectangle
-from pprint import pformat, pprint
+from pprint import pformat
 from gpt import completions_text, gen
 import uuid
 import threading

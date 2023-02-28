@@ -1,8 +1,7 @@
 from tkinter import ttk
 import tkinter as tk
 
-from ttkthemes import ThemedStyle
-from view.colors import scroll_bg_color, darkmode
+from view.colors import scroll_bg_color
 
 
 # Class to create a basic dialog pop-up box.  Designed for extension.
@@ -17,10 +16,6 @@ class Dialog(tk.Toplevel):
         self.cancellable = cancellable
         if title:
             self.title(title)
-
-        # style = ThemedStyle(self)
-        # if darkmode:
-        #     style.set_theme("black")
 
         self.parent = parent
         self.result = None

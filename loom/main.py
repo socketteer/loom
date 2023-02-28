@@ -5,17 +5,16 @@ import os
 import tkinter as tk
 import traceback
 from collections import defaultdict
-from pprint import pprint
 from tkinter import ttk, messagebox
 
 from ttkthemes import ThemedStyle
 
-from controller import Controller
-from model import TreeModel, EMPTY_TREE
-from util.custom_tks import ClosableNotebook
-from util.util import json_open, json_create
-from util.util_tk import create_menubar
-from view.colors import darkmode
+from loom.controller import Controller
+from loom.model import TreeModel, EMPTY_TREE
+from loom.utils.custom_tks import ClosableNotebook
+from loom.utils.util import json_open, json_create
+from loom.utils.util_tk import create_menubar
+from loom.view.colors import darkmode
 import PIL.Image
 import PIL.ImageTk
 from copy import deepcopy

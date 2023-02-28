@@ -1,5 +1,5 @@
 from tkinter.font import Font
-from view.colors import text_color, bg_color
+from loom.view.colors import text_color, bg_color
 
 
 def textbox_config(fg=text_color(), bg=bg_color(), font='Georgia', size=12, spacing1=10, spacing2=8, pady=5):

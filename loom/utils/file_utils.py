@@ -1,6 +1,5 @@
 import csv
 import json
-import os
 
 def flat_csv_to_json(csv_file, json_file, attribute_mappings=None):
     """
@@ -23,6 +22,6 @@ def flat_csv_to_json(csv_file, json_file, attribute_mappings=None):
 
 
 flat_csv_to_json('./data/csv/mem_contradictions.csv', './data/train/mem_contradictions.json', attribute_mappings = {'Story': 'text', 
-                                                                                                                    'Memory': 'alt', 
-                                                                                                                    'Contradictory continuation': None,
-                                                                                                                    'Non-contradictory continuation': None})
+                     'Memory': 'alt', 
+                     'Contradictory continuation': None,
+                     'Non-contradictory continuation': None})

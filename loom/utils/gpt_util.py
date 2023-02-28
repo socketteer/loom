@@ -2,7 +2,7 @@ import openai
 import numpy as np
 import math
 import codecs
-from util.tokenizer import logit_mask
+from loom.utils.tokenizer import logit_mask
 
 
 def normalize(probs):

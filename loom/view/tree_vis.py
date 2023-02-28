@@ -1,18 +1,15 @@
 import tkinter
 import tkinter.font as tkf
-import json
 import math
-import copy
-from pprint import pprint
 from tkinter import ttk
 
-from util.util_tree import node_ancestry, limited_branching_tree, tree_subset
-from util.custom_tks import TextAware
+from loom.utils.util_tree import node_ancestry, limited_branching_tree, tree_subset
+from loom.utils.custom_tks import TextAware
 from PIL import ImageTk, Image
-from view.colors import vis_bg_color, visited_node_bg_color, unvisited_node_bg_color,inactive_text_color,\
+from loom.view.colors import vis_bg_color, visited_node_bg_color, unvisited_node_bg_color,inactive_text_color,\
     active_text_color, selected_line_color, active_line_color, inactive_line_color, BLUE, expand_button_color, \
     edit_color
-from view.icons import Icons
+from loom.view.icons import Icons
 
 # TODO add to vis params
 fixed_level_width = False

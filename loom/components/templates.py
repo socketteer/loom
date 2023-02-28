@@ -1,18 +1,17 @@
 from re import L
 import tkinter as tk
-from tkinter import Frame, ttk, filedialog
+from tkinter import ttk, filedialog
 import uuid
 from view.colors import text_color, bg_color, edit_color, default_color, history_color, ooc_color
-from util.custom_tks import TextAware, ScrollableFrame
-from util.react import *
-from util.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
-from util.gpt_util import logprobs_to_probs
-from util.util import split_indices
-from util.util_tree import num_descendents
+from loom.utils.custom_tks import TextAware, ScrollableFrame
+from loom.utils.react import *
+from loom.utils.util_tk import create_side_label, create_label, Entry, create_button, create_slider, create_combo_box, create_checkbutton
+from loom.utils.gpt_util import logprobs_to_probs
+from loom.utils.util import split_indices
+from loom.utils.util_tree import num_descendents
 from tkinter.scrolledtext import ScrolledText
 from view.styles import textbox_config
 from view.icons import Icons
-import time
 import os
 import codecs
 from PIL import Image, ImageTk
@@ -21,8 +20,6 @@ import json
 import bisect
 import threading
 import datetime
-import time
-import pyperclip
 
 buttons = {'go': 'arrow-green',
            'edit': 'edit-blue',

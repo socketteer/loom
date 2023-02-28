@@ -1,5 +1,4 @@
-from deepmerge import always_merger, Merger
-from copy import deepcopy
+from deepmerge import Merger
 
 frame_merger = Merger(
     # pass in a list of tuple, with the

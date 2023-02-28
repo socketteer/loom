@@ -5,8 +5,8 @@ from pprint import pprint
 
 from celery import Celery
 import openai
-from util.util import retry, timestamp
-from util.gpt_util import parse_logit_bias, parse_stop
+from loom.utils.util import retry, timestamp
+from loom.utils.gpt_util import parse_logit_bias, parse_stop
 import requests
 import codecs
 import json

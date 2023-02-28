@@ -1,7 +1,7 @@
 import openai
 import numpy as np
-from util.tokenizer import tokenize, token_to_word
-from util.gpt_util import logprobs_to_probs
+from loom.utils.tokenizer import tokenize, token_to_word
+from loom.utils.gpt_util import logprobs_to_probs
 import os
 
 

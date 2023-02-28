@@ -1,26 +1,18 @@
 import tkinter as tk
 from tkinter import ttk
-from util.gpt_util import event_probs
+from loom.utils.gpt_util import event_probs
 
 import PIL
-from view import colors
 
-from view.tree_vis import TreeVis
-#from components.block_multiverse import BlockMultiverse
-#from util.custom_tks import TextAware, ScrollableFrame
-from view.colors import bg_color, text_color, edit_color, GREEN, BLUE
-from util.util import metadata
-from view.panes import Pane, NestedPane
-from components.modules import *
-from components.templates import LoomTerminal
-from view.icons import Icons
-from view.styles import textbox_config
+from loom.view.tree_vis import TreeVis
+from loom.view.colors import bg_color, text_color, edit_color, GREEN, BLUE
+from loom.utils import metadata
+from loom.view.panes import Pane, NestedPane
+from loom.components.modules import *
+from loom.components.templates import LoomTerminal
+from loom.view.icons import Icons
+from loom.view.styles import textbox_config
 from tkinter.font import Font
-# from PIL import ImageTk, Image
-import uuid
-import time
-import os
-from pprint import pformat
 
 
 modules = {'edit': Edit,

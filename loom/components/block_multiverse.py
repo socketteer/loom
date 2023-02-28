@@ -4,11 +4,8 @@ import uuid
 
 from tkinter import ttk
 from decimal import *
-from util.custom_tks import TextAware
-from util.gpt_util import logprobs_to_probs
-from util.tokenizer import tokenize, token_to_word
+from loom.utils.custom_tks import TextAware
 from PIL import Image
-import PIL.ImageGrab as ImageGrab
 
 rainbow_colors = ['#9400D3', '#4B0082', '#0000FF', '#00FF00', '#FFFF00', '#FF7F00', '#FF0000']
 

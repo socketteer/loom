@@ -1,5 +1,3 @@
-import re
-
 special_keybindings = {'!': '<exclam>',
                        '@': '<at>',
                        '#': '<numbersign>',

@@ -6,15 +6,12 @@ import itertools
 import json
 import logging
 import os
-import random
 import string
 import sys
 import time
-from functools import reduce, partial, wraps
-import operator
+from functools import partial
 from pprint import pprint
 from random import shuffle
-from util.gpt_util import tokenize_ada
 import difflib
 import re
 
