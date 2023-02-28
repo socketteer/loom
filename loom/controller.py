@@ -878,7 +878,7 @@ class Controller:
             # selection_menu.add_cascade(label="Save", menu=save_menu)
             #selection_menu.add_command(label="Substitute")
             transform_menu = tk.Menu(menu, tearoff=0)
-            transform_menu.add_command(label="Prose to script", command=lambda: self.open_selection_in_transformer(template='./config/transformers/prose_to_script.json'))
+            transform_menu.add_command(label="Prose to script", command=lambda: self.open_selection_in_transformer(template='./loom/config/transformers/prose_to_script.json'))
             selection_menu.add_cascade(label="Transform", menu=transform_menu)
             
             #selection_menu.add_command(label="Transform", command=lambda: self.open_selection_in_transformer())

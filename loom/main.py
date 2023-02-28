@@ -19,6 +19,10 @@ import PIL.Image
 import PIL.ImageTk
 from copy import deepcopy
 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 class Application:
     # Create the application window
     def __init__(self, width, height):

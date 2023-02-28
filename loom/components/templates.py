@@ -1256,12 +1256,12 @@ def generation_settings_templates_body(self, build_pins=False):
     self.preset_label = create_side_label(self.frame, "preset")
     
     # load presets into options
-    with open('./config/generation_presets/presets.json') as f:
+    with open('./loom/config/generation_presets/presets.json') as f:
         self.presets_dict = json.load(f)
 
     # if custom presets json exists, also append it to presets dict and options
-    if os.path.isfile('./config/generation_presets/custom_presets.json'):
-        with open('./config/generation_presets/custom_presets.json') as f:
+    if os.path.isfile('./loom/config/generation_presets/custom_presets.json'):
+        with open('./loom/config/generation_presets/custom_presets.json') as f:
             self.presets_dict.update(json.load(f))
 
     # when the preset changes, apply the preset
@@ -1349,7 +1349,7 @@ class SpecialFullGenerationSettings(SpecialGenerationSettings):
 
     def load_template(self):
         file_path = filedialog.askopenfilename(
-            initialdir="./config/prompts",
+            initialdir="./loom/config/prompts",
             title="Select prompt template",
             filetypes=[("Text files", ".txt")]
         )
@@ -1396,14 +1396,14 @@ class SpecialFullGenerationSettings(SpecialGenerationSettings):
         self.vars['preset'].set(preset_name)
 
         # make custom_presets json if it doesn't exist
-        if not os.path.isfile('./config/generation_presets/custom_presets.json'):
-            with open('./config/generation_presets/custom_presets.json', 'w') as f:
+        if not os.path.isfile('./loom/config/generation_presets/custom_presets.json'):
+            with open('./loom/config/generation_presets/custom_presets.json', 'w') as f:
                 json.dump({}, f)
         # append new presets to json
-        with open('./config/generation_presets/custom_presets.json') as f:
+        with open('./loom/config/generation_presets/custom_presets.json') as f:
             custom_dict = json.load(f)
         custom_dict[preset_name] = self.presets_dict[preset_name]
-        with open('./config/generation_presets/custom_presets.json', 'w') as f:
+        with open('./loom/config/generation_presets/custom_presets.json', 'w') as f:
             json.dump(custom_dict, f)
 
 

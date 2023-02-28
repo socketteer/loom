@@ -1,10 +1,10 @@
 data/backups/
-data/*
+**/data/*
 !data/loom_demo.json
-static/media/*
+**/static/media/*
 !static/media/black.png
 !static/media/blank.png
-config/custom_presets.json
+**/config/custom_presets.json
 
 .DS_Store
 
