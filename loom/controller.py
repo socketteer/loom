@@ -1773,7 +1773,7 @@ class Controller:
         filename = (
             self.state.tree_filename
             if self.state.tree_filename
-            else os.path.join(os.getcwd() + "/data", "new_tree.json")
+            else os.path.join(os.getcwd() + "/_data", "new_tree.json")
         )
         # TODO default name shouldn't be parent tree name
         filename = filedialog.asksaveasfilename(
@@ -1807,7 +1807,7 @@ class Controller:
             filename = (
                 self.state.tree_filename
                 if self.state.tree_filename
-                else os.path.join(os.getcwd() + "/data/text", "export.txt")
+                else os.path.join(os.getcwd() + "/_data/text", "export.txt")
             )
             filename = filedialog.asksaveasfilename(
                 initialfile=os.path.splitext(os.path.basename(filename))[0],
@@ -1825,7 +1825,7 @@ class Controller:
         title = (
             os.path.splitext(os.path.basename(self.state.tree_filename))[0] if self.state.tree_filename else "untitled"
         )
-        filename = os.path.join(os.getcwd() + "/data/exports", f"{title}_export.json")
+        filename = os.path.join(os.getcwd() + "/_data/exports", f"{title}_export.json")
         filename = filedialog.asksaveasfilename(
             initialfile=os.path.splitext(os.path.basename(filename))[0],
             initialdir=os.path.dirname(filename),
@@ -1846,7 +1846,7 @@ class Controller:
         filename = (
             self.state.tree_filename
             if self.state.tree_filename
-            else os.path.join(os.getcwd() + "/data", "new_tree.json")
+            else os.path.join(os.getcwd() + "/_data", "new_tree.json")
         )
         filename = filedialog.asksaveasfilename(
             initialfile=os.path.splitext(os.path.basename(filename))[0],

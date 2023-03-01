@@ -32,6 +32,18 @@ run:
 		-u=$(CURRENT_UID):$(CURRENT_GID) \
 		$(IMAGE)
 
+run-dev:
+	docker run -it --rm \
+		-v $(PWD)/_data:/app/_data \
+		-v $(PWD)/loom:/app/loom:ro \
+		-v /tmp/.X11-unix:/tmp/.X11-unix:rw \
+		-e DISPLAY=$(DISPLAY) \
+		-e OPENAI_API_KEY=$(OPENAI_API_KEY) \
+		-e GOOSEAI_API_KEY=$(GOOSEAI_API_KEY) \
+		-e AI21_API_KEY=$(AI21_API_KEY) \
+		-u=$(CURRENT_UID):$(CURRENT_GID) \
+		$(IMAGE)
+
 reqs:
 	pip install poetry
 	poetry export -f requirements.txt --without-hashes > requirements.txt
