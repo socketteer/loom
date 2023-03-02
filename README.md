@@ -246,6 +246,8 @@ Reset zoom: `Control-0`
 
 # Instructions
 
+## Quickstart
+
 ```
 make install
 python loom/main.py
