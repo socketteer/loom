@@ -156,7 +156,7 @@ class Controller:
             "View": [
                 ('Toggle side pane', 'Alt-P', None, no_junk_args(self.toggle_side)),
                 ('Toggle bottom pane', 'Alt-B', None, no_junk_args(self.toggle_bottom)),
-                ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
+                # ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
                 ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
                 "-",
                 ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
