@@ -70,10 +70,10 @@ DEFAULT_PREFERENCES = {
 }
 
 DEFAULT_WORKSPACE = {
-    'side_pane': {'open': False, 
-                  'modules': []},
-    'bottom_pane': {'open': False, 
-                    'modules': []},
+    'side_pane': {'open': True, 
+                  'modules': ["minimap"]},
+    'bottom_pane': {'open': True, 
+                    'modules': ["children"]},
     'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev", "Wavefunction", "Map"],
     'alt_textbox': False,
     'show_search': False
@@ -129,6 +129,8 @@ DEFAULT_MODEL_CONFIG = {
         'code-davinci-002': {'type': 'openai'},
         'instruct-curie-beta': {'type': 'openai'},
         'instruct-davinci-beta': {'type': 'openai'},
+        'gpt-3.5-turbo': {'type': 'openai-chat'},
+        'gpt-4': {'type': 'openai-chat'},
         'j1-large': {'type': 'ai21'},
         'j1-jumbo': {'type': 'ai21'},
         'gpt-neo-1-3b': {'type': 'gooseai'},

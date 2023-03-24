@@ -125,9 +125,9 @@ def generate(config, **kwargs):
             return formatted_response, error
         else:
             return response, error
-    elif model_type in ('openai', 'openai-custom', 'gooseai'):
+    elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat'):
         # TODO OpenAI errors
-        response, error = openAI_generate(custom=model_type == 'openai-custom', **kwargs)
+        response, error = openAI_generate(model_type, **kwargs)
         #save_response_json(response, 'examples/openAI_response.json')
         formatted_response = format_openAI_response(response, kwargs['prompt'], echo=True)
         #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')
@@ -242,12 +242,11 @@ def format_openAI_response(response, prompt, echo=True):
 
 
 @retry(n_tries=3, delay=1, backoff=2, on_failure=lambda *args, **kwargs: ("", None))
-def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
-                    model='davinci', logit_bias=None, custom=False, **kwargs):
+def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
+                    model='davinci', logit_bias=None, **kwargs):
     if not logit_bias:
         logit_bias = {}
     params = {
-        'prompt': prompt,
         'temperature': temperature,
         'max_tokens': length,
         'top_p': top_p,
@@ -258,13 +257,22 @@ def openAI_generate(prompt, length=150, num_continuations=1, logprobs=10, temper
         'stop': stop,
         #**kwargs
     }
-    if custom:
+    if model_type == 'openai-custom':
         params['model'] = model
     else:
         params['engine'] = model
-    response = openai.Completion.create(
-        **params
-    )
+
+
+    if model_type == 'openai-chat':
+        params['messages'] = [{ 'role': "assistant", 'content': prompt }] 
+        response = openai.ChatCompletion.create(
+            **params
+        )
+    else:
+        params['prompt'] = prompt
+        response = openai.Completion.create(
+            **params
+        )
     
     return response, None
 
