@@ -43,29 +43,6 @@ import json
                  ? "sequence": string }
 '''
 
-# POSSIBLE_MODELS = [
-#     'ada',
-#     'babbage',
-#     'content-filter-alpha-c4',
-#     'content-filter-dev',
-#     'curie',
-#     'cursing-filter-v6',
-#     'davinci',
-#     'instruct-curie-beta',
-#     'instruct-davinci-beta',
-#     'j1-large',
-#     'j1-jumbo',
-# ]
-
-
-
-
-
-
-
-
-
-
 
 
 #ai21_api_key = os.environ.get("AI21_API_KEY", None)
@@ -82,35 +59,43 @@ def gen(prompt, settings, config, **kwargs):
         logit_bias = None
     #if config['OPENAI_API_KEY']:
     model_info = config['models'][settings['model']]
+    # print('model info:', model_info)
+    openai.api_base = model_info['api_base'] if model_info['api_base'] else "https://api.openai.com/v1"
     ai21_api_key = kwargs.get('AI21_API_KEY', None)
     ai21_api_key = ai21_api_key if ai21_api_key else os.environ.get("AI21_API_KEY", None)
     if model_info['type'] == 'gooseai':
-        openai.api_base = "https://api.goose.ai/v1"
+        # openai.api_base = openai.api_base if openai.api_base else "https://api.goose.ai/v1"
         gooseai_api_key = kwargs.get('GOOSEAI_API_KEY', None)
         openai.api_key = gooseai_api_key if gooseai_api_key else os.environ.get("GOOSEAI_API_KEY", None)
-    elif model_info['type'] == 'openai':
-        openai.api_base = "https://api.openai.com/v1"
+    elif model_info['type'] in ('openai', 'openai-custom', 'openai-chat'):
+        # openai.api_base =  openai.api_base if openai.api_base else "https://api.openai.com/v1"
         openai_api_key = kwargs.get('OPENAI_API_KEY', None)
         openai.api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)
 
-    #print('openai api key: ' + openai.api_key)
+    # print('openai api base: ' + openai.api_base)
+
+    # print('openai api key: ' + openai.api_key)
 
     # if config['AI21_API_KEY']:
         #TODO 
         # ai21_api_key = config['AI21_API_KEY']
-    response, error = generate(prompt=prompt,
-                               length=settings['response_length'],
-                               num_continuations=settings['num_continuations'],
-                               temperature=settings['temperature'],
-                               logprobs=settings['logprobs'],
-                               top_p=settings['top_p'],
-                               model=settings['model'],
-                               stop=stop,
-                               logit_bias=logit_bias,
-                               config=config,
-                               ai21_api_key=ai21_api_key,
-                               )
-    return response, error
+    try:
+        response, error = generate(prompt=prompt,
+                                length=settings['response_length'],
+                                num_continuations=settings['num_continuations'],
+                                temperature=settings['temperature'],
+                                logprobs=settings['logprobs'],
+                                top_p=settings['top_p'],
+                                model=settings['model'],
+                                stop=stop,
+                                logit_bias=logit_bias,
+                                config=config,
+                                ai21_api_key=ai21_api_key,
+                                )
+        return response, error
+    except Exception as e:
+        print(e)
+        return None, e
 
 
 def generate(config, **kwargs):

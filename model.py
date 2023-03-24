@@ -72,8 +72,8 @@ DEFAULT_PREFERENCES = {
 DEFAULT_WORKSPACE = {
     'side_pane': {'open': True, 
                   'modules': ["minimap"]},
-    'bottom_pane': {'open': True, 
-                    'modules': ["children"]},
+    'bottom_pane': {'open': False, 
+                    'modules': []},
     'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev", "Wavefunction", "Map"],
     'alt_textbox': False,
     'show_search': False
@@ -117,31 +117,100 @@ DEFAULT_GENERATION_SETTINGS = {
 
 DEFAULT_MODEL_CONFIG = {
     'models': {
-        'ada': {'type': 'openai'},
-        'babbage': {'type': 'openai'},
-        'content-filter-alpha-c4': {'type': 'openai'},
-        'content-filter-dev': {'type': 'openai'},
-        'curie': {'type': 'openai'},
-        'cursing-filter-v6': {'type': 'openai'},
-        'davinci': {'type': 'openai'},
-        'text-davinci-002': {'type': 'openai'},
-        'text-davinci-003': {'type': 'openai'},
-        'code-davinci-002': {'type': 'openai'},
-        'instruct-curie-beta': {'type': 'openai'},
-        'instruct-davinci-beta': {'type': 'openai'},
-        'gpt-3.5-turbo': {'type': 'openai-chat'},
-        'gpt-4': {'type': 'openai-chat'},
-        'j1-large': {'type': 'ai21'},
-        'j1-jumbo': {'type': 'ai21'},
-        'gpt-neo-1-3b': {'type': 'gooseai'},
-        'gpt-neo-2-7b': {'type': 'gooseai'},
-        'gpt-j-6b': {'type': 'gooseai'},
-        'gpt-neo-20b': {'type': 'gooseai'},
-
-
+        'ada': {
+            'model': 'ada', 
+            'type': 'openai', 
+            'api_base': 'https://api.openai.com/v1'
+            },
+        'babbage': {
+            'model': 'babbage',
+            'type': 'openai',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        # 'content-filter-alpha-c4': {'type': 'openai'},
+        # 'content-filter-dev': {'type': 'openai'},
+        'curie': {
+            'model': 'curie',
+            'type': 'openai',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        # 'cursing-filter-v6': {'type': 'openai'},
+        'davinci': {
+            'model': 'davinci',
+            'type': 'openai',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        'text-davinci-002': {
+            'model': 'text-davinci-002',
+            'type': 'openai',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        'text-davinci-003': {
+            'model': 'text-davinci-003',
+            'type': 'openai',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        # 'code-davinci-002': {
+        #     'model': 'code-davinci-002',
+        #     'type': 'openai',
+        #     'api_base': 'https://api.openai.com/v1'
+        #     },
+        'instruct-curie-beta': {
+            'model': 'instruct-curie-beta',
+            'type': 'openai',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        'instruct-davinci-beta': {
+            'model': 'instruct-davinci-beta',
+            'type': 'openai',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        'gpt-3.5-turbo': {
+            'model': 'gpt-3.5-turbo',
+            'type': 'openai-chat',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        'gpt-4': {
+            'model': 'gpt-4',
+            'type': 'openai-chat',
+            'api_base': 'https://api.openai.com/v1'
+            },
+        'j1-large': {
+            'model': 'j1-large',
+            'type': 'ai21',
+            'api_base': None,
+            },
+        'j1-jumbo': {
+            'model': 'j1-jumbo',
+            'type': 'ai21',
+            'api_base': None,
+            },
+        'gpt-neo-1-3b': {
+            'model': 'gpt-neo-1.3B',
+            'type': 'gooseai',
+            'api_base': None,
+            },
+        'gpt-neo-2-7b': {
+            'model': 'gpt-neo-2.7B',
+            'type': 'gooseai',
+            'api_base': None,
+            },
+        'gpt-j-6b': {
+            'model': 'gpt-j-6B',
+            'type': 'gooseai',
+            'api_base': None,
+            },
+        'gpt-neo-20b': {
+            'model': 'gpt-neo-20B',
+            'type': 'gooseai',
+            'api_base': None,
+            },
     },
-    #'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
-    #'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),
+    # 'api_base': None,
+    # 'api_key': os.environ.get("API_KEY", ''),
+    # 'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
+    # 'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),
+    # 'GOOSEAI_API_KEY': os.environ.get("GOOSEAI_API_KEY", None),
 }
 
 DEFAULT_INLINE_GENERATION_SETTINGS = {
@@ -487,6 +556,7 @@ class TreeModel:
     def edit_new_nodes(self):
         print('new nodes:', self.new_nodes)
         self.tree_updated()
+        time.sleep(0.5)
         for node_id in self.new_nodes[0]:
             self.node(node_id)['mutable'] = True
         self.tree_updated(edit=self.new_nodes[0])

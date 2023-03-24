@@ -1143,16 +1143,25 @@ class ChatDialog(Dialog):
 
 class AddModelDialog(Dialog):
     def __init__(self, parent):
+        self.model_id_entry = None
         self.model_name_entry = None
         self.model_type_entry = None
+        self.base_path_entry = None
         Dialog.__init__(self, parent, title="Model Configuration")
     
     def body(self, master):
+        self.model_id_entry = Entry(master, master.grid_size()[1], "Model id", "", None, width=30)
         self.model_name_entry = Entry(master, master.grid_size()[1], "Model name", "", None, width=30)
-        self.model_type_entry = Entry(master, master.grid_size()[1], "Model type", "openai-custom", None, width=30)
+        self.model_type_entry = Entry(master, master.grid_size()[1], "Model type", "openai", None, width=30)
+        self.base_path_entry = Entry(master, master.grid_size()[1], "API base", "https://api.openai.com/v1", None, width=30)
 
     def apply(self):
-        self.result = {'name': self.model_name_entry.tk_variables.get(), 'type': self.model_type_entry.tk_variables.get()}
+        self.result = {
+            'id': self.model_id_entry.tk_variables.get(), 
+            'name': self.model_name_entry.tk_variables.get(), 
+            'type': self.model_type_entry.tk_variables.get(),
+            'api_base': self.base_path_entry.tk_variables.get()
+            }
     
 
 class ModelConfigDialog(Dialog):
@@ -1169,6 +1178,7 @@ class ModelConfigDialog(Dialog):
         self.ai21_api_key = None
         self.gooseai_api_key = None
         self.gooseai_api_key_entry = None
+        # self.api_base = None
         Dialog.__init__(self, parent, title="Model Configuration")
 
     def set_vars(self):
@@ -1177,6 +1187,7 @@ class ModelConfigDialog(Dialog):
         self.openai_api_key = self.state.OPENAI_API_KEY if self.state.OPENAI_API_KEY else ""
         self.ai21_api_key = self.state.AI21_API_KEY if self.state.AI21_API_KEY else ""
         self.gooseai_api_key = self.state.GOOSEAI_API_KEY if self.state.GOOSEAI_API_KEY else ""
+        # self.api_base = self.state.model_config.api_base if self.state.model_config.api_base else ""
 
     def body(self, master):
         self.set_vars()
@@ -1185,6 +1196,7 @@ class ModelConfigDialog(Dialog):
         self.openai_api_key_entry = Entry(master, master.grid_size()[1], "OpenAI API Key", self.openai_api_key, None, width=key_length)
         self.ai21_api_key_entry = Entry(master, master.grid_size()[1], "AI21 API Key", self.ai21_api_key, None, width=key_length)
         self.gooseai_api_key_entry = Entry(master, master.grid_size()[1], "GooseAI API Key", self.gooseai_api_key, None, width=key_length)
+        # self.api_base_entry = Entry(master, master.grid_size()[1], "API Base", self.api_base, None)
         models_list = self.available_models.keys()
         self.model_label = ttk.Label(master, text="Model")
         self.model_label.grid(row=master.grid_size()[1], column=0)
@@ -1196,16 +1208,26 @@ class ModelConfigDialog(Dialog):
     def add_model(self):
         self.result = AddModelDialog(self).result
         if self.result:
-            self.available_models[self.result['name']] = {'type': self.result['type']}
-            self.available_models_dropdown['menu'].add_command(label=self.result['name'], 
-                                                               command=lambda: self.selected_model.set(self.result['name']))
+            self.available_models[self.result['id']] = {
+                'name': self.result['name'],
+                'type': self.result['type'],
+                'api_base': self.result['api_base']
+                }
+            self.available_models_dropdown['menu'].add_command(label=self.result['id'], 
+                                                               command=lambda: self.selected_model.set(self.result['id']))
 
     def apply(self):
-        self.state.update_frame(node=self.state.root(), update={'model_config': {'models': self.available_models}})
+        self.state.update_frame(node=self.state.root(), update={'model_config': {'models': self.available_models,
+                                                                                    # 'OPENAI_API_KEY': self.openai_api_key_entry.tk_variables.get(),
+                                                                                    # 'AI21_API_KEY': self.ai21_api_key_entry.tk_variables.get(),
+                                                                                    # 'GOOSEAI_API_KEY': self.gooseai_api_key_entry.tk_variables.get(),
+                                                                                    # 'api_base': self.api_base_entry.tk_variables.get()
+                                                                                 }})
                                                                                  #'OPENAI_API_KEY': self.openai_api_key_entry.tk_variables.get(),
                                                                                  #'AI21_API_KEY': self.ai21_api_key_entry.tk_variables.get(),
         self.state.OPENAI_API_KEY = self.openai_api_key_entry.tk_variables.get().strip()
         self.state.AI21_API_KEY = self.ai21_api_key_entry.tk_variables.get().strip()
         self.state.GOOSEAI_API_KEY = self.gooseai_api_key_entry.tk_variables.get().strip()
+        # self.state.api_base = self.api_base_entry.tk_variables.get().strip()
         self.state.update_user_frame(update={'generation_settings': {'model': self.selected_model.get()}})
 
