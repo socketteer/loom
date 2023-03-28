@@ -511,6 +511,8 @@ class TreeModel:
 
     # return the node in tree_node_dict with id
     def node(self, node_id):
+        # if type(node_id).__name__ != 'str':
+        #     breakpoint()
         return self.tree_node_dict.get(node_id, None)
 
     # Get a nodes chapter by finding its chapter or its nearest parent's chapter

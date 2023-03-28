@@ -807,9 +807,9 @@ class TreeVis:
     #   Expand/Collapse
     #################################
 
-    def select_node(self, node_id):
-        self.selected_node = node_id
-        self.controller.nav_select(node_id=node_id)
+    def select_node(self, node):
+        self.selected_node = node
+        self.controller.nav_select(node_id=node['id'])
 
 
     def expand_node(self, node, change_selection=True, center_selection=True):
