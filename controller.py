@@ -156,7 +156,7 @@ class Controller:
             "View": [
                 ('Toggle side pane', 'Alt-P', None, no_junk_args(self.toggle_side)),
                 ('Toggle bottom pane', 'Alt-B', None, no_junk_args(self.toggle_bottom)),
-                # ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
+                ('Toggle visualize mode', 'J', None, no_junk_args(self.toggle_visualization_mode)),
                 ('Toggle children', 'Alt-C', None, no_junk_args(self.toggle_show_children)),
                 "-",
                 ('Reset zoom', 'Ctrl-0', None, no_junk_args(self.reset_zoom)),
@@ -1448,16 +1448,15 @@ class Controller:
 
     @metadata(name="Visualize", keys=["<Key-j>", "<Control-j>"], display_key="j")
     def toggle_visualization_mode(self):
-        pass
-        # if self.state.preferences['autosave']:
-        #     self.save_edits()
-        # self.display.set_mode("Visualize" if self.display.mode != "Visualize" else "Read")
-        # self.refresh_display()
-        #
-        # self.refresh_visualization()
-        # self.refresh_textbox()
-        # self.display.textbox.update_idletasks()
-        # self.center_view()
+        if self.state.preferences['autosave']:
+            self.save_edits()
+        self.display.set_mode("Visualize" if self.display.mode != "Visualize" else "Read")
+        self.refresh_display()
+        
+        self.refresh_visualization()
+        self.refresh_textbox()
+        self.display.textbox.update_idletasks()
+        self.center_view()
 
 
     # @metadata(name="Wavefunction", keys=[])
@@ -2318,18 +2317,18 @@ class Controller:
     def refresh_visualization(self, center=False, **kwargs):
         if self.display.mode != "Visualize":
             return
-        self.display.vis.redraw(self.state.root(), self.state.selected_node)
-        #self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
-        # if center:
-        #     #self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
-        #     self.display.vis.center_view_on_node(self.state.selected_node)
+        # self.display.vis.redraw(self.state.root(), self.state.selected_node)
+        self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node, center_on_selection=False)
+        if center:
+            # self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])
+            self.display.vis.center_view_on_node(self.state.selected_node)
 
 
     def refresh_vis_selection(self, **kwargs):
         if self.display.mode != "Visualize":
             return
-        self.display.vis.redraw(self.state.root(), self.state.selected_node)
-        #self.display.vis.refresh_selection(self.state.tree_raw_data["root"], self.state.selected_node)
+        # self.display.vis.redraw(self.state.root(), self.state.selected_node)
+        self.display.vis.refresh_selection(self.state.tree_raw_data["root"], self.state.selected_node)
         # TODO Without redrawing, the new open state won't be reflected
         # self.display.vis.draw(self.state.tree_raw_data["root"], self.state.selected_node)
         # self.display.vis.center_view_on_canvas_coords(*self.display.vis.node_coords[self.state.selected_node_id])

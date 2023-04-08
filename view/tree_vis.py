@@ -158,7 +158,7 @@ class TreeVis:
                 self.canvas.scale("all", event.x, event.y, 0.9, 0.9)
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))#self.canvas_bbox_padding(self.canvas.bbox("all")))
             self.fix_text_zoom()
-            self.icon_visibility_due_to_zoom()
+            self.fix_image_zoom()
 
         # # linux zoom
         def zoom_in(event):
@@ -166,7 +166,7 @@ class TreeVis:
             self.canvas.scale("all", event.x, event.y, 1.1, 1.1)
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))#self.canvas_bbox_padding(self.canvas.bbox("all")))
             self.fix_text_zoom()
-            self.icon_visibility_due_to_zoom()
+            self.fix_image_zoom()
 
         def zoom_out(event):
             self.scroll_ratio *= 0.9
@@ -174,7 +174,7 @@ class TreeVis:
             self.canvas.configure(scrollregion=self.canvas.bbox("all"))#self.canvas_bbox_padding(self.canvas.bbox("all")))
             # self.showtext = event.text > 0.8
             self.fix_text_zoom()
-            self.icon_visibility_due_to_zoom()
+            self.fix_image_zoom()
 
         # Mac and then linux scrolls
         self.canvas.bind("<MouseWheel>", zoomer)
@@ -202,7 +202,7 @@ class TreeVis:
                                        width=self.get_width(item))
 
 
-    def icon_visibility_due_to_zoom(self):
+    def fix_image_zoom(self):
         approx_size = math.floor(self.scroll_ratio * 18)
         if approx_size < 12:
             if not self.buttons_hidden:
@@ -215,6 +215,14 @@ class TreeVis:
                 for item in self.canvas.find_withtag("image"):
                     self.canvas.itemconfigure(item, state='normal')
 
+            for icon in self.icons.icons:
+                new_size = math.floor(self.scroll_ratio * self.icons.icons[icon]["size"])
+                # self.old_icons.append(self.icons[icon]["icon"])
+                # self.icons.icons[icon]["icon"] = ImageTk.PhotoImage(self.icons.icons[icon]["img"].resize((new_size, new_size)))
+                _ = self.icons.get_icon(icon, new_size)
+            for resize_event in self.resize_icon_events:
+                resize_event()
+
 
     # TODO save default widths (because some nodes have different widths)
     def get_width(self, item):
@@ -224,7 +232,7 @@ class TreeVis:
 
 
     def get_text_size(self):
-        return math.floor(self.state.visualization_settings['textsize'] * self.scroll_ratio)
+        return math.floor(self.state.visualization_settings['text_size'] * self.scroll_ratio)
 
     #################################
     #   Drawing
@@ -372,21 +380,21 @@ class TreeVis:
 
         self.active = self.get_active()
 
-        self.compute_tree_coordinates(self.root, 100, 100, level=0)
-        self.center_about_ancestry(self.state.ancestry(self.selected_node))
-        self.draw_precomputed_tree(self.root)
+        # self.compute_tree_coordinates(self.root, 100, 100, level=0)
+        # self.center_about_ancestry(self.state.ancestry(self.selected_node))
+        # self.draw_precomputed_tree(self.root)
 
-        #self.draw_tree(self.root, 100, 100)
+        self.draw_tree(self.root, 100, 100)
 
-        # self.canvas.scale("all", 0, 0, self.scroll_ratio, self.scroll_ratio)
+        self.canvas.scale("all", 0, 0, self.scroll_ratio, self.scroll_ratio)
 
-        # region = self.canvas_bbox_padding(self.canvas.bbox("all"))
-        # self.canvas.configure(scrollregion=region)
-        # self.fix_text_zoom()
-        # self.icon_visibility_due_to_zoom()
+        region = self.canvas_bbox_padding(self.canvas.bbox("all"))
+        self.canvas.configure(scrollregion=region)
+        self.fix_text_zoom()
+        self.fix_image_zoom()
 
-        # if center_on_selection:
-        #     self.center_view_on_node(self.selected_node)
+        if center_on_selection:
+            self.center_view_on_node(self.selected_node)
 
 
     def refresh_selection(self, root_node, selected_node):
@@ -613,7 +621,7 @@ class TreeVis:
         if not self.state.visualization_settings["chapter_mode"]:
             if node is not self.root:
                 self.draw_collapse_button(node, box)
-            if self.state.visualization_settings["showbuttons"]:
+            if self.state.visualization_settings["show_buttons"]:
                 self.draw_buttons(node, box)
             self.draw_bookmark_star(node, box)
         return box
@@ -697,7 +705,7 @@ class TreeVis:
         icon_id = self.canvas.create_image(x_pos, y_pos,
                                            image=self.icons.get_icon(icon_name),
                                            tags=[f'{name}-{node["id"]}', 'data', 'image'])
-        #self.resize_icon_events.append(lambda: self.canvas.itemconfig(icon_id, image=self.icons.get_icon(icon_name)))
+        self.resize_icon_events.append(lambda: self.canvas.itemconfig(icon_id, image=self.icons.get_icon(icon_name)))
         self.canvas.tag_bind(
             f'{name}-{node["id"]}', "<Button-1>", method)
         return icon_id
@@ -799,9 +807,9 @@ class TreeVis:
     #   Expand/Collapse
     #################################
 
-    def select_node(self, node_id):
-        self.selected_node = node_id
-        self.controller.nav_select(node_id=node_id)
+    def select_node(self, node):
+        self.selected_node = node
+        self.controller.nav_select(node_id=node['id'])
 
 
     def expand_node(self, node, change_selection=True, center_selection=True):
@@ -1011,7 +1019,7 @@ class TreeVis:
         self.canvas.configure(scrollregion=self.canvas_bbox_padding(self.canvas.bbox("all")))
         self.scroll_ratio = 1
         self.fix_text_zoom()
-        self.icon_visibility_due_to_zoom()
+        self.fix_image_zoom()
 
 
 
