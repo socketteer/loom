@@ -1028,6 +1028,7 @@ class MiniMap(Module):
         # else:
         #     print('draw precomputed')
         self.draw_precomputed_tree(pruned_tree)
+        # print('selected node:', self.selected_node)
         self.color_selection(self.selected_node)
 
     def compute_tree_coordinates(self, root, x, y, level=0):

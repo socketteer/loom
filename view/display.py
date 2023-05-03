@@ -351,7 +351,7 @@ class Display:
             # ["Copy"],
             ["Edit"],
             ["Children"],
-            ["Visualize"],
+            ["Visualize", {}, dict(side="right")],
 
             ["Bottom pane"],
             ["Side pane"],

@@ -74,7 +74,7 @@ DEFAULT_WORKSPACE = {
                   'modules': ["minimap"]},
     'bottom_pane': {'open': False, 
                     'modules': []},
-    'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev", "Wavefunction", "Map"],
+    'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev", "Visualize", "Wavefunction", "Map"],
     'alt_textbox': False,
     'show_search': False
 }
