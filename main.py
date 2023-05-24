@@ -4,9 +4,10 @@
 import os
 import tkinter as tk
 import traceback
+import argparse
 from collections import defaultdict
 from pprint import pprint
-from tkinter import ttk, messagebox
+from tkinter import ttk, messagebox, font
 
 from ttkthemes import ThemedStyle
 
@@ -23,12 +24,19 @@ from copy import deepcopy
 class Application:
 
     # Create the application window
-    def __init__(self, width, height):
+    def __init__(self):
+        self.parse_arguments()
         # Create the root
         self.root = tk.Tk()
-        self.root.geometry("%dx%d+50+30" % (width, height))
+        self.root.geometry("%dx%d+50+30" % (self.args.width, self.args.height))
+        print(4.0 if self.args.high_resolution else self.args.scaling_factor)
+        self.root.call('tk', 'scaling', 2.0 if self.args.high_resolution else self.args.scaling_factor)
         self.root.title("Read tree")
 
+        # Use a font that scales with the scaling factor
+        fontSize = 12  # base font size before scaling
+        scaled_font = font.nametofont("TkDefaultFont")
+        scaled_font.configure(size=int(fontSize * self.args.scaling_factor))
 
         # App icon :). Save or will be garbage collected
         self.icon = PIL.ImageTk.PhotoImage(PIL.Image.open("static/zoneplate.png"))
@@ -60,6 +68,15 @@ class Application:
         self.root.update()
         self.root.attributes('-topmost', False)
 
+    def parse_arguments(self):
+        parser = argparse.ArgumentParser(description='Loom Activation Script')
+
+        parser.add_argument('-wd', '--width', default=1200, type=int, help='Window Width')
+        parser.add_argument('-ht', '--height', default=675, type=int, help='Window Height')
+        parser.add_argument('-sf', '--scaling-factor', default=1.0)
+        parser.add_argument('-hr', '--high-resolution', action='store_true', help='hr as in High Resolution')
+
+        self.args = parser.parse_args()
 
     def initialize_app_state(self):
         try:
@@ -137,6 +154,7 @@ class Application:
     def build_menus(self):
         if hasattr(self, "menu"):
             self.menu.destroy()
+        
         menu_list = defaultdict(list, {
             "File": [
                 #('New Tab', 'Ctrl+N', '<Control-n>', self.create_tab),
@@ -181,5 +199,5 @@ class Application:
 
 # Create the display application and run it
 if __name__ == "__main__":
-    app = Application(1200, 675)
+    app = Application()
     app.main()
