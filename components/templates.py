@@ -118,8 +118,8 @@ class Windows:
         del self.windows[window_id]
     
     def clear_windows(self):
-        for window in self.windows:
-            self.remove_window(window)
+        for window_id in list(self.windows.keys()):
+            self.remove_window(window_id)
 
     def destroy(self):
         self.scroll_frame.pack_forget()

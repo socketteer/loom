@@ -13,6 +13,7 @@ from components.templates import *
 from view.tree_vis import round_rectangle
 from pprint import pformat, pprint
 from gpt import completions_text, gen
+from metaprocess import metaprocesses
 import uuid
 import threading
 from tkinter.colorchooser import askcolor
@@ -1682,6 +1683,90 @@ class Transformers(Module):
         self.completions_frame.show()
         for completion in response_text_list:
             self.completion_windows.open_window(completion)
+
+class MetaProcess(Module):
+    def __init__(self, callbacks, state):
+        Module.__init__(self, "metaprocess", callbacks, state)
+        self.metaprocess_name = None
+        self.run_button = None
+        self.refresh_button = None
+        self.input_field = None
+        # self.output_field = None
+        self.completions_frame = None
+        self.completion_windows = None
+        self.output_probability_field = None
+        self.input_frame = None
+        self.input = None
+        self.output = None
+        # self.process = None
+        self.process_selector = None
+        self.top_row = None
+        
+
+    def build(self, parent):
+        Module.build(self, parent)
+        self.top_row = tk.Frame(self.frame, bg=bg_color())
+        self.top_row.pack(side='top', fill='x', expand=False)
+        self.metaprocess_name = tk.StringVar(value = "author_attribution")
+        self.process_selector = tk.OptionMenu(self.top_row, self.metaprocess_name, *metaprocesses.keys())
+        self.process_selector.pack(side='left', fill='x', expand=True)
+
+        self.run_button = ttk.Button(self.top_row, text="Run", command=self.run)
+        self.run_button.pack(side='left', fill='x', expand=True)
+
+        self.refresh_button = ttk.Button(self.top_row, text="Refresh", command=self.refresh)
+        self.refresh_button.pack(side='left', fill='x', expand=False)
+
+        self.input_frame = CollapsableFrame(self.frame, title='Input', bg=bg_color())
+        self.input_frame.pack(side='top', fill='both', expand=True)
+
+        self.input_field = TextAware(self.input_frame.collapsable_frame, bd=2, height=3, undo=True, relief='raised')
+        self.input_field.pack(side='top', fill='both', expand=True)
+        # self.input_field.body(self.input_frame.collapsable_frame)
+        self.input_field.configure(**textbox_config())
+        self.input_field.configure(state='disabled')
+
+        self.output_probability_field = tk.Label(self.frame, text="Probability:", bg=bg_color(), fg=text_color())
+        self.output_probability_field.pack(side='top', fill='x', expand=False)
+
+        self.completions_frame = CollapsableFrame(self.frame, title='Completions', bg=bg_color())
+        self.completion_windows = Windows(buttons=['close'])
+        self.completion_windows.body(self.completions_frame.collapsable_frame)
+        self.completions_frame.pack(side='top', fill='both', expand=True)
+
+        self.input_frame.hide()
+        self.completions_frame.hide()
+
+
+
+    def run(self):
+        self.output = metaprocesses[self.metaprocess_name.get()](self.input)
+
+        self.completion_windows.clear_windows()
+
+        if(type(self.output) == list):
+            self.completions_frame.show()
+            for completion in self.output:
+                self.completion_windows.open_window(completion)
+        else:
+            self.completions_frame.hide()
+            self.output_probability_field.configure(text=f"Probability: {self.output}")
+
+    def refresh(self):
+        self.input = self.state.ancestry_text(self.state.selected_node)
+
+        self.input_field.configure(state='normal')
+        self.input_field.delete(1.0, tk.END)
+        self.input_field.insert(tk.END, self.input)
+        self.input_field.configure(state='disabled')
+
+    
+    def selection_updated(self):
+        self.refresh()
+
+    def tree_updated(self):
+        self.refresh()
+        
 
 
 class GenerationSettings(Module):
