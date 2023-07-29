@@ -71,9 +71,9 @@ metaprocesses = {
 }
 
 # load metaprocesses from files
-for filename in os.listdir("./data/metaprocesses"):
+for filename in os.listdir("./config/metaprocesses"):
     if filename.endswith(".json"):
-        with open(f"./data/metaprocesses/{filename}", "r") as f:
+        with open(f"./config/metaprocesses/{filename}", "r") as f:
             data = json.load(f)
         metaprocesses[data["name"]] = lambda x : metaprocess(
             x,
