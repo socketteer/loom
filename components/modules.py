@@ -13,7 +13,7 @@ from components.templates import *
 from view.tree_vis import round_rectangle
 from pprint import pformat, pprint
 from gpt import completions_text, gen
-from metaprocess import metaprocesses
+from metaprocess import metaprocesses, execute_metaprocess, save_metaprocess
 import uuid
 import threading
 from tkinter.colorchooser import askcolor
@@ -1687,9 +1687,15 @@ class Transformers(Module):
 class MetaProcess(Module):
     def __init__(self, callbacks, state):
         Module.__init__(self, "metaprocess", callbacks, state)
-        self.metaprocess_name = None
+        self.metaprocess_name = tk.StringVar(value = "author attribution")
+
+        self.metaprocess_specification_field = None
+        self.buttons_frame = None
+
         self.run_button = None
         self.refresh_button = None
+
+
         self.input_field = None
         # self.output_field = None
         self.completions_frame = None
@@ -1698,24 +1704,41 @@ class MetaProcess(Module):
         self.input_frame = None
         self.input = None
         self.output = None
-        # self.process = None
         self.process_selector = None
+        self.new_metaprocess_button = None
+        self.clone_metaprocess_button = None
+        self.save_button = None
         self.top_row = None
         
 
     def build(self, parent):
         Module.build(self, parent)
+
+        self.generation_settings = self.state.generation_settings.copy()
+
         self.top_row = tk.Frame(self.frame, bg=bg_color())
         self.top_row.pack(side='top', fill='x', expand=False)
-        self.metaprocess_name = tk.StringVar(value = "author_attribution")
-        self.process_selector = tk.OptionMenu(self.top_row, self.metaprocess_name, *metaprocesses.keys())
+
+        self.process_selector = tk.OptionMenu(self.top_row, self.metaprocess_name, *metaprocesses.keys(), command=self.load_metaprocess)
         self.process_selector.pack(side='left', fill='x', expand=True)
 
-        self.run_button = ttk.Button(self.top_row, text="Run", command=self.run)
-        self.run_button.pack(side='left', fill='x', expand=True)
+        self.new_metaprocess_button = ttk.Button(self.top_row, text="New", command=self.new_metaprocess)
+        self.new_metaprocess_button.pack(side='left', fill='x', expand=False)
 
-        self.refresh_button = ttk.Button(self.top_row, text="Refresh", command=self.refresh)
-        self.refresh_button.pack(side='left', fill='x', expand=False)
+        self.save_button = ttk.Button(self.top_row, text="Save", command=self.save_metaprocess)
+        self.save_button.pack(side='left', fill='x', expand=False)
+
+        self.clone_metaprocess_button = ttk.Button(self.top_row, text="Clone", command=lambda: self.new_metaprocess(data=metaprocesses[self.metaprocess_name.get()]))
+        self.clone_metaprocess_button.pack(side='left', fill='x', expand=False)
+
+        self.metaprocess_specification_field = TextAttribute(master=self.frame, 
+                                                            attribute_name="metaprocess specification",
+                                                            read_callback=self.set_metaprocess_spec, 
+                                                            write_callback=self.update_metaprocess,
+                                                            expand=True,
+                                                            parent_module=self, max_height=30)
+        self.metaprocess_specification_field.pack(side='top', fill='both', expand=True)
+
 
         self.input_frame = CollapsableFrame(self.frame, title='Input', bg=bg_color())
         self.input_frame.pack(side='top', fill='both', expand=True)
@@ -1725,6 +1748,16 @@ class MetaProcess(Module):
         # self.input_field.body(self.input_frame.collapsable_frame)
         self.input_field.configure(**textbox_config())
         self.input_field.configure(state='disabled')
+
+        self.buttons_frame = tk.Frame(self.frame, bg=bg_color())
+        self.buttons_frame.pack(side='top', fill='x', expand=False)
+
+        self.run_button = ttk.Button(self.buttons_frame, text="Run", command=self.run)
+        self.run_button.pack(side='left', fill='x', expand=True)
+
+        self.refresh_button = ttk.Button(self.buttons_frame, text="Refresh", command=self.refresh)
+        self.refresh_button.pack(side='left', fill='x', expand=False)
+
 
         self.output_probability_field = tk.Label(self.frame, text="Probability:", bg=bg_color(), fg=text_color())
         self.output_probability_field.pack(side='top', fill='x', expand=False)
@@ -1737,10 +1770,57 @@ class MetaProcess(Module):
         self.input_frame.hide()
         self.completions_frame.hide()
 
+        self.load_metaprocess("author attribution")
+
+
+    def load_metaprocess(self, metaprocess_name):
+        self.metaprocess_name.set(metaprocess_name)
+        self.metaprocess_specification_field.read()
+
+    def set_metaprocess_spec(self):
+        metaprocess_data = metaprocesses[self.metaprocess_name.get()]
+        return json.dumps(metaprocess_data, indent=4)
+
+    def update_metaprocess(self, text):
+        metaprocess_data = json.loads(text)
+        metaprocesses[self.metaprocess_name.get()] = metaprocess_data
+
+
+
+    def new_metaprocess(self, data=None):
+        new_metaprocess_data = {}
+        # popup window to get attribute name
+        name = simpledialog.askstring("New Metaprocess", "Enter metaprocess name:")
+
+        if(data == None):
+            new_metaprocess_data = {
+                # "name": "new metaprocess",
+                "description": "description",
+                "input_transform":"lambda x: x",
+                "prompt_template":"lambda x: f\"Text: '{x}'\\nContains swearing? (Yes/No):\"",
+                "output_transform":"lambda x: get_judgement_probability(x)",
+                "output_type": "probability",
+                "generation_settings": {
+                    "engine": "davinci",
+                    "max_tokens": 1,
+                    "logprobs": 10
+                }
+            }
+        else:
+            new_metaprocess_data = data.copy()
+
+        metaprocesses[name] = new_metaprocess_data
+        self.process_selector['menu'].add_command(label=name, command=lambda: self.load_metaprocess(name))
+        self.load_metaprocess(name)
+
+    def save_metaprocess(self):
+        save_metaprocess(self.metaprocess_name.get(), metaprocesses[self.metaprocess_name.get()])
+        messagebox.showinfo(title=None, message="Saved!")
 
 
     def run(self):
-        self.output = metaprocesses[self.metaprocess_name.get()](self.input)
+        # self.output = metaprocesses[self.metaprocess_name.get()](self.input)
+        self.output = execute_metaprocess(self.metaprocess_name.get(), self.input)
 
         self.completion_windows.clear_windows()
 

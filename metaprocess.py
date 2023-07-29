@@ -5,13 +5,14 @@ from util.gpt_util import logprobs_to_probs
 
 
 
-def metaprocess(input, input_transform, prompt_template, model_call, output_transform):
+def metaprocess(input, input_transform, prompt_template, generation_settings, output_transform):
     # print(f"Input: '{input}'\n")
     transformed_input = input_transform(input)
     # print(f"Transformed input: '{transformed_input}'\n")
     prompt = prompt_template(transformed_input)
     # print(f"Prompt: '{prompt}'\n")
-    output = model_call(prompt)
+    # output = model_call(prompt)
+    output = call_model(prompt, **generation_settings)
     # print(f"Output: '{output}'\n")
     transformed_output = output_transform(output)
     # print(f"Transformed output: '{transformed_output}'")
@@ -47,38 +48,37 @@ def get_judgement_probability(response, yes_tokens=["Yes", "yes", "Y", "y", " Ye
     return yes_probability / (yes_probability + no_probability)
 
 
-def author_attribution(input):
-    return metaprocess(
-        input,
-        input_transform=lambda x: x,
-        prompt_template=lambda x: f"Text: '{x}'\nAuthor:",
-        model_call=lambda x: call_model(x, engine='davinci', n=3),
-        output_transform=lambda x: get_completion_branches(x)
-    )
-
-def detect_swearing(input):
-    return metaprocess(
-        input,
-        input_transform=lambda x: x,
-        prompt_template=lambda x: f"Text: '{x}'\nContains swearing? (Yes/No):",
-        model_call=lambda x: call_model(x, engine='davinci', max_tokens=1, logprobs=10),
-        output_transform=lambda x: get_judgement_probability(x)
-    )
-
 metaprocesses = {
-    "author_attribution": author_attribution,
-    "detect_swearing": detect_swearing
+    # "author_attribution": author_attribution,
+    #"detect_swearing": detect_swearing
 }
+
 
 # load metaprocesses from files
 for filename in os.listdir("./config/metaprocesses"):
     if filename.endswith(".json"):
         with open(f"./config/metaprocesses/{filename}", "r") as f:
             data = json.load(f)
-        metaprocesses[data["name"]] = lambda x : metaprocess(
-            x,
-            input_transform=eval(data["input_transform"]),
-            prompt_template=eval(data["prompt_template"]),
-            model_call=eval(data["model_call"]),
-            output_transform=eval(data["output_transform"])
-        )
+        name = filename.split(".")[0]
+        metaprocesses[name] = {
+            "description": data["description"],
+            "input_transform": data["input_transform"],
+            "prompt_template": data["prompt_template"],
+            "output_transform": data["output_transform"],
+            "generation_settings": data["generation_settings"],
+            "output_type": data["output_type"]
+        }
+
+def save_metaprocess(metaprocess_name, data):
+    with open(f"./config/metaprocesses/{metaprocess_name}.json", "w") as f:
+        json.dump(data, f, indent=4)
+
+def execute_metaprocess(metaprocess_name, input):
+    metaprocess_data = metaprocesses[metaprocess_name]
+    return metaprocess(
+        input,
+        input_transform=eval(metaprocess_data["input_transform"]),
+        prompt_template=eval(metaprocess_data["prompt_template"]),
+        generation_settings=metaprocess_data["generation_settings"],
+        output_transform=eval(metaprocess_data["output_transform"])
+    )

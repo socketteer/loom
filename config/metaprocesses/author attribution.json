@@ -1,0 +1,14 @@
+{
+    "description": "Predicts the author of a given text",
+    "input_transform": "lambda x: x",
+    "prompt_template": "lambda x: f\"Text: '{x}'\\nAuthor:\"",
+    "output_transform": "lambda x: get_completion_branches(x)",
+    "generation_settings": {
+        "engine": "ada",
+        "n": 3,
+        "max_tokens": 30,
+        "logprobs": 0,
+        "temperature": 1
+    },
+    "output_type": "completions"
+}
