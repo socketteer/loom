@@ -1,5 +1,6 @@
 import openai
 import os
+import json
 from util.gpt_util import logprobs_to_probs
 
 
@@ -68,3 +69,16 @@ metaprocesses = {
     "author_attribution": author_attribution,
     "detect_swearing": detect_swearing
 }
+
+# load metaprocesses from files
+for filename in os.listdir("./data/metaprocesses"):
+    if filename.endswith(".json"):
+        with open(f"./data/metaprocesses/{filename}", "r") as f:
+            data = json.load(f)
+        metaprocesses[data["name"]] = lambda x : metaprocess(
+            x,
+            input_transform=eval(data["input_transform"]),
+            prompt_template=eval(data["prompt_template"]),
+            model_call=eval(data["model_call"]),
+            output_transform=eval(data["output_transform"])
+        )
