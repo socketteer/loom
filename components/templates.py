@@ -1188,6 +1188,7 @@ def full_generation_settings_init(self):
     self.textboxes.update({'start': None,
                             'restart': None,})
 
+    self.context_textbox_label = None
     self.context_textbox = None
     self.template_label = None
     self.template_filename_label = None
@@ -1233,6 +1234,8 @@ def generation_settings_templates_body(self, build_pins=False):
     # TODO use grid
     # self.context_frame = CollapsableFrame(self.frame, title="global prepended context", bg=bg_color())
     # self.context_frame.pack(side="top", fill="both", expand=True, pady=10)
+    row = self.frame.grid_size()[1]
+    self.context_textbox_label = create_side_label(self.frame, "prepended context", row=row)
     row = self.frame.grid_size()[1]
     self.context_textbox = TextAware(self.frame, height=4, width=30, undo=True)
     self.context_textbox.configure(**textbox_config())
