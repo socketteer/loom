@@ -59,7 +59,8 @@ class EvalCode:
 
 
 class Windows:
-    def __init__(self, buttons, buttons_visible=True, max_height=20):
+    def __init__(self, state, callbacks, buttons, buttons_visible=True, max_height=20):
+        self.state = state
         self.windows_pane = None
         self.windows = {}
         self.master = None
@@ -68,6 +69,7 @@ class Windows:
         self.buttons_visible = buttons_visible
         self.max_height = max_height
         self.last_resize = datetime.datetime.min
+        self.callbacks = callbacks
 
     def body(self, master):
         self.master = master
@@ -108,9 +110,15 @@ class Windows:
         self.windows[window_id][button].grid(row=row, column=2, padx=5)
         if button == 'close':
             self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.close_window(_id))
+        elif button == 'attach':
+            self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.state.selected_node, _text=self.windows[window_id]['textbox'].get("1.0", 'end-1c'): self.attach_node(_node, _text))
+
 
     def close_window(self, window_id):
         self.remove_window(window_id)
+
+    def attach_node(self, node, text):
+        self.callbacks["New Child"]["callback"](node=node, text=text, update_selection=False, toggle_edit=False)
 
     def remove_window(self, window_id):
         self.windows[window_id]['frame'].pack_forget()
@@ -140,7 +148,7 @@ class Windows:
 
 
 class NodeWindows(Windows):
-    def __init__(self, callbacks, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, max_height=10, toggle_tag=None):
+    def __init__(self, callbacks, state, buttons, buttons_visible=True, nav_icons_visible=True, editable=True, max_height=10, toggle_tag=None):
         self.callbacks = callbacks
         self.blacklist = []
         self.whitelist = []
@@ -149,7 +157,7 @@ class NodeWindows(Windows):
         self.editable = editable
         self.max_height = max_height
         self.toggle_tag = toggle_tag
-        Windows.__init__(self, buttons, buttons_visible)
+        Windows.__init__(self, state, callbacks, buttons, buttons_visible)
 
     def open_window(self, node, insert='end'):
         if node['id'] in self.windows:
@@ -205,8 +213,8 @@ class NodeWindows(Windows):
             self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.goto_node(_id))
         elif button == 'edit':
             self.windows[window_id][button].bind("<Button-1>", lambda event, _id=window_id: self.toggle_edit(_id))
-        elif button == 'attach':
-            self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.attach_node(_node))
+        # elif button == 'attach':
+        #     self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.state.selected_node, _text=self.windows[window_id]['textbox'].get("1.0", 'end-1c'): self.attach_node(_node, _text))
         elif button == 'archive':
             self.windows[window_id][button].bind("<Button-1>", lambda event, _node=self.windows[window_id]['node']: self.archive_node(_node))
         elif button == 'close':
@@ -265,9 +273,6 @@ class NodeWindows(Windows):
 
     def focus_textbox(self, window_id):
         self.windows[window_id]['textbox'].focus_set()
-
-    def attach_node(self, node):
-        pass
 
     def archive_node(self, node):
         self.callbacks["Tag"]["callback"](node=node, tag="archived")

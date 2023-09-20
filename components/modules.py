@@ -442,7 +442,7 @@ class Notes(Module):
         self.new_note_button = None
         self.pinned_frame = None
         self.notes_frame = None
-        self.notes = NodeWindows(callbacks, buttons=['close', 'go', 'attach', 'archive', 'delete'], max_height=1)
+        self.notes = NodeWindows(callbacks, state, buttons=['close', 'go', 'attach', 'archive', 'delete'], max_height=1)
         Module.__init__(self, 'notes', callbacks, state)
 
     def build(self, parent):
@@ -482,7 +482,7 @@ class Children(Module):
         self.toggle_hidden_button = None
         self.show_hidden = False
         Module.__init__(self, 'children', callbacks, state)
-        self.children = NodeWindows(callbacks, buttons=['close', 'go', 'edit', 'archive', 'delete'],
+        self.children = NodeWindows(callbacks, state, buttons=['close', 'go', 'edit', 'archive', 'delete'],
                                     buttons_visible=True,
                                     editable=False,
                                     max_height=100,
@@ -675,7 +675,7 @@ class JanusPlayground(Module):
         self.export_button = None
         self.settings_button = None
         self.completions_frame = None
-        self.completion_windows = Windows(buttons=['close', 'append', 'attach'])
+        self.completion_windows = Windows(state=state, callbacks=callbacks, buttons=['close', 'append', 'attach'])
         self.inline_completions = None
         self.completion_index = 0
         self.model_response = None
@@ -1470,6 +1470,8 @@ class Transformers(Module):
         self.generation_settings_dashboard = None
         self.completions_frame = None
         self.completion_windows = None
+        self.state = state
+        self.callbacks = callbacks
         Module.__init__(self, "transformers", callbacks, state)
         
     def build(self, parent):
@@ -1513,7 +1515,7 @@ class Transformers(Module):
         self.generate_button.pack(side='top', expand=False)
         
         self.completions_frame = CollapsableFrame(self.frame, title='Completions', bg=bg_color())
-        self.completion_windows = Windows(buttons=['close', 'save'])
+        self.completion_windows = Windows(state=self.state, callbacks=self.callbacks, buttons=['close', 'save'])
         self.completion_windows.body(self.completions_frame.collapsable_frame)
         self.completions_frame.pack(side='top', fill='both', expand=True)
 
@@ -1709,6 +1711,8 @@ class MetaProcess(Module):
         self.clone_metaprocess_button = None
         self.save_button = None
         self.top_row = None
+        self.state = state
+        self.callbacks = callbacks
         
 
     def build(self, parent):
@@ -1763,7 +1767,7 @@ class MetaProcess(Module):
         self.output_probability_field.pack(side='top', fill='x', expand=False)
 
         self.completions_frame = CollapsableFrame(self.frame, title='Completions', bg=bg_color())
-        self.completion_windows = Windows(buttons=['close'])
+        self.completion_windows = Windows(state=self.state, callbacks=self.callbacks, buttons=['close', 'attach'])
         self.completion_windows.body(self.completions_frame.collapsable_frame)
         self.completions_frame.pack(side='top', fill='both', expand=True)
 

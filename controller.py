@@ -558,9 +558,9 @@ class Controller:
         self.create_child(node=self.state.root())
 
     @metadata(name="New Child", keys=["<h>", "<Control-h>", "<Command-Right>", "<Alt-Right>"], display_key="h",)
-    def create_child(self, node=None, update_selection=True, toggle_edit=True):
+    def create_child(self, node=None, update_selection=True, toggle_edit=True, text=''):
         node = node if node else self.state.selected_node
-        new_child = self.state.create_child(parent=node)
+        new_child = self.state.create_child(parent=node, text=text)
         self.state.tree_updated(add=[new_child['id']])
         self.state.node_creation_metadata(new_child, source='prompt')
         if update_selection:

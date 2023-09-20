@@ -71,7 +71,7 @@ DEFAULT_PREFERENCES = {
 
 DEFAULT_WORKSPACE = {
     'side_pane': {'open': True, 
-                  'modules': ["minimap"]},
+                  'modules': ["metaprocess"]},
     'bottom_pane': {'open': False, 
                     'modules': []},
     'buttons': ["Edit", "Delete", "Generate", "New Child", "Next", "Prev", "Visualize", "Wavefunction", "Map"],
@@ -882,10 +882,10 @@ class TreeModel:
         # TODO replace with history
         node["meta"]["modified"] = False
 
-    def create_child(self, parent, expand=True):
+    def create_child(self, parent, expand=True, text=''):
         if not parent:
             return
-        new_child = new_node()
+        new_child = new_node(text=text)
         parent["children"].append(new_child)
         if expand:
             new_child["open"] = True
