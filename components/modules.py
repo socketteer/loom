@@ -1752,14 +1752,14 @@ class MetaProcess(Module):
 
 
 
-        self.input_frame = CollapsableFrame(self.frame, title='Branch input ("input")', bg=bg_color())
-        self.input_frame.pack(side='top', fill='both', expand=True)
+        # self.input_frame = CollapsableFrame(self.frame, title='Branch input ("input")', bg=bg_color())
+        # self.input_frame.pack(side='top', fill='both', expand=True)
 
-        self.input_field = TextAware(self.input_frame.collapsable_frame, bd=2, height=3, undo=True, relief='raised')
-        self.input_field.pack(side='top', fill='both', expand=True)
-        # self.input_field.body(self.input_frame.collapsable_frame)
-        self.input_field.configure(**textbox_config())
-        self.input_field.configure(state='disabled')
+        # self.input_field = TextAware(self.input_frame.collapsable_frame, bd=2, height=3, undo=True, relief='raised')
+        # self.input_field.pack(side='top', fill='both', expand=True)
+        # # self.input_field.body(self.input_frame.collapsable_frame)
+        # self.input_field.configure(**textbox_config())
+        # self.input_field.configure(state='disabled')
 
         self.aux_input_field = TextAttribute(master=self.frame, attribute_name='Auxiliary input ("aux_input")',
                                 read_callback=self.set_aux_input,
@@ -1775,8 +1775,8 @@ class MetaProcess(Module):
         self.run_button = ttk.Button(self.buttons_frame, text="Run", command=self.run)
         self.run_button.pack(side='left', fill='x', expand=True)
 
-        self.refresh_button = ttk.Button(self.buttons_frame, text="Refresh", command=self.refresh)
-        self.refresh_button.pack(side='left', fill='x', expand=False)
+        # self.refresh_button = ttk.Button(self.buttons_frame, text="Refresh", command=self.refresh)
+        # self.refresh_button.pack(side='left', fill='x', expand=False)
 
         self.process_log_frame = CollapsableFrame(self.frame, title='Process log', bg=bg_color())
         self.process_log_frame.pack(side='top', fill='both', expand=True)
@@ -1795,7 +1795,7 @@ class MetaProcess(Module):
         self.completion_windows.body(self.completions_frame.collapsable_frame)
         self.completions_frame.pack(side='top', fill='both', expand=True)
 
-        self.input_frame.hide()
+        # self.input_frame.hide()
         self.process_log_frame.hide()
         self.completions_frame.hide()
 
@@ -1874,10 +1874,10 @@ class MetaProcess(Module):
     def refresh(self):
         self.input = self.state.ancestry_text(self.state.selected_node)
 
-        self.input_field.configure(state='normal')
-        self.input_field.delete(1.0, tk.END)
-        self.input_field.insert(tk.END, self.input)
-        self.input_field.configure(state='disabled')
+        # self.input_field.configure(state='normal')
+        # self.input_field.delete(1.0, tk.END)
+        # self.input_field.insert(tk.END, self.input)
+        # self.input_field.configure(state='disabled')
 
     
     def selection_updated(self):
