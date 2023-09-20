@@ -1853,6 +1853,7 @@ class MetaProcess(Module):
 
     def run(self):
         # self.output = metaprocesses[self.metaprocess_name.get()](self.input)
+        self.refresh()
         self.output, self.process_log = execute_metaprocess(self.metaprocess_name.get(), self.input, self.aux_input)
 
         self.completion_windows.clear_windows()
