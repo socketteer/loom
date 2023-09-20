@@ -1705,6 +1705,8 @@ class MetaProcess(Module):
         self.output_probability_field = None
         self.input_frame = None
         self.input = None
+        self.aux_input_field = None
+        self.aux_input = None
         self.output = None
         self.process_selector = None
         self.new_metaprocess_button = None
@@ -1744,7 +1746,9 @@ class MetaProcess(Module):
         self.metaprocess_specification_field.pack(side='top', fill='both', expand=True)
 
 
-        self.input_frame = CollapsableFrame(self.frame, title='Input', bg=bg_color())
+
+
+        self.input_frame = CollapsableFrame(self.frame, title='Branch input ("input")', bg=bg_color())
         self.input_frame.pack(side='top', fill='both', expand=True)
 
         self.input_field = TextAware(self.input_frame.collapsable_frame, bd=2, height=3, undo=True, relief='raised')
@@ -1752,6 +1756,14 @@ class MetaProcess(Module):
         # self.input_field.body(self.input_frame.collapsable_frame)
         self.input_field.configure(**textbox_config())
         self.input_field.configure(state='disabled')
+
+        self.aux_input_field = TextAttribute(master=self.frame, attribute_name='Auxiliary input ("aux_input")',
+                                read_callback=self.set_aux_input,
+                                write_callback=self.update_aux_input,
+                                expand=True,
+                                parent_module=self, max_height=20)
+        self.aux_input_field.pack(side='top', fill='both', expand=True)
+
 
         self.buttons_frame = tk.Frame(self.frame, bg=bg_color())
         self.buttons_frame.pack(side='top', fill='x', expand=False)
@@ -1789,7 +1801,11 @@ class MetaProcess(Module):
         metaprocess_data = json.loads(text)
         metaprocesses[self.metaprocess_name.get()] = metaprocess_data
 
-
+    def set_aux_input(self):
+        return self.aux_input
+    
+    def update_aux_input(self, text):
+        self.aux_input = text
 
     def new_metaprocess(self, data=None):
         new_metaprocess_data = {}
@@ -1800,9 +1816,9 @@ class MetaProcess(Module):
             new_metaprocess_data = {
                 # "name": "new metaprocess",
                 "description": "description",
-                "input_transform":"lambda x: x",
-                "prompt_template":"lambda x: f\"Text: '{x}'\\nContains swearing? (Yes/No):\"",
-                "output_transform":"lambda x: get_judgement_probability(x)",
+                "input_transform":"lambda input: input[-2000:]",
+                "prompt_template":"lambda input, aux_input: f\"Text: '{input}'\\nContains {aux_input}? (Yes/No):\"",
+                "output_transform":"lambda output: get_judgement_probability(output)",
                 "output_type": "probability",
                 "generation_settings": {
                     "engine": "davinci",
@@ -1824,7 +1840,7 @@ class MetaProcess(Module):
 
     def run(self):
         # self.output = metaprocesses[self.metaprocess_name.get()](self.input)
-        self.output = execute_metaprocess(self.metaprocess_name.get(), self.input)
+        self.output = execute_metaprocess(self.metaprocess_name.get(), self.input, self.aux_input)
 
         self.completion_windows.clear_windows()
 

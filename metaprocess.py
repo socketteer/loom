@@ -5,11 +5,11 @@ from util.gpt_util import logprobs_to_probs
 
 
 
-def metaprocess(input, input_transform, prompt_template, generation_settings, output_transform):
+def metaprocess(input, aux_input, input_transform, prompt_template, generation_settings, output_transform):
     # print(f"Input: '{input}'\n")
     transformed_input = input_transform(input)
     # print(f"Transformed input: '{transformed_input}'\n")
-    prompt = prompt_template(transformed_input)
+    prompt = prompt_template(transformed_input, aux_input)
     # print(f"Prompt: '{prompt}'\n")
     # output = model_call(prompt)
     output = call_model(prompt, **generation_settings)
@@ -73,10 +73,12 @@ def save_metaprocess(metaprocess_name, data):
     with open(f"./config/metaprocesses/{metaprocess_name}.json", "w") as f:
         json.dump(data, f, indent=4)
 
-def execute_metaprocess(metaprocess_name, input):
+def execute_metaprocess(metaprocess_name, input, aux_input=None):
+    # print("Executing metaprocess", metaprocess_name, "with input", input, "and aux input", aux_input)
     metaprocess_data = metaprocesses[metaprocess_name]
     return metaprocess(
         input,
+        aux_input,
         input_transform=eval(metaprocess_data["input_transform"]),
         prompt_template=eval(metaprocess_data["prompt_template"]),
         generation_settings=metaprocess_data["generation_settings"],

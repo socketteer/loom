@@ -1,8 +1,8 @@
 {
     "description": "Predicts the author of a given text",
-    "input_transform": "lambda x: x",
-    "prompt_template": "lambda x: f\"Text: '{x}'\\nAuthor:\"",
-    "output_transform": "lambda x: get_completion_branches(x)",
+    "input_transform": "lambda input: input",
+    "prompt_template": "lambda input, aux_input: f\"Text: '{input}'\\nAuthor:\"",
+    "output_transform": "lambda output: get_completion_branches(output)",
     "generation_settings": {
         "engine": "ada",
         "n": 3,
