@@ -16,7 +16,14 @@ def metaprocess(input, aux_input, input_transform, prompt_template, generation_s
     # print(f"Output: '{output}'\n")
     transformed_output = output_transform(output)
     # print(f"Transformed output: '{transformed_output}'")
-    return transformed_output
+    process_log = {
+        "input": input,
+        "transformed_input": transformed_input,
+        "prompt": prompt,
+        "output": output,
+        "transformed_output": transformed_output
+    }
+    return transformed_output, process_log
 
 def call_model(prompt, engine="ada", n=1, temperature=1, max_tokens=20, logprobs=0, stop=None):
     openai.api_key = os.environ.get("OPENAI_API_KEY", None)

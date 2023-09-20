@@ -1708,6 +1708,10 @@ class MetaProcess(Module):
         self.aux_input_field = None
         self.aux_input = None
         self.output = None
+        self.process_log_frame = None
+        self.process_log_field = None
+        self.process_log = None
+
         self.process_selector = None
         self.new_metaprocess_button = None
         self.clone_metaprocess_button = None
@@ -1774,6 +1778,14 @@ class MetaProcess(Module):
         self.refresh_button = ttk.Button(self.buttons_frame, text="Refresh", command=self.refresh)
         self.refresh_button.pack(side='left', fill='x', expand=False)
 
+        self.process_log_frame = CollapsableFrame(self.frame, title='Process log', bg=bg_color())
+        self.process_log_frame.pack(side='top', fill='both', expand=True)
+        self.process_log_field = TextAware(self.process_log_frame.collapsable_frame, bd=2, height=4, undo=True, relief='raised')
+        self.process_log_field.pack(side='top', fill='both', expand=True)
+        self.process_log_field.configure(**textbox_config(            
+            fg='white',
+            bg='black'))
+        self.process_log_field.configure(state='disabled')
 
         self.output_probability_field = tk.Label(self.frame, text="Probability:", bg=bg_color(), fg=text_color())
         self.output_probability_field.pack(side='top', fill='x', expand=False)
@@ -1784,6 +1796,7 @@ class MetaProcess(Module):
         self.completions_frame.pack(side='top', fill='both', expand=True)
 
         self.input_frame.hide()
+        self.process_log_frame.hide()
         self.completions_frame.hide()
 
         self.load_metaprocess("author attribution")
@@ -1840,9 +1853,14 @@ class MetaProcess(Module):
 
     def run(self):
         # self.output = metaprocesses[self.metaprocess_name.get()](self.input)
-        self.output = execute_metaprocess(self.metaprocess_name.get(), self.input, self.aux_input)
+        self.output, self.process_log = execute_metaprocess(self.metaprocess_name.get(), self.input, self.aux_input)
 
         self.completion_windows.clear_windows()
+
+        self.process_log_field.configure(state='normal')
+        self.process_log_field.delete(1.0, tk.END)
+        self.process_log_field.insert(tk.END, json.dumps(self.process_log, indent=4))
+        self.process_log_field.configure(state='disabled')
 
         if(type(self.output) == list):
             self.completions_frame.show()
