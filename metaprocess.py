@@ -25,7 +25,7 @@ def metaprocess(input, aux_input, input_transform, prompt_template, generation_s
     }
     return transformed_output, process_log
 
-def call_model(prompt, engine="ada", n=1, temperature=1, max_tokens=20, logprobs=0, stop=None):
+def call_model_completion(prompt, engine="ada", n=1, temperature=1, max_tokens=20, logprobs=0, stop=None):
     openai.api_key = os.environ.get("OPENAI_API_KEY", None)
     response = openai.Completion.create(
         engine=engine,
@@ -38,8 +38,32 @@ def call_model(prompt, engine="ada", n=1, temperature=1, max_tokens=20, logprobs
     )
     return response
 
+def call_model_chat(prompt, engine="gpt-3.5-turbo", n=1, temperature=1, max_tokens=20, logprobs=0, stop=None):
+    openai.api_key = os.environ.get("OPENAI_API_KEY", None)
+    response = openai.ChatCompletion.create(
+        model=engine,
+        messages=[{"role":"user","content":prompt}],
+        n=n,
+        temperature=temperature,
+        max_tokens=max_tokens,
+        stop=stop
+    )
+    return response
+
+def call_model(prompt, **generation_settings):
+    # get engine type from generation_settings
+    engine = generation_settings['engine']
+    # if the engine type is a chatbot, call the different API
+    if engine in ["gpt-3.5-turbo", "gpt-3.5-turbo-16k", "gpt-4"]:
+        return call_model_chat(prompt, **generation_settings)
+    else:
+        return call_model_completion(prompt, **generation_settings)
+
 def get_completion_text(response):
     return response.choices[0].text
+
+def get_chat_completion_text(response):
+    return response.choices[0].message.content
 
 def get_completion_branches(response):
     # returns an array of text of completion branches
@@ -55,11 +79,24 @@ def get_judgement_probability(response, yes_tokens=["Yes", "yes", "Y", "y", " Ye
     return yes_probability / (yes_probability + no_probability)
 
 
+metaprocess_headers = {}
+
 metaprocesses = {
     # "author_attribution": author_attribution,
     #"detect_swearing": detect_swearing
 }
 
+# if no metaprocess headers folder, make one.
+if not os.path.exists("./config/metaprocesses/headers"):
+    os.makedirs("./config/metaprocesses/headers")
+
+# load metaprocess headers from files
+for filename in os.listdir("./config/metaprocesses/headers"):
+    if filename.endswith(".json"):
+        with open(f"./config/metaprocesses/headers/{filename}", "r") as f:
+            data = json.load(f)
+        name = filename.split(".")[0]
+        metaprocess_headers[name] = data["prompt"]
 
 # load metaprocesses from files
 for filename in os.listdir("./config/metaprocesses"):
