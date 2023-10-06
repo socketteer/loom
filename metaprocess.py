@@ -3,7 +3,7 @@ import os
 import json
 from util.gpt_util import logprobs_to_probs
 
-
+import plugins
 
 def metaprocess(input, aux_input, input_transform, prompt_template, generation_settings, output_transform):
     # print(f"Input: '{input}'\n")
