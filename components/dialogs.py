@@ -1174,6 +1174,8 @@ class ModelConfigDialog(Dialog):
         self.add_model_button = None
         self.openai_api_key_entry = None
         self.openai_api_key = None
+        self.openai_organization_entry = None
+        self.openai_organization = None
         self.ai21_api_key_entry = None
         self.ai21_api_key = None
         self.gooseai_api_key = None
@@ -1185,6 +1187,7 @@ class ModelConfigDialog(Dialog):
         self.available_models = self.state.model_config['models']
         self.selected_model.set(self.state.generation_settings['model'])
         self.openai_api_key = self.state.OPENAI_API_KEY if self.state.OPENAI_API_KEY else ""
+        self.openai_organization = self.state.OPENAI_ORGANIZATION if self.state.OPENAI_ORGANIZATION else ""
         self.ai21_api_key = self.state.AI21_API_KEY if self.state.AI21_API_KEY else ""
         self.gooseai_api_key = self.state.GOOSEAI_API_KEY if self.state.GOOSEAI_API_KEY else ""
         # self.api_base = self.state.model_config.api_base if self.state.model_config.api_base else ""
@@ -1194,6 +1197,7 @@ class ModelConfigDialog(Dialog):
         self.add_model_button = ttk.Button(master, text="Add Model", command=self.add_model)
         key_length = max(max(len(self.openai_api_key), len(self.ai21_api_key), len(self.gooseai_api_key)), 20)
         self.openai_api_key_entry = Entry(master, master.grid_size()[1], "OpenAI API Key", self.openai_api_key, None, width=key_length)
+        self.openai_organization_entry = Entry(master, master.grid_size()[1], "OpenAI Org", self.openai_organization, None, width=key_length)
         self.ai21_api_key_entry = Entry(master, master.grid_size()[1], "AI21 API Key", self.ai21_api_key, None, width=key_length)
         self.gooseai_api_key_entry = Entry(master, master.grid_size()[1], "GooseAI API Key", self.gooseai_api_key, None, width=key_length)
         # self.api_base_entry = Entry(master, master.grid_size()[1], "API Base", self.api_base, None)
@@ -1226,6 +1230,7 @@ class ModelConfigDialog(Dialog):
                                                                                  #'OPENAI_API_KEY': self.openai_api_key_entry.tk_variables.get(),
                                                                                  #'AI21_API_KEY': self.ai21_api_key_entry.tk_variables.get(),
         self.state.OPENAI_API_KEY = self.openai_api_key_entry.tk_variables.get().strip()
+        self.state.OPENAI_ORGANIZATION = self.openai_organization_entry.tk_variables.get().strip()
         self.state.AI21_API_KEY = self.ai21_api_key_entry.tk_variables.get().strip()
         self.state.GOOSEAI_API_KEY = self.gooseai_api_key_entry.tk_variables.get().strip()
         # self.state.api_base = self.api_base_entry.tk_variables.get().strip()

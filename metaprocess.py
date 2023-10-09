@@ -27,6 +27,7 @@ def metaprocess(input, aux_input, input_transform, prompt_template, generation_s
 
 def call_model_completion(prompt, engine="ada", n=1, temperature=1, max_tokens=20, logprobs=0, stop=None):
     openai.api_key = os.environ.get("OPENAI_API_KEY", None)
+    openai.organization = os.environ.get("OPENAI_ORGANIZATION", None)
     response = openai.Completion.create(
         engine=engine,
         prompt=prompt,
@@ -40,6 +41,7 @@ def call_model_completion(prompt, engine="ada", n=1, temperature=1, max_tokens=2
 
 def call_model_chat(prompt, engine="gpt-3.5-turbo", n=1, temperature=1, max_tokens=20, logprobs=0, stop=None):
     openai.api_key = os.environ.get("OPENAI_API_KEY", None)
+    openai.organization = os.environ.get("OPENAI_ORGANIZATION", None)
     response = openai.ChatCompletion.create(
         model=engine,
         messages=[{"role":"user","content":prompt}],
