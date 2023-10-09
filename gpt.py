@@ -71,6 +71,8 @@ def gen(prompt, settings, config, **kwargs):
         # openai.api_base =  openai.api_base if openai.api_base else "https://api.openai.com/v1"
         openai_api_key = kwargs.get('OPENAI_API_KEY', None)
         openai.api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)
+        openai_organization = kwargs.get('OPENAI_ORGANIZATION', None)
+        openai.organization = openai_organization if openai_organization else os.environ.get("OPENAI_ORGANIZATION", None)
 
     # print('openai api base: ' + openai.api_base)
 

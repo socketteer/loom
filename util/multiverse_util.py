@@ -12,6 +12,7 @@ def generate(prompt, engine, goose=False):
     else:
         openai.api_base = "https://api.openai.com/v1"
         openai.api_key = os.environ.get("OPENAI_API_KEY", None)
+        openai.organization = os.environ.get("OPENAI_ORGANIZATION", None)
     #print('calling engine', engine, 'at endpoint', openai.api_base)
     #print('prompt:', prompt)
     response = openai.Completion.create(prompt=prompt,

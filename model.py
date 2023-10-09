@@ -209,6 +209,7 @@ DEFAULT_MODEL_CONFIG = {
     # 'api_base': None,
     # 'api_key': os.environ.get("API_KEY", ''),
     # 'OPENAI_API_KEY': os.environ.get("OPENAI_API_KEY", None),
+    # 'OPENAI_ORGANIZATION': os.environ.get("OPENAI_ORGANIZATION", None),
     # 'AI21_API_KEY': os.environ.get("AI21_API_KEY", None),
     # 'GOOSEAI_API_KEY': os.environ.get("GOOSEAI_API_KEY", None),
 }
@@ -335,6 +336,7 @@ class TreeModel:
         self.conditions = defaultdict(list)
         self.new_nodes = []
         self.OPENAI_API_KEY = None
+        self.OPENAI_ORGANIZATION = None
         self.AI21_API_KEY = None
         self.GOOSEAI_API_KEY = None
 
@@ -2017,6 +2019,7 @@ class TreeModel:
     def default_generate(self, prompt, nodes):
         results, error = gen(prompt, self.generation_settings, self.model_config,
             OPENAI_API_KEY=self.OPENAI_API_KEY,
+            OPENAI_ORGANIZATION=self.OPENAI_ORGANIZATION,
             AI21_API_KEY=self.AI21_API_KEY,
             GOOSEAI_API_KEY=self.GOOSEAI_API_KEY,)
         self.post_generation(error, nodes, results)
