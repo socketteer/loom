@@ -47,6 +47,8 @@ import json
 
 #ai21_api_key = os.environ.get("AI21_API_KEY", None)
 
+client = openai.Client()
+
 
 def gen(prompt, settings, config, **kwargs):
     if settings["stop"]:
@@ -60,17 +62,19 @@ def gen(prompt, settings, config, **kwargs):
     #if config['OPENAI_API_KEY']:
     model_info = config['models'][settings['model']]
     # print('model info:', model_info)
-    openai.api_base = model_info['api_base'] if model_info['api_base'] else "https://api.openai.com/v1"
+    client.api_base = model_info['api_base'] if model_info['api_base'] else "https://api.openai.com/v1"
     ai21_api_key = kwargs.get('AI21_API_KEY', None)
     ai21_api_key = ai21_api_key if ai21_api_key else os.environ.get("AI21_API_KEY", None)
     if model_info['type'] == 'gooseai':
         # openai.api_base = openai.api_base if openai.api_base else "https://api.goose.ai/v1"
         gooseai_api_key = kwargs.get('GOOSEAI_API_KEY', None)
-        openai.api_key = gooseai_api_key if gooseai_api_key else os.environ.get("GOOSEAI_API_KEY", None)
+        client.api_key = gooseai_api_key if gooseai_api_key else os.environ.get("GOOSEAI_API_KEY", None)
     elif model_info['type'] in ('openai', 'openai-custom', 'openai-chat'):
         # openai.api_base =  openai.api_base if openai.api_base else "https://api.openai.com/v1"
         openai_api_key = kwargs.get('OPENAI_API_KEY', None)
-        openai.api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)
+        client.api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)
+        openai_organization = kwargs.get('OPENAI_ORGANIZATION', None)
+        client.organization = openai_organization if openai_organization else os.environ.get("OPENAI_ORGANIZATION", None)
 
     # print('openai api base: ' + openai.api_base)
 
@@ -250,12 +254,12 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
 
     if model_type == 'openai-chat':
         params['messages'] = [{ 'role': "assistant", 'content': prompt }] 
-        response = openai.ChatCompletion.create(
+        response = client.ChatCompletion.create(
             **params
         )
     else:
         params['prompt'] = prompt
-        response = openai.Completion.create(
+        response = client.Completion.create(
             **params
         )
     
@@ -263,7 +267,7 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
 
 
 def search(query, documents, engine="curie"):
-    return openai.Engine(engine).search(
+    return client.Engine(engine).search(
         documents=documents,
         query=query
     )
