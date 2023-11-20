@@ -113,6 +113,7 @@ def generate(config, **kwargs):
     elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat'):
         # TODO OpenAI errors
         response, error = openAI_generate(model_type, **kwargs)
+        response = response.dict()
         #save_response_json(response, 'examples/openAI_response.json')
         formatted_response = format_openAI_response(response, kwargs['prompt'], echo=True)
         #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')
@@ -227,7 +228,7 @@ def format_openAI_response(response, prompt, echo=True):
 
 
 @retry(n_tries=3, delay=1, backoff=2, on_failure=lambda *args, **kwargs: ("", None))
-def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprobs=10, temperature=0.8, top_p=1, stop=None,
+def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprobs=5, temperature=0.8, top_p=1, stop=None,
                     model='davinci', logit_bias=None, **kwargs):
     if not logit_bias:
         logit_bias = {}
@@ -240,29 +241,27 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
         'logit_bias': logit_bias,
         'n': num_continuations,
         'stop': stop,
+        'prompt': prompt,
         #**kwargs
     }
-    if model_type == 'openai-custom':
-        params['model'] = model
-    else:
-        params['engine'] = model
 
-
+    # hardcode to a non-chat model
     if model_type == 'openai-chat':
-        params['messages'] = [{ 'role': "assistant", 'content': prompt }] 
-        response = openai.ChatCompletion.create(
-            **params
-        )
-    else:
-        params['prompt'] = prompt
-        response = openai.Completion.create(
-            **params
-        )
-    
+        params['model'] = 'davinci'
+
+    # always use completions instead of chatcompletions for logprobs
+    response = openai.completions.create(
+        **params
+    )
+    breakpoint()
+
     return response, None
 
 
 def search(query, documents, engine="curie"):
+    # https://help.openai.com/en/articles/6272952-search-transition-guide
+    # TODO use embeddings instead
+    # this function is never used anyway
     return openai.Engine(engine).search(
         documents=documents,
         query=query
