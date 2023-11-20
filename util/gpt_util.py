@@ -27,7 +27,7 @@ def total_logprob(response):
 
 
 def tokenize_ada(prompt):
-    response = openai.Completion.create(
+    response = openai.completions.create(
         engine='ada',
         prompt=prompt,
         max_tokens=0,
@@ -41,7 +41,7 @@ def tokenize_ada(prompt):
 
 
 def prompt_probs(prompt, engine='ada'):
-    response = openai.Completion.create(
+    response = openai.completions.create(
         engine=engine,
         prompt=prompt,
         max_tokens=0,
@@ -57,7 +57,7 @@ def prompt_probs(prompt, engine='ada'):
 # evaluates logL(prompt+target | prompt)
 def conditional_logprob(prompt, target, engine='ada'):
     combined = prompt + target
-    response = openai.Completion.create(
+    response = openai.completions.create(
         engine=engine,
         prompt=combined,
         max_tokens=0,
@@ -135,7 +135,7 @@ def substring_probs(preprompt, content, target, engine='ada', quiet=0):
 # returns a list of substrings of content
 # logL(substring+target | substring) for each substring
 def token_conditional_logprob(content, target, engine='ada'):
-    response = openai.Completion.create(
+    response = openai.completions.create(
         engine=engine,
         prompt=content,
         max_tokens=0,

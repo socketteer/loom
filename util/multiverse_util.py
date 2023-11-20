@@ -14,12 +14,13 @@ def generate(prompt, engine, goose=False):
         openai.api_key = os.environ.get("OPENAI_API_KEY", None)
     #print('calling engine', engine, 'at endpoint', openai.api_base)
     #print('prompt:', prompt)
-    response = openai.Completion.create(prompt=prompt,
+    response = openai.completions.create(prompt=prompt,
                                         max_tokens=1,
                                         n=1,
                                         temperature=0,
                                         logprobs=100,
                                         model=engine)
+    response = response.dict()
     return response
 
 # TODO multiple "ground truth" trajectories
