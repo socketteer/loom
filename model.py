@@ -102,7 +102,7 @@ DEFAULT_GENERATION_SETTINGS = {
     'top_p': 1,
     'response_length': 100,
     'prompt_length': 6000,
-    'logprobs': 0,
+    'logprobs': 1,
     #"adaptive": False,
     "model": "davinci-002",
     "stop": '',  # separated by '|'
@@ -142,6 +142,11 @@ DEFAULT_MODEL_CONFIG = {
             'type': 'openai-chat',
             'api_base': 'https://api.openai.com/v1'
             },
+        'mistralai/Mistral-7B-v0.1':{
+            'model': 'mistralai/Mistral-7B-v0.1',
+            'type': 'together',
+            'api_base': 'https://api.together.xyz/v1'
+         },
         'j1-large': {
             'model': 'j1-large',
             'type': 'ai21',
@@ -187,7 +192,7 @@ DEFAULT_INLINE_GENERATION_SETTINGS = {
     "top_p": 1,
     "response_length": 60,
     "prompt_length": 6000,
-    "logprobs": 0,
+    "logprobs": 1,
     "stop": "\\n|.|?|!",
     "start": "",
     "restart": "",
@@ -304,6 +309,7 @@ class TreeModel:
         self.OPENAI_API_KEY = None
         self.AI21_API_KEY = None
         self.GOOSEAI_API_KEY = None
+        self.TOGETHERAI_API_KEY = None
 
     @property
     def visualization_settings(self):
@@ -1984,7 +1990,9 @@ class TreeModel:
         results, error = gen(prompt, self.generation_settings, self.model_config,
             OPENAI_API_KEY=self.OPENAI_API_KEY,
             AI21_API_KEY=self.AI21_API_KEY,
-            GOOSEAI_API_KEY=self.GOOSEAI_API_KEY,)
+            GOOSEAI_API_KEY=self.GOOSEAI_API_KEY,
+            TOGETHERAI_API_KEY=self.TOGETHERAI_API_KEY,
+            )
         self.post_generation(error, nodes, results)
 
 

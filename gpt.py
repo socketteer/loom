@@ -33,13 +33,13 @@ import json
     'generatedToken': {'logprob': float,
                        'token': string}
     'position': {'end': int, 'start': int}
-    ? 'counterfactuals': [{'token': float)}]  
+    ? 'counterfactuals': [{'token': float)}]
 }
 '''
 
 # finishReason
 '''
-"finishReason": {"reason": "stop" | "length", 
+"finishReason": {"reason": "stop" | "length",
                  ? "sequence": string }
 '''
 
@@ -62,13 +62,17 @@ def gen(prompt, settings, config, **kwargs):
     #if config['OPENAI_API_KEY']:
     model_info = config['models'][settings['model']]
     # print('model info:', model_info)
-    client.api_base = model_info['api_base'] if model_info['api_base'] else "https://api.openai.com/v1"
+    client.base_url = model_info['api_base'] if model_info['api_base'] else "https://api.openai.com/v1"
+
     ai21_api_key = kwargs.get('AI21_API_KEY', None)
     ai21_api_key = ai21_api_key if ai21_api_key else os.environ.get("AI21_API_KEY", None)
     if model_info['type'] == 'gooseai':
         # openai.api_base = openai.api_base if openai.api_base else "https://api.goose.ai/v1"
         gooseai_api_key = kwargs.get('GOOSEAI_API_KEY', None)
         client.api_key = gooseai_api_key if gooseai_api_key else os.environ.get("GOOSEAI_API_KEY", None)
+    if model_info['type'] == 'together':
+        togetherai_api_key = kwargs.get('TOGETHERAI_API_KEY', None)
+        client.api_key = togetherai_api_key if togetherai_api_key else os.environ.get("TOGETHERAI_API_KEY", None)
     elif model_info['type'] in ('openai', 'openai-custom', 'openai-chat'):
         # openai.api_base =  openai.api_base if openai.api_base else "https://api.openai.com/v1"
         openai_api_key = kwargs.get('OPENAI_API_KEY', None)
@@ -81,7 +85,7 @@ def gen(prompt, settings, config, **kwargs):
     # print('openai api key: ' + openai.api_key)
 
     # if config['AI21_API_KEY']:
-        #TODO 
+        #TODO
         # ai21_api_key = config['AI21_API_KEY']
     try:
         response, error = generate(prompt=prompt,
@@ -114,11 +118,13 @@ def generate(config, **kwargs):
             return formatted_response, error
         else:
             return response, error
-    elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat'):
+    elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat', 'together'):
+        # for some reason, Together AI ignores the echo parameter
+        echo = model_type != 'together'
         # TODO OpenAI errors
         response, error = openAI_generate(model_type, **kwargs)
         #save_response_json(response, 'examples/openAI_response.json')
-        formatted_response = format_openAI_response(response, kwargs['prompt'], echo=True)
+        formatted_response = format_openAI_response(response, kwargs['prompt'], echo=echo)
         #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')
         return formatted_response, error
 
@@ -169,60 +175,62 @@ def fix_openAI_token(token):
     # byte_token = decoded.encode('raw_unicode_escape')
     # return byte_token.decode('utf-8')
 
-def openAI_token_position(token, text_offset):
-    return {'start': text_offset,
-            'end': text_offset + len(token)}
 
-
-def format_openAI_token_dict(completion, token, i):
+def format_openAI_token_dict(completion, token, i, offset):
+    calculated_offset = len(token) + offset
     token_dict = {'generatedToken': {'token': token,
                                      'logprob': completion['logprobs']['token_logprobs'][i]},
-                  'position': openAI_token_position(token, completion['logprobs']['text_offset'][i])}
-    if completion['logprobs'].get('top_logprobs', None) is not None and completion['logprobs']['top_logprobs']:
+                  'position': calculated_offset}
+    if completion['logprobs'].get('top_logprobs', None) is not None and \
+        completion['logprobs']['top_logprobs']:
         openai_counterfactuals = completion['logprobs']['top_logprobs'][i]
         if openai_counterfactuals:
             sorted_counterfactuals = {k: v for k, v in
-                                      sorted(openai_counterfactuals.items(), key=lambda item: item[1], reverse=True)}
+                                    sorted(openai_counterfactuals.items(), key=lambda item: item[1], reverse=True)}
             token_dict['counterfactuals'] = sorted_counterfactuals
     else:
         token_dict['counterfactuals'] = None
-    return token_dict
+    return token_dict, calculated_offset
 
 
-def format_openAI_completion(completion, prompt, prompt_end_index):
-    completion_dict = {'text': completion['text'][len(prompt):],
+def format_openAI_completion(completion, prompt_offset, prompt_end_index):
+    completion_dict = {'text': completion['text'][prompt_offset:],
                        'finishReason': completion['finish_reason'],
                        'tokens': []}
+    offset = prompt_offset
     for i, token in enumerate(completion['logprobs']['tokens'][prompt_end_index:]):
         j = i + prompt_end_index
-        token_dict = format_openAI_token_dict(completion, token, j)
+        token_dict, offset = format_openAI_token_dict(completion, token, j, offset)
         completion_dict['tokens'].append(token_dict)
     return completion_dict
 
 
-def format_openAI_prompt(completion, prompt):
+def format_openAI_prompt(completion, prompt, prompt_end_index):
     prompt_dict = {'text': prompt, 'tokens': []}
     # loop over tokens until offset >= prompt length
-    for i, token in enumerate(completion['logprobs']['tokens']):
-        if completion['logprobs']['text_offset'][i] >= len(prompt):
-            prompt_end_index = i
-            break
-        token_dict = format_openAI_token_dict(completion, token, i)
+    offset = 0
+    for i, token in enumerate(completion['logprobs']['tokens'][:prompt_end_index]):
+        token_dict, offset = format_openAI_token_dict(completion, token, i, offset)
         prompt_dict['tokens'].append(token_dict)
 
-    return prompt_dict, prompt_end_index
+    return prompt_dict
 
 
-def format_openAI_response(response, prompt, echo=True):
+def format_openAI_response(response, prompt, echo):
     if echo:
-        prompt_dict, prompt_end_index = format_openAI_prompt(response['choices'][0], prompt)
+        prompt_end_index = response['usage']['prompt_tokens']
+        prompt_dict = format_openAI_prompt(response['choices'][0],
+                                                             prompt,
+                                                             prompt_end_index)
     else:
         prompt_dict = {'text': prompt, 'tokens': None}
         prompt_end_index = 0
         #prompt = ''
 
-    response_dict = {'completions': [format_openAI_completion(completion, prompt, prompt_end_index) for completion in
-                                     response['choices']],
+    prompt_offset = len(prompt) if echo else 0
+
+    response_dict = {'completions': [format_openAI_completion(completion, prompt_offset, prompt_end_index) for 
+                                     completion in response['choices']],
                      'prompt': prompt_dict,
                      'id': response['id'],
                      'model': response['model'],
@@ -249,16 +257,16 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
     }
 
     if model_type == 'openai-chat':
-        params['messages'] = [{ 'role': "assistant", 'content': prompt }] 
+        params['messages'] = [{ 'role': "assistant", 'content': prompt }]
         response = client.chat.completion.create(
             **params
-        )
+        ).to_dict()
     else:
         params['prompt'] = prompt
         response = client.completions.create(
             **params
         ).to_dict()
-    
+
     return response, None
 
 
@@ -280,14 +288,14 @@ def fix_ai21_tokens(token):
 def ai21_token_position(textRange, text_offset):
     return {'start': textRange['start'] + text_offset,
             'end': textRange['end'] + text_offset}
-    
+
 def format_ai21_token_data(token, prompt_offset=0):
     token_dict = {'generatedToken': {'token': fix_ai21_tokens(token['generatedToken']['token']),
                                      'logprob': token['generatedToken']['logprob']},
                   'position': ai21_token_position(token['textRange'], prompt_offset)}
     if token['topTokens']:
         token_dict['counterfactuals'] = {fix_ai21_tokens(c['token']): c['logprob'] for c in token['topTokens']}
-    else: 
+    else:
         token_dict['counterfactuals'] = None
     return token_dict
 
