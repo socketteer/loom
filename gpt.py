@@ -244,24 +244,20 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
         'logit_bias': logit_bias,
         'n': num_continuations,
         'stop': stop,
+        'model': model,
         #**kwargs
     }
-    if model_type == 'openai-custom':
-        params['model'] = model
-    else:
-        params['engine'] = model
-
 
     if model_type == 'openai-chat':
         params['messages'] = [{ 'role': "assistant", 'content': prompt }] 
-        response = client.ChatCompletion.create(
+        response = client.chat.completion.create(
             **params
         )
     else:
         params['prompt'] = prompt
-        response = client.Completion.create(
+        response = client.completions.create(
             **params
-        )
+        ).to_dict()
     
     return response, None
 
