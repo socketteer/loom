@@ -1,5 +1,5 @@
 
-This is an experimental tree-based writing interface for GPT-3. The code is actively being developed and thus 
+This is an experimental tree-based writing interface for GPT-3. The code is actively being developed and thus
 unstable and poorly documented.
 
 # Features
@@ -8,33 +8,33 @@ unstable and poorly documented.
    * Linear story view
    * Tree nav bar
    * Edit mode
-   
-   
+
+
 * Tree view
    * Explore tree visually with mouse
    * Expand and collapse nodes
    * Change tree topology
    * Edit nodes in place
-   
-   
+
+
 * Navigation
    * Hotkeys
    * Bookmarks
    * Chapters
-   * 'Visited' state   
-   
+   * 'Visited' state
+
 
 * Generation
    * Generate N children with GPT-3
-   * Modify generation settings 
+   * Modify generation settings
    * Change hidden memory on a node-by-node basis
-   
+
 
 * File I/O
-   * Open/save trees as JSON files 
+   * Open/save trees as JSON files
    * Work with trees in multiple tabs
    * Combine trees
-   
+
 
 # Demo
 
@@ -57,7 +57,7 @@ ooo what features! wow so cool
 3. [Optional] Write ground truth continuation in the gray entry box at the bottom of the block multiverse interface. Blocks in ground truth trajectory will be colored black.
 4. Set model and [params](https://generative.ink/meta/block-multiverse/#generation-parameters) in top bar.
 5. Click `Propagate` to propagate plot the block multiverse
-6. Click on any of the blocks to zoom ("[renormalize](https://generative.ink/meta/block-multiverse/#renormalization)") to that block 
+6. Click on any of the blocks to zoom ("[renormalize](https://generative.ink/meta/block-multiverse/#renormalization)") to that block
 7. Click `Propagate` again to plot future block multiverse starting from a renormalized frame
 8. Click `Reset zoom` to reset zoom level to initial position
 9. Click `Clear` to clear the block multiverse plot. Do this before generating a new block multiverse.
@@ -152,7 +152,7 @@ Click to split node: `Control-alt-click`
 Goto node by id: `Control-shift-g`
 
 
-### Organization 
+### Organization
 
 Toggle bookmark: `b`, `Control-b`
 
@@ -252,10 +252,10 @@ Reset zoom: `Control-0`
 
     ```sudo apt-get install python3-tk```
 1. Setup your python env (should be >= 3.9.13)
-    
-        ```python3 -m venv env``` 
+
+        ```python3 -m venv env```
         ```source env/bin/activate```
-1. Install requirements 
+1. Install requirements
 
     ```pip install -r requirements.txt```
 2. [Optional] Set environmental variables for `OPENAI_API_KEY`, `GOOSEAI_API_KEY`, `AI21_API_KEY` (you can also use the settings options)
@@ -271,8 +271,33 @@ Reset zoom: `Control-0`
 
 0. [Optional] Edit the Makefile with your API keys (you can also use the settings options)
 1. Run the make targets
-    
+
         ```make build```
         ```make run```
 2. Load a json tree
 3. Read  :)
+
+# Local Inference with llama-cpp-python
+[llama.cpp](https://github.com/ggerganov/llama.cpp) lets you run models locally, and is especially useful for running models on Mac. [https://github.com/abetlen/llama-cpp-python] provides nice installation and a convenient API.
+## Setup
+To run on M-series Mac:
+
+1. `conda create -n llama-cpp-local python=3.10; conda activate llama-cpp-local`
+2.
+   - To infer on MPS: `CMAKE_ARGS="-DLLAMA_METAL=on"`
+   - To infer on CPU: `CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS -DLLAMA_METAL=on"`
+3. `pip install 'llama-cpp-python[server]'`
+4. `pip install huggingface-hub`
+5. Now you can run the server with whatever .gguf model you desire from Huggingface, i.e: `python3 -m llama_cpp.server --hf_model_repo_id NousResearch/Meta-Llama-3-8B-GGUF --model 'Meta-Llama-3-8B-Q4_5_M.gguf' --port 8009`
+
+## Inference
+1. `conda activate llama-cpp-local` and start your llama-cpp-python server.
+2. In a new terminal window, activate your `pyloom` environment and run `main.py`
+2. Enter configurations for your local model in Settings > Model config > Add model. By default, the llama-cpp-port-8009 model uses the following settings:
+```
+{
+            'model': 'Meta-Llama-3-8B-Q4_5_M',
+            'type': 'llama-cpp',
+            'api_base': 'http://localhost:8009/v1',
+},
+```

@@ -47,7 +47,7 @@ import json
 
 #ai21_api_key = os.environ.get("AI21_API_KEY", None)
 
-client = openai.Client()
+client = openai.Client(api_key=os.environ.get("OPENAI_API_KEY", 'placeholder'))
 
 
 def gen(prompt, settings, config, **kwargs):
@@ -118,11 +118,23 @@ def generate(config, **kwargs):
             return formatted_response, error
         else:
             return response, error
-    elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat', 'together'):
+    elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat', 'together', 'llama-cpp'):
         # for some reason, Together AI ignores the echo parameter
         echo = model_type != 'together'
-        # TODO OpenAI errors
-        response, error = openAI_generate(model_type, **kwargs)
+        # llama-cpp-python doesn't support batched inference yet: https://github.com/abetlen/llama-cpp-python/issues/771
+        needs_multiple_calls = model_type in ('llama-cpp')
+        if needs_multiple_calls:
+            required_calls = kwargs['num_continuations']
+            kwargs['num_continuations'] = 1
+            responses = []
+            for _ in range(required_calls):
+                response, error = openAI_generate(model_type, **kwargs)
+                responses.append(response)
+            response = responses[-1]
+            response['choices'] = [r['choices'][0] for r in responses]
+        else:
+            # TODO OpenAI errors
+            response, error = openAI_generate(model_type, **kwargs)
         #save_response_json(response, 'examples/openAI_response.json')
         formatted_response = format_openAI_response(response, kwargs['prompt'], echo=echo)
         #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')

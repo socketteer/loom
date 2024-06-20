@@ -142,6 +142,11 @@ DEFAULT_MODEL_CONFIG = {
             'type': 'openai-chat',
             'api_base': 'https://api.openai.com/v1'
             },
+        'llama-cpp-port-8009': {
+            'model': 'Meta-Llama-3-8B-Q4_5_M',
+            'type': 'llama-cpp',
+            'api_base': 'http://localhost:8009/v1',
+            },
         'mistralai/Mistral-7B-v0.1':{
             'model': 'mistralai/Mistral-7B-v0.1',
             'type': 'together',
