@@ -1,4 +1,5 @@
 import openai
+import os
 import numpy as np
 import math
 import codecs
@@ -194,3 +195,23 @@ def parse_logit_bias(logit_string):
         bias_dict[token] = bias
     return logit_mask(bias_dict)
 
+def get_correct_key(model_type, kwargs={}):
+    if model_type == 'gooseai':
+        # openai.api_base = openai.api_base if openai.api_base else "https://api.goose.ai/v1"
+        gooseai_api_key = kwargs.get('GOOSEAI_API_KEY', None)
+        api_key = gooseai_api_key if gooseai_api_key else os.environ.get("GOOSEAI_API_KEY", None)
+        organization = None
+    if model_type == 'together':
+        togetherai_api_key = kwargs.get('TOGETHERAI_API_KEY', None)
+        api_key = togetherai_api_key if togetherai_api_key else os.environ.get("TOGETHERAI_API_KEY", None)
+        organization = None
+    elif model_type in ('openai', 'openai-custom', 'openai-chat'):
+        # openai.api_base =  openai.api_base if openai.api_base else "https://api.openai.com/v1"
+        openai_api_key = kwargs.get('OPENAI_API_KEY', None)
+        api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)
+        openai_organization = kwargs.get('OPENAI_ORGANIZATION', None)
+        organization = openai_organization if openai_organization else os.environ.get("OPENAI_ORGANIZATION", None)
+    else:
+        api_key = None
+        organization = None
+    return api_key, organization

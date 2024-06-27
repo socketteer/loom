@@ -2452,7 +2452,9 @@ class TreeModel:
                                                           unnormalized_amplitude=unnormalized_amplitude,
                                                           unnormalized_threshold=threshold,
                                                           engine=engine,
-                                                          goose=model_info['type'] == 'gooseai')
+                                                          model_type=model_info['type'],
+                                                          api_base=model_info['api_base']
+        )
         return multiverse, ground_truth, prompt
 
 

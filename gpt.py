@@ -6,7 +6,7 @@ from pprint import pprint
 from celery import Celery
 import openai
 from util.util import retry, timestamp
-from util.gpt_util import parse_logit_bias, parse_stop
+from util.gpt_util import parse_logit_bias, parse_stop, get_correct_key
 import requests
 import codecs
 import json
@@ -66,19 +66,7 @@ def gen(prompt, settings, config, **kwargs):
 
     ai21_api_key = kwargs.get('AI21_API_KEY', None)
     ai21_api_key = ai21_api_key if ai21_api_key else os.environ.get("AI21_API_KEY", None)
-    if model_info['type'] == 'gooseai':
-        # openai.api_base = openai.api_base if openai.api_base else "https://api.goose.ai/v1"
-        gooseai_api_key = kwargs.get('GOOSEAI_API_KEY', None)
-        client.api_key = gooseai_api_key if gooseai_api_key else os.environ.get("GOOSEAI_API_KEY", None)
-    if model_info['type'] == 'together':
-        togetherai_api_key = kwargs.get('TOGETHERAI_API_KEY', None)
-        client.api_key = togetherai_api_key if togetherai_api_key else os.environ.get("TOGETHERAI_API_KEY", None)
-    elif model_info['type'] in ('openai', 'openai-custom', 'openai-chat'):
-        # openai.api_base =  openai.api_base if openai.api_base else "https://api.openai.com/v1"
-        openai_api_key = kwargs.get('OPENAI_API_KEY', None)
-        client.api_key = openai_api_key if openai_api_key else os.environ.get("OPENAI_API_KEY", None)
-        openai_organization = kwargs.get('OPENAI_ORGANIZATION', None)
-        client.organization = openai_organization if openai_organization else os.environ.get("OPENAI_ORGANIZATION", None)
+    client.api_key, client.organization = get_correct_key(model_info['type'], kwargs)
 
     # print('openai api base: ' + openai.api_base)
 
@@ -119,14 +107,14 @@ def generate(config, **kwargs):
         else:
             return response, error
     elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat', 'together', 'llama-cpp'):
-        is_chat = model_type in ('openai-chat')
+        is_chat = model_type in ('openai-chat',)
         # for some reason, Together AI ignores the echo parameter
         echo = model_type not in ('together', 'openai-chat')
         # TODO: Together AI and chat inference breaks if logprobs is set to 0
         assert kwargs['logprobs'] > 0 or model_type not in ('together', 'openai-chat'), \
             "Logprobs must be greater than 0 for model type Together AI or OpenAI Chat"
         # llama-cpp-python doesn't support batched inference yet: https://github.com/abetlen/llama-cpp-python/issues/771
-        needs_multiple_calls = model_type in ('llama-cpp')
+        needs_multiple_calls = model_type in ('llama-cpp',)
         if needs_multiple_calls:
             required_calls = kwargs['num_continuations']
             kwargs['num_continuations'] = 1
@@ -287,7 +275,6 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
         'model': model,
         #**kwargs
     }
-
     if model_type == 'openai-chat':
         params['messages'] = [{ 'role': "assistant", 'content': prompt }]
         params['logprobs'] = True if logprobs > 0 else False
