@@ -246,7 +246,7 @@ Reset zoom: `Control-0`
 
 # Instructions
 
-## Python
+## Linux
 
 0. Make sure you have tkinter installed
 
@@ -265,6 +265,13 @@ Reset zoom: `Control-0`
 4. Load a json tree
 5. Read  :)
 
+## Mac
+1. `conda create -n pyloom python=3.10`
+2. `conda activate pyloom`
+3. `pip install -r requirements-mac.txt`
+4. set the OPENAI_API_KEY env variable
+5. `python main.py`
+
 ## Docker
 
 (Only tested on Linux.)
@@ -279,13 +286,10 @@ Reset zoom: `Control-0`
 
 # Local Inference with llama-cpp-python
 [llama.cpp](https://github.com/ggerganov/llama.cpp) lets you run models locally, and is especially useful for running models on Mac. [https://github.com/abetlen/llama-cpp-python] provides nice installation and a convenient API.
-## Setup
-To run on M-series Mac:
 
+## Setup
 1. `conda create -n llama-cpp-local python=3.10; conda activate llama-cpp-local`
-2.
-   - To infer on MPS: `CMAKE_ARGS="-DLLAMA_METAL=on"`
-   - To infer on CPU: `CMAKE_ARGS="-DLLAMA_BLAS=ON -DLLAMA_BLAS_VENDOR=OpenBLAS -DLLAMA_METAL=on"`
+2. Set your preferred backend before installing `llama-cpp-python`, as per [these instructions](https://github.com/abetlen/llama-cpp-python?tab=readme-ov-file#supported-backends). For instance, to infer on MPS: `CMAKE_ARGS="-DLLAMA_METAL=on"`
 3. `pip install 'llama-cpp-python[server]'`
 4. `pip install huggingface-hub`
 5. Now you can run the server with whatever .gguf model you desire from Huggingface, i.e: `python3 -m llama_cpp.server --hf_model_repo_id NousResearch/Meta-Llama-3-8B-GGUF --model 'Meta-Llama-3-8B-Q4_5_M.gguf' --port 8009`
