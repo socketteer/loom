@@ -111,8 +111,8 @@ def generate(config, **kwargs):
         # for some reason, Together AI ignores the echo parameter
         echo = model_type not in ('together', 'openai-chat')
         # TODO: Together AI and chat inference breaks if logprobs is set to 0
-        assert kwargs['logprobs'] > 0 or model_type not in ('together', 'openai-chat'), \
-            "Logprobs must be greater than 0 for model type Together AI or OpenAI Chat"
+        assert kwargs['logprobs'] > 0 or model_type not in ('together',), \
+            "Logprobs must be greater than 0 for model type Together AI"
         # llama-cpp-python doesn't support batched inference yet: https://github.com/abetlen/llama-cpp-python/issues/771
         needs_multiple_calls = model_type in ('llama-cpp',)
         if needs_multiple_calls:
@@ -277,9 +277,8 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
     }
     if model_type == 'openai-chat':
         params['messages'] = [{ 'role': "assistant", 'content': prompt }]
-        params['logprobs'] = True if logprobs > 0 else False
-        if logprobs > 0:
-            params['top_logprobs'] = logprobs
+        params['logprobs'] = True
+        params['top_logprobs'] = logprobs
         response = client.chat.completions.create(
             **params
         ).to_dict()
