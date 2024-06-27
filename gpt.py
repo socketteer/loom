@@ -119,10 +119,12 @@ def generate(config, **kwargs):
         else:
             return response, error
     elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat', 'together', 'llama-cpp'):
+        is_chat = model_type in ('openai-chat')
         # for some reason, Together AI ignores the echo parameter
-        echo = model_type != 'together'
-        # TODO: Together AI inference also breaks if logprobs is set to 0
-        assert kwargs['logprobs'] > 0 or model_type != 'together', "Logprobs must be greater than 0 for Together AI inference"
+        echo = model_type not in ('together', 'openai-chat')
+        # TODO: Together AI and chat inference breaks if logprobs is set to 0
+        assert kwargs['logprobs'] > 0 or model_type not in ('together', 'openai-chat'), \
+            "Logprobs must be greater than 0 for model type Together AI or OpenAI Chat"
         # llama-cpp-python doesn't support batched inference yet: https://github.com/abetlen/llama-cpp-python/issues/771
         needs_multiple_calls = model_type in ('llama-cpp')
         if needs_multiple_calls:
@@ -138,7 +140,7 @@ def generate(config, **kwargs):
             # TODO OpenAI errors
             response, error = openAI_generate(model_type, **kwargs)
         #save_response_json(response, 'examples/openAI_response.json')
-        formatted_response = format_openAI_response(response, kwargs['prompt'], echo=echo)
+        formatted_response = format_openAI_response(response, kwargs['prompt'], echo=echo, is_chat=is_chat)
         #save_response_json(formatted_response, 'examples/openAI_formatted_response.json')
         return formatted_response, error
 
@@ -206,16 +208,33 @@ def format_openAI_token_dict(completion, token, i, offset):
         token_dict['counterfactuals'] = None
     return token_dict, calculated_offset
 
+def format_openAI_chat_token_dict(content_token, i):
+    token_dict = {
+        'generatedToken': {'token': content_token['token'],
+                           'logprob': content_token['logprob']},
+                           'position': i,
+                           'counterfactuals' : {c['token']: c['logprob'] for c in content_token['top_logprobs']}
+        }
+    return token_dict
 
-def format_openAI_completion(completion, prompt_offset, prompt_end_index):
-    completion_dict = {'text': completion['text'][prompt_offset:],
+def format_openAI_completion(completion, prompt_offset, prompt_end_index, is_chat):
+    if 'text' in completion:
+        completion_text = completion['text']
+    else:
+        completion_text = completion['message']['content']
+    completion_dict = {'text': completion_text[prompt_offset:],
                        'finishReason': completion['finish_reason'],
                        'tokens': []}
     offset = prompt_offset
-    for i, token in enumerate(completion['logprobs']['tokens'][prompt_end_index:]):
-        j = i + prompt_end_index
-        token_dict, offset = format_openAI_token_dict(completion, token, j, offset)
-        completion_dict['tokens'].append(token_dict)
+    if is_chat:
+        for i, token in enumerate(completion['logprobs']['content']):
+            token_dict = format_openAI_chat_token_dict(token, i)
+            completion_dict['tokens'].append(token_dict)
+    else:
+        for i, token in enumerate(completion['logprobs']['tokens'][prompt_end_index:]):
+            j = i + prompt_end_index
+            token_dict, offset = format_openAI_token_dict(completion, token, j, offset)
+            completion_dict['tokens'].append(token_dict)
     return completion_dict
 
 
@@ -230,7 +249,7 @@ def format_openAI_prompt(completion, prompt, prompt_end_index):
     return prompt_dict
 
 
-def format_openAI_response(response, prompt, echo):
+def format_openAI_response(response, prompt, echo, is_chat):
     if echo:
         prompt_end_index = response['usage']['prompt_tokens']
         prompt_dict = format_openAI_prompt(response['choices'][0],
@@ -243,7 +262,7 @@ def format_openAI_response(response, prompt, echo):
 
     prompt_offset = len(prompt) if echo else 0
 
-    response_dict = {'completions': [format_openAI_completion(completion, prompt_offset, prompt_end_index) for 
+    response_dict = {'completions': [format_openAI_completion(completion, prompt_offset, prompt_end_index, is_chat) for
                                      completion in response['choices']],
                      'prompt': prompt_dict,
                      'id': response['id'],
@@ -261,7 +280,6 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
         'temperature': temperature,
         'max_tokens': length,
         'top_p': top_p,
-        'echo': True,
         'logprobs': logprobs,
         'logit_bias': logit_bias,
         'n': num_continuations,
@@ -272,11 +290,15 @@ def openAI_generate(model_type, prompt, length=150, num_continuations=1, logprob
 
     if model_type == 'openai-chat':
         params['messages'] = [{ 'role': "assistant", 'content': prompt }]
-        response = client.chat.completion.create(
+        params['logprobs'] = True if logprobs > 0 else False
+        if logprobs > 0:
+            params['top_logprobs'] = logprobs
+        response = client.chat.completions.create(
             **params
         ).to_dict()
     else:
         params['prompt'] = prompt
+        params['echo'] = True
         response = client.completions.create(
             **params
         ).to_dict()
