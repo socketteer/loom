@@ -121,6 +121,8 @@ def generate(config, **kwargs):
     elif model_type in ('openai', 'openai-custom', 'gooseai', 'openai-chat', 'together', 'llama-cpp'):
         # for some reason, Together AI ignores the echo parameter
         echo = model_type != 'together'
+        # TODO: Together AI inference also breaks if logprobs is set to 0
+        assert kwargs['logprobs'] > 0 or model_type != 'together', "Logprobs must be greater than 0 for Together AI inference"
         # llama-cpp-python doesn't support batched inference yet: https://github.com/abetlen/llama-cpp-python/issues/771
         needs_multiple_calls = model_type in ('llama-cpp')
         if needs_multiple_calls:
