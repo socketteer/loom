@@ -102,9 +102,9 @@ DEFAULT_GENERATION_SETTINGS = {
     'top_p': 1,
     'response_length': 100,
     'prompt_length': 6000,
-    'logprobs': 0,
+    'logprobs': 1,
     #"adaptive": False,
-    "model": "davinci",
+    "model": "davinci-002",
     "stop": '',  # separated by '|'
     "start": '',
     "restart": '',
@@ -117,51 +117,18 @@ DEFAULT_GENERATION_SETTINGS = {
 
 DEFAULT_MODEL_CONFIG = {
     'models': {
-        'ada': {
-            'model': 'ada', 
-            'type': 'openai', 
-            'api_base': 'https://api.openai.com/v1'
-            },
-        'babbage': {
-            'model': 'babbage',
+        'davinci-002': {
+            'model': 'davinci-002',
             'type': 'openai',
             'api_base': 'https://api.openai.com/v1'
             },
-        # 'content-filter-alpha-c4': {'type': 'openai'},
-        # 'content-filter-dev': {'type': 'openai'},
-        'curie': {
-            'model': 'curie',
+        'babbage-002': {
+            'model': 'babbage-002',
             'type': 'openai',
             'api_base': 'https://api.openai.com/v1'
             },
-        # 'cursing-filter-v6': {'type': 'openai'},
-        'davinci': {
-            'model': 'davinci',
-            'type': 'openai',
-            'api_base': 'https://api.openai.com/v1'
-            },
-        'text-davinci-002': {
-            'model': 'text-davinci-002',
-            'type': 'openai',
-            'api_base': 'https://api.openai.com/v1'
-            },
-        'text-davinci-003': {
-            'model': 'text-davinci-003',
-            'type': 'openai',
-            'api_base': 'https://api.openai.com/v1'
-            },
-        # 'code-davinci-002': {
-        #     'model': 'code-davinci-002',
-        #     'type': 'openai',
-        #     'api_base': 'https://api.openai.com/v1'
-        #     },
-        'instruct-curie-beta': {
-            'model': 'instruct-curie-beta',
-            'type': 'openai',
-            'api_base': 'https://api.openai.com/v1'
-            },
-        'instruct-davinci-beta': {
-            'model': 'instruct-davinci-beta',
+        'gpt-3.5-turbo-instruct': {
+            'model': 'gpt-3.5-turbo-instruct',
             'type': 'openai',
             'api_base': 'https://api.openai.com/v1'
             },
@@ -175,6 +142,16 @@ DEFAULT_MODEL_CONFIG = {
             'type': 'openai-chat',
             'api_base': 'https://api.openai.com/v1'
             },
+        'llama-cpp-port-8009': {
+            'model': 'Meta-Llama-3-8B-Q4_5_M',
+            'type': 'llama-cpp',
+            'api_base': 'http://localhost:8009/v1',
+            },
+        'mistralai/Mistral-7B-v0.1':{
+            'model': 'mistralai/Mistral-7B-v0.1',
+            'type': 'together',
+            'api_base': 'https://api.together.xyz/v1'
+         },
         'j1-large': {
             'model': 'j1-large',
             'type': 'ai21',
@@ -214,13 +191,13 @@ DEFAULT_MODEL_CONFIG = {
 }
 
 DEFAULT_INLINE_GENERATION_SETTINGS = {
-    "model": "davinci",
+    "model": "davinci-002",
     "num_continuations": 8,
     "temperature": 1,
     "top_p": 1,
     "response_length": 60,
     "prompt_length": 6000,
-    "logprobs": 0,
+    "logprobs": 1,
     "stop": "\\n|.|?|!",
     "start": "",
     "restart": "",
@@ -337,6 +314,7 @@ class TreeModel:
         self.OPENAI_API_KEY = None
         self.AI21_API_KEY = None
         self.GOOSEAI_API_KEY = None
+        self.TOGETHERAI_API_KEY = None
 
     @property
     def visualization_settings(self):
@@ -2017,7 +1995,9 @@ class TreeModel:
         results, error = gen(prompt, self.generation_settings, self.model_config,
             OPENAI_API_KEY=self.OPENAI_API_KEY,
             AI21_API_KEY=self.AI21_API_KEY,
-            GOOSEAI_API_KEY=self.GOOSEAI_API_KEY,)
+            GOOSEAI_API_KEY=self.GOOSEAI_API_KEY,
+            TOGETHERAI_API_KEY=self.TOGETHERAI_API_KEY,
+            )
         self.post_generation(error, nodes, results)
 
 
@@ -2472,7 +2452,9 @@ class TreeModel:
                                                           unnormalized_amplitude=unnormalized_amplitude,
                                                           unnormalized_threshold=threshold,
                                                           engine=engine,
-                                                          goose=model_info['type'] == 'gooseai')
+                                                          model_type=model_info['type'],
+                                                          api_base=model_info['api_base']
+        )
         return multiverse, ground_truth, prompt
 
 

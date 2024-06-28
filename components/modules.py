@@ -1923,7 +1923,7 @@ class Wavefunction(Module):
         self.add_path_button = None
         self.reset_zoom_button = None
         self.save_image_button = None
-        self.model_list = ["ada", "ada", "babbage", "curie", "davinci", "text-davinci-002", "text-davinci-003", "code-davinci-002", "gpt-neo-1-3b", "gpt-neo-2-7b", "gpt-j-6b", "gpt-neo-20b"]
+        self.model_list = ["davinci-002", 'llama-cpp-port-8009', "gpt-neo-1-3b", "gpt-neo-2-7b", "gpt-j-6b", "gpt-neo-20b"]
         
         self.ground_truth_textbox = None
         Module.__init__(self, 'wavefunction', callbacks, state)
@@ -1979,7 +1979,7 @@ class Wavefunction(Module):
 
     def set_config(self):
         current_model = self.state.generation_settings['model']
-        self.model.set(current_model if current_model in self.model_list else "ada")
+        self.model.set(current_model if current_model in self.model_list else 'davinci-002')
         self.max_depth.set(3)
         self.threshold.set(0.1)
         
